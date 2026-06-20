@@ -95,7 +95,7 @@
     <!-- RIGHT: Integrated AI Instructor Workspace -->
     <div style="flex: 1; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
         <div style="background-color: #252525; padding: 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; font-size: 16px; color: #c9a84c;">🧠 AI Instructor Companion</h3>
+            <h3 style="margin: 0; font-size: 16px; color: #c9a84c;">🧠 Amina — Sovereign Sentinel</h3>
             <button onclick="exportManifesto()" style="background-color: #222; color: #c9a84c; border: 1px solid rgba(201,168,76,0.4); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(201,168,76,0.1)'" onmouseout="this.style.backgroundColor='#222'">
                 <i class="fas fa-download"></i> Export Manifesto
             </button>
@@ -233,6 +233,11 @@
 
     // 3. Helper to update the text console output
     function appendLog(sender, text, highlight = false) {
+        // Map standard guide sender to Amina persona
+        if (sender === 'AI Guide') {
+            sender = 'Amina';
+        }
+        
         const entry = document.createElement('div');
         entry.style.padding = '10px';
         entry.style.borderRadius = '6px';
@@ -241,7 +246,7 @@
             entry.style.backgroundColor = highlight ? 'rgba(168, 85, 247, 0.15)' : 'rgba(239, 68, 68, 0.1)';
             entry.style.border = highlight ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid rgba(239, 68, 68, 0.3)';
             entry.innerHTML = `<strong style="color: ${highlight ? '#d8b4fe' : '#ef4444'};">${sender}:</strong> <span style="color: #cbd5e1;">${text}</span>`;
-        } else if (sender === 'AI Guide') {
+        } else if (sender === 'Amina') {
             entry.style.backgroundColor = 'rgba(201,168,76,0.1)';
             entry.style.border = '1px solid rgba(201,168,76,0.3)';
             entry.innerHTML = `<strong style="color: #c9a84c;">${sender}:</strong> <span style="color: #e2e8f0;">${text}</span>`;

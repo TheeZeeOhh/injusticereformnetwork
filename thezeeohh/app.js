@@ -736,11 +736,11 @@
     <div id="chat-window">
       <div class="chat-header">
         <div class="chat-header-info">
-          <div class="chat-avatar" style="background-image: url('aziza-okoro.jpg'); border: 1px solid rgba(201,168,76,0.4);"></div>
+          <div class="chat-avatar" style="background-image: url('amina-avatar.jpg'); border: 1px solid rgba(168,85,247,0.4);"></div>
           <div style="display: flex; flex-direction: column;">
-            <span style="color: white; font-weight: 700; font-size: 0.88rem;">The Navigator</span>
-            <span style="color: #10b981; font-size: 0.72rem; display: flex; align-items: center; gap: 4px; font-weight: 600;">
-              <span style="width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; display: inline-block;"></span> Online &amp; organizing
+            <span style="color: white; font-weight: 700; font-size: 0.88rem;">Amina</span>
+            <span style="color: #a855f7; font-size: 0.72rem; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+              <span style="width: 6px; height: 6px; background-color: #a855f7; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #a855f7;"></span> Sovereign Sentinel
             </span>
           </div>
         </div>
@@ -748,16 +748,16 @@
       </div>
       <div id="chat-messages" class="chat-messages">
         <div class="chat-bubble ai">
-          Hey there! I'm The Navigator, Aziza's AI Twin. I'm trained on my 20+ years of Baltimore grassroots organizing and mutual aid work. Ask me how to build tenant unions, organize mutual aid, map local power, or protect our community safety nets!
+          Greetings. I am Amina, your Sovereign Sentinel. Synthesizing ancestral resilience and modern cryptographic strategy, I am here to assist you in building local-first systems, organizing mutual aid, defending community spaces, and reclaiming digital autonomy. What coordinates of struggle are we mapping today?
         </div>
       </div>
       <div class="chat-input-area">
-        <input type="text" id="chat-input" placeholder="Ask The Navigator a question..." autocomplete="off">
+        <input type="text" id="chat-input" placeholder="Ask Amina a question..." autocomplete="off">
         <button id="chat-send-btn" class="chat-send-btn">Send</button>
       </div>
     </div>
     <button id="chat-toggle-btn">
-      💬 Chat with The Navigator
+      💬 Chat with Amina
     </button>
   `;
   document.body.appendChild(widget);
@@ -771,9 +771,9 @@
   const messagesArea = document.getElementById('chat-messages');
 
     // AI Twin Responses Database
-  const greeting = "Hey there! I'm The Navigator, Aziza's AI Twin. I'm trained on my 20+ years of Baltimore grassroots organizing and mutual aid work. Ask me how to build tenant unions, organize mutual aid, map local power, or protect our community safety nets!";
+  const greeting = "Greetings. I am Amina, your Sovereign Sentinel. Synthesizing ancestral resilience and modern cryptographic strategy, I am here to assist you in building local-first systems, organizing mutual aid, defending community spaces, and reclaiming digital autonomy. What coordinates of struggle are we mapping today?";
   
-  const defaultResponse = "Solidarity is our ultimate weapon. To build power, we need to focus on base building—going door-to-door, listening to people's material needs, and establishing direct mutual aid networks like food shares and tenant committees. Let me know what specific organizing struggle you're navigating.";
+  const defaultResponse = "True autonomy is built through direct, collective action and secure local systems. Whether you are mapping community power, deploying offline databases, or organizing mutual aid, keep your structures horizontal and your communications encrypted. How can I assist your campaign today?";
 
   const keywords = {
     "mutual aid": "Mutual aid isn't charity—it's absolute solidarity. When building a mutual aid network, start by assessing material needs (food, housing, medical aid) and map out local resources. Keep it democratic, keep it street-level, and never let state agencies co-opt your community safety systems.",
@@ -799,7 +799,7 @@
     "pipeline": "Pipeline struggles require a multi-faceted approach. We block construction through physical direct action, environmental impact report lawsuits, and pressuring insurance companies and banks to divest from the project. Standing Rock showed us the power of treaty-based resistance.",
     "hello": "Hey! What organizing challenge or community project are you working on today?",
     "hi": "Hey! What organizing challenge or community project are you working on today?",
-    "who": "I'm The Navigator, Aziza Okoro's AI Twin. I'm trained on her 20+ years of grassroots organizing, tenant unionizing, and mutual aid work in Baltimore."
+    "who": "I am Amina, a digital sovereign assistant. I blend ancestral resistance frameworks with decentralized, local-first cryptography to guide communities in reclaiming autonomy, mapping power structures, and sustaining mutual aid."
   };
 
   // Interactive Movement Curriculum Database
