@@ -822,23 +822,81 @@
         let schHTML = "";
         scholarships.forEach(sch => {
           const formattedDate = new Date(sch.timestamp).toLocaleDateString();
-          schHTML += `
-            <div class="voucher-card">
-              <div class="voucher-stamp">🎖️</div>
-              <div class="voucher-title">Verified Sovereign Fund Scholarship</div>
-              <div class="voucher-name">${sch.applicantName.toUpperCase()}</div>
-              <div class="voucher-meta-text">Waiver Tier: Full sliding scale access · Issued ${formattedDate}</div>
-              <div class="voucher-details">
-                <strong>ID REF:</strong> ${sch.verificationToken}<br>
-                <strong>COMMUNITY FOCUS:</strong> ${sch.organizingFocus}<br>
-                <strong>SECURE CONTACT:</strong> ${sch.applicantEmail}<br>
-                <strong>SIGNATURE VERIFICATION:</strong> RADIANT_THRESHOLD_CORE_${sch.verificationToken}
-              </div>
-            </div>`;
+          if (sch.status === "Paid (BTC)") {
+            schHTML += `
+              <div class="voucher-card" style="border-color:#f59e0b; background:linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(201, 168, 76, 0.04) 100%);">
+                <div class="voucher-stamp" style="color:#f59e0b;">₿</div>
+                <div class="voucher-title" style="color:#f59e0b;">Bitcoin Purchase Receipt</div>
+                <div class="voucher-name">${sch.organizingFocus.toUpperCase()}</div>
+                <div class="voucher-meta-text">Access Tier: Full Paid (Bitcoin) · Unlocked ${formattedDate}</div>
+                <div class="voucher-details" style="color:#fcd34d; background:rgba(69, 26, 3, 0.25); border-color:rgba(245, 158, 11, 0.2);">
+                  <strong>TX REF:</strong> ${sch.verificationToken}<br>
+                  <strong>METHOD:</strong> Bitcoin Sovereign Network<br>
+                  <strong>SECURE RECEIPT:</strong> Verified On-Chain
+                </div>
+              </div>`;
+            
+            // Add to active trainings grid
+            setTimeout(() => { addCourseToDashboardGrid(sch.organizingFocus); }, 100);
+          } else {
+            schHTML += `
+              <div class="voucher-card">
+                <div class="voucher-stamp">🎖️</div>
+                <div class="voucher-title">Verified Sovereign Fund Scholarship</div>
+                <div class="voucher-name">${sch.applicantName.toUpperCase()}</div>
+                <div class="voucher-meta-text">Waiver Tier: Full sliding scale access · Issued ${formattedDate}</div>
+                <div class="voucher-details">
+                  <strong>ID REF:</strong> ${sch.verificationToken}<br>
+                  <strong>COMMUNITY FOCUS:</strong> ${sch.organizingFocus}<br>
+                  <strong>SECURE CONTACT:</strong> ${sch.applicantEmail}<br>
+                  <strong>SIGNATURE VERIFICATION:</strong> RADIANT_THRESHOLD_CORE_${sch.verificationToken}
+                </div>
+              </div>`;
+          }
         });
         schContainer.innerHTML = schHTML;
       }
     };
+  }
+
+  function addCourseToDashboardGrid(courseName) {
+    const grid = document.querySelector('.my-courses-grid');
+    if (!grid) return;
+    
+    // Check if it's already there
+    const existing = Array.from(grid.querySelectorAll('h4')).some(h => h.textContent === courseName);
+    if (existing) return;
+    
+    const card = document.createElement('div');
+    card.className = 'my-course-card';
+    
+    let thumb = "🌍";
+    let bg = "linear-gradient(135deg, #451a03, #92400e)";
+    
+    if (courseName.includes("Policy")) {
+        thumb = "🏛️";
+        bg = "linear-gradient(135deg,#451a03,#92400e)";
+    } else if (courseName.includes("Digital")) {
+        thumb = "⚡";
+        bg = "linear-gradient(135deg,#0f172a,#1e40af)";
+    } else if (courseName.includes("Labor")) {
+        thumb = "✊";
+        bg = "linear-gradient(135deg,#1e1b4b,#3730a3)";
+    }
+    
+    card.innerHTML = `
+      <div class="my-course-thumb" style="background:${bg};">${thumb}</div>
+      <div class="my-course-info">
+        <h4>${courseName}</h4>
+        <p>Sovereign Certified Course</p>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" data-width="0" style="width: 0%;"></div>
+        </div>
+        <div style="font-size:0.75rem; color:#f59e0b; font-weight:700; margin-bottom:4px;">0% (Start Course)</div>
+        <a href="course.html" class="continue-btn" style="text-align:center; display:block; text-decoration:none;"><i class="fas fa-play"></i> Start Course</a>
+      </div>
+    `;
+    grid.appendChild(card);
   }
 
   // 3. Panel switching routing
