@@ -1316,7 +1316,7 @@ function saveBtcReceiptToIndexedDB(courseName, txid) {
     try {
       const transaction = db.transaction(["scholarships"], "readwrite");
       const store = transaction.objectStore("scholarships");
-      
+
       const receipt = {
         applicantName: "Sovereign Payee",
         applicantEmail: "bitcoin-network-address",
@@ -1325,13 +1325,13 @@ function saveBtcReceiptToIndexedDB(courseName, txid) {
         verificationToken: "BTC-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
         timestamp: new Date().toISOString()
       };
-      
+
       store.add(receipt);
-      
+
       transaction.oncomplete = function() {
         const statusText = document.getElementById('btc-status-text');
         statusText.innerHTML = `<span style="color:#10b981; font-weight:bold;"><i class="fas fa-circle-check"></i> Sovereign License Certified!</span> Course is unlocked on your Dashboard.`;
-        
+
         const verifyBtn = document.getElementById('btc-verify-btn');
         verifyBtn.disabled = false;
         verifyBtn.style.opacity = "1";
@@ -1348,10 +1348,453 @@ function saveBtcReceiptToIndexedDB(courseName, txid) {
       window.location.href = "dashboard.html";
     }
   };
-  
+
   dbRequest.onerror = function() {
     localStorage.setItem("enrolled_" + courseName.toLowerCase().replace(/[^a-z0-9]/g, "_"), "true");
     window.location.href = "dashboard.html";
   };
 }
+
+
+/* ────────────────────────────────────────────
+   17. SESSION BOOKING MODAL
+──────────────────────────────────────────── */
+(function initBookingModal() {
+  // Inject styles
+  const style = document.createElement('style');
+  style.textContent = `
+    #booking-overlay {
+      position: fixed; inset: 0; z-index: 99998;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+      display: none; align-items: center; justify-content: center;
+      font-family: var(--font-sans, system-ui, sans-serif);
+    }
+    #booking-overlay.open { display: flex; }
+    #booking-modal {
+      background: #1c1c1f; border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 14px; width: 90%; max-width: 480px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6); color: #fff;
+      box-sizing: border-box;
+    }
+    #booking-modal .bk-header {
+      background: #252528; padding: 18px 22px;
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+      border-radius: 14px 14px 0 0;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #booking-modal .bk-header h3 {
+      margin: 0; font-size: 15px; color: #c9a84c;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #booking-modal .bk-close {
+      background: none; border: none; color: #9ca3af;
+      font-size: 22px; cursor: pointer; line-height: 1; padding: 2px 6px;
+    }
+    #booking-modal .bk-close:hover { color: #fff; }
+    #booking-modal .bk-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+    #booking-modal .bk-instructor-badge {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 8px; padding: 12px 14px;
+    }
+    #booking-modal .bk-instructor-badge .bk-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg,#c9a84c,#a18035);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #111; flex-shrink: 0;
+    }
+    #booking-modal label {
+      display: block; font-size: 12px; font-weight: 700;
+      color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+    #booking-modal input, #booking-modal select, #booking-modal textarea {
+      width: 100%; padding: 11px 13px; background: #121212;
+      border: 1px solid #3f3f46; border-radius: 7px; color: #fff;
+      font-size: 13px; outline: none; box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    #booking-modal input:focus, #booking-modal select:focus, #booking-modal textarea:focus {
+      border-color: #c9a84c;
+    }
+    #booking-modal select option { background: #1c1c1f; }
+    #booking-modal textarea { resize: vertical; min-height: 90px; }
+    #booking-modal .bk-calendar {
+      display: grid; grid-template-columns: repeat(7,1fr); gap: 4px;
+    }
+    #booking-modal .bk-calendar .bk-day-label {
+      text-align: center; font-size: 10px; color: #6b7280;
+      font-weight: 700; padding: 2px 0;
+    }
+    #booking-modal .bk-calendar .bk-day {
+      text-align: center; padding: 7px 2px; border-radius: 6px;
+      font-size: 12px; cursor: pointer; border: 1px solid transparent;
+      transition: all 0.15s; color: #cbd5e1;
+    }
+    #booking-modal .bk-calendar .bk-day:hover:not(.bk-day-disabled) {
+      background: rgba(201,168,76,0.15); border-color: rgba(201,168,76,0.4);
+    }
+    #booking-modal .bk-calendar .bk-day.selected {
+      background: #c9a84c; color: #111; font-weight: 800;
+      border-color: #c9a84c;
+    }
+    #booking-modal .bk-calendar .bk-day-disabled {
+      color: #3f3f46; cursor: default;
+    }
+    #booking-modal .bk-calendar .bk-day-empty { visibility: hidden; }
+    #booking-modal .bk-month-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    #booking-modal .bk-month-nav button {
+      background: #252528; border: 1px solid #3f3f46; color: #cbd5e1;
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 14px;
+    }
+    #booking-modal .bk-month-nav button:hover { border-color: #c9a84c; color: #c9a84c; }
+    #booking-modal .bk-month-nav span {
+      font-weight: 700; font-size: 13px; color: #fff;
+    }
+    #booking-modal .bk-time-slots {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+    }
+    #booking-modal .bk-time-slot {
+      text-align: center; padding: 8px 4px; border-radius: 6px;
+      font-size: 12px; cursor: pointer; border: 1px solid #3f3f46;
+      color: #cbd5e1; transition: all 0.15s;
+    }
+    #booking-modal .bk-time-slot:hover { border-color: rgba(201,168,76,0.5); color: #c9a84c; }
+    #booking-modal .bk-time-slot.selected {
+      background: rgba(201,168,76,0.15); border-color: #c9a84c; color: #c9a84c; font-weight: 700;
+    }
+    #booking-modal .bk-divider {
+      border: none; border-top: 1px solid #2e2e2e; margin: 4px 0;
+    }
+    #booking-modal .bk-actions { display: flex; gap: 10px; }
+    #booking-modal .bk-btn-primary {
+      flex: 1; padding: 12px; background: #c9a84c; color: #111;
+      border: none; border-radius: 8px; font-weight: 800;
+      font-size: 14px; cursor: pointer; transition: 0.2s;
+    }
+    #booking-modal .bk-btn-primary:hover { background: #b8973e; }
+    #booking-modal .bk-btn-primary:disabled {
+      background: #3f3f46; color: #6b7280; cursor: default;
+    }
+    #booking-modal .bk-btn-secondary {
+      padding: 12px 18px; background: transparent;
+      border: 1px solid #3f3f46; border-radius: 8px;
+      color: #9ca3af; cursor: pointer; font-size: 13px; transition: 0.2s;
+    }
+    #booking-modal .bk-btn-secondary:hover { border-color: #9ca3af; color: #fff; }
+    #booking-modal .bk-success {
+      display: none; text-align: center; padding: 20px 0;
+    }
+    #booking-modal .bk-success .bk-success-icon {
+      font-size: 48px; margin-bottom: 12px;
+    }
+    #booking-modal .bk-success h4 {
+      color: #10b981; font-size: 18px; margin: 0 0 8px;
+    }
+    #booking-modal .bk-success p {
+      color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Build overlay + modal shell
+  const overlay = document.createElement('div');
+  overlay.id = 'booking-overlay';
+  overlay.innerHTML = `
+    <div id="booking-modal">
+      <div class="bk-header">
+        <h3>📅 Book a Strategy Session</h3>
+        <button class="bk-close" id="bk-close-btn">&times;</button>
+      </div>
+      <div class="bk-body" id="bk-form-body">
+
+        <!-- Instructor badge -->
+        <div class="bk-instructor-badge">
+          <div class="bk-avatar" id="bk-avatar-initials">AO</div>
+          <div>
+            <div style="font-weight:800;font-size:14px;" id="bk-instructor-name">Instructor</div>
+            <div style="font-size:12px;color:#a1a1aa;" id="bk-instructor-role">Radiant Threshold</div>
+            <div style="font-size:12px;color:#c9a84c;margin-top:2px;" id="bk-session-price">$150 / session</div>
+          </div>
+        </div>
+
+        <hr class="bk-divider"/>
+
+        <!-- Calendar -->
+        <div>
+          <label>Select Date</label>
+          <div class="bk-month-nav">
+            <button id="bk-prev-month">&#8249;</button>
+            <span id="bk-month-label"></span>
+            <button id="bk-next-month">&#8250;</button>
+          </div>
+          <div class="bk-calendar" id="bk-calendar-grid"></div>
+        </div>
+
+        <!-- Time slots -->
+        <div id="bk-time-section">
+          <label>Select Time <span style="color:#6b7280;font-weight:400;text-transform:none;">(Eastern Time)</span></label>
+          <div class="bk-time-slots" id="bk-time-slots"></div>
+        </div>
+
+        <hr class="bk-divider"/>
+
+        <!-- Contact fields -->
+        <div>
+          <label>Your Name</label>
+          <input type="text" id="bk-name" placeholder="Full name" />
+        </div>
+        <div>
+          <label>Your Email</label>
+          <input type="email" id="bk-email" placeholder="your@email.com" />
+        </div>
+        <div>
+          <label>Session Topic / Message to Instructor</label>
+          <textarea id="bk-message" placeholder="Briefly describe what you'd like to work on in this session..."></textarea>
+        </div>
+
+        <hr class="bk-divider"/>
+
+        <!-- Contact method toggle -->
+        <div>
+          <label>How would you like the instructor to confirm?</label>
+          <div style="display:flex;gap:10px;margin-top:2px;">
+            <button class="bk-toggle-btn" id="bk-toggle-email" onclick="window._bkSetContact('email')"
+              style="flex:1;padding:10px;border-radius:7px;border:1px solid #c9a84c;background:rgba(201,168,76,0.12);color:#c9a84c;font-weight:700;font-size:12px;cursor:pointer;">
+              ✉️ Email
+            </button>
+            <button class="bk-toggle-btn" id="bk-toggle-dm" onclick="window._bkSetContact('dm')"
+              style="flex:1;padding:10px;border-radius:7px;border:1px solid #3f3f46;background:transparent;color:#9ca3af;font-size:12px;cursor:pointer;">
+              💬 Direct Message
+            </button>
+          </div>
+          <div id="bk-dm-note" style="display:none;margin-top:8px;font-size:12px;color:#9ca3af;background:#18181b;border:1px solid #2e2e2e;border-radius:6px;padding:10px;">
+            The instructor will reach out to you at the email address you provided above via a secure direct message channel.
+          </div>
+        </div>
+
+        <div class="bk-actions">
+          <button class="bk-btn-primary" id="bk-submit-btn">Send Booking Request</button>
+          <button class="bk-btn-secondary" id="bk-cancel-btn">Cancel</button>
+        </div>
+
+      </div>
+
+      <!-- Success state -->
+      <div class="bk-success" id="bk-success">
+        <div class="bk-success-icon">✅</div>
+        <h4>Booking Request Sent!</h4>
+        <p id="bk-success-msg">Your request has been sent. The instructor will confirm your session shortly.</p>
+        <button class="bk-btn-primary" style="margin-top:20px;width:100%;" onclick="window.closeBookingModal()">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // State
+  let _instructor = { name: '', role: '', price: '', initials: '' };
+  let _selectedDate = null;
+  let _selectedTime = null;
+  let _contactMethod = 'email';
+  let _calYear, _calMonth;
+
+  const TIMES = ['9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  function initCal() {
+    const now = new Date();
+    _calYear = now.getFullYear();
+    _calMonth = now.getMonth();
+    renderCal();
+  }
+
+  function renderCal() {
+    document.getElementById('bk-month-label').textContent = `${MONTHS[_calMonth]} ${_calYear}`;
+    const grid = document.getElementById('bk-calendar-grid');
+    grid.innerHTML = DAYS.map(d => `<div class="bk-day-label">${d}</div>`).join('');
+
+    const firstDay = new Date(_calYear, _calMonth, 1).getDay();
+    const daysInMonth = new Date(_calYear, _calMonth + 1, 0).getDate();
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    for (let i = 0; i < firstDay; i++) {
+      grid.innerHTML += `<div class="bk-day bk-day-empty"></div>`;
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(_calYear, _calMonth, d);
+      const isPast = date < today;
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const disabled = isPast || isWeekend;
+      const isSelected = _selectedDate && date.toDateString() === _selectedDate.toDateString();
+      grid.innerHTML += `<div class="bk-day${disabled ? ' bk-day-disabled' : ''}${isSelected ? ' selected' : ''}"
+        ${!disabled ? `onclick="window._bkSelectDate(${_calYear},${_calMonth},${d})"` : ''}>
+        ${d}
+      </div>`;
+    }
+  }
+
+  function renderTimeSlots() {
+    const container = document.getElementById('bk-time-slots');
+    container.innerHTML = TIMES.map(t => `
+      <div class="bk-time-slot${_selectedTime === t ? ' selected' : ''}" onclick="window._bkSelectTime('${t}')">
+        ${t}
+      </div>
+    `).join('');
+  }
+
+  // Public API
+  window._bkSelectDate = function(y, m, d) {
+    _selectedDate = new Date(y, m, d);
+    _selectedTime = null;
+    renderCal();
+    renderTimeSlots();
+    document.getElementById('bk-time-section').style.display = 'block';
+  };
+
+  window._bkSelectTime = function(t) {
+    _selectedTime = t;
+    renderTimeSlots();
+  };
+
+  window._bkSetContact = function(method) {
+    _contactMethod = method;
+    const emailBtn = document.getElementById('bk-toggle-email');
+    const dmBtn = document.getElementById('bk-toggle-dm');
+    const dmNote = document.getElementById('bk-dm-note');
+    if (method === 'email') {
+      emailBtn.style.cssText += 'border-color:#c9a84c;background:rgba(201,168,76,0.12);color:#c9a84c;font-weight:700;';
+      dmBtn.style.cssText += 'border-color:#3f3f46;background:transparent;color:#9ca3af;font-weight:400;';
+      dmNote.style.display = 'none';
+    } else {
+      dmBtn.style.cssText += 'border-color:#c9a84c;background:rgba(201,168,76,0.12);color:#c9a84c;font-weight:700;';
+      emailBtn.style.cssText += 'border-color:#3f3f46;background:transparent;color:#9ca3af;font-weight:400;';
+      dmNote.style.display = 'block';
+    }
+  };
+
+  window.openBookingModal = function(instructorName, instructorRole, price) {
+    _instructor = {
+      name: instructorName,
+      role: instructorRole,
+      price: price || '$150 / session',
+      initials: instructorName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()
+    };
+    _selectedDate = null;
+    _selectedTime = null;
+    _contactMethod = 'email';
+
+    document.getElementById('bk-instructor-name').textContent = _instructor.name;
+    document.getElementById('bk-instructor-role').textContent = _instructor.role;
+    document.getElementById('bk-session-price').textContent = _instructor.price;
+    document.getElementById('bk-avatar-initials').textContent = _instructor.initials;
+    document.getElementById('bk-name').value = '';
+    document.getElementById('bk-email').value = '';
+    document.getElementById('bk-message').value = '';
+    document.getElementById('bk-time-section').style.display = 'none';
+    document.getElementById('bk-form-body').style.display = 'flex';
+    document.getElementById('bk-success').style.display = 'none';
+    window._bkSetContact('email');
+    initCal();
+    overlay.classList.add('open');
+  };
+
+  window.closeBookingModal = function() {
+    overlay.classList.remove('open');
+  };
+
+  // Submit
+  document.getElementById('bk-submit-btn').addEventListener('click', function() {
+    const name = document.getElementById('bk-name').value.trim();
+    const email = document.getElementById('bk-email').value.trim();
+    const message = document.getElementById('bk-message').value.trim();
+
+    if (!name || !email) {
+      alert('Please enter your name and email.');
+      return;
+    }
+    if (!_selectedDate) {
+      alert('Please select a date.');
+      return;
+    }
+    if (!_selectedTime) {
+      alert('Please select a time slot.');
+      return;
+    }
+
+    const dateStr = _selectedDate.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    const subject = encodeURIComponent(`Session Booking Request — ${_instructor.name}`);
+    const body = encodeURIComponent(
+`SESSION BOOKING REQUEST
+=======================
+Instructor: ${_instructor.name}
+Role: ${_instructor.role}
+Requested Date: ${dateStr}
+Requested Time: ${_selectedTime} ET
+Confirmation via: ${_contactMethod === 'email' ? 'Email' : 'Direct Message'}
+
+--- APPLICANT INFO ---
+Name: ${name}
+Email: ${email}
+
+--- SESSION TOPIC / MESSAGE ---
+${message || '(No message provided)'}
+
+---
+Sent via Radiant Threshold Booking System`
+    );
+
+    window.open(`mailto:IRNVP@pm.me?subject=${subject}&body=${body}`, '_blank');
+
+    document.getElementById('bk-form-body').style.display = 'none';
+    document.getElementById('bk-success').style.display = 'block';
+    document.getElementById('bk-success-msg').textContent =
+      _contactMethod === 'email'
+        ? `Your booking request for ${_instructor.name} on ${dateStr} at ${_selectedTime} ET has been sent to IRNVP@pm.me. Expect a confirmation within 24–48 hours.`
+        : `Your booking request has been sent. ${_instructor.name} will reach out to you via direct message to confirm your session.`;
+  });
+
+  // Close handlers
+  document.getElementById('bk-close-btn').addEventListener('click', window.closeBookingModal);
+  document.getElementById('bk-cancel-btn').addEventListener('click', window.closeBookingModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) window.closeBookingModal(); });
+
+  document.getElementById('bk-prev-month').addEventListener('click', () => {
+    _calMonth--; if (_calMonth < 0) { _calMonth = 11; _calYear--; }
+    renderCal();
+  });
+  document.getElementById('bk-next-month').addEventListener('click', () => {
+    _calMonth++; if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+    renderCal();
+  });
+
+  // Wire up any existing "Book a Session" buttons on the page
+  document.addEventListener('DOMContentLoaded', function() {
+    wireBkButtons();
+  });
+  // Also run immediately in case DOM is already ready
+  wireBkButtons();
+
+  function wireBkButtons() {
+    document.querySelectorAll('a.btn').forEach(btn => {
+      if (btn.textContent.trim() === 'Book a Session' && btn.getAttribute('href') === '#') {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Detect instructor from page context
+          const nameEl = document.querySelector('.instructor-hero-info h1');
+          const roleEl = document.querySelector('.instructor-tagline');
+          const name = nameEl ? nameEl.textContent.trim() : 'Instructor';
+          const role = roleEl ? roleEl.textContent.trim() : 'Radiant Threshold';
+          const price = '$150 / session';
+          window.openBookingModal(name, role, price);
+        });
+      }
+    });
+  }
+})();
 
