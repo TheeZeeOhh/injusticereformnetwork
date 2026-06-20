@@ -770,7 +770,7 @@
   const sendBtn = document.getElementById('chat-send-btn');
   const messagesArea = document.getElementById('chat-messages');
 
-  // AI Twin Responses Database
+    // AI Twin Responses Database
   const greeting = "Hey there! I'm The Navigator, Aziza's AI Twin. I'm trained on my 20+ years of Baltimore grassroots organizing and mutual aid work. Ask me how to build tenant unions, organize mutual aid, map local power, or protect our community safety nets!";
   
   const defaultResponse = "Solidarity is our ultimate weapon. To build power, we need to focus on base building—going door-to-door, listening to people's material needs, and establishing direct mutual aid networks like food shares and tenant committees. Let me know what specific organizing struggle you're navigating.";
@@ -799,9 +799,205 @@
     "pipeline": "Pipeline struggles require a multi-faceted approach. We block construction through physical direct action, environmental impact report lawsuits, and pressuring insurance companies and banks to divest from the project. Standing Rock showed us the power of treaty-based resistance.",
     "hello": "Hey! What organizing challenge or community project are you working on today?",
     "hi": "Hey! What organizing challenge or community project are you working on today?",
-    "who": "I'm The Navigator, Aziza Okoro's AI Twin. I'm trained on her 20+ years of grassroots organizing, tenant unionizing, and mutual aid work in Baltimore.",
-    "course": "I teach 'The Organizer's Playbook' and 'Prison Abolition' here on Radiant Threshold. They cover the exact frameworks we use at the Injustice Reform Network to win campaigns."
+    "who": "I'm The Navigator, Aziza Okoro's AI Twin. I'm trained on her 20+ years of grassroots organizing, tenant unionizing, and mutual aid work in Baltimore."
   };
+
+  // Interactive Movement Curriculum Database
+  const courseCurriculum = {
+    playbook: {
+      title: "Course 1: The Organizer's Playbook",
+      instructor: "Aziza Okoro (VP of IRN)",
+      steps: [
+        {
+          title: "Step 1 of 3: Base Building & Deep Listening",
+          content: "We build working-class power from the ground up, starting with deep listening. Go door-to-door or hold small community circles. Don't go in with a pre-set agenda. Ask your neighbors: 'What keeps you up at night?' and 'If we could change one thing in this block together, what would it be?' Write down their material needs (mold, leaks, rent hikes). Solidarity starts by addressing these immediate conditions."
+        },
+        {
+          title: "Step 2 of 3: Identifying Grassroots Leaders",
+          content: "Real leaders aren't the ones with the loudest microphones; they are the informal connectors. Look for the person who everyone goes to for advice, the neighbor who checks on everyone when the power goes out, or the tenant who is already helping others. Engage them, build a relationship, and invite them to co-host the next building meeting. Empowering them is how we build a permanent power structure."
+        },
+        {
+          title: "Step 3 of 3: Power Mapping & Strategy",
+          content: "Once you have your core committee, map out the power landscape. Identify your target (e.g., the landlord or a city council member) who has the power to grant your demands. Map out their influences: Who do they listen to? Who funds them? What keeps them in power? Then, design a campaign that applies direct pressure on their weakest points. Remember, capital has the money, but we have the numbers."
+        }
+      ]
+    },
+    abolition: {
+      title: "Course 2: Prison Abolition & Reform",
+      instructor: "Aziza Okoro (VP of IRN)",
+      steps: [
+        {
+          title: "Step 1 of 3: Decarceration & Policy Action",
+          content: "Abolition is a creative project, not just a dismantling one. We start by decarcerating—fighting to end cash bail, pushing for mandatory minimum rollbacks, and demanding the closure of corrupt jails. We use policy demands to shrink the footprint of the prison-industrial complex while redirecting public budgets to community resources."
+        },
+        {
+          title: "Step 2 of 3: Reentry Support & Mutual Aid",
+          content: "We must build the landing pads for our people when they return home. This means establishing community-controlled housing pools, employment networks that don't discriminate, and peer support systems. When we take care of our own, we prove that safety does not depend on cages."
+        },
+        {
+          title: "Step 3 of 3: Non-Carceral Safety Nets",
+          content: "True safety means building local, community-led alternatives to policing. We train street de-escalation squads, establish 24/7 peer crisis intervention circles, and set up neighborhood mediation teams. By handling our own crises, we keep police out of our blocks and keep our youth alive."
+        }
+      ]
+    },
+    rights: {
+      title: "Course 3: Know Your Rights",
+      instructor: "Amara Osei, J.D. (Civil Rights Attorney)",
+      steps: [
+        {
+          title: "Step 1 of 3: The 4th Amendment & Search Defense",
+          content: "The Constitution protects you from unreasonable searches, but only if you assert it. Police cannot search your pockets, bags, phone, or home without a warrant, probable cause, or your consent. Never consent. If they ask to search, say clearly: 'I do not consent to searches.' Even if they search anyway, saying this preserves your legal defense."
+        },
+        {
+          title: "Step 2 of 3: The 5th Amendment & Silence",
+          content: "You have the absolute right to remain silent. You do not have to answer questions about where you are going, what you are doing, or who you are. If stopped, assert your right out loud: 'I am exercising my right to remain silent and I want to speak to a lawyer.' Then, stop talking. Do not try to explain or talk your way out of it."
+        },
+        {
+          title: "Step 3 of 3: Detainment vs. Arrest",
+          content: "Always determine your status immediately. Ask the officer: 'Am I free to go?' If they say yes, walk away calmly. If they say no, ask: 'Why am I being detained?' Under the law, they need reasonable suspicion of a crime. If you are placed under arrest, do not physically resist, but repeat your request for a lawyer and remain silent."
+        }
+      ]
+    },
+    policy: {
+      title: "Course 4: Policy to Power",
+      instructor: "James Okafor (Policy Director)",
+      steps: [
+        {
+          title: "Step 1 of 3: Drafting FOIA & Public Records Demands",
+          content: "Information is leverage. When drafting a FOIA or local public records request, keep it extremely narrow and specific. Specify date ranges, exact names of officials, and precise keywords (e.g. email communications containing 'eviction plan' between Jan 1 and March 30). Avoid open-ended questions; demand actual documents and spreadsheets."
+        },
+        {
+          title: "Step 2 of 3: Designing Grassroots Legislation",
+          content: "A policy proposal is only as good as its enforcement mechanism. When drafting local ordinances or state bills, ensure definitions are tight and cannot be twisted by bureaucrats. Establish independent civilian review boards with full subpoena power, rather than advisory committees. Build the community's teeth directly into the law."
+        },
+        {
+          title: "Step 3 of 3: Direct Grassroots Lobbying",
+          content: "Lobbying isn't just for corporate suits. We lobby by packing committee hearings with impacted community members, launching coordinated phone-in days to legislators, and showing up at their town halls. Make it clear to representatives: support our community-designed bill, or we will organize a primary challenge in your district."
+        }
+      ]
+    },
+    environmental: {
+      title: "Course 5: Environmental Justice",
+      instructor: "Dr. Keisha Morgan (Environmental Scholar)",
+      steps: [
+        {
+          title: "Step 1 of 3: Auditing Corporate Polluters",
+          content: "Start by investigating the polluters in your backyard. Use the EPA's Enforcement and Compliance History Online (ECHO) database to look up local facilities. Track their compliance status, permit violations, and clean air/water act inspections. Documenting their history of violations is your first weapon."
+        },
+        {
+          title: "Step 2 of 3: Frontline Community Science",
+          content: "Don't wait for state agencies to test your air and water. We train residents to use low-cost air particulate monitors, test soil for heavy metals near schools, and gather water samples. Community-controlled science creates unignorable data that can force federal EPA intervention or form the basis of a lawsuit."
+        },
+        {
+          title: "Step 3 of 3: Title VI & Civil Rights Action",
+          content: "If a polluting facility is disproportionately sited in a Black, brown, or low-income neighborhood, file a Title VI complaint under the Civil Rights Act. You must prove that the state agency's permitting decision has a discriminatory disparate impact. Pair the legal filing with direct action to maximize public pressure."
+        }
+      ]
+    },
+    digital: {
+      title: "Course 6: Digital Organizing",
+      instructor: "Zara Chen (Digital Strategist)",
+      steps: [
+        {
+          title: "Step 1 of 3: Rapid Response & Ingress Funnels",
+          content: "Use digital tools to capture attention during a crisis. Launch a targeted online petition with a clear, urgent demand and a single target. Ensure the form captures phone numbers and emails. Immediately redirect signers to an offline action—a phone block, an in-person rally, or a mutual aid volunteer form. Turn digital clicks into street power."
+        },
+        {
+          title: "Step 2 of 3: Security Culture & Operational Security (OpSec)",
+          content: "Protect your people from surveillance. Move all strategic planning to encrypted platforms like Signal. Turn on disappearing messages by default. Never discuss sensitive direct actions on social media or unencrypted texts. Practice cell structure organizing: only share sensitive plans with those who absolutely need to know."
+        },
+        {
+          title: "Step 3 of 3: Narrative & Campaign Framing",
+          content: "To win online, you must control the story. Frame your campaign around a clear villain (e.g., a corporate landlord or a corrupt sheriff) and the community members fighting back. Use video testimonials, sharp infographics, and consistent hashtags. Keep the message moral, simple, and action-oriented."
+        }
+      ]
+    }
+  };
+
+  let currentCourse = null;
+  let currentStep = 0;
+
+  function processTeachingCommands(cleanText) {
+    // 1. Next/Continue check
+    if (cleanText === 'next' || cleanText === 'continue' || cleanText.includes('next step') || cleanText.includes('continue course')) {
+      if (!currentCourse) {
+        return "To start a course, type 'teach' to see our curriculum, or 'teach [name]' to begin a workshop!";
+      }
+      currentStep++;
+      const course = courseCurriculum[currentCourse];
+      if (currentStep >= course.steps.length) {
+        const completionText = `---
+${course.steps[currentStep - 1].title} (Completed)
+---
+
+🎉 Congratulations! You have completed the mini-workshop for ${course.title}.
+We've covered the foundational steps. To explore another course, type teach or courses at any time. Keep organizing!`;
+        currentCourse = null;
+        currentStep = 0;
+        return completionText;
+      } else {
+        const step = course.steps[currentStep];
+        const isLast = currentStep === course.steps.length - 1;
+        return `---
+${step.title}
+${step.content}
+---
+
+👉 ${isLast ? 'Type next or continue to finish this course' : 'Type next or continue to proceed to the next step'}, or ask me any question about this step!`;
+      }
+    }
+
+    // 2. Direct course selection check
+    let selectedCourse = null;
+    if (cleanText.includes('playbook') || cleanText.includes('teach 1') || cleanText === '1') {
+      selectedCourse = 'playbook';
+    } else if (cleanText.includes('abolition') || cleanText.includes('teach 2') || cleanText === '2') {
+      selectedCourse = 'abolition';
+    } else if (cleanText.includes('rights') && (cleanText.includes('teach') || cleanText.includes('course') || cleanText === '3')) {
+      selectedCourse = 'rights';
+    } else if (cleanText.includes('policy') && (cleanText.includes('teach') || cleanText.includes('course') || cleanText === '4')) {
+      selectedCourse = 'policy';
+    } else if (cleanText.includes('environmental') || (cleanText.includes('environment') && (cleanText.includes('teach') || cleanText.includes('course') || cleanText === '5'))) {
+      selectedCourse = 'environmental';
+    } else if (cleanText.includes('digital') && (cleanText.includes('teach') || cleanText.includes('course') || cleanText === '6')) {
+      selectedCourse = 'digital';
+    }
+
+    if (selectedCourse) {
+      currentCourse = selectedCourse;
+      currentStep = 0;
+      const course = courseCurriculum[currentCourse];
+      const step = course.steps[0];
+      return `🎒 Welcome to ${course.title}
+*Led by ${course.instructor}*
+
+Let's begin! We'll go through this curriculum step-by-step.
+
+---
+${step.title}
+${step.content}
+---
+
+👉 Type next or continue to proceed to Step 2, or ask me any question about this step!`;
+    }
+
+    // 3. General teach/courses query
+    if (cleanText === 'teach' || cleanText === 'courses' || cleanText === 'course' || cleanText.includes('teach me') || cleanText.includes('show courses')) {
+      return `📖 Movement Curriculum — The Navigator's Classroom
+I can teach any of our 6 core movement-building courses. I will guide you through structured, multi-step mini-workshops with grassroots insights.
+
+1. **The Organizer's Playbook** — Base Building & Power Mapping (type **teach playbook** or **teach 1**)
+2. **Prison Abolition & Reform** — Designing Non-Carceral Safety Nets (type **teach abolition** or **teach 2**)
+3. **Know Your Rights** — Direct Action Legal Defense (type **teach rights** or **teach 3**)
+4. **Policy to Power** — Records Demands & Policy Design (type **teach policy** or **teach 4**)
+5. **Environmental Justice** — Frontline Citizen Science (type **teach environmental** or **teach 5**)
+6. **Digital Organizing Campaigns** — Growing Movements Safely (type **teach digital** or **teach 6**)
+
+Which course would you like to begin? Just type the name or number!`;
+    }
+
+    return null;
+  }
 
   // Toggle Visibility
   toggleBtn.addEventListener('click', () => {
@@ -865,15 +1061,21 @@
     messagesArea.appendChild(indicator);
     messagesArea.scrollTop = messagesArea.scrollHeight;
 
-    // Generate response based on selected personality
     const cleanText = text.toLowerCase();
-    let responseText = defaultResponse;
+    
+    // First check if it's a teaching-related command
+    const teachReply = processTeachingCommands(cleanText);
+    let responseText = teachReply;
 
-    // Find keyword match
-    for (const key in keywords) {
-      if (cleanText.includes(key)) {
-        responseText = keywords[key];
-        break;
+    if (!responseText) {
+      responseText = defaultResponse;
+      // Sort keys descending by length to handle substring precedence correctly
+      const sortedKeys = Object.keys(keywords).sort((a, b) => b.length - a.length);
+      for (const key of sortedKeys) {
+        if (cleanText.includes(key)) {
+          responseText = keywords[key];
+          break;
+        }
       }
     }
 
@@ -882,7 +1084,8 @@
       indicator.remove();
       const aiBubble = document.createElement('div');
       aiBubble.className = 'chat-bubble ai';
-      aiBubble.textContent = responseText;
+      // Render text formatting nicely
+      aiBubble.innerHTML = responseText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       messagesArea.appendChild(aiBubble);
       messagesArea.scrollTop = messagesArea.scrollHeight;
     }, 850 + Math.random() * 300);
