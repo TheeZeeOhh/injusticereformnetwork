@@ -50,7 +50,15 @@
     <div style="flex: 2; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
         <div style="background-color: #252525; padding: 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase; color: #c9a84c;">⚡ Radiant Threshold War Room</h3>
-            <span style="font-size: 12px; background: rgba(201,168,76,0.12); color: #c9a84c; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(201,168,76,0.4); font-weight: 600;">Encrypted Edge Session</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button id="toggle-record-btn" onclick="toggleJitsiRecording()" style="background-color: #222; color: #ef4444; border: 1px solid rgba(239,68,68,0.4); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(239,68,68,0.1)'" onmouseout="this.style.backgroundColor='#222'">
+                    <i class="fas fa-circle"></i> Record Session
+                </button>
+                <span id="recording-indicator" style="display: none; font-size: 11px; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(239, 68, 68, 0.4); font-weight: bold; align-items: center; gap: 6px;">
+                    <span style="width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block; animation: pulseRed 1.5s infinite;"></span> RECORDING ACTIVE
+                </span>
+                <span style="font-size: 12px; background: rgba(201,168,76,0.12); color: #c9a84c; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(201,168,76,0.4); font-weight: 600;">Encrypted Edge Session</span>
+            </div>
         </div>
         <!-- Jitsi Injection Box -->
         <div id="jitsi-root" style="flex: 1; background-color: #000;"></div>
@@ -128,12 +136,17 @@
             startWithAudioMuted: true,
             startWithVideoMuted: true,
             prejoinPageEnabled: false, // Bypasses default setup for instant ingress
-            disableDeepLinking: true // Forces staying inside your web runtime
+            disableDeepLinking: true, // Forces staying inside your web runtime
+            localRecording: {
+                enabled: true,
+                format: 'flac'
+            }
         },
         interfaceConfigOverwrite: {
             TOOLBAR_BUTTONS: [
                 'microphone', 'camera', 'desktop', 'embedsharing', 
-                'shareaudio', 'raisehand', 'videoquality', 'filmstrip'
+                'shareaudio', 'raisehand', 'videoquality', 'filmstrip',
+                'recording', 'localrecording'
             ],
             SETTINGS_SECTIONS: ['devices', 'language', 'profile']
         }
@@ -151,6 +164,51 @@
     api.addEventListener('participantJoined', (event) => {
         appendLog("System Alert", `Organizer entered the room: ${event.displayName || 'Anonymous Participant'}`);
     });
+
+    // Recording status change tracking
+    let isRecordingActive = false;
+    api.addEventListener('recordingStatusChanged', (event) => {
+        const indicator = document.getElementById('recording-indicator');
+        const recordBtn = document.getElementById('toggle-record-btn');
+        isRecordingActive = event.on;
+        
+        if (isRecordingActive) {
+            indicator.style.display = 'inline-flex';
+            recordBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+            recordBtn.style.color = '#cbd5e1';
+            recordBtn.style.borderColor = '#4b5563';
+            recordBtn.onmouseover = () => recordBtn.style.backgroundColor = 'rgba(255,255,255,0.05)';
+            recordBtn.onmouseout = () => recordBtn.style.backgroundColor = '#222';
+            appendLog("System Alert", `Session recording started (Mode: ${event.mode}).`, true);
+        } else {
+            indicator.style.display = 'none';
+            recordBtn.innerHTML = '<i class="fas fa-circle"></i> Record Session';
+            recordBtn.style.color = '#ef4444';
+            recordBtn.style.borderColor = 'rgba(239,68,68,0.4)';
+            recordBtn.onmouseover = () => recordBtn.style.backgroundColor = 'rgba(239,68,68,0.1)';
+            recordBtn.onmouseout = () => recordBtn.style.backgroundColor = '#222';
+            appendLog("System Alert", `Session recording stopped.`, false);
+        }
+    });
+
+    // Toggle recording action trigger
+    function toggleJitsiRecording() {
+        if (!api) return;
+        api.executeCommand('toggleRecording', {
+            mode: 'file'
+        });
+    }
+
+    // Inject pulse recording styles dynamically
+    const pulseStyle = document.createElement('style');
+    pulseStyle.innerHTML = `
+        @keyframes pulseRed {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+    `;
+    document.head.appendChild(pulseStyle);
 
     // Initialize Sovereign IndexedDB
     let db;
