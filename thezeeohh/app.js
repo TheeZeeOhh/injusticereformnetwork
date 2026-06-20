@@ -738,7 +738,7 @@
         <div class="chat-header-info">
           <div class="chat-avatar" style="background-image: url('aziza-okoro.jpg'); border: 1px solid rgba(201,168,76,0.4);"></div>
           <div style="display: flex; flex-direction: column;">
-            <span style="color: white; font-weight: 700; font-size: 0.88rem;">Aziza's AI Twin</span>
+            <span style="color: white; font-weight: 700; font-size: 0.88rem;">The Navigator</span>
             <span style="color: #10b981; font-size: 0.72rem; display: flex; align-items: center; gap: 4px; font-weight: 600;">
               <span style="width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; display: inline-block;"></span> Online &amp; organizing
             </span>
@@ -748,16 +748,16 @@
       </div>
       <div id="chat-messages" class="chat-messages">
         <div class="chat-bubble ai">
-          Hey there! I'm Aziza's AI Twin, trained on my 20+ years of Baltimore grassroots organizing and mutual aid work. Ask me how to build tenant unions, organize mutual aid, map local power, or protect our community safety nets!
+          Hey there! I'm The Navigator, Aziza's AI Twin. I'm trained on my 20+ years of Baltimore grassroots organizing and mutual aid work. Ask me how to build tenant unions, organize mutual aid, map local power, or protect our community safety nets!
         </div>
       </div>
       <div class="chat-input-area">
-        <input type="text" id="chat-input" placeholder="Ask Zee's AI Twin a question..." autocomplete="off">
+        <input type="text" id="chat-input" placeholder="Ask The Navigator a question..." autocomplete="off">
         <button id="chat-send-btn" class="chat-send-btn">Send</button>
       </div>
     </div>
     <button id="chat-toggle-btn">
-      💬 Chat with Zee's AI Twin
+      💬 Chat with The Navigator
     </button>
   `;
   document.body.appendChild(widget);
@@ -771,7 +771,7 @@
   const messagesArea = document.getElementById('chat-messages');
 
   // AI Twin Responses Database
-  const greeting = "Hey there! I'm Aziza's AI Twin, trained on my 20+ years of Baltimore grassroots organizing and mutual aid work. Ask me how to build tenant unions, organize mutual aid, map local power, or protect our community safety nets!";
+  const greeting = "Hey there! I'm The Navigator, Aziza's AI Twin. I'm trained on my 20+ years of Baltimore grassroots organizing and mutual aid work. Ask me how to build tenant unions, organize mutual aid, map local power, or protect our community safety nets!";
   
   const defaultResponse = "Solidarity is our ultimate weapon. To build power, we need to focus on base building—going door-to-door, listening to people's material needs, and establishing direct mutual aid networks like food shares and tenant committees. Let me know what specific organizing struggle you're navigating.";
 
@@ -799,7 +799,7 @@
     "pipeline": "Pipeline struggles require a multi-faceted approach. We block construction through physical direct action, environmental impact report lawsuits, and pressuring insurance companies and banks to divest from the project. Standing Rock showed us the power of treaty-based resistance.",
     "hello": "Hey! What organizing challenge or community project are you working on today?",
     "hi": "Hey! What organizing challenge or community project are you working on today?",
-    "who": "I'm Aziza Okoro's AI Twin, trained on her 20+ years of grassroots organizing, tenant unionizing, and mutual aid work in Baltimore.",
+    "who": "I'm The Navigator, Aziza Okoro's AI Twin. I'm trained on her 20+ years of grassroots organizing, tenant unionizing, and mutual aid work in Baltimore.",
     "course": "I teach 'The Organizer's Playbook' and 'Prison Abolition' here on Radiant Threshold. They cover the exact frameworks we use at the Injustice Reform Network to win campaigns."
   };
 
