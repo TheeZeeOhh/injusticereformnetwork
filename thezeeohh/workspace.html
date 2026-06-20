@@ -46,7 +46,7 @@
 <!-- Main Sovereign Grid Workspace -->
 <div id="sovereign-workspace" style="display: flex; gap: 20px; padding: 20px; height: calc(100vh - 72px); margin-top: 72px; background-color: #121212; color: #fff; font-family: sans-serif; box-sizing: border-box;">
     
-    <!-- LEFT: Embedded Secure Jitsi Hub -->
+    <!-- LEFT: Embedded Secure Jitsi Hub + Council Roster -->
     <div style="flex: 2; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
         <div style="background-color: #252525; padding: 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase; color: #c9a84c;">⚡ Radiant Threshold War Room</h3>
@@ -60,8 +60,35 @@
                 <span style="font-size: 12px; background: rgba(201,168,76,0.12); color: #c9a84c; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(201,168,76,0.4); font-weight: 600;">Encrypted Edge Session</span>
             </div>
         </div>
-        <!-- Jitsi Injection Box -->
-        <div id="jitsi-root" style="flex: 1; background-color: #000;"></div>
+        
+        <!-- Jitsi & Roster split container -->
+        <div style="flex: 1; display: flex; background-color: #000; overflow: hidden; position: relative;">
+            <!-- Jitsi Injection Box -->
+            <div id="jitsi-root" style="flex: 1; height: 100%;"></div>
+            
+            <!-- Collapsible Strategy Council Sidebar -->
+            <div id="council-sidebar" style="width: 240px; border-left: 1px solid #2e2e2e; background-color: #18181b; display: flex; flex-direction: column; transition: all 0.3s ease;">
+                <div style="background-color: #252525; padding: 10px 15px; border-bottom: 1px solid #2e2e2e; font-size: 11px; font-weight: bold; color: #c9a84c; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px;">
+                    <span>👥 STRATEGY COUNCIL</span>
+                    <button onclick="toggleCouncilRoster()" style="background: none; border: none; color: #a1a1aa; cursor: pointer; font-size: 12px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#a1a1aa'"><i class="fas fa-angles-right"></i></button>
+                </div>
+                <div id="council-list" style="flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Local user placeholder (will always display) -->
+                    <div class="council-member" style="background-color: #242427; border: 1px solid #3f3f46; padding: 8px 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: bold; font-size: 12px; color: #fff;">You (Host)</span>
+                            <span style="font-size: 9px; background-color: #1e1b4b; color: #a5b4fc; border: 1px solid #3730a3; padding: 1px 4px; border-radius: 3px;">Lead Organizer</span>
+                        </div>
+                        <span style="font-size: 9px; color: #10b981;"><i class="fas fa-shield-halved"></i> Secured Link</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Toggle Button for collapsed roster -->
+            <button id="council-toggle-open-btn" onclick="toggleCouncilRoster()" style="display: none; position: absolute; right: 15px; top: 15px; background-color: #252525; color: #cbd5e1; border: 1px solid #3f3f46; border-radius: 4px; padding: 6px 12px; font-size: 11px; font-weight: bold; cursor: pointer; z-index: 10; align-items: center; gap: 5px;" onmouseover="this.style.color='#fff'; this.style.borderColor='#cbd5e1'">
+                <i class="fas fa-users"></i> Council Roster
+            </button>
+        </div>
         
         <!-- Live Scholarship Application & Verification Portal -->
         <div style="background-color: #1c1c1c; border-top: 1px solid #2e2e2e; overflow: hidden;">
@@ -92,42 +119,78 @@
         </div>
     </div>
 
-    <!-- RIGHT: Integrated AI Instructor Workspace -->
+    <!-- RIGHT: Integrated AI Instructor & Collaborative Notepad Workspace -->
     <div style="flex: 1; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
-        <div style="background-color: #252525; padding: 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; font-size: 16px; color: #c9a84c;">🧠 Amina — Sovereign Sentinel</h3>
-            <button onclick="exportManifesto()" style="background-color: #222; color: #c9a84c; border: 1px solid rgba(201,168,76,0.4); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(201,168,76,0.1)'" onmouseout="this.style.backgroundColor='#222'">
-                <i class="fas fa-download"></i> Export Manifesto
-            </button>
+        
+        <!-- Tab Headers -->
+        <div style="background-color: #252525; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+            <div style="display: flex; gap: 5px;">
+                <button id="tab-ai-btn" onclick="switchRightTab('ai')" style="background-color: #1c1c1c; color: #c9a84c; border: 1px solid #2e2e2e; border-bottom: none; border-radius: 6px 6px 0 0; padding: 10px 15px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-brain"></i> AI Companion
+                </button>
+                <button id="tab-draftpad-btn" onclick="switchRightTab('draftpad')" style="background-color: transparent; color: #cbd5e1; border: 1px solid transparent; padding: 10px 15px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-file-signature"></i> Sovereign Draftpad
+                </button>
+            </div>
+            <div>
+                <button onclick="exportManifesto()" style="background-color: #222; color: #c9a84c; border: 1px solid rgba(201,168,76,0.4); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(201,168,76,0.1)'" onmouseout="this.style.backgroundColor='#222'">
+                    <i class="fas fa-download"></i> Export Manifesto
+                </button>
+            </div>
         </div>
         
-        <!-- Interactive Classroom Selector Board -->
-        <div style="background-color: #18181b; padding: 12px 15px; border-bottom: 1px solid #2e2e2e; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <span style="font-size: 12px; font-weight: bold; color: #a1a1aa; margin-right: 5px;">📚 Select Course:</span>
-            <button id="btn-course-101" onclick="startCourse('101')" style="background-color: #18181b; color: #cbd5e1; border: 1px solid #3f3f46; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.2s;">Sovereignty 101</button>
-            <button id="btn-course-102" onclick="startCourse('102')" style="background-color: #18181b; color: #cbd5e1; border: 1px solid #3f3f46; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.2s;">Economics 102</button>
-        </div>
-        
-        <!-- Live Workspace Output Log -->
-        <div id="instructor-log" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 14px; line-height: 1.5; color: #cbd5e1;">
-            <!-- Amina Video Orientation Greeting -->
-            <div style="background-color: #18181b; border: 1px solid rgba(201,168,76,0.3); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px;">
-                <video id="amina-video" src="amina-greeting.mp4" controls autoplay muted style="width: 100%; border-radius: 6px; aspect-ratio: 9/16; background-color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"></video>
-                <div style="font-size: 12px; color: #a1a1aa; text-align: center; font-style: italic;">
-                    🎥 Amina: Sovereign Sentinel Orientation
+        <!-- PANEL 1: AI TUTOR PANEL -->
+        <div id="panel-ai" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+            <!-- Interactive Classroom Selector Board -->
+            <div style="background-color: #18181b; padding: 12px 15px; border-bottom: 1px solid #2e2e2e; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <span style="font-size: 12px; font-weight: bold; color: #a1a1aa; margin-right: 5px;">📚 Select Course:</span>
+                <button id="btn-course-101" onclick="startCourse('101')" style="background-color: #18181b; color: #cbd5e1; border: 1px solid #3f3f46; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: 0.2s;">Sovereignty 101</button>
+                <button id="btn-course-102" onclick="startCourse('102')" style="background-color: #18181b; color: #cbd5e1; border: 1px solid #3f3f46; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: 0.2s;">Economics 102</button>
+            </div>
+            
+            <!-- Live Workspace Output Log -->
+            <div id="instructor-log" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 14px; line-height: 1.5; color: #cbd5e1;">
+                <!-- Amina Video Orientation Greeting -->
+                <div style="background-color: #18181b; border: 1px solid rgba(201,168,76,0.3); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px;">
+                    <video id="amina-video" src="amina-greeting.mp4" controls autoplay muted style="width: 100%; border-radius: 6px; aspect-ratio: 9/16; background-color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"></video>
+                    <div style="font-size: 12px; color: #a1a1aa; text-align: center; font-style: italic;">
+                        🎥 Amina: Sovereign Sentinel Orientation
+                    </div>
+                </div>
+
+                <div style="background-color: #262626; border-left: 4px solid #c9a84c; padding: 12px; border-radius: 4px;">
+                    <strong>System Notice:</strong> Room initializing. Once you launch the session, I will monitor interface commands and help organize your strategy notes here.
                 </div>
             </div>
 
-            <div style="background-color: #262626; border-left: 4px solid #c9a84c; padding: 12px; border-radius: 4px;">
-                <strong>System Notice:</strong> Room initializing. Once you launch the session, I will monitor interface commands and help organize your strategy notes here.
+            <!-- Local Action Controller Input -->
+            <div style="padding: 15px; border-top: 1px solid #2e2e2e; background-color: #222; display: flex; gap: 10px;">
+                <input type="text" id="instructor-input" placeholder="Query curriculum or command AI..." style="flex: 1; padding: 12px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: white; outline: none; font-size: 13px;">
+                <button id="instructor-send-btn" style="background-color: #c9a84c; color: #111; border: none; padding: 0 18px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px;">Send</button>
             </div>
         </div>
 
-        <!-- Local Action Controller Input -->
-        <div style="padding: 15px; border-top: 1px solid #2e2e2e; background-color: #222; display: flex; gap: 10px;">
-            <input type="text" id="instructor-input" placeholder="Query curriculum or command AI..." style="flex: 1; padding: 12px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: white; outline: none;">
-            <button id="instructor-send-btn" style="background-color: #c9a84c; color: #111; border: none; padding: 0 18px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s;">Send</button>
+        <!-- PANEL 2: COLLABORATIVE DRAFTPAD PANEL -->
+        <div id="panel-draftpad" style="display: none; flex-direction: column; flex: 1; overflow: hidden; background-color: #18181b; padding: 15px; box-sizing: border-box; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: bold; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">📝 Real-time Campaign Notepad</span>
+                <span id="sync-status" style="font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 3px 8px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: bold;">
+                    <i class="fas fa-circle-check"></i> Connected
+                </span>
+            </div>
+            
+            <textarea id="shared-draftpad" placeholder="Type here to draft your collaborative campaign strategy manifesto... Keystrokes are synchronized peer-to-peer with other War Room participants in real time via WebRTC channels." style="flex: 1; width: 100%; min-height: 250px; padding: 15px; background-color: #121212; color: #fff; border: 1px solid #3f3f46; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 1.5; resize: none; box-sizing: border-box; outline: none;"></textarea>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveDraftpadToManifesto()" style="flex: 1; background-color: #c9a84c; color: #111; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fas fa-floppy-disk"></i> Commit Draft to local Ledger
+                </button>
+                <button onclick="clearDraftpad()" style="background-color: #222; color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px;">
+                    Clear
+                </button>
+            </div>
         </div>
+
     </div>
 </div>
 
@@ -164,13 +227,24 @@
     const api = new JitsiMeetExternalAPI(domain, options);
     const logBox = document.getElementById('instructor-log');
 
-    // 2. Event Listeners tracking the session status
+    // 2. Event Listeners tracking the Jitsi session status
     api.addEventListener('videoConferenceJoined', (event) => {
         appendLog("AI Guide", "I have successfully joined the secure network channel. Standing by to review deployment steps and organize collective data notes.");
+        updateCouncilList();
     });
 
     api.addEventListener('participantJoined', (event) => {
         appendLog("System Alert", `Organizer entered the room: ${event.displayName || 'Anonymous Participant'}`);
+        updateCouncilList();
+    });
+
+    api.addEventListener('participantLeft', (event) => {
+        appendLog("System Alert", `Organizer left the room: ${event.displayName || 'Anonymous Participant'}`);
+        updateCouncilList();
+    });
+
+    api.addEventListener('displayNameChange', (event) => {
+        updateCouncilList();
     });
 
     // Recording status change tracking
@@ -226,7 +300,6 @@
         if (!db.objectStoreNames.contains("session_notes")) {
             db.createObjectStore("session_notes", { keyPath: "id", autoIncrement: true });
         }
-        // New local store for scholarship applicants
         if (!db.objectStoreNames.contains("scholarships")) {
             db.createObjectStore("scholarships", { keyPath: "id", autoIncrement: true });
         }
@@ -241,7 +314,6 @@
 
     // 3. Helper to update the text console output
     function appendLog(sender, text, highlight = false) {
-        // Map standard guide sender to Amina persona
         if (sender === 'AI Guide') {
             sender = 'Amina';
         }
@@ -301,18 +373,15 @@
         }
     };
 
-    // Track current student state in memory
     let currentCourse = null;
     let currentStepIndex = 0;
 
-    // Function for the AI to start teaching a chosen course
     function startCourse(courseId) {
         currentCourse = RADIANT_CURRICULUM[courseId];
         currentStepIndex = 0;
         
         if (!currentCourse) return;
 
-        // Visual feedback for selected course button
         const btn101 = document.getElementById('btn-course-101');
         const btn102 = document.getElementById('btn-course-102');
         if (courseId === '101') {
@@ -343,7 +412,6 @@
         teachCurrentStep();
     }
 
-    // AI delivers the lesson step and sets up the workshop challenge
     function teachCurrentStep() {
         if (!currentCourse) return;
         
@@ -362,7 +430,6 @@
         appendLog("AI Guide", lectureText);
     }
 
-    // Advance to the next lesson inside the syllabus tracker
     function advanceLesson() {
         if (!currentCourse) return;
         
@@ -374,7 +441,6 @@
             appendLog("AI Guide", "✨ <strong>Congratulations!</strong> You have successfully completed all modules for this curriculum sequence. Your session answers are permanently logged to your sovereign database. Click the export button above to back up your master manifesto file.");
             currentCourse = null;
             
-            // Reset button highlights
             document.getElementById('btn-course-101').style.backgroundColor = '#18181b';
             document.getElementById('btn-course-101').style.color = '#cbd5e1';
             document.getElementById('btn-course-101').style.borderColor = '#3f3f46';
@@ -386,7 +452,6 @@
         }
     }
 
-    // Export saved lesson answers from IndexedDB as a Markdown file
     function exportManifesto() {
         if (!db) {
             alert("Database not ready yet. Please wait a moment.");
@@ -434,7 +499,6 @@
         };
     }
 
-    // Function to process scholarship applications locally
     function submitScholarship() {
         const name = document.getElementById('sch-name').value.trim();
         const email = document.getElementById('sch-email').value.trim();
@@ -454,7 +518,6 @@
             timestamp: new Date().toISOString()
         };
 
-        // Save directly to the local IndexedDB database store
         if (db) {
             try {
                 const transaction = db.transaction(["scholarships"], "readwrite");
@@ -465,14 +528,11 @@
             }
         }
 
-        // Ping the active AI Instructor log to alert the leadership team
         appendLog("System Alert", `New incoming Scholarship Application logged for verification pipeline: <strong>${name}</strong> (${impact})`, true);
         
-        // Have the AI automatically step in to confirm validation 
         setTimeout(() => {
             appendLog("AI Guide", `<strong>Scholarship Action Verified:</strong> I have automatically processed the waiver request for <strong>${name}</strong> under the Radiant Threshold sliding-scale framework. Access code ${applicationData.verificationToken} has been committed to your local secure ledger.`, true);
             
-            // Render the physical digital credential voucher on the UI screen
             document.getElementById('scholarship-form-container').style.display = 'none';
             const voucher = document.getElementById('scholarship-voucher');
             voucher.style.display = 'block';
@@ -484,17 +544,13 @@
         const cmd = instInput.value.trim();
         if (!cmd) return;
 
-        // 1. Render and save user submission
         appendLog("You", cmd);
         instInput.value = '';
 
-        // 2. Process message via active course state or standard commands
         setTimeout(() => {
-            // If student is actively taking a course, evaluate entry as a lesson answer
             if (currentCourse) {
                 appendLog("System Alert", `Saving answer for Lesson ${currentStepIndex + 1} to local database...`, true);
                 
-                // Save answer to IndexedDB
                 if (db) {
                     try {
                         const transaction = db.transaction(["session_notes"], "readwrite");
@@ -514,7 +570,6 @@
                 return;
             }
 
-            // Standard operational commands fallback
             const lowerCmd = cmd.toLowerCase();
             let responseText = "";
 
@@ -552,6 +607,232 @@
     instInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleInstructorSend();
     });
+
+    // 5. Right Sidebar tab switching
+    function switchRightTab(tab) {
+        const aiPanel = document.getElementById('panel-ai');
+        const draftPanel = document.getElementById('panel-draftpad');
+        const aiBtn = document.getElementById('tab-ai-btn');
+        const draftBtn = document.getElementById('tab-draftpad-btn');
+        
+        if (tab === 'ai') {
+            aiPanel.style.display = 'flex';
+            draftPanel.style.display = 'none';
+            aiBtn.style.backgroundColor = '#1c1c1c';
+            aiBtn.style.color = '#c9a84c';
+            aiBtn.style.borderColor = '#2e2e2e';
+            
+            draftBtn.style.backgroundColor = 'transparent';
+            draftBtn.style.color = '#cbd5e1';
+            draftBtn.style.borderColor = 'transparent';
+        } else {
+            aiPanel.style.display = 'none';
+            draftPanel.style.display = 'flex';
+            draftBtn.style.backgroundColor = '#1c1c1c';
+            draftBtn.style.color = '#c9a84c';
+            draftBtn.style.borderColor = '#2e2e2e';
+            
+            aiBtn.style.backgroundColor = 'transparent';
+            aiBtn.style.color = '#cbd5e1';
+            aiBtn.style.borderColor = 'transparent';
+        }
+    }
+
+    // 6. Strategy Council Roster Sidebar Toggle
+    function toggleCouncilRoster() {
+        const sidebar = document.getElementById('council-sidebar');
+        const openBtn = document.getElementById('council-toggle-open-btn');
+        if (sidebar.style.display === 'none') {
+            sidebar.style.display = 'flex';
+            openBtn.style.display = 'none';
+        } else {
+            sidebar.style.display = 'none';
+            openBtn.style.display = 'flex';
+        }
+    }
+
+    // 7. Rebuild the Live Council Roster List from Jitsi Participants Info
+    function updateCouncilList() {
+        const listContainer = document.getElementById('council-list');
+        if (!listContainer) return;
+        
+        listContainer.innerHTML = `
+            <div class="council-member" style="background-color: #242427; border: 1px solid #3f3f46; padding: 8px 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; font-size: 12px; color: #fff;">You (Host)</span>
+                    <span style="font-size: 9px; background-color: #1e1b4b; color: #a5b4fc; border: 1px solid #3730a3; padding: 1px 4px; border-radius: 3px;">Lead Organizer</span>
+                </div>
+                <span style="font-size: 9px; color: #10b981;"><i class="fas fa-shield-halved"></i> Secured Link</span>
+            </div>
+        `;
+        
+        if (!api) return;
+        
+        const participants = api.getParticipantsInfo();
+        const roles = ["Cryptographer", "Field Agent", "Sovereign Tier", "Guest Organizer", "Strategist"];
+        
+        participants.forEach((p) => {
+            const name = p.displayName || `Anonymous Organizer`;
+            const roleIdx = p.id.charCodeAt(0) % roles.length;
+            const roleName = roles[roleIdx];
+            
+            let badgeColor = "#064e3b";
+            let badgeBorder = "#047857";
+            let badgeTextColor = "#6ee7b7";
+            
+            if (roleName === "Cryptographer") {
+                badgeColor = "#311042";
+                badgeBorder = "#5b1580";
+                badgeTextColor = "#e8b4fd";
+            } else if (roleName === "Strategist") {
+                badgeColor = "#451a03";
+                badgeBorder = "#92400e";
+                badgeTextColor = "#fcd34d";
+            } else if (roleName === "Sovereign Tier") {
+                badgeColor = "rgba(201,168,76,0.15)";
+                badgeBorder = "#c9a84c";
+                badgeTextColor = "#c9a84c";
+            }
+            
+            const memberDiv = document.createElement('div');
+            memberDiv.className = 'council-member';
+            memberDiv.style.backgroundColor = '#1c1c1f';
+            memberDiv.style.border = '1px solid #2e2e33';
+            memberDiv.style.padding = '8px 10px';
+            memberDiv.style.borderRadius = '6px';
+            memberDiv.style.display = 'flex';
+            memberDiv.style.flexDirection = 'column';
+            memberDiv.style.gap = '4px';
+            memberDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; font-size: 12px; color: #cbd5e1;">${name}</span>
+                    <span style="font-size: 9px; background-color: ${badgeColor}; color: ${badgeTextColor}; border: 1px solid ${badgeBorder}; padding: 1px 4px; border-radius: 3px;">${roleName}</span>
+                </div>
+                <span style="font-size: 9px; color: #a1a1aa;"><i class="fas fa-signal"></i> Node Ref (${p.id.substr(0, 6)})</span>
+            `;
+            listContainer.appendChild(memberDiv);
+        });
+    }
+
+    // 8. Collaborative Strategy Draftpad logic (P2P via Jitsi DataChannel)
+    const draftpad = document.getElementById('shared-draftpad');
+    const syncStatus = document.getElementById('sync-status');
+    let draftpadTimeout = null;
+
+    // Listen to typing input events and broadcast text payload
+    draftpad.addEventListener('input', () => {
+        syncStatus.innerHTML = `<i class="fas fa-keyboard"></i> Transmitting...`;
+        syncStatus.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+        syncStatus.style.color = '#f59e0b';
+        syncStatus.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+        
+        clearTimeout(draftpadTimeout);
+        draftpadTimeout = setTimeout(() => {
+            if (api) {
+                const message = JSON.stringify({
+                    type: 'draftpad_sync',
+                    content: draftpad.value,
+                    timestamp: Date.now()
+                });
+                // Empty string receiver ID broadcasts to all peers in Jitsi channel
+                api.executeCommand('sendEndpointTextMessage', '', message);
+            }
+            
+            syncStatus.innerHTML = `<i class="fas fa-check"></i> Saved Locally`;
+            syncStatus.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+            syncStatus.style.color = '#10b981';
+            syncStatus.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+        }, 350);
+    });
+
+    // Handle inbound peer data updates
+    api.addEventListener('endpointTextMessageReceived', (event) => {
+        let text = "";
+        let senderName = "Participant";
+        
+        if (event.eventData && event.eventData.text) {
+            text = event.eventData.text;
+        } else if (event.data && event.data.eventData && event.data.eventData.text) {
+            text = event.data.eventData.text;
+        }
+        
+        if (event.senderInfo && event.senderInfo.displayName) {
+            senderName = event.senderInfo.displayName;
+        } else if (event.data && event.data.senderInfo && event.data.senderInfo.displayName) {
+            senderName = event.data.senderInfo.displayName;
+        }
+
+        try {
+            const payload = JSON.parse(text);
+            if (payload.type === 'draftpad_sync') {
+                if (draftpad.value !== payload.content) {
+                    const start = draftpad.selectionStart;
+                    const end = draftpad.selectionEnd;
+                    
+                    draftpad.value = payload.content;
+                    draftpad.setSelectionRange(start, end);
+                    
+                    syncStatus.innerHTML = `<i class="fas fa-arrows-rotate"></i> Synced with ${senderName}`;
+                    syncStatus.style.backgroundColor = 'rgba(168, 85, 247, 0.15)';
+                    syncStatus.style.color = '#d8b4fe';
+                    syncStatus.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+                    
+                    setTimeout(() => {
+                        syncStatus.innerHTML = `<i class="fas fa-check"></i> In Sync`;
+                        syncStatus.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+                        syncStatus.style.color = '#10b981';
+                        syncStatus.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                    }, 2000);
+                }
+            }
+        } catch(e) {
+            // Non-draftpad text message, ignore
+        }
+    });
+
+    // Save collaborative draft locally into IndexedDB session_notes
+    function saveDraftpadToManifesto() {
+        const content = draftpad.value.trim();
+        if (!content) {
+            alert("Draftpad is empty. Type a strategy proposal before saving!");
+            return;
+        }
+        
+        if (db) {
+            try {
+                const transaction = db.transaction(["session_notes"], "readwrite");
+                const store = transaction.objectStore("session_notes");
+                store.add({
+                    course: "Collaborative Workshop",
+                    lesson: "Strategic Campaign Plan",
+                    answer: content,
+                    timestamp: new Date().toISOString()
+                });
+                alert("Strategic Campaign Plan successfully committed to your local ledger!");
+                appendLog("System Alert", "Campaign plan notes committed to Sovereign database.", true);
+            } catch (e) {
+                console.error("IndexedDB save error:", e);
+                alert("Could not write record to local storage database.");
+            }
+        } else {
+            alert("Local Sovereign database connection is not active.");
+        }
+    }
+
+    // Clear draftpad text
+    function clearDraftpad() {
+        if (confirm("Are you sure you want to wipe the current scratchpad contents? Connected peer panels will clear as well.")) {
+            draftpad.value = "";
+            if (api) {
+                const message = JSON.stringify({
+                    type: 'draftpad_sync',
+                    content: "",
+                    timestamp: Date.now()
+                });
+                api.executeCommand('sendEndpointTextMessage', '', message);
+            }
+        }
+    }
 </script>
 </body>
 </html>
