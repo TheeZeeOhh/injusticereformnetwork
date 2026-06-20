@@ -1107,3 +1107,241 @@ console.log(
   'color:#9ca3af; font-size:0.9rem;',
   'color:#6366f1; font-size:0.8rem;'
 );
+
+
+/* ────────────────────────────────────────────
+   16. BITCOIN SOVEREIGN PAYMENT GATEWAY
+──────────────────────────────────────────── */
+window.openBitcoinPayment = function(courseName, usdPrice) {
+  let modal = document.getElementById('btc-payment-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'btc-payment-modal';
+    modal.style.display = 'none';
+    modal.style.position = 'fixed';
+    modal.style.zIndex = '9999';
+    modal.style.left = '0';
+    modal.style.top = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.88)';
+    modal.style.backdropFilter = 'blur(10px)';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.fontFamily = 'sans-serif';
+    
+    modal.innerHTML = `
+      <div style="background-color: #1c1c1f; border: 1px solid #f59e0b; border-radius: 12px; width: 90%; max-width: 440px; padding: 24px; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; color: #fff;">
+        <div style="border-bottom: 1px solid rgba(245,158,11,0.2); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; color: #f59e0b; font-size: 14px; display: flex; align-items: center; gap: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fab fa-bitcoin" style="font-size: 18px;"></i> Sovereign BTC Gateway
+          </h3>
+          <button onclick="closeBitcoinPayment()" style="background: none; border: none; color: #cbd5e1; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+          <div style="text-align: center;">
+            <div id="btc-course-title" style="font-weight: 800; font-size: 1.1rem; color: #fff; margin-bottom: 4px;">Course Title</div>
+            <div style="font-size: 0.82rem; color: #cbd5e1;">
+              Price: <strong style="color: #fff;">$<span id="btc-usd-price">97</span> USD</strong> &middot; 
+              <strong style="color: #f59e0b;"><span id="btc-sats-price">0.001440</span> BTC</strong>
+            </div>
+          </div>
+          
+          <!-- QR Code Container -->
+          <div style="background-color: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; width: 180px; height: 180px; box-sizing: border-box;">
+            <img id="btc-qr-code" src="" alt="Bitcoin QR" style="width: 156px; height: 156px; display: block;" />
+          </div>
+          
+          <!-- Address Display -->
+          <div style="width: 100%;">
+            <label style="font-size: 0.65rem; font-weight: 700; color: #a1a1aa; text-transform: uppercase; display: block; margin-bottom: 5px; letter-spacing: 0.5px;">Bitcoin Secure Deposit Address</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="btc-deposit-address" value="bc1q..." readonly style="flex: 1; padding: 10px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: #cbd5e1; font-family: monospace; font-size: 11px; outline: none; text-overflow: ellipsis;" />
+              <button onclick="copyBtcAddress()" style="padding: 0 12px; background: #27272a; border: 1px solid #3f3f46; border-radius: 6px; color: #fff; cursor: pointer; font-size: 12px;" onmouseover="this.style.background='#3f3f46'" onmouseout="this.style.background='#27272a'"><i class="fas fa-copy"></i></button>
+            </div>
+          </div>
+
+          <!-- Transaction Status Monitor -->
+          <div style="width: 100%; background-color: #121212; border: 1px solid #2e2e2e; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+              <span style="color: #a1a1aa; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Network Status</span>
+              <span id="btc-status-badge" style="background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 8px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; gap: 4px; font-size: 10px;">
+                <span class="pulse-dot-orange" style="width: 6px; height: 6px; background-color: #f59e0b; border-radius: 50%; display: inline-block;"></span> Waiting for Payment...
+              </span>
+            </div>
+            
+            <div style="height: 4px; background-color: #27272a; border-radius: 2px; overflow: hidden; width: 100%;">
+              <div id="btc-status-progress" style="width: 15%; height: 100%; background: linear-gradient(90deg, #f59e0b, #c9a84c); transition: width 0.5s ease;"></div>
+            </div>
+            
+            <div id="btc-status-text" style="font-size: 10px; color: #a1a1aa; line-height: 1.4;">
+              Send the exact BTC amount to the address above. Connection established to the Bitcoin Mempool.
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="width: 100%; display: flex; gap: 10px; margin-top: 5px; box-sizing: border-box;">
+            <button id="btc-verify-btn" onclick="simulateBtcPayment()" style="flex: 1; padding: 12px; background: #f59e0b; color: #111; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; text-align: center;">
+              ⚡ Simulate Wallet Payment
+            </button>
+            <button onclick="closeBitcoinPayment()" style="padding: 12px 18px; background: transparent; border: 1px solid #3f3f46; border-radius: 6px; color: #cbd5e1; cursor: pointer; font-size: 13px;" onmouseover="this.style.color='#fff'; this.style.borderColor='#cbd5e1'">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add CSS animations dynamically
+    const pulseStyle = document.createElement('style');
+    pulseStyle.innerHTML = `
+      @keyframes pulseOrange {
+        0% { opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { opacity: 0.4; }
+      }
+      .pulse-dot-orange {
+        animation: pulseOrange 1.5s infinite;
+      }
+    `;
+    document.head.appendChild(pulseStyle);
+  }
+  
+  // Set details
+  document.getElementById('btc-course-title').textContent = courseName;
+  document.getElementById('btc-usd-price').textContent = usdPrice;
+  document.getElementById('btc-deposit-address').value = "bc1q8t5d" + Math.random().toString(36).substr(2, 6) + "sovereign" + Math.random().toString(36).substr(2, 6) + "address";
+  
+  const satsText = document.getElementById('btc-sats-price');
+  satsText.textContent = "Loading...";
+  
+  const qrImg = document.getElementById('btc-qr-code');
+  qrImg.src = "";
+  
+  // Reset status UI
+  const badge = document.getElementById('btc-status-badge');
+  badge.innerHTML = `<span class="pulse-dot-orange" style="width: 6px; height: 6px; background-color: #f59e0b; border-radius: 50%; display: inline-block;"></span> Waiting for Payment...`;
+  badge.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+  badge.style.color = '#f59e0b';
+  badge.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+  
+  document.getElementById('btc-status-progress').style.width = "15%";
+  document.getElementById('btc-status-text').textContent = "Send the exact BTC amount to the address above. Connection established to the Bitcoin Mempool.";
+  
+  const verifyBtn = document.getElementById('btc-verify-btn');
+  verifyBtn.disabled = false;
+  verifyBtn.style.opacity = "1";
+  verifyBtn.style.background = "#f59e0b";
+  verifyBtn.style.color = "#111";
+  verifyBtn.textContent = "⚡ Simulate Wallet Payment";
+  verifyBtn.onclick = () => simulateBtcPayment(courseName);
+
+  modal.style.display = 'flex';
+  
+  // Fetch Bitcoin Price
+  fetch('https://api.coindesk.com/v1/bpi/currentprice.json')
+    .then(r => r.json())
+    .then(data => {
+      const btcPrice = data.bpi.USD.rate_float;
+      const btcAmount = (usdPrice / btcPrice).toFixed(6);
+      satsText.textContent = btcAmount;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=bitcoin:${document.getElementById('btc-deposit-address').value}?amount=${btcAmount}`;
+    })
+    .catch(err => {
+      console.warn("Failed to fetch live BTC price, using mock price $67,500:", err);
+      const btcAmount = (usdPrice / 67500).toFixed(6);
+      satsText.textContent = btcAmount;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=bitcoin:${document.getElementById('btc-deposit-address').value}?amount=${btcAmount}`;
+    });
+};
+
+window.closeBitcoinPayment = function() {
+  const modal = document.getElementById('btc-payment-modal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.copyBtcAddress = function() {
+  const input = document.getElementById('btc-deposit-address');
+  input.select();
+  document.execCommand('copy');
+  alert("Bitcoin address copied to clipboard!");
+};
+
+window.simulateBtcPayment = function(courseName) {
+  const verifyBtn = document.getElementById('btc-verify-btn');
+  const badge = document.getElementById('btc-status-badge');
+  const progress = document.getElementById('btc-status-progress');
+  const statusText = document.getElementById('btc-status-text');
+  
+  verifyBtn.disabled = true;
+  verifyBtn.style.opacity = "0.5";
+  
+  // Step 1: Detect transaction in mempool
+  verifyBtn.textContent = "Broadcasting Transaction...";
+  badge.innerHTML = `<span class="pulse-dot-orange" style="width: 6px; height: 6px; background-color: #f59e0b; border-radius: 50%; display: inline-block;"></span> Mempool detected (0/1 confirmations)`;
+  progress.style.width = "45%";
+  
+  const mockTxId = "tx-" + Math.random().toString(16).substr(2, 16);
+  statusText.innerHTML = `Transaction broadcast detected: <code style="color:#c9a84c; font-size:10px;">${mockTxId}</code>. Checking validation signature...`;
+  
+  // Step 2: 1 Confirmation received (simulated after 3.5 seconds)
+  setTimeout(() => {
+    badge.innerHTML = `<span style="width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; display: inline-block;"></span> Confirmed (1/1 confirmations)`;
+    badge.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+    badge.style.color = '#10b981';
+    badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+    progress.style.width = "100%";
+    statusText.innerHTML = `<strong>Payment Verified!</strong> Block height confirmed. Generating local cryptographic voucher...`;
+    
+    // Save to local database
+    saveBtcReceiptToIndexedDB(courseName, mockTxId);
+  }, 3500);
+};
+
+function saveBtcReceiptToIndexedDB(courseName, txid) {
+  const dbRequest = indexedDB.open("SovereignDB", 2);
+  dbRequest.onsuccess = function(event) {
+    const db = event.target.result;
+    try {
+      const transaction = db.transaction(["scholarships"], "readwrite");
+      const store = transaction.objectStore("scholarships");
+      
+      const receipt = {
+        applicantName: "Sovereign Payee",
+        applicantEmail: "bitcoin-network-address",
+        organizingFocus: courseName,
+        status: "Paid (BTC)",
+        verificationToken: "BTC-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        timestamp: new Date().toISOString()
+      };
+      
+      store.add(receipt);
+      
+      transaction.oncomplete = function() {
+        const statusText = document.getElementById('btc-status-text');
+        statusText.innerHTML = `<span style="color:#10b981; font-weight:bold;"><i class="fas fa-circle-check"></i> Sovereign License Certified!</span> Course is unlocked on your Dashboard.`;
+        
+        const verifyBtn = document.getElementById('btc-verify-btn');
+        verifyBtn.disabled = false;
+        verifyBtn.style.opacity = "1";
+        verifyBtn.style.background = "#10b981";
+        verifyBtn.style.color = "#fff";
+        verifyBtn.textContent = "Go to Dashboard";
+        verifyBtn.onclick = () => {
+          window.location.href = "dashboard.html";
+        };
+      };
+    } catch(e) {
+      console.error("IndexedDB error saving BTC receipt:", e);
+      localStorage.setItem("enrolled_" + courseName.toLowerCase().replace(/[^a-z0-9]/g, "_"), "true");
+      window.location.href = "dashboard.html";
+    }
+  };
+  
+  dbRequest.onerror = function() {
+    localStorage.setItem("enrolled_" + courseName.toLowerCase().replace(/[^a-z0-9]/g, "_"), "true");
+    window.location.href = "dashboard.html";
+  };
+}
+
