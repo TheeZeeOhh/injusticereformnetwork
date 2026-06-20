@@ -1037,8 +1037,11 @@ Which course would you like to begin? Just type the name or number!`;
     }
   });
 
+  // Widget conversation history
+  const widgetHistory = [];
+
   // Send Message Logic
-  function sendMessage() {
+  async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
 
@@ -1048,6 +1051,7 @@ Which course would you like to begin? Just type the name or number!`;
     userBubble.textContent = text;
     messagesArea.appendChild(userBubble);
     chatInput.value = '';
+    sendBtn.disabled = true;
     messagesArea.scrollTop = messagesArea.scrollHeight;
 
     // Show Typing Indicator
@@ -1062,14 +1066,23 @@ Which course would you like to begin? Just type the name or number!`;
     messagesArea.scrollTop = messagesArea.scrollHeight;
 
     const cleanText = text.toLowerCase();
-    
-    // First check if it's a teaching-related command
-    const teachReply = processTeachingCommands(cleanText);
-    let responseText = teachReply;
 
-    if (!responseText) {
+    // Teaching commands handled locally (no API needed)
+    const teachReply = processTeachingCommands(cleanText);
+
+    let responseText;
+    if (teachReply) {
+      await new Promise(r => setTimeout(r, 600 + Math.random() * 200));
+      responseText = teachReply;
+    } else if (typeof callGemini === 'function' && sessionStorage.getItem('rt_gemini_key')) {
+      // Live Gemini response
+      widgetHistory.push({ role: 'user', text });
+      responseText = await callGemini(text, widgetHistory.slice(0, -1));
+      widgetHistory.push({ role: 'model', text: responseText });
+    } else {
+      // Keyword fallback when no key present
+      await new Promise(r => setTimeout(r, 850 + Math.random() * 300));
       responseText = defaultResponse;
-      // Sort keys descending by length to handle substring precedence correctly
       const sortedKeys = Object.keys(keywords).sort((a, b) => b.length - a.length);
       for (const key of sortedKeys) {
         if (cleanText.includes(key)) {
@@ -1079,16 +1092,13 @@ Which course would you like to begin? Just type the name or number!`;
       }
     }
 
-    // Simulate delay
-    setTimeout(() => {
-      indicator.remove();
-      const aiBubble = document.createElement('div');
-      aiBubble.className = 'chat-bubble ai';
-      // Render text formatting nicely
-      aiBubble.innerHTML = responseText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      messagesArea.appendChild(aiBubble);
-      messagesArea.scrollTop = messagesArea.scrollHeight;
-    }, 850 + Math.random() * 300);
+    indicator.remove();
+    const aiBubble = document.createElement('div');
+    aiBubble.className = 'chat-bubble ai';
+    aiBubble.innerHTML = responseText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    messagesArea.appendChild(aiBubble);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+    sendBtn.disabled = false;
   }
 
   sendBtn.addEventListener('click', sendMessage);
