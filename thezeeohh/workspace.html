@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radiant Threshold — Collaborative Sovereign Workspace</title>
+  <meta name="description" content="Secure activist war room and collaborative strategy workspace powered by Radiant Threshold." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://meet.jit.si/external_api.js"></script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;display:block;" />
+    </a>
+    <div class="nav-links">
+      <a href="explore.html" class="nav-link">Explore</a>
+      <a href="instructor.html" class="nav-link">Instructors</a>
+      <a href="workspace.html" class="nav-link active">War Room</a>
+      <a href="index.html#pricing" class="nav-link">Access</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+    </div>
+    <div class="nav-actions">
+      <a href="explore.html" class="btn btn-secondary btn-sm">Explore Training</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="explore.html" class="nav-link">Explore</a>
+  <a href="instructor.html" class="nav-link">Instructors</a>
+  <a href="workspace.html" class="nav-link active">War Room</a>
+  <a href="index.html#pricing" class="nav-link">Access</a>
+  <a href="dashboard.html" class="nav-link">Dashboard</a>
+  <a href="dashboard.html" class="btn btn-primary" style="margin-top:8px;justify-content:center;">Get Started</a>
+</div>
+
+<!-- Main Sovereign Grid Workspace -->
+<div id="sovereign-workspace" style="display: flex; gap: 20px; padding: 20px; height: calc(100vh - 72px); margin-top: 72px; background-color: #121212; color: #fff; font-family: sans-serif; box-sizing: border-box;">
+    
+    <!-- LEFT: Embedded Secure Jitsi Hub -->
+    <div style="flex: 2; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
+        <div style="background-color: #252525; padding: 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase; color: #c9a84c;">⚡ Radiant Threshold War Room</h3>
+            <span style="font-size: 12px; background: rgba(201,168,76,0.12); color: #c9a84c; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(201,168,76,0.4); font-weight: 600;">Encrypted Edge Session</span>
+        </div>
+        <!-- Jitsi Injection Box -->
+        <div id="jitsi-root" style="flex: 1; background-color: #000;"></div>
+        
+        <!-- Live Scholarship Application & Verification Portal -->
+        <div style="background-color: #1c1c1c; border-top: 1px solid #2e2e2e; overflow: hidden;">
+            <div style="background-color: #252525; padding: 12px 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0; font-size: 14px; color: #cbd5e1; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">🎓 Radiant Threshold Scholarship Portal</h4>
+                <span style="font-size: 11px; background: #064e3b; color: #6ee7b7; padding: 2px 8px; border-radius: 10px; border: 1px solid #047857;">Sovereign Fund Available</span>
+            </div>
+            
+            <div id="scholarship-form-container" style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="sch-name" placeholder="Applicant Name" style="flex: 1; padding: 10px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: white; outline: none; font-size: 13px;">
+                    <input type="email" id="sch-email" placeholder="Sovereign/Encrypted Email" style="flex: 1; padding: 10px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: white; outline: none; font-size: 13px;">
+                </div>
+                <textarea id="sch-impact" placeholder="Briefly detail your current organizing work or project goals (e.g., Youth Housing pipelines, Community Data Audits)..." style="width: 100%; height: 80px; padding: 10px; background-color: #121212; color: #e2e8f0; border: 1px solid #3f3f46; border-radius: 6px; resize: none; font-size: 13px; outline: none; box-sizing: border-box;"></textarea>
+                <button onclick="submitScholarship()" style="background-color: #059669; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px;">
+                    🚀 Submit Secure Application
+                </button>
+            </div>
+
+            <!-- Hidden Live Verification Voucher Frame -->
+            <div id="scholarship-voucher" style="display: none; padding: 20px; background: linear-gradient(135deg, #022c22 0%, #111827 100%); border-top: 1px solid #047857; text-align: center;">
+                <div style="border: 2px dashed #10b981; padding: 15px; border-radius: 8px;">
+                    <h5 style="margin: 0 0 5px 0; color: #34d399; font-size: 16px; letter-spacing: 1px;">MOVEMENT SCHOLARSHIP CERTIFIED</h5>
+                    <p style="margin: 0; font-size: 12px; color: #9ca3af;">Radiant Threshold Access Level: <strong style="color: white;">Full Waiver (Sovereign Tier)</strong></p>
+                    <div id="voucher-meta" style="margin-top: 10px; font-family: monospace; font-size: 11px; color: #6ee7b7;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Integrated AI Instructor Workspace -->
+    <div style="flex: 1; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
+        <div style="background-color: #252525; padding: 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 16px; color: #c9a84c;">🧠 AI Instructor Companion</h3>
+            <button onclick="exportManifesto()" style="background-color: #222; color: #c9a84c; border: 1px solid rgba(201,168,76,0.4); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(201,168,76,0.1)'" onmouseout="this.style.backgroundColor='#222'">
+                <i class="fas fa-download"></i> Export Manifesto
+            </button>
+        </div>
+        
+        <!-- Interactive Classroom Selector Board -->
+        <div style="background-color: #18181b; padding: 12px 15px; border-bottom: 1px solid #2e2e2e; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 12px; font-weight: bold; color: #a1a1aa; margin-right: 5px;">📚 Select Course:</span>
+            <button id="btn-course-101" onclick="startCourse('101')" style="background-color: #18181b; color: #cbd5e1; border: 1px solid #3f3f46; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.2s;">Sovereignty 101</button>
+            <button id="btn-course-102" onclick="startCourse('102')" style="background-color: #18181b; color: #cbd5e1; border: 1px solid #3f3f46; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.2s;">Economics 102</button>
+        </div>
+        
+        <!-- Live Workspace Output Log -->
+        <div id="instructor-log" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 14px; line-height: 1.5; color: #cbd5e1;">
+            <div style="background-color: #262626; border-left: 4px solid #c9a84c; padding: 12px; border-radius: 4px;">
+                <strong>System Notice:</strong> Room initializing. Once you launch the session, I will monitor interface commands and help organize your strategy notes here.
+            </div>
+        </div>
+
+        <!-- Local Action Controller Input -->
+        <div style="padding: 15px; border-top: 1px solid #2e2e2e; background-color: #222; display: flex; gap: 10px;">
+            <input type="text" id="instructor-input" placeholder="Query curriculum or command AI..." style="flex: 1; padding: 12px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: white; outline: none;">
+            <button id="instructor-send-btn" style="background-color: #c9a84c; color: #111; border: none; padding: 0 18px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s;">Send</button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+    // 1. Initialize the Secure Jitsi Frame
+    const domain = "meet.jit.si";
+    const options = {
+        roomName: "RadiantThreshold_SovereignActionHub_Zee",
+        width: "100%",
+        height: "100%",
+        parentNode: document.getElementById('jitsi-root'),
+        configOverwrite: {
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
+            prejoinPageEnabled: false, // Bypasses default setup for instant ingress
+            disableDeepLinking: true // Forces staying inside your web runtime
+        },
+        interfaceConfigOverwrite: {
+            TOOLBAR_BUTTONS: [
+                'microphone', 'camera', 'desktop', 'embedsharing', 
+                'shareaudio', 'raisehand', 'videoquality', 'filmstrip'
+            ],
+            SETTINGS_SECTIONS: ['devices', 'language', 'profile']
+        }
+    };
+
+    // Spin up Jitsi session instance
+    const api = new JitsiMeetExternalAPI(domain, options);
+    const logBox = document.getElementById('instructor-log');
+
+    // 2. Event Listeners tracking the session status
+    api.addEventListener('videoConferenceJoined', (event) => {
+        appendLog("AI Guide", "I have successfully joined the secure network channel. Standing by to review deployment steps and organize collective data notes.");
+    });
+
+    api.addEventListener('participantJoined', (event) => {
+        appendLog("System Alert", `Organizer entered the room: ${event.displayName || 'Anonymous Participant'}`);
+    });
+
+    // Initialize Sovereign IndexedDB
+    let db;
+    const dbRequest = indexedDB.open("SovereignDB", 2);
+    dbRequest.onupgradeneeded = function(event) {
+        db = event.target.result;
+        if (!db.objectStoreNames.contains("session_notes")) {
+            db.createObjectStore("session_notes", { keyPath: "id", autoIncrement: true });
+        }
+        // New local store for scholarship applicants
+        if (!db.objectStoreNames.contains("scholarships")) {
+            db.createObjectStore("scholarships", { keyPath: "id", autoIncrement: true });
+        }
+    };
+    dbRequest.onsuccess = function(event) {
+        db = event.target.result;
+        console.log("Sovereign database initialized successfully.");
+    };
+    dbRequest.onerror = function(event) {
+        console.error("Error opening Sovereign database:", event.target.error);
+    };
+
+    // 3. Helper to update the text console output
+    function appendLog(sender, text, highlight = false) {
+        const entry = document.createElement('div');
+        entry.style.padding = '10px';
+        entry.style.borderRadius = '6px';
+        
+        if (sender === 'System Alert') {
+            entry.style.backgroundColor = highlight ? 'rgba(168, 85, 247, 0.15)' : 'rgba(239, 68, 68, 0.1)';
+            entry.style.border = highlight ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid rgba(239, 68, 68, 0.3)';
+            entry.innerHTML = `<strong style="color: ${highlight ? '#d8b4fe' : '#ef4444'};">${sender}:</strong> <span style="color: #cbd5e1;">${text}</span>`;
+        } else if (sender === 'AI Guide') {
+            entry.style.backgroundColor = 'rgba(201,168,76,0.1)';
+            entry.style.border = '1px solid rgba(201,168,76,0.3)';
+            entry.innerHTML = `<strong style="color: #c9a84c;">${sender}:</strong> <span style="color: #e2e8f0;">${text}</span>`;
+        } else {
+            entry.style.backgroundColor = '#27272a';
+            entry.style.border = '1px solid #3f3f46';
+            entry.innerHTML = `<strong style="color: #cbd5e1;">${sender}:</strong> <span style="color: #e2e8f0;">${text}</span>`;
+        }
+        
+        logBox.appendChild(entry);
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    // 4. Input handling for the companion console
+    const instInput = document.getElementById('instructor-input');
+    const instBtn = document.getElementById('instructor-send-btn');
+
+    // Sovereign Course Modules taught by the AI Instructor
+    const RADIANT_CURRICULUM = {
+        "101": {
+            title: "Introduction to Digital Sovereignty",
+            steps: [
+                {
+                    title: "The Landscape of Data Extraction",
+                    content: "Traditional web infrastructure relies on corporate cloud extraction. Our goal is local-first architecture where data belongs natively to the creator.",
+                    exercise: "Analyze your current daily stack. Identify three apps that extract your personal metrics, and write down an offline or sovereign alternative for one of them."
+                },
+                {
+                    title: "Building Privacy-First Frameworks",
+                    content: "Privacy isn't about hiding; it's about autonomy. We use end-to-end local encryption to build walls around community networks.",
+                    exercise: "Draft a 3-sentence privacy declaration policy for a local mutual aid network."
+                }
+            ]
+        },
+        "102": {
+            title: "Decentralized Economic Systems",
+            steps: [
+                {
+                    title: "Mutual Aid Tokenomics",
+                    content: "Decentralized economics means creating value within communities that cannot be extracted by outside banking cartels.",
+                    exercise: "Design a simple non-monetary credit exchange system for food security routing in your neighborhood."
+                }
+            ]
+        }
+    };
+
+    // Track current student state in memory
+    let currentCourse = null;
+    let currentStepIndex = 0;
+
+    // Function for the AI to start teaching a chosen course
+    function startCourse(courseId) {
+        currentCourse = RADIANT_CURRICULUM[courseId];
+        currentStepIndex = 0;
+        
+        if (!currentCourse) return;
+
+        // Visual feedback for selected course button
+        const btn101 = document.getElementById('btn-course-101');
+        const btn102 = document.getElementById('btn-course-102');
+        if (courseId === '101') {
+            btn101.style.backgroundColor = '#3b0764';
+            btn101.style.color = '#d8b4fe';
+            btn101.style.borderColor = '#6b21a8';
+            btn101.style.fontWeight = 'bold';
+            
+            btn102.style.backgroundColor = '#18181b';
+            btn102.style.color = '#cbd5e1';
+            btn102.style.borderColor = '#3f3f46';
+            btn102.style.fontWeight = 'normal';
+        } else {
+            btn102.style.backgroundColor = '#3b0764';
+            btn102.style.color = '#d8b4fe';
+            btn102.style.borderColor = '#6b21a8';
+            btn102.style.fontWeight = 'bold';
+            
+            btn101.style.backgroundColor = '#18181b';
+            btn101.style.color = '#cbd5e1';
+            btn101.style.borderColor = '#3f3f46';
+            btn101.style.fontWeight = 'normal';
+        }
+
+        logBox.innerHTML = ""; // Clear log for fresh course focus
+        appendLog("System Alert", `--- Entered Classroom: ${currentCourse.title} ---`, false);
+        
+        teachCurrentStep();
+    }
+
+    // AI delivers the lesson step and sets up the workshop challenge
+    function teachCurrentStep() {
+        if (!currentCourse) return;
+        
+        const step = currentCourse.steps[currentStepIndex];
+        
+        let lectureText = `
+            <strong>Lesson ${currentStepIndex + 1}: ${step.title}</strong><br><br>
+            ${step.content}<br><br>
+            <div style="background-color: #18181b; padding: 12px; border-radius: 6px; border: 1px dashed #a855f7; margin-top: 10px;">
+                <strong style="color: #d8b4fe;">⚡ LIVE WORKSHOP CHALLENGE:</strong><br>
+                ${step.exercise}
+            </div>
+            <br><span style="color: #a1a1aa; font-size: 12px;">👉 Type your response or reflections below and press Send to submit your answer to the instructor log.</span>
+        `;
+        
+        appendLog("AI Guide", lectureText);
+    }
+
+    // Advance to the next lesson inside the syllabus tracker
+    function advanceLesson() {
+        if (!currentCourse) return;
+        
+        currentStepIndex++;
+        if (currentStepIndex < currentCourse.steps.length) {
+            appendLog("AI Guide", "Analyzing your breakdown... Excellent perspective. Let's push forward to the next module.");
+            setTimeout(teachCurrentStep, 1500);
+        } else {
+            appendLog("AI Guide", "✨ <strong>Congratulations!</strong> You have successfully completed all modules for this curriculum sequence. Your session answers are permanently logged to your sovereign database. Click the export button above to back up your master manifesto file.");
+            currentCourse = null;
+            
+            // Reset button highlights
+            document.getElementById('btn-course-101').style.backgroundColor = '#18181b';
+            document.getElementById('btn-course-101').style.color = '#cbd5e1';
+            document.getElementById('btn-course-101').style.borderColor = '#3f3f46';
+            document.getElementById('btn-course-101').style.fontWeight = 'normal';
+            document.getElementById('btn-course-102').style.backgroundColor = '#18181b';
+            document.getElementById('btn-course-102').style.color = '#cbd5e1';
+            document.getElementById('btn-course-102').style.borderColor = '#3f3f46';
+            document.getElementById('btn-course-102').style.fontWeight = 'normal';
+        }
+    }
+
+    // Export saved lesson answers from IndexedDB as a Markdown file
+    function exportManifesto() {
+        if (!db) {
+            alert("Database not ready yet. Please wait a moment.");
+            return;
+        }
+        
+        const transaction = db.transaction(["session_notes"], "readonly");
+        const store = transaction.objectStore("session_notes");
+        const request = store.getAll();
+        
+        request.onsuccess = function(event) {
+            const notes = event.target.result;
+            if (notes.length === 0) {
+                alert("No workshop answers saved yet. Select a course and submit some exercise answers first!");
+                return;
+            }
+            
+            let markdown = `# RADIANT THRESHOLD — SOVEREIGN MANIFESTO\n`;
+            markdown += `Generated on: ${new Date().toLocaleString()}\n`;
+            markdown += `===========================================\n\n`;
+            
+            notes.forEach((note) => {
+                markdown += `## Course: ${note.course}\n`;
+                markdown += `### Lesson: ${note.lesson}\n`;
+                markdown += `**Timestamp:** ${new Date(note.timestamp).toLocaleString()}\n\n`;
+                markdown += `#### Your Answer / Reflection:\n`;
+                markdown += `> ${note.answer.replace(/\n/g, '\n> ')}\n\n`;
+                markdown += `-------------------------------------------\n\n`;
+            });
+            
+            const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Sovereign_Manifesto.md");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        };
+        
+        request.onerror = function() {
+            alert("Failed to retrieve saved notes from the database.");
+        };
+    }
+
+    // Function to process scholarship applications locally
+    function submitScholarship() {
+        const name = document.getElementById('sch-name').value.trim();
+        const email = document.getElementById('sch-email').value.trim();
+        const impact = document.getElementById('sch-impact').value.trim();
+
+        if (!name || !email || !impact) {
+            alert("Please fulfill all security data fields before submitting.");
+            return;
+        }
+
+        const applicationData = {
+            applicantName: name,
+            applicantEmail: email,
+            organizingFocus: impact,
+            status: "Approved",
+            verificationToken: "RT-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
+            timestamp: new Date().toISOString()
+        };
+
+        // Save directly to the local IndexedDB database store
+        if (db) {
+            try {
+                const transaction = db.transaction(["scholarships"], "readwrite");
+                const store = transaction.objectStore("scholarships");
+                store.add(applicationData);
+            } catch (e) {
+                console.error("IndexedDB error during scholarship save:", e);
+            }
+        }
+
+        // Ping the active AI Instructor log to alert the leadership team
+        appendLog("System Alert", `New incoming Scholarship Application logged for verification pipeline: <strong>${name}</strong> (${impact})`, true);
+        
+        // Have the AI automatically step in to confirm validation 
+        setTimeout(() => {
+            appendLog("AI Guide", `<strong>Scholarship Action Verified:</strong> I have automatically processed the waiver request for <strong>${name}</strong> under the Radiant Threshold sliding-scale framework. Access code ${applicationData.verificationToken} has been committed to your local secure ledger.`, true);
+            
+            // Render the physical digital credential voucher on the UI screen
+            document.getElementById('scholarship-form-container').style.display = 'none';
+            const voucher = document.getElementById('scholarship-voucher');
+            voucher.style.display = 'block';
+            document.getElementById('voucher-meta').innerHTML = `HOLDER: ${name.toUpperCase()}<br>TOKEN: ${applicationData.verificationToken}<br>VALIDATED BY: RADIANT_THRESHOLD_CORE`;
+        }, 1200);
+    }
+
+    function handleInstructorSend() {
+        const cmd = instInput.value.trim();
+        if (!cmd) return;
+
+        // 1. Render and save user submission
+        appendLog("You", cmd);
+        instInput.value = '';
+
+        // 2. Process message via active course state or standard commands
+        setTimeout(() => {
+            // If student is actively taking a course, evaluate entry as a lesson answer
+            if (currentCourse) {
+                appendLog("System Alert", `Saving answer for Lesson ${currentStepIndex + 1} to local database...`, true);
+                
+                // Save answer to IndexedDB
+                if (db) {
+                    try {
+                        const transaction = db.transaction(["session_notes"], "readwrite");
+                        const store = transaction.objectStore("session_notes");
+                        store.add({
+                            course: currentCourse.title,
+                            lesson: currentCourse.steps[currentStepIndex].title,
+                            answer: cmd,
+                            timestamp: new Date().toISOString()
+                        });
+                    } catch (e) {
+                        console.error("IndexedDB error during save:", e);
+                    }
+                }
+                
+                advanceLesson();
+                return;
+            }
+
+            // Standard operational commands fallback
+            const lowerCmd = cmd.toLowerCase();
+            let responseText = "";
+
+            if (lowerCmd.includes("framework") || lowerCmd.includes("curriculum")) {
+                responseText = "Radiant Threshold strategic framework loaded. Click one of the course buttons at the top of this panel to launch an interactive learning block.";
+            } else if (lowerCmd.includes("talking points")) {
+                responseText = "Here are key talking points for your Jitsi session:<br>1. Data sovereignty keeps infrastructure off corporate clouds.<br>2. Sliding-scale tiers combat economic exclusion.";
+            } else if (lowerCmd.includes("clear history") || lowerCmd.includes("purge")) {
+                if (db) {
+                    try {
+                        const transaction = db.transaction(["session_notes"], "readwrite");
+                        transaction.objectStore("session_notes").clear().onsuccess = () => {
+                            logBox.innerHTML = "";
+                            appendLog("System Alert", "Sovereign data store purged completely.", false);
+                        };
+                    } catch (e) {
+                        console.error("Error purging database:", e);
+                        logBox.innerHTML = "";
+                        appendLog("System Alert", "Error purging data store.", false);
+                    }
+                } else {
+                    logBox.innerHTML = "";
+                    appendLog("System Alert", "Data store purged locally.", false);
+                }
+                return;
+            } else {
+                responseText = `Acknowledged. Note saved locally. To begin an AI-led lecture, select a course from the selector board above.`;
+            }
+
+            appendLog("AI Guide", responseText);
+        }, 600);
+    }
+
+    instBtn.addEventListener('click', handleInstructorSend);
+    instInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleInstructorSend();
+    });
+</script>
+</body>
+</html>

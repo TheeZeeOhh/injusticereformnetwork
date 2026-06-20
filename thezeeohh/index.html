@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Radiant Threshold — Collaborative Sovereign Workspace</title>
-  <meta name="description" content="Secure activist war room and collaborative strategy workspace powered by Radiant Threshold." />
+  <title>Radiant Threshold — Train. Organize. Transform.</title>
+  <meta name="description" content="The premier training platform for activists, organizers, advocates, and changemakers. Learn from frontline leaders who've built movements that changed laws, freed people, and shifted power." />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <script src="https://meet.jit.si/external_api.js"></script>
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar scrolled" id="navbar">
+<!-- ═══════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">
       <img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;display:block;" />
@@ -20,6 +21,7 @@
     <div class="nav-links">
       <a href="explore.html" class="nav-link">Explore</a>
       <a href="instructor.html" class="nav-link">Instructors</a>
+      <a href="workspace.html" class="nav-link">War Room</a>
       <a href="index.html#pricing" class="nav-link">Access</a>
       <a href="dashboard.html" class="nav-link">Dashboard</a>
     </div>
@@ -36,449 +38,652 @@
 <div class="mobile-nav" id="mobileNav">
   <a href="explore.html" class="nav-link">Explore</a>
   <a href="instructor.html" class="nav-link">Instructors</a>
+  <a href="workspace.html" class="nav-link">War Room</a>
   <a href="index.html#pricing" class="nav-link">Access</a>
   <a href="dashboard.html" class="nav-link">Dashboard</a>
   <a href="dashboard.html" class="btn btn-primary" style="margin-top:8px;justify-content:center;">Get Started</a>
 </div>
 
-<!-- Main Sovereign Grid Workspace -->
-<div id="sovereign-workspace" style="display: flex; gap: 20px; padding: 20px; height: calc(100vh - 72px); margin-top: 72px; background-color: #121212; color: #fff; font-family: sans-serif; box-sizing: border-box;">
-    
-    <!-- LEFT: Embedded Secure Jitsi Hub -->
-    <div style="flex: 2; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
-        <div style="background-color: #252525; padding: 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase; color: #c9a84c;">⚡ Radiant Threshold War Room</h3>
-            <span style="font-size: 12px; background: rgba(201,168,76,0.12); color: #c9a84c; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(201,168,76,0.4); font-weight: 600;">Encrypted Edge Session</span>
-        </div>
-        <!-- Jitsi Injection Box -->
-        <div id="jitsi-root" style="flex: 1; background-color: #000;"></div>
-        
-        <!-- Live Scholarship Application & Verification Portal -->
-        <div style="background-color: #1c1c1c; border-top: 1px solid #2e2e2e; overflow: hidden;">
-            <div style="background-color: #252525; padding: 12px 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="margin: 0; font-size: 14px; color: #cbd5e1; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">🎓 Radiant Threshold Scholarship Portal</h4>
-                <span style="font-size: 11px; background: #064e3b; color: #6ee7b7; padding: 2px 8px; border-radius: 10px; border: 1px solid #047857;">Sovereign Fund Available</span>
-            </div>
-            
-            <div id="scholarship-form-container" style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="sch-name" placeholder="Applicant Name" style="flex: 1; padding: 10px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: white; outline: none; font-size: 13px;">
-                    <input type="email" id="sch-email" placeholder="Sovereign/Encrypted Email" style="flex: 1; padding: 10px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: white; outline: none; font-size: 13px;">
-                </div>
-                <textarea id="sch-impact" placeholder="Briefly detail your current organizing work or project goals (e.g., Youth Housing pipelines, Community Data Audits)..." style="width: 100%; height: 80px; padding: 10px; background-color: #121212; color: #e2e8f0; border: 1px solid #3f3f46; border-radius: 6px; resize: none; font-size: 13px; outline: none; box-sizing: border-box;"></textarea>
-                <button onclick="submitScholarship()" style="background-color: #059669; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px;">
-                    🚀 Submit Secure Application
-                </button>
-            </div>
+<!-- ═══════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
 
-            <!-- Hidden Live Verification Voucher Frame -->
-            <div id="scholarship-voucher" style="display: none; padding: 20px; background: linear-gradient(135deg, #022c22 0%, #111827 100%); border-top: 1px solid #047857; text-align: center;">
-                <div style="border: 2px dashed #10b981; padding: 15px; border-radius: 8px;">
-                    <h5 style="margin: 0 0 5px 0; color: #34d399; font-size: 16px; letter-spacing: 1px;">MOVEMENT SCHOLARSHIP CERTIFIED</h5>
-                    <p style="margin: 0; font-size: 12px; color: #9ca3af;">Radiant Threshold Access Level: <strong style="color: white;">Full Waiver (Sovereign Tier)</strong></p>
-                    <div id="voucher-meta" style="margin-top: 10px; font-family: monospace; font-size: 11px; color: #6ee7b7;"></div>
-                </div>
-            </div>
-        </div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Build the movements that change the world
     </div>
 
-    <!-- RIGHT: Integrated AI Instructor Workspace -->
-    <div style="flex: 1; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
-        <div style="background-color: #252525; padding: 15px; border-bottom: 1px solid #2e2e2e; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; font-size: 16px; color: #c9a84c;">🧠 AI Instructor Companion</h3>
-            <button onclick="exportManifesto()" style="background-color: #222; color: #c9a84c; border: 1px solid rgba(201,168,76,0.4); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(201,168,76,0.1)'" onmouseout="this.style.backgroundColor='#222'">
-                <i class="fas fa-download"></i> Export Manifesto
-            </button>
+    <h1 class="playfair">
+      Train. Organize.<br />
+      <span class="gradient-text">Transform.</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      The world's premier platform for activists, organizers, and justice advocates. Learn from frontline leaders who've built movements that changed laws, freed people, and shifted power.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="explore.html" class="btn btn-primary btn-lg">
+        <i class="fas fa-fist-raised"></i>
+        Explore Training
+      </a>
+      <a href="apply.html" class="btn btn-secondary btn-lg">
+        <i class="fas fa-bullhorn"></i>
+        Become an Organizer
+      </a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="num">12,000+</span>
+        <span class="label">Organizers Trained</span>
+      </div>
+      <div class="hero-stat">
+        <span class="num">47</span>
+        <span class="label">States Reached</span>
+      </div>
+      <div class="hero-stat">
+        <span class="num">89</span>
+        <span class="label">Countries</span>
+      </div>
+      <div class="hero-stat">
+        <span class="num">$0</span>
+        <span class="label">to Full Access</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CATEGORIES STRIP
+═══════════════════════════════════════════ -->
+<section class="categories-strip animate-on-scroll">
+  <div class="categories-track">
+    <button class="category-pill active" data-category="criminal-justice">
+      🏛️ Criminal Justice Reform
+    </button>
+    <button class="category-pill" data-category="community-organizing">
+      ✊ Community Organizing
+    </button>
+    <button class="category-pill" data-category="legal-rights">
+      ⚖️ Legal Rights &amp; Advocacy
+    </button>
+    <button class="category-pill" data-category="environmental">
+      🌍 Environmental Justice
+    </button>
+    <button class="category-pill" data-category="digital">
+      💻 Digital Activism
+    </button>
+    <button class="category-pill" data-category="policy">
+      🗳️ Policy &amp; Legislation
+    </button>
+    <button class="category-pill" data-category="economic">
+      💰 Economic Justice
+    </button>
+    <button class="category-pill" data-category="leadership">
+      🔥 Movement Leadership
+    </button>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     FEATURED COURSES
+═══════════════════════════════════════════ -->
+<section class="section" id="courses">
+  <div class="container">
+    <div class="section-header animate-on-scroll">
+      <div class="section-label"><i class="fas fa-fire"></i> Featured Training</div>
+      <h2>Courses Built for <span class="gradient-text">Real Fights</span></h2>
+      <p>Every course on Radiant Threshold is built by people who've done the work — not just studied it. These are tools for active movements.</p>
+    </div>
+
+    <div class="courses-grid">
+
+      <!-- Card 1 -->
+      <div class="course-card animate-on-scroll stagger-1">
+        <div class="course-thumb">
+          <div class="course-badge community-organizing" style="background:rgba(107,33,168,0.25);color:#c084fc;border-color:rgba(168,85,247,0.3);">Community Organizing</div>
+          <div class="course-thumb-bg" style="background: linear-gradient(135deg, #1a1a2e, #6b21a8);">
+            <span class="thumb-title">The Organizer's Playbook:<br/>Building Power from the Ground Up</span>
+          </div>
         </div>
-        
-        <!-- Interactive Classroom Selector Board -->
-        <div style="background-color: #18181b; padding: 12px 15px; border-bottom: 1px solid #2e2e2e; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <span style="font-size: 12px; font-weight: bold; color: #a1a1aa; margin-right: 5px;">📚 Select Course:</span>
-            <button id="btn-course-101" onclick="startCourse('101')" style="background-color: #18181b; color: #cbd5e1; border: 1px solid #3f3f46; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.2s;">Sovereignty 101</button>
-            <button id="btn-course-102" onclick="startCourse('102')" style="background-color: #18181b; color: #cbd5e1; border: 1px solid #3f3f46; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.2s;">Economics 102</button>
-        </div>
-        
-        <!-- Live Workspace Output Log -->
-        <div id="instructor-log" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 14px; line-height: 1.5; color: #cbd5e1;">
-            <div style="background-color: #262626; border-left: 4px solid #c9a84c; padding: 12px; border-radius: 4px;">
-                <strong>System Notice:</strong> Room initializing. Once you launch the session, I will monitor interface commands and help organize your strategy notes here.
+        <div class="course-content">
+          <h3 class="course-title">The Organizer's Playbook: Building Power from the Ground Up</h3>
+          <div class="course-instructor">
+            <div class="instructor-avatar" style="background: url('aziza-okoro.jpg') center/cover no-repeat;"></div>
+            <span class="instructor-name">Aziza Okoro</span>
+          </div>
+          <div class="course-meta">
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+              <span>4.9 (2,140)</span>
             </div>
+            <div class="student-count"><i class="fas fa-users"></i> 8,420 organizers</div>
+          </div>
+          <div class="course-footer">
+            <div>
+              <span class="course-price">$97</span>
+              <span class="scholarship-badge" style="background:rgba(16,185,129,0.15);border:1px solid #10b981;color:#10b981;padding:2px 10px;border-radius:20px;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;margin-left:6px;"><i class="fas fa-hand-holding-heart" style="font-size:0.65rem;"></i>Scholarship Available</span>
+            </div>
+            <a href="course.html" class="btn btn-primary btn-sm">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="course-card animate-on-scroll stagger-2">
+        <div class="course-thumb">
+          <div class="course-badge legal-rights" style="background:rgba(127,29,29,0.25);color:#fca5a5;border-color:rgba(239,68,68,0.3);">Legal Rights</div>
+          <div class="course-thumb-bg" style="background: linear-gradient(135deg, #7f1d1d, #991b1b);">
+            <span class="thumb-title">Know Your Rights:<br/>A Practical Legal Defense Guide</span>
+          </div>
+        </div>
+        <div class="course-content">
+          <h3 class="course-title">Know Your Rights: A Practical Legal Defense Guide</h3>
+          <div class="course-instructor">
+            <div class="instructor-avatar" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">AO</div>
+            <span class="instructor-name">Amara Osei, J.D.</span>
+          </div>
+          <div class="course-meta">
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+              <span>4.9 (8,920)</span>
+            </div>
+            <div class="student-count"><i class="fas fa-users"></i> 31,200 enrolled</div>
+          </div>
+          <div class="course-footer">
+            <div>
+              <span class="course-price" style="color:var(--green);">FREE</span>
+              <span class="free-badge" style="background:rgba(201,168,76,0.15);border:1px solid #c9a84c;color:#c9a84c;padding:2px 10px;border-radius:20px;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;margin-left:6px;">Donation Suggested</span>
+            </div>
+            <a href="course.html" class="btn btn-primary btn-sm">Access Now</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="course-card animate-on-scroll stagger-3">
+        <div class="course-thumb">
+          <div class="course-badge digital" style="background:rgba(30,64,175,0.25);color:#93c5fd;border-color:rgba(59,130,246,0.3);">Digital Activism</div>
+          <div class="course-thumb-bg" style="background: linear-gradient(135deg, #0f172a, #1e40af);">
+            <span class="thumb-title">Digital Organizing Masterclass:<br/>Campaigns That Win</span>
+          </div>
+        </div>
+        <div class="course-content">
+          <h3 class="course-title">Digital Organizing Masterclass: Campaigns That Win</h3>
+          <div class="course-instructor">
+            <div class="instructor-avatar" style="background: linear-gradient(135deg, #1d4ed8, #1e40af);">ZC</div>
+            <span class="instructor-name">Zara Chen</span>
+          </div>
+          <div class="course-meta">
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+              <span>4.8 (3,870)</span>
+            </div>
+            <div class="student-count"><i class="fas fa-users"></i> 14,600 students</div>
+          </div>
+          <div class="course-footer">
+            <div>
+              <span class="course-price">$79</span>
+            </div>
+            <a href="course.html" class="btn btn-primary btn-sm">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="course-card animate-on-scroll stagger-4">
+        <div class="course-thumb">
+          <div class="course-badge environmental" style="background:rgba(6,78,59,0.25);color:#6ee7b7;border-color:rgba(16,185,129,0.3);">Environmental Justice</div>
+          <div class="course-thumb-bg" style="background: linear-gradient(135deg, #064e3b, #065f46);">
+            <span class="thumb-title">Environmental Justice:<br/>Frontline Community Leadership</span>
+          </div>
+        </div>
+        <div class="course-content">
+          <h3 class="course-title">Environmental Justice: Frontline Community Leadership</h3>
+          <div class="course-instructor">
+            <div class="instructor-avatar" style="background: linear-gradient(135deg, #047857, #065f46);">KM</div>
+            <span class="instructor-name">Dr. Keisha Morgan</span>
+          </div>
+          <div class="course-meta">
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+              <span>4.9 (1,480)</span>
+            </div>
+            <div class="student-count"><i class="fas fa-users"></i> 6,100 students</div>
+          </div>
+          <div class="course-footer">
+            <div>
+              <span class="course-price">$67</span>
+            </div>
+            <a href="course.html" class="btn btn-primary btn-sm">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="course-card animate-on-scroll stagger-5">
+        <div class="course-thumb">
+          <div class="course-badge policy" style="background:rgba(69,26,3,0.4);color:#fcd34d;border-color:rgba(245,158,11,0.3);">Policy &amp; Legislation</div>
+          <div class="course-thumb-bg" style="background: linear-gradient(135deg, #451a03, #92400e);">
+            <span class="thumb-title">Policy to Power:<br/>Turning Advocacy into Law</span>
+          </div>
+        </div>
+        <div class="course-content">
+          <h3 class="course-title">Policy to Power: Turning Advocacy into Law</h3>
+          <div class="course-instructor">
+            <div class="instructor-avatar" style="background: linear-gradient(135deg, #b45309, #92400e);">JO</div>
+            <span class="instructor-name">James Okafor</span>
+          </div>
+          <div class="course-meta">
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+              <span>4.8 (1,210)</span>
+            </div>
+            <div class="student-count"><i class="fas fa-users"></i> 5,300 students</div>
+          </div>
+          <div class="course-footer">
+            <div>
+              <span class="course-price">$129</span>
+            </div>
+            <a href="course.html" class="btn btn-primary btn-sm">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6 -->
+      <div class="course-card animate-on-scroll stagger-6">
+        <div class="course-thumb">
+          <div class="course-badge criminal-justice" style="background:rgba(28,25,23,0.6);color:#d6d3d1;border-color:rgba(120,113,108,0.3);">Criminal Justice Reform</div>
+          <div class="course-thumb-bg" style="background: linear-gradient(135deg, #1c1917, #44403c);">
+            <span class="thumb-title">Prison Abolition &amp; Reform:<br/>A Practical Guide</span>
+          </div>
+        </div>
+        <div class="course-content">
+          <h3 class="course-title">Prison Abolition &amp; Reform: A Practical Guide</h3>
+          <div class="course-instructor">
+            <div class="instructor-avatar" style="background: url('aziza-okoro.jpg') center/cover no-repeat;"></div>
+            <span class="instructor-name">Aziza Okoro</span>
+          </div>
+          <div class="course-meta">
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+              <span>4.9 (2,380)</span>
+            </div>
+            <div class="student-count"><i class="fas fa-users"></i> 9,800 students</div>
+          </div>
+          <div class="course-footer">
+            <div>
+              <span class="course-price">$49</span>
+              <span class="scholarship-badge" style="background:rgba(16,185,129,0.15);border:1px solid #10b981;color:#10b981;padding:2px 10px;border-radius:20px;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;margin-left:6px;"><i class="fas fa-hand-holding-heart" style="font-size:0.65rem;"></i>Scholarship Available</span>
+            </div>
+            <a href="course.html" class="btn btn-primary btn-sm">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="text-align:center; margin-top:48px;" class="animate-on-scroll">
+      <a href="explore.html" class="btn btn-secondary btn-lg">
+        View All 200+ Hours of Training <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     WHY RADIANT THRESHOLD
+═══════════════════════════════════════════ -->
+<section class="section" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-header animate-on-scroll">
+      <div class="section-label"><i class="fas fa-fist-raised"></i> Why Radiant Threshold</div>
+      <h2>Built for Those Who <span class="gradient-text">Fight for Real</span></h2>
+      <p>Radiant Threshold is the premier training platform for activists, organizers, advocates, and changemakers. We believe knowledge is power — and power builds movements.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card animate-on-scroll stagger-1">
+        <div class="feature-icon"><i class="fas fa-people-group"></i></div>
+        <h3>Frontline Instructors</h3>
+        <p>Learn from people who've actually organized campaigns, argued in court, and changed laws — not just academics. Every instructor has done the work you're training for.</p>
+      </div>
+      <div class="feature-card animate-on-scroll stagger-2">
+        <div class="feature-icon"><i class="fas fa-hand-holding-heart"></i></div>
+        <h3>Access for All</h3>
+        <p>Sliding scale pricing, full scholarships, and free courses ensure money never blocks access to movement knowledge. The "Know Your Rights" course is always free, no exceptions.</p>
+      </div>
+      <div class="feature-card animate-on-scroll stagger-3">
+        <div class="feature-icon"><i class="fas fa-broadcast-tower"></i></div>
+        <h3>Live Strategy Sessions</h3>
+        <p>Monthly live cohorts, Q&amp;As with organizers, and real-time campaign support for active movements. You're not just taking a course — you're joining a network.</p>
+      </div>
+      <div class="feature-card animate-on-scroll stagger-4">
+        <div class="feature-icon"><i class="fas fa-scale-balanced"></i></div>
+        <h3>Legal Defense Resources</h3>
+        <p>Know your rights before you need them. State-by-state guides, arrest protocols, and access to movement lawyers — included with relevant courses.</p>
+      </div>
+      <div class="feature-card animate-on-scroll stagger-5">
+        <div class="feature-icon"><i class="fas fa-users-rectangle"></i></div>
+        <h3>Organizer Network</h3>
+        <p>Connect with 12,000+ trained organizers across 89 countries. Share tactics, coordinate campaigns, and find coalition partners in your city and beyond.</p>
+      </div>
+      <div class="feature-card animate-on-scroll stagger-6">
+        <div class="feature-icon"><i class="fas fa-certificate"></i></div>
+        <h3>Movement Credentials</h3>
+        <p>Earn verified credentials recognized by coalitions, nonprofits, and advocacy organizations. Prove your training and advance your role in the movement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     INSTRUCTOR SPOTLIGHT
+═══════════════════════════════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-header animate-on-scroll">
+      <div class="section-label"><i class="fas fa-user-shield"></i> Instructor Spotlight</div>
+      <h2>Learn from the <span class="gradient-text">People on the Frontlines</span></h2>
+      <p>Our instructors aren't just teachers — they're organizers, attorneys, and activists who've won real campaigns and changed real laws.</p>
+    </div>
+
+    <div class="instructors-grid">
+      <div class="instructor-card animate-on-scroll stagger-2">
+        <div class="instructor-avatar-lg" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">AO</div>
+        <h3>Amara Osei, J.D.</h3>
+        <div class="instructor-specialty">Civil Rights Attorney · Know Your Rights</div>
+        <div class="instructor-stats">
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">31.2K</div>
+            <div class="instructor-stat-label">Students</div>
+          </div>
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">2</div>
+            <div class="instructor-stat-label">Courses</div>
+          </div>
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">4.9★</div>
+            <div class="instructor-stat-label">Rating</div>
+          </div>
+        </div>
+        <a href="instructor-amara-osei.html" class="btn btn-secondary w-full" style="justify-content:center;">View Profile</a>
+      </div>
+
+      <div class="instructor-card animate-on-scroll stagger-3">
+        <div class="instructor-avatar-lg" style="background: linear-gradient(135deg, #047857, #065f46);">KM</div>
+        <h3>Dr. Keisha Morgan</h3>
+        <div class="instructor-specialty">Environmental Justice Scholar &amp; Activist</div>
+        <div class="instructor-stats">
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">6.1K</div>
+            <div class="instructor-stat-label">Students</div>
+          </div>
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">2</div>
+            <div class="instructor-stat-label">Courses</div>
+          </div>
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">4.9★</div>
+            <div class="instructor-stat-label">Rating</div>
+          </div>
+        </div>
+        <a href="instructor-keisha-morgan.html" class="btn btn-secondary w-full" style="justify-content:center;">View Profile</a>
+      </div>
+
+      <div class="instructor-card animate-on-scroll stagger-1">
+        <div class="instructor-avatar-lg" style="background: url('bekura-mainoo.jpg') center/cover no-repeat;"></div>
+        <h3>BeKura Mainoo</h3>
+        <div class="instructor-specialty">Founder, IRN (VA/757 Operations)</div>
+        <div class="instructor-stats">
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">12.4K</div>
+            <div class="instructor-stat-label">Organizers</div>
+          </div>
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">2</div>
+            <div class="instructor-stat-label">Courses</div>
+          </div>
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">4.9★</div>
+            <div class="instructor-stat-label">Rating</div>
+          </div>
+        </div>
+        <a href="instructor-bekura-mainoo.html" class="btn btn-secondary w-full" style="justify-content:center;">View Profile</a>
+      </div>
+
+      <div class="instructor-card animate-on-scroll stagger-2">
+        <div class="instructor-avatar-lg" style="background: url('aziza-okoro.jpg') center/cover no-repeat;"></div>
+        <h3>Aziza Okoro</h3>
+        <div class="instructor-specialty">Vice President, IRN</div>
+        <div class="instructor-stats">
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">15.6K</div>
+            <div class="instructor-stat-label">Organizers</div>
+          </div>
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">2</div>
+            <div class="instructor-stat-label">Courses</div>
+          </div>
+          <div class="instructor-stat">
+            <div class="instructor-stat-num">4.9★</div>
+            <div class="instructor-stat-label">Rating</div>
+          </div>
+        </div>
+        <a href="instructor-aziza-okoro.html" class="btn btn-secondary w-full" style="justify-content:center;">View Profile</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     TESTIMONIALS
+═══════════════════════════════════════════ -->
+<section class="section" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-header animate-on-scroll">
+      <div class="section-label"><i class="fas fa-quote-left"></i> From the Field</div>
+      <h2>Words from Our <span class="gradient-text">Organizers</span></h2>
+      <p>Over 12,000 trained organizers across 89 countries. Here are a few of their stories — and their wins.</p>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card animate-on-scroll stagger-1">
+        <div class="testimonial-quote">"</div>
+        <p class="testimonial-text">This platform gave our coalition the organizing fundamentals we needed. We went from 40 members to 2,000 in eight months and won our campaign.</p>
+        <div class="testimonial-author">
+          <div class="instructor-avatar" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); width:44px; height:44px; font-size:0.85rem;">TR</div>
+          <div class="testimonial-info">
+            <h4>Tanya R.</h4>
+            <span>Community Organizer, Detroit</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card animate-on-scroll stagger-2">
+        <div class="testimonial-quote">"</div>
+        <p class="testimonial-text">The Know Your Rights course should be mandatory. I've shared it with every person in our network — it's already helped dozens of people during arrests.</p>
+        <div class="testimonial-author">
+          <div class="instructor-avatar" style="background: linear-gradient(135deg, #dc2626, #b91c1c); width:44px; height:44px; font-size:0.85rem;">DL</div>
+          <div class="testimonial-info">
+            <h4>Dominique L.</h4>
+            <span>Bail Fund Coordinator, Atlanta</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card animate-on-scroll stagger-3">
+        <div class="testimonial-quote">"</div>
+        <p class="testimonial-text">As a frontline environmental justice organizer, I finally found training that reflects our reality. Not theory — real tools for real fights.</p>
+        <div class="testimonial-author">
+          <div class="instructor-avatar" style="background: linear-gradient(135deg, #047857, #065f46); width:44px; height:44px; font-size:0.85rem;">EV</div>
+          <div class="testimonial-info">
+            <h4>Esperanza V.</h4>
+            <span>Pipeline Fighter, New Mexico</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     ACCESS MODEL (replaces Pricing)
+═══════════════════════════════════════════ -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="section-header animate-on-scroll">
+      <div class="section-label"><i class="fas fa-unlock"></i> Access Model</div>
+      <h2>Knowledge <span class="gradient-text">Belongs to Everyone</span></h2>
+      <p>We built a platform where money is never a barrier to movement training. Choose what works for you.</p>
+    </div>
+
+    <div class="pricing-highlight animate-on-scroll">
+      <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:24px; margin-bottom:40px;" class="pricing-tiers">
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-lg); padding:32px; text-align:center;">
+          <div style="font-size:2.5rem; margin-bottom:12px;">🔓</div>
+          <div style="font-size:1.3rem; font-weight:900; margin-bottom:10px;">Free Access</div>
+          <div style="font-size:2rem; font-weight:900; color:var(--green); margin-bottom:12px;">$0</div>
+          <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:20px;">Know Your Rights course + 3 intro modules always free. No credit card, no signup wall.</p>
+          <span class="free-badge" style="background:rgba(201,168,76,0.15);border:1px solid #c9a84c;color:#c9a84c;padding:4px 14px;border-radius:20px;font-size:0.78rem;">Always Free</span>
         </div>
 
-        <!-- Local Action Controller Input -->
-        <div style="padding: 15px; border-top: 1px solid #2e2e2e; background-color: #222; display: flex; gap: 10px;">
-            <input type="text" id="instructor-input" placeholder="Query curriculum or command AI..." style="flex: 1; padding: 12px; background-color: #121212; border: 1px solid #3f3f46; border-radius: 6px; color: white; outline: none;">
-            <button id="instructor-send-btn" style="background-color: #c9a84c; color: #111; border: none; padding: 0 18px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s;">Send</button>
+        <div style="background:var(--bg-card); border:2px solid rgba(201,168,76,0.35); border-radius:var(--radius-lg); padding:32px; text-align:center; position:relative;">
+          <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#c9a84c,#f0d080);color:#0a0a0f;padding:4px 18px;border-radius:20px;font-size:0.75rem;font-weight:700;">MOST POPULAR</div>
+          <div style="font-size:2.5rem; margin-bottom:12px;">⚡</div>
+          <div style="font-size:1.3rem; font-weight:900; margin-bottom:10px;">Supported Access</div>
+          <div style="font-size:2rem; font-weight:900; color:var(--accent-2); margin-bottom:12px;">$47–$149</div>
+          <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:20px;">Full courses for those who can pay. Funds the scholarship pool. 15% of every sale goes directly to the Scholarship Fund.</p>
+          <span style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);color:var(--accent-2);padding:4px 14px;border-radius:20px;font-size:0.78rem;">Per Course</span>
         </div>
+
+        <div style="background:var(--bg-card); border:1px solid rgba(16,185,129,0.25); border-radius:var(--radius-lg); padding:32px; text-align:center;">
+          <div style="font-size:2.5rem; margin-bottom:12px;">🤝</div>
+          <div style="font-size:1.3rem; font-weight:900; margin-bottom:10px;">Scholarship</div>
+          <div style="font-size:2rem; font-weight:900; color:var(--green); margin-bottom:12px;">100% Free</div>
+          <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:20px;">Full access for organizers who can't afford it. Apply in 2 minutes. No questions, no judgment — just training.</p>
+          <span class="scholarship-badge" style="background:rgba(16,185,129,0.15);border:1px solid #10b981;color:#10b981;padding:4px 14px;border-radius:20px;font-size:0.78rem;">Apply Anytime</span>
+        </div>
+
+      </div>
+
+      <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+        <a href="explore.html" class="btn btn-primary btn-lg">
+          <i class="fas fa-fist-raised"></i> Start Your Training
+        </a>
+        <a href="apply.html" class="btn btn-secondary btn-lg">
+          Apply for Scholarship <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <p style="margin-top:28px; font-size:0.82rem; color: var(--text-muted); text-align:center;">
+        15% of every sale funds the Radiant Threshold Scholarship Fund. Teaching on this platform means you're directly funding access for organizers who need it most.
+      </p>
     </div>
-</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     NEWSLETTER
+═══════════════════════════════════════════ -->
+<section class="newsletter-section">
+  <div class="newsletter-inner animate-on-scroll">
+    <div class="section-label" style="margin:0 auto 20px;"><i class="fas fa-envelope-open-text"></i> Join the Network</div>
+    <h2>Get Movement <span class="gradient-text">Strategy &amp; Resources</span></h2>
+    <p>Movement strategy, organizing resources, and new course alerts from the frontlines — delivered to your inbox.</p>
+    <form class="newsletter-form" id="newsletterForm" novalidate>
+      <input type="email" placeholder="Enter your email address" id="newsletterEmail" required />
+      <button type="submit" class="btn btn-primary">
+        Join the Network <i class="fas fa-paper-plane"></i>
+      </button>
+    </form>
+    <div class="newsletter-success" id="newsletterSuccess">
+      <i class="fas fa-check-circle"></i> You're in! Welcome to the network.
+    </div>
+    <p style="margin-top:16px; font-size:0.78rem; color:var(--text-muted);">No spam. Unsubscribe anytime. We respect your privacy.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html">
+          <img src="logo.png" alt="Radiant Threshold" style="height:48px;width:auto;" />
+        </a>
+        <p>The premier training platform for activists, organizers, advocates, and changemakers. We believe knowledge is power — and power builds movements.</p>
+        <div class="social-links">
+          <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+          <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-link" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-link" aria-label="Discord"><i class="fab fa-discord"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="explore.html">Explore Training</a></li>
+          <li><a href="instructor.html">Instructors</a></li>
+          <li><a href="dashboard.html">My Dashboard</a></li>
+          <li><a href="#">Live Sessions</a></li>
+          <li><a href="#">Movement Credentials</a></li>
+          <li><a href="#">Organizer Network</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Educators</h4>
+        <ul>
+          <li><a href="apply.html">Apply to Teach</a></li>
+          <li><a href="#">Revenue Share</a></li>
+          <li><a href="#">Course Builder</a></li>
+          <li><a href="#">Analytics</a></li>
+          <li><a href="#">Instructor FAQ</a></li>
+          <li><a href="#">Impact Stories</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers <span style="color:var(--green);font-size:0.7rem;font-weight:700;"> HIRING</span></a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 Radiant Threshold, Inc. All rights reserved.</p>
+      <p>Made with <span style="color:var(--accent-2);">♥</span> for organizers everywhere.</p>
+    </div>
+  </div>
+</footer>
 
 <script src="app.js"></script>
-<script>
-    // 1. Initialize the Secure Jitsi Frame
-    const domain = "meet.jit.si";
-    const options = {
-        roomName: "RadiantThreshold_SovereignActionHub_Zee",
-        width: "100%",
-        height: "100%",
-        parentNode: document.getElementById('jitsi-root'),
-        configOverwrite: {
-            startWithAudioMuted: true,
-            startWithVideoMuted: true,
-            prejoinPageEnabled: false, // Bypasses default setup for instant ingress
-            disableDeepLinking: true // Forces staying inside your web runtime
-        },
-        interfaceConfigOverwrite: {
-            TOOLBAR_BUTTONS: [
-                'microphone', 'camera', 'desktop', 'embedsharing', 
-                'shareaudio', 'raisehand', 'videoquality', 'filmstrip'
-            ],
-            SETTINGS_SECTIONS: ['devices', 'language', 'profile']
-        }
-    };
-
-    // Spin up Jitsi session instance
-    const api = new JitsiMeetExternalAPI(domain, options);
-    const logBox = document.getElementById('instructor-log');
-
-    // 2. Event Listeners tracking the session status
-    api.addEventListener('videoConferenceJoined', (event) => {
-        appendLog("AI Guide", "I have successfully joined the secure network channel. Standing by to review deployment steps and organize collective data notes.");
-    });
-
-    api.addEventListener('participantJoined', (event) => {
-        appendLog("System Alert", `Organizer entered the room: ${event.displayName || 'Anonymous Participant'}`);
-    });
-
-    // Initialize Sovereign IndexedDB
-    let db;
-    const dbRequest = indexedDB.open("SovereignDB", 2);
-    dbRequest.onupgradeneeded = function(event) {
-        db = event.target.result;
-        if (!db.objectStoreNames.contains("session_notes")) {
-            db.createObjectStore("session_notes", { keyPath: "id", autoIncrement: true });
-        }
-        // New local store for scholarship applicants
-        if (!db.objectStoreNames.contains("scholarships")) {
-            db.createObjectStore("scholarships", { keyPath: "id", autoIncrement: true });
-        }
-    };
-    dbRequest.onsuccess = function(event) {
-        db = event.target.result;
-        console.log("Sovereign database initialized successfully.");
-    };
-    dbRequest.onerror = function(event) {
-        console.error("Error opening Sovereign database:", event.target.error);
-    };
-
-    // 3. Helper to update the text console output
-    function appendLog(sender, text, highlight = false) {
-        const entry = document.createElement('div');
-        entry.style.padding = '10px';
-        entry.style.borderRadius = '6px';
-        
-        if (sender === 'System Alert') {
-            entry.style.backgroundColor = highlight ? 'rgba(168, 85, 247, 0.15)' : 'rgba(239, 68, 68, 0.1)';
-            entry.style.border = highlight ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid rgba(239, 68, 68, 0.3)';
-            entry.innerHTML = `<strong style="color: ${highlight ? '#d8b4fe' : '#ef4444'};">${sender}:</strong> <span style="color: #cbd5e1;">${text}</span>`;
-        } else if (sender === 'AI Guide') {
-            entry.style.backgroundColor = 'rgba(201,168,76,0.1)';
-            entry.style.border = '1px solid rgba(201,168,76,0.3)';
-            entry.innerHTML = `<strong style="color: #c9a84c;">${sender}:</strong> <span style="color: #e2e8f0;">${text}</span>`;
-        } else {
-            entry.style.backgroundColor = '#27272a';
-            entry.style.border = '1px solid #3f3f46';
-            entry.innerHTML = `<strong style="color: #cbd5e1;">${sender}:</strong> <span style="color: #e2e8f0;">${text}</span>`;
-        }
-        
-        logBox.appendChild(entry);
-        logBox.scrollTop = logBox.scrollHeight;
-    }
-
-    // 4. Input handling for the companion console
-    const instInput = document.getElementById('instructor-input');
-    const instBtn = document.getElementById('instructor-send-btn');
-
-    // Sovereign Course Modules taught by the AI Instructor
-    const RADIANT_CURRICULUM = {
-        "101": {
-            title: "Introduction to Digital Sovereignty",
-            steps: [
-                {
-                    title: "The Landscape of Data Extraction",
-                    content: "Traditional web infrastructure relies on corporate cloud extraction. Our goal is local-first architecture where data belongs natively to the creator.",
-                    exercise: "Analyze your current daily stack. Identify three apps that extract your personal metrics, and write down an offline or sovereign alternative for one of them."
-                },
-                {
-                    title: "Building Privacy-First Frameworks",
-                    content: "Privacy isn't about hiding; it's about autonomy. We use end-to-end local encryption to build walls around community networks.",
-                    exercise: "Draft a 3-sentence privacy declaration policy for a local mutual aid network."
-                }
-            ]
-        },
-        "102": {
-            title: "Decentralized Economic Systems",
-            steps: [
-                {
-                    title: "Mutual Aid Tokenomics",
-                    content: "Decentralized economics means creating value within communities that cannot be extracted by outside banking cartels.",
-                    exercise: "Design a simple non-monetary credit exchange system for food security routing in your neighborhood."
-                }
-            ]
-        }
-    };
-
-    // Track current student state in memory
-    let currentCourse = null;
-    let currentStepIndex = 0;
-
-    // Function for the AI to start teaching a chosen course
-    function startCourse(courseId) {
-        currentCourse = RADIANT_CURRICULUM[courseId];
-        currentStepIndex = 0;
-        
-        if (!currentCourse) return;
-
-        // Visual feedback for selected course button
-        const btn101 = document.getElementById('btn-course-101');
-        const btn102 = document.getElementById('btn-course-102');
-        if (courseId === '101') {
-            btn101.style.backgroundColor = '#3b0764';
-            btn101.style.color = '#d8b4fe';
-            btn101.style.borderColor = '#6b21a8';
-            btn101.style.fontWeight = 'bold';
-            
-            btn102.style.backgroundColor = '#18181b';
-            btn102.style.color = '#cbd5e1';
-            btn102.style.borderColor = '#3f3f46';
-            btn102.style.fontWeight = 'normal';
-        } else {
-            btn102.style.backgroundColor = '#3b0764';
-            btn102.style.color = '#d8b4fe';
-            btn102.style.borderColor = '#6b21a8';
-            btn102.style.fontWeight = 'bold';
-            
-            btn101.style.backgroundColor = '#18181b';
-            btn101.style.color = '#cbd5e1';
-            btn101.style.borderColor = '#3f3f46';
-            btn101.style.fontWeight = 'normal';
-        }
-
-        logBox.innerHTML = ""; // Clear log for fresh course focus
-        appendLog("System Alert", `--- Entered Classroom: ${currentCourse.title} ---`, false);
-        
-        teachCurrentStep();
-    }
-
-    // AI delivers the lesson step and sets up the workshop challenge
-    function teachCurrentStep() {
-        if (!currentCourse) return;
-        
-        const step = currentCourse.steps[currentStepIndex];
-        
-        let lectureText = `
-            <strong>Lesson ${currentStepIndex + 1}: ${step.title}</strong><br><br>
-            ${step.content}<br><br>
-            <div style="background-color: #18181b; padding: 12px; border-radius: 6px; border: 1px dashed #a855f7; margin-top: 10px;">
-                <strong style="color: #d8b4fe;">⚡ LIVE WORKSHOP CHALLENGE:</strong><br>
-                ${step.exercise}
-            </div>
-            <br><span style="color: #a1a1aa; font-size: 12px;">👉 Type your response or reflections below and press Send to submit your answer to the instructor log.</span>
-        `;
-        
-        appendLog("AI Guide", lectureText);
-    }
-
-    // Advance to the next lesson inside the syllabus tracker
-    function advanceLesson() {
-        if (!currentCourse) return;
-        
-        currentStepIndex++;
-        if (currentStepIndex < currentCourse.steps.length) {
-            appendLog("AI Guide", "Analyzing your breakdown... Excellent perspective. Let's push forward to the next module.");
-            setTimeout(teachCurrentStep, 1500);
-        } else {
-            appendLog("AI Guide", "✨ <strong>Congratulations!</strong> You have successfully completed all modules for this curriculum sequence. Your session answers are permanently logged to your sovereign database. Click the export button above to back up your master manifesto file.");
-            currentCourse = null;
-            
-            // Reset button highlights
-            document.getElementById('btn-course-101').style.backgroundColor = '#18181b';
-            document.getElementById('btn-course-101').style.color = '#cbd5e1';
-            document.getElementById('btn-course-101').style.borderColor = '#3f3f46';
-            document.getElementById('btn-course-101').style.fontWeight = 'normal';
-            document.getElementById('btn-course-102').style.backgroundColor = '#18181b';
-            document.getElementById('btn-course-102').style.color = '#cbd5e1';
-            document.getElementById('btn-course-102').style.borderColor = '#3f3f46';
-            document.getElementById('btn-course-102').style.fontWeight = 'normal';
-        }
-    }
-
-    // Export saved lesson answers from IndexedDB as a Markdown file
-    function exportManifesto() {
-        if (!db) {
-            alert("Database not ready yet. Please wait a moment.");
-            return;
-        }
-        
-        const transaction = db.transaction(["session_notes"], "readonly");
-        const store = transaction.objectStore("session_notes");
-        const request = store.getAll();
-        
-        request.onsuccess = function(event) {
-            const notes = event.target.result;
-            if (notes.length === 0) {
-                alert("No workshop answers saved yet. Select a course and submit some exercise answers first!");
-                return;
-            }
-            
-            let markdown = `# RADIANT THRESHOLD — SOVEREIGN MANIFESTO\n`;
-            markdown += `Generated on: ${new Date().toLocaleString()}\n`;
-            markdown += `===========================================\n\n`;
-            
-            notes.forEach((note) => {
-                markdown += `## Course: ${note.course}\n`;
-                markdown += `### Lesson: ${note.lesson}\n`;
-                markdown += `**Timestamp:** ${new Date(note.timestamp).toLocaleString()}\n\n`;
-                markdown += `#### Your Answer / Reflection:\n`;
-                markdown += `> ${note.answer.replace(/\n/g, '\n> ')}\n\n`;
-                markdown += `-------------------------------------------\n\n`;
-            });
-            
-            const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "Sovereign_Manifesto.md");
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        };
-        
-        request.onerror = function() {
-            alert("Failed to retrieve saved notes from the database.");
-        };
-    }
-
-    // Function to process scholarship applications locally
-    function submitScholarship() {
-        const name = document.getElementById('sch-name').value.trim();
-        const email = document.getElementById('sch-email').value.trim();
-        const impact = document.getElementById('sch-impact').value.trim();
-
-        if (!name || !email || !impact) {
-            alert("Please fulfill all security data fields before submitting.");
-            return;
-        }
-
-        const applicationData = {
-            applicantName: name,
-            applicantEmail: email,
-            organizingFocus: impact,
-            status: "Approved",
-            verificationToken: "RT-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-            timestamp: new Date().toISOString()
-        };
-
-        // Save directly to the local IndexedDB database store
-        if (db) {
-            try {
-                const transaction = db.transaction(["scholarships"], "readwrite");
-                const store = transaction.objectStore("scholarships");
-                store.add(applicationData);
-            } catch (e) {
-                console.error("IndexedDB error during scholarship save:", e);
-            }
-        }
-
-        // Ping the active AI Instructor log to alert the leadership team
-        appendLog("System Alert", `New incoming Scholarship Application logged for verification pipeline: <strong>${name}</strong> (${impact})`, true);
-        
-        // Have the AI automatically step in to confirm validation 
-        setTimeout(() => {
-            appendLog("AI Guide", `<strong>Scholarship Action Verified:</strong> I have automatically processed the waiver request for <strong>${name}</strong> under the Radiant Threshold sliding-scale framework. Access code ${applicationData.verificationToken} has been committed to your local secure ledger.`, true);
-            
-            // Render the physical digital credential voucher on the UI screen
-            document.getElementById('scholarship-form-container').style.display = 'none';
-            const voucher = document.getElementById('scholarship-voucher');
-            voucher.style.display = 'block';
-            document.getElementById('voucher-meta').innerHTML = `HOLDER: ${name.toUpperCase()}<br>TOKEN: ${applicationData.verificationToken}<br>VALIDATED BY: RADIANT_THRESHOLD_CORE`;
-        }, 1200);
-    }
-
-    function handleInstructorSend() {
-        const cmd = instInput.value.trim();
-        if (!cmd) return;
-
-        // 1. Render and save user submission
-        appendLog("You", cmd);
-        instInput.value = '';
-
-        // 2. Process message via active course state or standard commands
-        setTimeout(() => {
-            // If student is actively taking a course, evaluate entry as a lesson answer
-            if (currentCourse) {
-                appendLog("System Alert", `Saving answer for Lesson ${currentStepIndex + 1} to local database...`, true);
-                
-                // Save answer to IndexedDB
-                if (db) {
-                    try {
-                        const transaction = db.transaction(["session_notes"], "readwrite");
-                        const store = transaction.objectStore("session_notes");
-                        store.add({
-                            course: currentCourse.title,
-                            lesson: currentCourse.steps[currentStepIndex].title,
-                            answer: cmd,
-                            timestamp: new Date().toISOString()
-                        });
-                    } catch (e) {
-                        console.error("IndexedDB error during save:", e);
-                    }
-                }
-                
-                advanceLesson();
-                return;
-            }
-
-            // Standard operational commands fallback
-            const lowerCmd = cmd.toLowerCase();
-            let responseText = "";
-
-            if (lowerCmd.includes("framework") || lowerCmd.includes("curriculum")) {
-                responseText = "Radiant Threshold strategic framework loaded. Click one of the course buttons at the top of this panel to launch an interactive learning block.";
-            } else if (lowerCmd.includes("talking points")) {
-                responseText = "Here are key talking points for your Jitsi session:<br>1. Data sovereignty keeps infrastructure off corporate clouds.<br>2. Sliding-scale tiers combat economic exclusion.";
-            } else if (lowerCmd.includes("clear history") || lowerCmd.includes("purge")) {
-                if (db) {
-                    try {
-                        const transaction = db.transaction(["session_notes"], "readwrite");
-                        transaction.objectStore("session_notes").clear().onsuccess = () => {
-                            logBox.innerHTML = "";
-                            appendLog("System Alert", "Sovereign data store purged completely.", false);
-                        };
-                    } catch (e) {
-                        console.error("Error purging database:", e);
-                        logBox.innerHTML = "";
-                        appendLog("System Alert", "Error purging data store.", false);
-                    }
-                } else {
-                    logBox.innerHTML = "";
-                    appendLog("System Alert", "Data store purged locally.", false);
-                }
-                return;
-            } else {
-                responseText = `Acknowledged. Note saved locally. To begin an AI-led lecture, select a course from the selector board above.`;
-            }
-
-            appendLog("AI Guide", responseText);
-        }, 600);
-    }
-
-    instBtn.addEventListener('click', handleInstructorSend);
-    instInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleInstructorSend();
-    });
-</script>
 </body>
 </html>
