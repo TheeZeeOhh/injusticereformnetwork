@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Your Training — Radiant Threshold</title>
+  <meta name="description" content="Browse 200+ hours of training from frontline organizers, civil rights attorneys, and movement leaders. Filter by category, price, and rating." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;display:block;" />
+    </a>
+    <div class="nav-links">
+      <a href="explore.html" class="nav-link active">Explore</a>
+      <a href="instructor.html" class="nav-link">Instructors</a>
+      <a href="index.html#pricing" class="nav-link">Access</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+    </div>
+    <div class="nav-actions">
+      <a href="explore.html" class="btn btn-secondary btn-sm">Explore Training</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="explore.html" class="nav-link active">Explore</a>
+  <a href="instructor.html" class="nav-link">Instructors</a>
+  <a href="index.html#pricing" class="nav-link">Access</a>
+  <a href="dashboard.html" class="nav-link">Dashboard</a>
+</div>
+
+<!-- EXPLORE HEADER BANNER -->
+<div style="background: linear-gradient(135deg, #0d0d1a, #111122); border-bottom: 1px solid var(--border-glass); padding: calc(var(--nav-height) + 48px) 0 40px;">
+  <div class="container">
+    <div class="section-label"><i class="fas fa-fist-raised"></i> Training Library</div>
+    <h1 style="font-size:2.6rem; font-weight:900; margin-bottom:10px; letter-spacing:-0.03em;">Find Your <span class="gradient-text">Training</span></h1>
+    <p style="color:var(--text-secondary); font-size:1rem;">200+ hours of training from frontline organizers, civil rights attorneys, and movement leaders — filter by cause, price, and format.</p>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="container" style="padding-top: 40px; padding-bottom: 80px;">
+  <div style="display:grid; grid-template-columns: 260px 1fr; gap: 32px; align-items: start;">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="filterSidebar">
+      <div class="sidebar-title"><i class="fas fa-sliders"></i> &nbsp;Filters</div>
+
+      <!-- Categories -->
+      <div class="filter-group">
+        <div class="filter-group-label"><i class="fas fa-grid-2"></i> Category</div>
+        <label class="filter-checkbox"><input type="checkbox" data-filter="category" value="criminal-justice" checked /> Criminal Justice Reform</label>
+        <label class="filter-checkbox"><input type="checkbox" data-filter="category" value="community-organizing" /> Community Organizing</label>
+        <label class="filter-checkbox"><input type="checkbox" data-filter="category" value="legal-rights" /> Legal Rights &amp; Advocacy</label>
+        <label class="filter-checkbox"><input type="checkbox" data-filter="category" value="environmental" /> Environmental Justice</label>
+        <label class="filter-checkbox"><input type="checkbox" data-filter="category" value="digital" /> Digital Activism</label>
+        <label class="filter-checkbox"><input type="checkbox" data-filter="category" value="policy" /> Policy &amp; Legislation</label>
+        <label class="filter-checkbox"><input type="checkbox" data-filter="category" value="economic" /> Economic Justice</label>
+        <label class="filter-checkbox"><input type="checkbox" data-filter="category" value="leadership" /> Movement Leadership</label>
+      </div>
+
+      <div class="divider" style="margin-bottom:28px;"></div>
+
+      <!-- Price Range -->
+      <div class="filter-group">
+        <div class="filter-group-label"><i class="fas fa-tag"></i> Max Price</div>
+        <div class="price-range-wrap">
+          <div class="price-labels">
+            <span>$0</span>
+            <span id="priceLabel">$200</span>
+          </div>
+          <input type="range" id="priceRange" min="0" max="400" value="200" step="10" />
+        </div>
+      </div>
+
+      <div class="divider" style="margin-bottom:28px;"></div>
+
+      <!-- Rating -->
+      <div class="filter-group">
+        <div class="filter-group-label"><i class="fas fa-star"></i> Rating</div>
+        <div class="rating-filter">
+          <div class="rating-option selected" data-rating="0">
+            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+            &nbsp;All ratings
+          </div>
+          <div class="rating-option" data-rating="4.5">
+            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+            &nbsp;4.5 &amp; up
+          </div>
+          <div class="rating-option" data-rating="4.0">
+            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></div>
+            &nbsp;4.0 &amp; up
+          </div>
+          <div class="rating-option" data-rating="3.5">
+            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><i class="far fa-star"></i></div>
+            &nbsp;3.5 &amp; up
+          </div>
+        </div>
+      </div>
+
+      <div class="divider" style="margin-bottom:28px;"></div>
+
+      <!-- Content Type -->
+      <div class="filter-group">
+        <div class="filter-group-label"><i class="fas fa-layer-group"></i> Content Type</div>
+        <div class="type-filter">
+          <button class="type-chip active" data-type="all"><i class="fas fa-infinity"></i> All Types</button>
+          <button class="type-chip" data-type="video"><i class="fas fa-play-circle"></i> Video Course</button>
+          <button class="type-chip" data-type="pdf"><i class="fas fa-file-pdf"></i> PDF / Toolkit</button>
+          <button class="type-chip" data-type="live"><i class="fas fa-broadcast-tower"></i> Live Cohort</button>
+          <button class="type-chip" data-type="mentorship"><i class="fas fa-person-chalkboard"></i> 1-on-1 Strategy</button>
+        </div>
+      </div>
+
+      <div class="divider" style="margin-bottom:20px;"></div>
+
+      <button class="filter-reset" id="resetFilters">
+        <i class="fas fa-rotate-left"></i> Reset All Filters
+      </button>
+    </aside>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main>
+      <!-- Search & Sort -->
+      <div class="explore-header">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" id="courseSearch" placeholder="Search trainings, instructors, or topics…" />
+        </div>
+        <select class="sort-select" id="sortSelect">
+          <option value="popular">Most Popular</option>
+          <option value="newest">Newest First</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+          <option value="rating">Highest Rated</option>
+        </select>
+      </div>
+
+      <div class="results-count" id="resultsCount">Showing <span id="countNum">9</span> trainings</div>
+
+      <!-- COURSES GRID -->
+      <div class="courses-grid" id="coursesGrid">
+
+        <!-- 1: Organizer's Playbook -->
+        <div class="course-card"
+          data-category="community-organizing" data-price="97" data-rating="4.9" data-type="video" data-date="2026-04-10" data-title="The Organizer's Playbook: Building Power from the Ground Up" data-students="8420">
+          <div class="course-thumb">
+            <div class="course-badge community-organizing" style="background:rgba(107,33,168,0.25);color:#c084fc;border-color:rgba(168,85,247,0.3);">Community Organizing</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #1a1a2e, #6b21a8);">
+              <span class="thumb-title">The Organizer's Playbook</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">The Organizer's Playbook: Building Power from the Ground Up</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">MW</div>
+              <span class="instructor-name">Marcus Webb</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (2,140)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 8,420</div>
+            </div>
+            <div class="course-footer">
+              <div>
+                <span class="course-price">$97</span>
+                <span class="scholarship-badge">Scholarship Available</span>
+              </div>
+              <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2: Know Your Rights -->
+        <div class="course-card"
+          data-category="legal-rights" data-price="0" data-rating="4.9" data-type="pdf" data-date="2026-01-15" data-title="Know Your Rights: A Practical Legal Defense Guide" data-students="31200">
+          <div class="course-thumb">
+            <div class="course-badge legal-rights" style="background:rgba(127,29,29,0.25);color:#fca5a5;border-color:rgba(239,68,68,0.3);">Legal Rights</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #7f1d1d, #991b1b);">
+              <span class="thumb-title">Know Your Rights</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">Know Your Rights: A Practical Legal Defense Guide</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">AO</div>
+              <span class="instructor-name">Amara Osei, J.D.</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (8,920)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 31,200</div>
+            </div>
+            <div class="course-footer">
+              <div>
+                <span class="course-price" style="color:var(--green);">FREE</span>
+                <span class="free-badge">Donation Suggested</span>
+              </div>
+              <a href="course.html" class="btn btn-primary btn-sm">Access</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3: Digital Organizing -->
+        <div class="course-card"
+          data-category="digital" data-price="79" data-rating="4.8" data-type="video" data-date="2026-03-20" data-title="Digital Organizing Masterclass: Campaigns That Win" data-students="14600">
+          <div class="course-thumb">
+            <div class="course-badge digital" style="background:rgba(30,64,175,0.25);color:#93c5fd;border-color:rgba(59,130,246,0.3);">Digital Activism</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #0f172a, #1e40af);">
+              <span class="thumb-title">Digital Organizing Masterclass</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">Digital Organizing Masterclass: Campaigns That Win</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #1d4ed8, #1e40af);">ZC</div>
+              <span class="instructor-name">Zara Chen</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><span>4.8 (3,870)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 14,600</div>
+            </div>
+            <div class="course-footer">
+              <div><span class="course-price">$79</span></div>
+              <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4: Environmental Justice -->
+        <div class="course-card"
+          data-category="environmental" data-price="67" data-rating="4.9" data-type="live" data-date="2026-02-14" data-title="Environmental Justice: Frontline Community Leadership" data-students="6100">
+          <div class="course-thumb">
+            <div class="course-badge environmental" style="background:rgba(6,78,59,0.25);color:#6ee7b7;border-color:rgba(16,185,129,0.3);">Environmental Justice</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #064e3b, #065f46);">
+              <span class="thumb-title">Environmental Justice</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">Environmental Justice: Frontline Community Leadership</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #047857, #065f46);">KM</div>
+              <span class="instructor-name">Dr. Keisha Morgan</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (1,480)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 6,100</div>
+            </div>
+            <div class="course-footer">
+              <div><span class="course-price">$67</span></div>
+              <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5: Policy to Power -->
+        <div class="course-card"
+          data-category="policy" data-price="129" data-rating="4.8" data-type="live" data-date="2026-05-01" data-title="Policy to Power: Turning Advocacy into Law" data-students="5300">
+          <div class="course-thumb">
+            <div class="course-badge policy" style="background:rgba(69,26,3,0.4);color:#fcd34d;border-color:rgba(245,158,11,0.3);">Policy &amp; Legislation</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #451a03, #92400e);">
+              <span class="thumb-title">Policy to Power</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">Policy to Power: Turning Advocacy into Law</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #b45309, #92400e);">JO</div>
+              <span class="instructor-name">James Okafor</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><span>4.8 (1,210)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 5,300</div>
+            </div>
+            <div class="course-footer">
+              <div><span class="course-price">$129</span></div>
+              <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6: Prison Abolition -->
+        <div class="course-card"
+          data-category="criminal-justice" data-price="49" data-rating="4.9" data-type="video" data-date="2026-01-20" data-title="Prison Abolition & Reform: A Practical Guide" data-students="9800">
+          <div class="course-thumb">
+            <div class="course-badge criminal-justice" style="background:rgba(28,25,23,0.6);color:#d6d3d1;border-color:rgba(120,113,108,0.3);">Criminal Justice Reform</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #1c1917, #44403c);">
+              <span class="thumb-title">Prison Abolition &amp; Reform</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">Prison Abolition &amp; Reform: A Practical Guide</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #57534e, #44403c);">MW</div>
+              <span class="instructor-name">Marcus Webb</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (2,380)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 9,800</div>
+            </div>
+            <div class="course-footer">
+              <div>
+                <span class="course-price">$49</span>
+                <span class="scholarship-badge">Scholarship Available</span>
+              </div>
+              <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7: Labor Organizing -->
+        <div class="course-card"
+          data-category="economic" data-price="89" data-rating="4.8" data-type="video" data-date="2026-04-15" data-title="Labor Organizing 101: Winning in the Workplace" data-students="7400">
+          <div class="course-thumb">
+            <div class="course-badge economic" style="background:rgba(30,27,75,0.4);color:#a5b4fc;border-color:rgba(99,102,241,0.3);">Economic Justice</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #1e1b4b, #3730a3);">
+              <span class="thumb-title">Labor Organizing 101</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">Labor Organizing 101: Winning in the Workplace</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #4338ca, #3730a3);">RK</div>
+              <span class="instructor-name">Rosa Kim</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><span>4.8 (1,760)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 7,400</div>
+            </div>
+            <div class="course-footer">
+              <div><span class="course-price">$89</span></div>
+              <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8: Movement Leadership -->
+        <div class="course-card"
+          data-category="leadership" data-price="79" data-rating="4.9" data-type="mentorship" data-date="2026-03-05" data-title="Movement Leadership: Sustaining Yourself & Your Team" data-students="4200">
+          <div class="course-thumb">
+            <div class="course-badge leadership" style="background:rgba(12,10,9,0.6);color:#a8a29e;border-color:rgba(87,83,78,0.3);">Movement Leadership</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #0c0a09, #57534e);">
+              <span class="thumb-title">Movement Leadership</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">Movement Leadership: Sustaining Yourself &amp; Your Team</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #47403a, #57534e);">KM</div>
+              <span class="instructor-name">Dr. Keisha Morgan</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (980)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 4,200</div>
+            </div>
+            <div class="course-footer">
+              <div><span class="course-price">$79</span></div>
+              <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9: Social Media for Social Justice -->
+        <div class="course-card"
+          data-category="digital" data-price="59" data-rating="4.7" data-type="video" data-date="2026-02-28" data-title="Social Media for Social Justice: Viral Campaigns & Counter-Narratives" data-students="11800">
+          <div class="course-thumb">
+            <div class="course-badge digital" style="background:rgba(15,15,35,0.5);color:#c4b5fd;border-color:rgba(124,58,237,0.3);">Digital Activism</div>
+            <div class="course-thumb-bg" style="background: linear-gradient(135deg, #0f0f23, #7c3aed);">
+              <span class="thumb-title">Social Media for Social Justice</span>
+            </div>
+          </div>
+          <div class="course-content">
+            <h3 class="course-title">Social Media for Social Justice: Viral Campaigns &amp; Counter-Narratives</h3>
+            <div class="course-instructor">
+              <div class="instructor-avatar" style="background: linear-gradient(135deg, #6d28d9, #7c3aed);">ZC</div>
+              <span class="instructor-name">Zara Chen</span>
+            </div>
+            <div class="course-meta">
+              <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><span>4.7 (2,940)</span></div>
+              <div class="student-count"><i class="fas fa-users"></i> 11,800</div>
+            </div>
+            <div class="course-footer">
+              <div><span class="course-price">$59</span></div>
+              <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- No results -->
+        <div class="no-results" id="noResults">
+          <i class="fas fa-search-minus"></i>
+          <p>No trainings match your filters.</p>
+          <button class="btn btn-secondary" style="margin-top:20px;" onclick="document.getElementById('resetFilters').click()">Reset Filters</button>
+        </div>
+
+      </div><!-- /courses-grid -->
+    </main>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html"><img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;" /></a>
+        <p>The premier training platform for activists, organizers, advocates, and changemakers. Train. Organize. Transform.</p>
+        <div class="social-links">
+          <a href="#" class="social-link"><i class="fab fa-x-twitter"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="explore.html">Explore Training</a></li>
+          <li><a href="instructor.html">Instructors</a></li>
+          <li><a href="dashboard.html">My Dashboard</a></li>
+          <li><a href="#">Live Sessions</a></li>
+          <li><a href="#">Movement Credentials</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Educators</h4>
+        <ul>
+          <li><a href="apply.html">Apply to Teach</a></li>
+          <li><a href="#">Revenue Share</a></li>
+          <li><a href="#">Course Builder</a></li>
+          <li><a href="#">Analytics</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Radiant Threshold, Inc. All rights reserved.</p>
+      <p>Made with <span style="color:var(--accent-2);">♥</span> for organizers everywhere.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
