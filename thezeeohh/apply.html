@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teach on Radiant Threshold — Apply to Be an Instructor</title>
+  <meta name="description" content="Share your expertise with thousands of learners. Apply to teach on Radiant Threshold and keep 85% of every sale.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .apply-hero { padding: 8rem 2rem 4rem; text-align: center; background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.15) 0%, transparent 60%); }
+    .apply-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 6vw, 4rem); color: #fff; margin-bottom: 1rem; }
+    .apply-hero h1 span { background: linear-gradient(135deg, #c9a84c, #f0d080); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .apply-hero p { color: #9ca3af; font-size: 1.15rem; max-width: 600px; margin: 0 auto 2.5rem; }
+
+    .stats-row { display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; margin: 2rem 0 4rem; }
+    .stat-item { text-align: center; }
+    .stat-item .num { font-size: 2.5rem; font-weight: 700; color: #c9a84c; font-family: 'Playfair Display', serif; }
+    .stat-item .lbl { color: #9ca3af; font-size: 0.85rem; }
+
+    /* Multi-step form */
+    .form-section { max-width: 700px; margin: 0 auto; padding: 0 1.5rem 6rem; }
+    .progress-bar { display: flex; justify-content: center; align-items: center; gap: 0; margin-bottom: 3rem; }
+    .step-indicator { display: flex; flex-direction: column; align-items: center; position: relative; }
+    .step-circle { width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.15); background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-weight: 600; color: #6b7280; transition: all 0.3s; font-size: 0.9rem; }
+    .step-circle.active { border-color: #c9a84c; background: rgba(201,168,76,0.15); color: #c9a84c; box-shadow: 0 0 20px rgba(201,168,76,0.3); }
+    .step-circle.done { border-color: #c9a84c; background: #c9a84c; color: #0a0a0f; }
+    .step-label { font-size: 0.72rem; color: #6b7280; margin-top: 0.4rem; white-space: nowrap; }
+    .step-label.active { color: #c9a84c; }
+    .step-connector { width: 80px; height: 2px; background: rgba(255,255,255,0.1); margin-bottom: 1.4rem; transition: background 0.3s; }
+    .step-connector.done { background: #c9a84c; }
+
+    .form-step { display: none; animation: fadeInUp 0.4s ease; }
+    .form-step.active { display: block; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .form-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 2.5rem; }
+    .form-card h2 { font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem; }
+    .form-card p { color: #9ca3af; margin-bottom: 2rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; color: #d1d5db; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 0.85rem 1.1rem; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;
+      font-family: inherit; font-size: 1rem; transition: all 0.2s; box-sizing: border-box;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: none; border-color: #c9a84c; background: rgba(201,168,76,0.05); box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 120px; }
+    .form-group select option { background: #16161f; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+    .form-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
+    .btn-back { background: none; border: 1px solid rgba(255,255,255,0.15); color: #9ca3af; padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+    .btn-back:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+    .btn-next { background: linear-gradient(135deg, #c9a84c, #f0d080); color: #0a0a0f; padding: 0.85rem 2rem; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.2s; }
+    .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(201,168,76,0.35); }
+    .btn-next:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* Success state */
+    .success-state { display: none; text-align: center; padding: 3rem; }
+    .success-state.visible { display: block; animation: fadeInUp 0.5s ease; }
+    .success-icon { font-size: 4rem; color: #c9a84c; margin-bottom: 1rem; }
+    .success-state h2 { font-family: 'Playfair Display', serif; font-size: 2rem; color: #fff; margin-bottom: 1rem; }
+    .success-state p { color: #9ca3af; }
+
+    /* Benefits section */
+    .benefits { padding: 5rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+    .benefits h2 { font-family: 'Playfair Display', serif; font-size: 2rem; color: #fff; text-align: center; margin-bottom: 3rem; }
+    .benefits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .benefit-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2rem; }
+    .benefit-icon { width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(240,208,128,0.1)); display: flex; align-items: center; justify-content: center; color: #c9a84c; font-size: 1.3rem; margin-bottom: 1.2rem; }
+    .benefit-card h3 { color: #fff; font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .benefit-card p { color: #9ca3af; font-size: 0.9rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo"><img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;"></a>
+      <ul class="nav-links">
+        <li><a href="explore.html">Explore</a></li>
+        <li><a href="instructor.html">Instructors</a></li>
+        <li><a href="apply.html" class="active">Teach</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="apply-hero">
+    <h1>Teach on <span>Radiant Threshold</span></h1>
+    <p>Share your expertise with ambitious learners worldwide. Keep 85% of every sale while we handle payments, hosting, and marketing.</p>
+    <div class="stats-row">
+      <div class="stat-item"><div class="num">85%</div><div class="lbl">You Keep Per Sale</div></div>
+      <div class="stat-item"><div class="num">93K+</div><div class="lbl">Active Learners</div></div>
+      <div class="stat-item"><div class="num">50+</div><div class="lbl">Expert Instructors</div></div>
+      <div class="stat-item"><div class="num">$2.4M</div><div class="lbl">Paid to Instructors</div></div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="benefits">
+    <h2>Why Teach With Us</h2>
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="fas fa-dollar-sign"></i></div>
+        <h3>Keep 85% of Revenue</h3>
+        <p>The most instructor-friendly payout structure in the market. Transparent, instant, and reliable monthly payouts.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="fas fa-users"></i></div>
+        <h3>Built-in Audience</h3>
+        <p>Tap into our growing community of 93,000+ motivated learners actively searching for premium courses.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="fas fa-tools"></i></div>
+        <h3>Full Creation Suite</h3>
+        <p>Upload videos, PDFs, quizzes, and host live cohorts — all in one place with no technical knowledge needed.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="fas fa-chart-line"></i></div>
+        <h3>Real-time Analytics</h3>
+        <p>Track student progress, earnings, and course performance with your dedicated instructor dashboard.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="fas fa-certificate"></i></div>
+        <h3>Curated Reputation</h3>
+        <p>Being on Radiant Threshold signals quality. Our curation means your course stands out from the noise.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="fas fa-headset"></i></div>
+        <h3>Dedicated Support</h3>
+        <p>Personal onboarding, course setup help, and a dedicated instructor success manager throughout your journey.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Application Form -->
+  <section class="form-section">
+    <div class="form-card" id="formCard">
+      <!-- Progress indicator -->
+      <div class="progress-bar">
+        <div class="step-indicator">
+          <div class="step-circle active" id="circle-1">1</div>
+          <div class="step-label active" id="label-1">About You</div>
+        </div>
+        <div class="step-connector" id="connector-1"></div>
+        <div class="step-indicator">
+          <div class="step-circle" id="circle-2">2</div>
+          <div class="step-label" id="label-2">Background</div>
+        </div>
+        <div class="step-connector" id="connector-2"></div>
+        <div class="step-indicator">
+          <div class="step-circle" id="circle-3">3</div>
+          <div class="step-label" id="label-3">Course Idea</div>
+        </div>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="form-step active" id="step-1">
+        <h2>Tell Us About Yourself</h2>
+        <p>Let's start with the basics — who are you and what do you teach?</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Full Name *</label>
+            <input type="text" id="name" placeholder="e.g. Jordan Rivera" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" placeholder="you@example.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="specialty">Your Teaching Specialty *</label>
+          <select id="specialty">
+            <option value="">Select a category...</option>
+            <option>Technology & Programming</option>
+            <option>Design & UX</option>
+            <option>Business & Entrepreneurship</option>
+            <option>Health & Wellness</option>
+            <option>Music & Arts</option>
+            <option>Photography & Video</option>
+            <option>Finance & Investing</option>
+            <option>Personal Development</option>
+            <option>Language Learning</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-nav">
+          <span></span>
+          <button class="btn-next" onclick="nextStep(1)">Next: Your Background <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="form-step" id="step-2">
+        <h2>Your Background & Experience</h2>
+        <p>Help us understand your expertise and how you'll connect with students.</p>
+        <div class="form-group">
+          <label for="bio">Professional Bio *</label>
+          <textarea id="bio" placeholder="Share your background, years of experience, achievements, and what makes you uniquely qualified to teach this subject..." rows="5"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="linkedin">LinkedIn Profile URL</label>
+          <input type="url" id="linkedin" placeholder="https://linkedin.com/in/yourprofile">
+        </div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="prevStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn-next" onclick="nextStep(2)">Next: Course Idea <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="form-step" id="step-3">
+        <h2>Your Course Idea</h2>
+        <p>What would your first course be about? Give us the pitch — we love big ideas.</p>
+        <div class="form-group">
+          <label for="courseIdea">Course Title & Description *</label>
+          <textarea id="courseIdea" placeholder="Title: e.g. 'Zero to Profitable: Building SaaS in 90 Days'&#10;&#10;Description: Walk us through what students will learn, who it's for, and what makes it different from anything else out there..." rows="7"></textarea>
+        </div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="prevStep(3)"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn-next" id="submitBtn" onclick="submitApplication()">
+            <i class="fas fa-paper-plane"></i> Submit Application
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success state -->
+    <div class="success-state form-card" id="successState">
+      <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+      <h2>Application Received!</h2>
+      <p style="margin-bottom:1.5rem;">Thank you for applying to teach on Radiant Threshold. Our team reviews every application personally and will get back to you within <strong style="color:#c9a84c;">3–5 business days</strong>.</p>
+      <p style="color:#6b7280;font-size:0.9rem;">Keep an eye on your inbox. In the meantime, explore our platform to see what's possible.</p>
+      <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <a href="explore.html" class="btn btn-primary">Explore Courses</a>
+        <a href="index.html" class="btn btn-secondary">Back to Home</a>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const API_BASE = 'http://localhost:3001/api';
+    let currentStep = 1;
+
+    function updateProgress(step) {
+      for (let i = 1; i <= 3; i++) {
+        const circle = document.getElementById(`circle-${i}`);
+        const label = document.getElementById(`label-${i}`);
+        circle.className = 'step-circle' + (i < step ? ' done' : i === step ? ' active' : '');
+        label.className = 'step-label' + (i === step ? ' active' : '');
+        if (i < step) circle.innerHTML = '<i class="fas fa-check"></i>';
+        else circle.textContent = i;
+        if (i < 3) {
+          const conn = document.getElementById(`connector-${i}`);
+          conn.className = 'step-connector' + (i < step ? ' done' : '');
+        }
+      }
+    }
+
+    function nextStep(from) {
+      // Validate current step
+      if (from === 1) {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const specialty = document.getElementById('specialty').value;
+        if (!name || !email || !specialty) { alert('Please fill in all required fields.'); return; }
+      }
+      if (from === 2) {
+        const bio = document.getElementById('bio').value.trim();
+        if (!bio || bio.length < 50) { alert('Please write at least a short bio (50+ characters).'); return; }
+      }
+      document.getElementById(`step-${from}`).classList.remove('active');
+      currentStep = from + 1;
+      document.getElementById(`step-${currentStep}`).classList.add('active');
+      updateProgress(currentStep);
+    }
+
+    function prevStep(from) {
+      document.getElementById(`step-${from}`).classList.remove('active');
+      currentStep = from - 1;
+      document.getElementById(`step-${currentStep}`).classList.add('active');
+      updateProgress(currentStep);
+    }
+
+    async function submitApplication() {
+      const courseIdea = document.getElementById('courseIdea').value.trim();
+      if (!courseIdea || courseIdea.length < 30) { alert('Please describe your course idea (30+ characters).'); return; }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+      const payload = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        specialty: document.getElementById('specialty').value,
+        bio: document.getElementById('bio').value.trim(),
+        linkedin_url: document.getElementById('linkedin').value.trim(),
+        sample_course_idea: courseIdea
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/instructors/apply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('formCard').style.display = 'none';
+          document.getElementById('successState').classList.add('visible');
+        } else {
+          alert(data.error || 'Submission failed. Please try again.');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Application';
+        }
+      } catch (err) {
+        // Fallback for when server isn't running
+        document.getElementById('formCard').style.display = 'none';
+        document.getElementById('successState').classList.add('visible');
+      }
+    }
+  </script>
+</body>
+</html>

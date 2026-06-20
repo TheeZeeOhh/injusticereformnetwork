@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enrollment Confirmed — Radiant Threshold</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .success-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+    .checkmark-circle { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #c9a84c, #f0d080); display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; font-size: 3rem; color: #0a0a0f; box-shadow: 0 0 60px rgba(201,168,76,0.4); }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); color: #fff; margin-bottom: 1rem; }
+    .success-title span { background: linear-gradient(135deg, #c9a84c, #f0d080); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .success-subtitle { color: #9ca3af; font-size: 1.1rem; max-width: 540px; margin: 0 auto 2rem; line-height: 1.7; }
+    .course-name-box { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 1.25rem 2rem; margin: 1.5rem auto; max-width: 480px; }
+    .course-name-box .label { color: #9ca3af; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; }
+    .course-name-box .title { color: #c9a84c; font-weight: 600; font-size: 1.1rem; }
+    .success-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2.5rem; }
+    .confetti-piece { position: fixed; width: 10px; height: 10px; border-radius: 2px; animation: confettiFall linear forwards; pointer-events: none; }
+    @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    .includes-list { list-style: none; padding: 0; margin: 2rem auto; max-width: 420px; text-align: left; }
+    .includes-list li { display: flex; align-items: center; gap: 0.75rem; color: #d1d5db; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .includes-list li i { color: #c9a84c; width: 18px; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo"><img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;"></a>
+      <ul class="nav-links">
+        <li><a href="explore.html">Explore</a></li>
+        <li><a href="instructor.html">Instructors</a></li>
+        <li><a href="apply.html">Teach</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="dashboard.html" class="btn btn-primary">My Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="success-page">
+    <!-- Animated checkmark -->
+    <div class="checkmark-circle">
+      <i class="fas fa-check"></i>
+    </div>
+
+    <h1 class="success-title">Enrollment <span>Confirmed!</span></h1>
+    <p class="success-subtitle">Welcome to Radiant Threshold. You now have lifetime access to your course — learn at your own pace, forever.</p>
+
+    <!-- Course name loaded from API -->
+    <div class="course-name-box" id="courseBox" style="display:none;">
+      <div class="label">Your New Course</div>
+      <div class="title" id="courseName">Loading...</div>
+    </div>
+
+    <!-- What's included -->
+    <ul class="includes-list">
+      <li><i class="fas fa-infinity"></i> Lifetime access to all course content</li>
+      <li><i class="fas fa-certificate"></i> Certificate of completion</li>
+      <li><i class="fas fa-mobile-alt"></i> Access on any device, anytime</li>
+      <li><i class="fas fa-comments"></i> Community discussion access</li>
+      <li><i class="fas fa-download"></i> Downloadable resources & PDFs</li>
+    </ul>
+
+    <div class="success-actions">
+      <a href="dashboard.html" class="btn btn-primary" style="font-size:1.1rem;padding:0.9rem 2.5rem;">
+        <i class="fas fa-graduation-cap"></i> Go to Dashboard
+      </a>
+      <a href="explore.html" class="btn btn-secondary">
+        <i class="fas fa-search"></i> Explore More Courses
+      </a>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = 'http://localhost:3001/api';
+    const colors = ['#6366f1','#8b5cf6','#c9a84c','#f0d080','#a855f7','#ec4899','#06b6d4'];
+
+    // Confetti
+    function launchConfetti() {
+      for (let i = 0; i < 80; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.cssText = `
+          left: ${Math.random() * 100}vw;
+          top: -10px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          width: ${Math.random() * 12 + 6}px;
+          height: ${Math.random() * 12 + 6}px;
+          animation-duration: ${Math.random() * 2 + 2}s;
+          animation-delay: ${Math.random() * 1.5}s;
+          border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        `;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 4000);
+      }
+    }
+
+    // Load enrollment details from API
+    async function loadSuccess() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+      const token = localStorage.getItem('rt_token');
+
+      if (sessionId && token) {
+        try {
+          const res = await fetch(`${API_BASE}/payments/success?session_id=${sessionId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const box = document.getElementById('courseBox');
+            const nameEl = document.getElementById('courseName');
+            nameEl.textContent = data.course?.title || 'Your Course';
+            box.style.display = 'block';
+          }
+        } catch (e) { /* fallback to generic message */ }
+      }
+    }
+
+    launchConfetti();
+    loadSuccess();
+  </script>
+</body>
+</html>
