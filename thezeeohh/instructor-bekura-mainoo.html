@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BeKura Mainoo — Instructor Profile — Radiant Threshold</title>
+  <meta name="description" content="Learn from BeKura Mainoo, Co-Leader of the Injustice Reform Network. 12,400 organizers trained. 4.9★ rating." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 40px;
+    }
+    .tab-btn {
+      padding: 12px 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: color var(--transition-fast);
+    }
+    .tab-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent-gradient);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    .tab-btn.active { color: var(--text-primary); }
+    .tab-btn.active::after { opacity: 1; }
+    .tab-btn:hover { color: var(--text-secondary); }
+
+    .credential-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-full);
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin: 4px;
+    }
+    .credential-badge i { color: var(--accent-2); }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;display:block;" />
+    </a>
+    <div class="nav-links">
+      <a href="explore.html" class="nav-link">Explore</a>
+      <a href="instructor.html" class="nav-link active">Instructors</a>
+      <a href="index.html#pricing" class="nav-link">Access</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+    </div>
+    <div class="nav-actions">
+      <a href="explore.html" class="btn btn-secondary btn-sm">Explore Training</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="explore.html" class="nav-link">Explore</a>
+  <a href="instructor.html" class="nav-link active">Instructors</a>
+  <a href="index.html#pricing" class="nav-link">Access</a>
+  <a href="dashboard.html" class="nav-link">Dashboard</a>
+</div>
+
+<!-- INSTRUCTOR HERO -->
+<section class="instructor-hero">
+  <div class="container">
+    <div class="instructor-hero-inner">
+
+      <div class="instructor-avatar-xl" style="background: linear-gradient(135deg, #7c3aed, #d9a441, #1e1b4b);">BM</div>
+
+      <div class="instructor-hero-info">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+          <span class="section-label" style="margin:0;"><i class="fas fa-fist-raised"></i> Policy Strategist</span>
+          <span style="background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.3); color:#c9a84c; padding:5px 14px; border-radius:999px; font-size:0.78rem; font-weight:700;">
+            <i class="fas fa-star"></i> VA/757 Anchor
+          </span>
+        </div>
+
+        <h1>BeKura Mainoo</h1>
+        <p class="instructor-tagline">
+          Co-Leader, Injustice Reform Network (VA/757 Operations) · Founder, First State Advocates · 15+ Years Grassroots Legal Accountability
+        </p>
+
+        <div class="instructor-hero-stats">
+          <div class="hero-stat">
+            <span class="num gradient-text">12,400</span>
+            <span class="label">Organizers Trained</span>
+          </div>
+          <div class="hero-stat">
+            <span class="num gradient-text">2</span>
+            <span class="label">Courses Published</span>
+          </div>
+          <div class="hero-stat">
+            <span class="num" style="color:var(--gold);">4.9★</span>
+            <span class="label">Average Rating</span>
+          </div>
+          <div class="hero-stat">
+            <span class="num gradient-text">1,500+</span>
+            <span class="label">Reviews</span>
+          </div>
+          <div class="hero-stat">
+            <span class="num gradient-text">15+</span>
+            <span class="label">Years Advocacy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div class="container" style="padding: 60px 0 100px;">
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="about">About</button>
+    <button class="tab-btn" data-tab="courses">Courses (2)</button>
+    <button class="tab-btn" data-tab="reviews">Reviews (1,500+)</button>
+  </div>
+
+  <!-- ABOUT TAB -->
+  <div id="tab-about">
+
+    <div style="display:grid; grid-template-columns:2fr 1fr; gap:40px; align-items:start;">
+
+      <!-- Bio -->
+      <div>
+        <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:24px;">About BeKura Mainoo</h2>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-lg); padding:36px; margin-bottom:32px;">
+          <p style="color:var(--text-secondary); line-height:1.85; font-size:0.96rem; margin-bottom:20px;">
+            BeKura Mainoo is the Co-Leader of the Injustice Reform Network (IRN), anchoring the network's VA/757 operations. She is a powerhouse legal advocate, policy strategist, and grassroots organizer dedicated to challenging carceral systems and driving institutional accountability.
+          </p>
+          <p style="color:var(--text-secondary); line-height:1.85; font-size:0.96rem; margin-bottom:20px;">
+            As the founder of First State Advocates, BeKura has spent over fifteen years working at the intersection of civil rights, criminal justice reform, and foster system advocacy. She is renowned for building strong coalitions, drafting formal community records demands, and leading campaigns that hold municipal and institutional actors accountable.
+          </p>
+          <p style="color:var(--text-secondary); line-height:1.85; font-size:0.96rem;">
+            Her courses at Radiant Threshold focus on equipping families and communities to challenge state-sponsored neglect and abuse with verified, community-controlled documentation and systemic policy demands.
+          </p>
+        </div>
+
+        <!-- Credentials -->
+        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:20px;">Credentials &amp; Recognition</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:40px;">
+          <span class="credential-badge"><i class="fas fa-network-wired"></i> Co-Leader, Injustice Reform Network (VA/757 Operations)</span>
+          <span class="credential-badge"><i class="fas fa-users-viewfinder"></i> Founder &amp; President, First State Advocates</span>
+          <span class="credential-badge"><i class="fas fa-scale-unbalanced"></i> 15+ Years Civil Rights &amp; Foster System Advocacy</span>
+          <span class="credential-badge"><i class="fas fa-bullhorn"></i> Lead Organizer for NAACP Branch Accountability Campaigns</span>
+          <span class="credential-badge"><i class="fas fa-file-invoice"></i> Expert in Community Records Demands &amp; Policy Lobbying</span>
+          <span class="credential-badge"><i class="fas fa-trophy" style="color:#c9a84c;"></i> Honored by the Virginia Coalition for Social Justice</span>
+        </div>
+      </div>
+
+      <!-- Side Stats Card -->
+      <div>
+        <div style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-lg); padding:28px; margin-bottom:20px;">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:20px;">At a Glance</h3>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+              <span style="color:var(--text-muted);">Organizers Trained</span>
+              <span style="font-weight:700;">12,400</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+              <span style="color:var(--text-muted);">Avg. Rating</span>
+              <span style="font-weight:700; color:var(--gold);">4.9★</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+              <span style="color:var(--text-muted);">Total Reviews</span>
+              <span style="font-weight:700;">1,500+</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+              <span style="color:var(--text-muted);">Courses</span>
+              <span style="font-weight:700;">2</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+              <span style="color:var(--text-muted);">Years Practice</span>
+              <span style="font-weight:700;">15+</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+              <span style="color:var(--text-muted);">Languages</span>
+              <span style="font-weight:700;">English</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(217,164,65,0.07)); border:1px solid rgba(124,58,237,0.2); border-radius:var(--radius-lg); padding:24px; text-align:center;">
+          <div style="font-size:1.8rem; margin-bottom:8px;">✊</div>
+          <div style="font-size:1rem; font-weight:700; margin-bottom:6px;">Book a Strategy Session</div>
+          <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">1-hour private session with BeKura to review FOIA/records demand drafting or campaign scaling strategies.</div>
+          <div style="font-size:1.4rem; font-weight:900; color:var(--accent-2); margin-bottom:4px;">$150 / session</div>
+          <div style="font-size:0.78rem; color:var(--green); margin-bottom:16px;"><i class="fas fa-hand-holding-heart"></i> Scholarship available</div>
+          <a href="#" class="btn btn-primary w-full" style="justify-content:center;">Book a Session</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COURSES TAB (hidden by default) -->
+  <div id="tab-courses" class="hidden">
+    <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:32px;">Courses by BeKura Mainoo</h2>
+    <div class="courses-grid">
+
+      <div class="course-card">
+        <div class="course-thumb">
+          <div class="course-badge legal-rights" style="background:rgba(127,29,29,0.25);color:#fca5a5;border-color:rgba(239,68,68,0.3);">Legal Rights &amp; Advocacy</div>
+          <div class="course-thumb-bg" style="background:linear-gradient(135deg,#7c3aed,#d9a441);">
+            <span class="thumb-title">Records Demands</span>
+          </div>
+        </div>
+        <div class="course-content">
+          <h3 class="course-title">Holding Institutions Accountable: Community Records Demands</h3>
+          <div class="course-meta">
+            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (820)</span></div>
+            <div class="student-count"><i class="fas fa-users"></i> 6,400</div>
+          </div>
+          <div class="course-footer">
+            <div><span class="course-price">$89</span><span class="scholarship-badge" style="margin-left:6px;">Scholarship Available</span></div>
+            <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card">
+        <div class="course-thumb">
+          <div class="course-badge policy" style="background:rgba(69,26,3,0.4);color:#fcd34d;border-color:rgba(245,158,11,0.3);">Policy &amp; Legislation</div>
+          <div class="course-thumb-bg" style="background:linear-gradient(135deg,#1e1b4b,#d9a441);">
+            <span class="thumb-title">State Advocacy</span>
+          </div>
+        </div>
+        <div class="course-content">
+          <h3 class="course-title">State Advocacy &amp; Policy Lobbying: Turning Demands into Legislative Wins</h3>
+          <div class="course-meta">
+            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (680)</span></div>
+            <div class="student-count"><i class="fas fa-users"></i> 6,000</div>
+          </div>
+          <div class="course-footer">
+            <div><span class="course-price">$99</span></div>
+            <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- REVIEWS TAB (hidden by default) -->
+  <div id="tab-reviews" class="hidden">
+    <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:32px;">Student Reviews</h2>
+
+    <div style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-lg); padding:32px; margin-bottom:40px;">
+      <div class="rating-overview">
+        <div class="rating-big">
+          <div class="num">4.9</div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <div class="count">1,500+ reviews</div>
+        </div>
+        <div class="rating-bars">
+          <div class="rating-bar-row"><span>5★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:91%;"></div></div><span>91%</span></div>
+          <div class="rating-bar-row"><span>4★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:7%;"></div></div><span>7%</span></div>
+          <div class="rating-bar-row"><span>3★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:1%;"></div></div><span>1%</span></div>
+          <div class="rating-bar-row"><span>2★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:1%;"></div></div><span>1%</span></div>
+          <div class="rating-bar-row"><span>1★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:0%;"></div></div><span>0%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-card">
+      <div class="review-header">
+        <div class="instructor-avatar" style="background:linear-gradient(135deg,#7c3aed,#d9a441);width:44px;height:44px;">MW</div>
+        <div>
+          <div style="font-weight:700;">Marcus W. · Holding Institutions Accountable</div>
+          <div class="stars" style="font-size:0.8rem; margin-top:4px;"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        </div>
+      </div>
+      <p class="review-text">BeKura's framework on records demands was pivotal in our investigation of county-level misconduct. She provides the exact letters and legal citations you need.</p>
+      <div class="review-date">March 12, 2026</div>
+    </div>
+
+    <div class="review-card">
+      <div class="review-header">
+        <div class="instructor-avatar" style="background:linear-gradient(135deg,#1e1b4b,#d9a441);width:44px;height:44px;">AN</div>
+        <div>
+          <div style="font-weight:700;">Aisha N. · State Advocacy</div>
+          <div class="stars" style="font-size:0.8rem; margin-top:4px;"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        </div>
+      </div>
+      <p class="review-text">This class showed us how to turn community narratives into legislative briefs that lawmakers actually read. Highly recommend.</p>
+      <div class="review-date">May 8, 2026</div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html"><img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;" /></a>
+        <p>The premier training platform for activists, organizers, advocates, and changemakers. Train. Organize. Transform.</p>
+        <div class="social-links">
+          <a href="#" class="social-link"><i class="fab fa-x-twitter"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+        </div>
+      </div>
+      <div class="footer-col"><h4>Platform</h4><ul><li><a href="explore.html">Explore Training</a></li><li><a href="instructor.html">Instructors</a></li><li><a href="dashboard.html">Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Educators</h4><ul><li><a href="apply.html">Apply to Teach</a></li><li><a href="#">Revenue Share</a></li><li><a href="#">Course Builder</a></li></ul></div>
+      <div class="footer-col"><h4>Company</h4><ul><li><a href="#">About Us</a></li><li><a href="#">Blog</a></li><li><a href="#">Privacy</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Radiant Threshold, Inc. All rights reserved.</p>
+      <p>Made with <span style="color:var(--accent-2);">♥</span> for organizers everywhere.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      ['about','courses','reviews'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) el.classList.toggle('hidden', t !== tab);
+      });
+    });
+  });
+</script>
+</body>
+</html>

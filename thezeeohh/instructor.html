@@ -3,55 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marcus Webb — Instructor Profile — Radiant Threshold</title>
-  <meta name="description" content="Learn from Marcus Webb, Lead Organizer with 20+ years on the frontlines. 18,220 organizers trained. 4.9★ rating." />
+  <title>Frontline Educators — Instructors Directory — Radiant Threshold</title>
+  <meta name="description" content="Meet the organizers, civil rights attorneys, and environmental advocates leading our social justice trainings." />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-    .tab-nav {
-      display: flex;
-      gap: 4px;
-      border-bottom: 1px solid var(--border-subtle);
-      margin-bottom: 40px;
-    }
-    .tab-btn {
-      padding: 12px 24px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: none;
-      border: none;
-      cursor: pointer;
-      position: relative;
-      transition: color var(--transition-fast);
-    }
-    .tab-btn::after {
-      content: '';
-      position: absolute;
-      bottom: -1px; left: 0; right: 0;
-      height: 2px;
-      background: var(--accent-gradient);
-      opacity: 0;
-      transition: opacity var(--transition-fast);
-    }
-    .tab-btn.active { color: var(--text-primary); }
-    .tab-btn.active::after { opacity: 1; }
-    .tab-btn:hover { color: var(--text-secondary); }
-
-    .credential-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-glass);
-      border-radius: var(--radius-full);
-      padding: 8px 18px;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin: 4px;
-    }
-    .credential-badge i { color: var(--accent-2); }
-  </style>
 </head>
 <body>
 
@@ -83,274 +38,133 @@
   <a href="dashboard.html" class="nav-link">Dashboard</a>
 </div>
 
-<!-- INSTRUCTOR HERO -->
-<section class="instructor-hero">
-  <div class="container">
-    <div class="instructor-hero-inner">
-
-      <div class="instructor-avatar-xl" style="background: linear-gradient(135deg, #7c3aed, #6d28d9, #4c1d95);">MW</div>
-
-      <div class="instructor-hero-info">
-        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
-          <span class="section-label" style="margin:0;"><i class="fas fa-fist-raised"></i> Frontline Educator</span>
-          <span style="background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.3); color:#c9a84c; padding:5px 14px; border-radius:999px; font-size:0.78rem; font-weight:700;">
-            <i class="fas fa-star"></i> Top Organizer-Educator 2025 &amp; 2026
-          </span>
-        </div>
-
-        <h1>Marcus Webb</h1>
-        <p class="instructor-tagline">
-          Lead Organizer. Movement Strategist. 20 Years on the Frontlines. · Founder, People's Power Institute · 18,000+ Organizers Trained Nationwide
-        </p>
-
-        <div class="instructor-hero-stats">
-          <div class="hero-stat">
-            <span class="num gradient-text">18,220</span>
-            <span class="label">Organizers Trained</span>
-          </div>
-          <div class="hero-stat">
-            <span class="num gradient-text">3</span>
-            <span class="label">Courses Published</span>
-          </div>
-          <div class="hero-stat">
-            <span class="num" style="color:var(--gold);">4.9★</span>
-            <span class="label">Average Rating</span>
-          </div>
-          <div class="hero-stat">
-            <span class="num gradient-text">2,400+</span>
-            <span class="label">Reviews</span>
-          </div>
-          <div class="hero-stat">
-            <span class="num gradient-text">20+</span>
-            <span class="label">Years Organizing</span>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- HEADER BANNER -->
+<section class="section" style="padding-top:140px; padding-bottom:40px;">
+  <div class="container" style="text-align: center;">
+    <div class="section-label" style="margin: 0 auto 16px; display: inline-flex; align-items: center; gap: 8px;"><i class="fas fa-user-shield"></i> Frontline Educators</div>
+    <h1 style="font-family:'Playfair Display', serif; font-size:clamp(2.5rem, 6vw, 4rem); color:#fff; margin-bottom:16px; font-weight: 800;">Meet the <span class="gradient-text">Movement Leaders</span></h1>
+    <p style="color:var(--text-muted); font-size:1.15rem; max-width:640px; margin:0 auto; line-height:1.75;">
+      Learn directly from the civil rights attorneys, lead organizers, and environmental advocates building the power to change laws, free people, and shift power.
+    </p>
   </div>
 </section>
 
-<!-- MAIN CONTENT -->
-<div class="container" style="padding: 60px 0 100px;">
-
-  <!-- Tab Navigation -->
-  <div class="tab-nav">
-    <button class="tab-btn active" data-tab="about">About</button>
-    <button class="tab-btn" data-tab="courses">Courses (3)</button>
-    <button class="tab-btn" data-tab="reviews">Reviews (2,400+)</button>
-  </div>
-
-  <!-- ABOUT TAB -->
-  <div id="tab-about">
-
-    <div style="display:grid; grid-template-columns:2fr 1fr; gap:40px; align-items:start;">
-
-      <!-- Bio -->
-      <div>
-        <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:24px;">About Marcus Webb</h2>
-
-        <div style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-lg); padding:36px; margin-bottom:32px;">
-          <p style="color:var(--text-secondary); line-height:1.85; font-size:0.96rem; margin-bottom:20px;">
-            Marcus Webb has spent two decades organizing low-income communities across the American South and Midwest. He's led campaigns that resulted in the release of wrongfully convicted individuals, shut down illegal dumping sites in environmental racism hotspots, and won living wage ordinances in three cities — campaigns that directly improved the lives of tens of thousands of people.
-          </p>
-          <p style="color:var(--text-secondary); line-height:1.85; font-size:0.96rem; margin-bottom:20px;">
-            Marcus began organizing at 19 as a tenant rights advocate in Birmingham, Alabama. Over the next two decades he became one of the most respected community organizers in the country — building coalitions across racial, political, and geographic lines that would have seemed impossible. His approach is rooted in deep listening, relentless base-building, and an absolute refusal to accept that things can't change.
-          </p>
-          <p style="color:var(--text-secondary); line-height:1.85; font-size:0.96rem; margin-bottom:20px;">
-            In 2018, Marcus founded the People's Power Institute, a national training organization that has equipped over 18,000 organizers with the tools they need to win. He brought that same curriculum to Radiant Threshold to reach activists and advocates who can't access in-person training — making frontline organizing knowledge available everywhere, at any time.
-          </p>
-          <p style="color:var(--text-secondary); line-height:1.85; font-size:0.96rem;">
-            Marcus's teaching philosophy is simple: organizing is a craft, and like any craft, it can be learned. His courses combine theory with real case studies from actual campaigns — including ones he ran, won, and lost. Students leave not just with knowledge, but with tools they can use the next day.
-          </p>
+<!-- INSTRUCTORS DIRECTORY GRID -->
+<div class="container" style="padding: 40px 0 120px;">
+  <div class="instructors-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px;">
+    
+    <!-- Card 1: Marcus Webb -->
+    <div class="instructor-card animate-on-scroll stagger-1">
+      <div class="instructor-avatar-lg" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">MW</div>
+      <h3>Marcus Webb</h3>
+      <div class="instructor-specialty">Lead Organizer · 20+ Years on the Frontlines</div>
+      <div class="instructor-stats">
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">18.2K</div>
+          <div class="instructor-stat-label">Organizers</div>
         </div>
-
-        <!-- Credentials -->
-        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:20px;">Credentials &amp; Recognition</h3>
-        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:40px;">
-          <span class="credential-badge"><i class="fas fa-people-group"></i> Founder, People's Power Institute (2018)</span>
-          <span class="credential-badge"><i class="fas fa-gavel"></i> Led 3 Living Wage Ordinance Campaigns</span>
-          <span class="credential-badge"><i class="fas fa-balance-scale"></i> Wrongful Conviction Exoneration Work</span>
-          <span class="credential-badge"><i class="fas fa-leaf"></i> Environmental Justice Coalition Leader</span>
-          <span class="credential-badge"><i class="fas fa-users"></i> 18,000+ Organizers Trained</span>
-          <span class="credential-badge"><i class="fas fa-trophy" style="color:#c9a84c;"></i> Movement Builder Award, 2022</span>
-          <span class="credential-badge"><i class="fas fa-star" style="color:#c9a84c;"></i> Featured in The Guardian &amp; The Nation</span>
-          <span class="credential-badge"><i class="fas fa-newspaper"></i> 30+ Cities with Active Alumni</span>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">3</div>
+          <div class="instructor-stat-label">Courses</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">4.9★</div>
+          <div class="instructor-stat-label">Rating</div>
         </div>
       </div>
-
-      <!-- Side Stats Card -->
-      <div>
-        <div style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-lg); padding:28px; margin-bottom:20px;">
-          <h3 style="font-size:1rem; font-weight:700; margin-bottom:20px;">At a Glance</h3>
-          <div style="display:flex; flex-direction:column; gap:14px;">
-            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-              <span style="color:var(--text-muted);">Organizers Trained</span>
-              <span style="font-weight:700;">18,220</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-              <span style="color:var(--text-muted);">Avg. Rating</span>
-              <span style="font-weight:700; color:var(--gold);">4.9★</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-              <span style="color:var(--text-muted);">Total Reviews</span>
-              <span style="font-weight:700;">2,400+</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-              <span style="color:var(--text-muted);">Courses</span>
-              <span style="font-weight:700;">3</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-              <span style="color:var(--text-muted);">Years Organizing</span>
-              <span style="font-weight:700;">20+</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-              <span style="color:var(--text-muted);">Languages</span>
-              <span style="font-weight:700;">English, Spanish</span>
-            </div>
-          </div>
-        </div>
-
-        <div style="background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(109,40,217,0.07)); border:1px solid rgba(124,58,237,0.2); border-radius:var(--radius-lg); padding:24px; text-align:center;">
-          <div style="font-size:1.8rem; margin-bottom:8px;">🎯</div>
-          <div style="font-size:1rem; font-weight:700; margin-bottom:6px;">Book a Strategy Session</div>
-          <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">1-hour private strategy session with Marcus. Bring your campaign, your coalition challenge, or your question. Limited spots.</div>
-          <div style="font-size:1.4rem; font-weight:900; color:var(--accent-2); margin-bottom:4px;">$150 / session</div>
-          <div style="font-size:0.78rem; color:var(--green); margin-bottom:16px;"><i class="fas fa-hand-holding-heart"></i> Scholarship available</div>
-          <a href="#" class="btn btn-primary w-full" style="justify-content:center;">Book a Session</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- COURSES TAB (hidden by default) -->
-  <div id="tab-courses" class="hidden">
-    <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:32px;">Courses by Marcus Webb</h2>
-    <div class="courses-grid">
-
-      <div class="course-card">
-        <div class="course-thumb">
-          <div class="course-badge community-organizing" style="background:rgba(107,33,168,0.25);color:#c084fc;border-color:rgba(168,85,247,0.3);">Community Organizing</div>
-          <div class="course-thumb-bg" style="background:linear-gradient(135deg,#1a1a2e,#6b21a8);">
-            <span class="thumb-title">The Organizer's Playbook</span>
-          </div>
-        </div>
-        <div class="course-content">
-          <h3 class="course-title">The Organizer's Playbook: Building Power from the Ground Up</h3>
-          <div class="course-meta">
-            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (2,140)</span></div>
-            <div class="student-count"><i class="fas fa-users"></i> 8,420</div>
-          </div>
-          <div class="course-footer">
-            <div><span class="course-price">$97</span><span class="scholarship-badge" style="margin-left:6px;">Scholarship Available</span></div>
-            <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="course-card">
-        <div class="course-thumb">
-          <div class="course-badge criminal-justice" style="background:rgba(28,25,23,0.6);color:#d6d3d1;border-color:rgba(120,113,108,0.3);">Criminal Justice Reform</div>
-          <div class="course-thumb-bg" style="background:linear-gradient(135deg,#1c1917,#44403c);">
-            <span class="thumb-title">Prison Abolition &amp; Reform</span>
-          </div>
-        </div>
-        <div class="course-content">
-          <h3 class="course-title">Prison Abolition &amp; Reform: A Practical Guide</h3>
-          <div class="course-meta">
-            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (2,380)</span></div>
-            <div class="student-count"><i class="fas fa-users"></i> 9,800</div>
-          </div>
-          <div class="course-footer">
-            <div><span class="course-price">$49</span><span class="scholarship-badge" style="margin-left:6px;">Scholarship Available</span></div>
-            <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="course-card">
-        <div class="course-thumb">
-          <div class="course-badge community-organizing" style="background:rgba(107,33,168,0.25);color:#c084fc;border-color:rgba(168,85,247,0.3);">Community Organizing</div>
-          <div class="course-thumb-bg" style="background:linear-gradient(135deg,#2d1b69,#4c1d95);">
-            <span class="thumb-title">Power Mapping Masterclass</span>
-          </div>
-        </div>
-        <div class="course-content">
-          <h3 class="course-title">Power Mapping Masterclass: Finding the Leverage Points in Any System</h3>
-          <div class="course-meta">
-            <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><span>4.9 (1,240)</span></div>
-            <div class="student-count"><i class="fas fa-users"></i> 5,800</div>
-          </div>
-          <div class="course-footer">
-            <div><span class="course-price">$67</span></div>
-            <a href="course.html" class="btn btn-primary btn-sm">Enroll</a>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- REVIEWS TAB (hidden by default) -->
-  <div id="tab-reviews" class="hidden">
-    <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:32px;">Organizer Reviews</h2>
-
-    <!-- Rating overview -->
-    <div style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-lg); padding:32px; margin-bottom:40px;">
-      <div class="rating-overview">
-        <div class="rating-big">
-          <div class="num">4.9</div>
-          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <div class="count">2,400+ reviews</div>
-        </div>
-        <div class="rating-bars">
-          <div class="rating-bar-row"><span>5★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:91%;"></div></div><span>91%</span></div>
-          <div class="rating-bar-row"><span>4★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:7%;"></div></div><span>7%</span></div>
-          <div class="rating-bar-row"><span>3★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:1%;"></div></div><span>1%</span></div>
-          <div class="rating-bar-row"><span>2★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:1%;"></div></div><span>1%</span></div>
-          <div class="rating-bar-row"><span>1★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:0%;"></div></div><span>0%</span></div>
-        </div>
-      </div>
+      <a href="instructor-marcus-webb.html" class="btn btn-secondary w-full" style="justify-content:center;">View Full Profile</a>
     </div>
 
-    <div class="review-card">
-      <div class="review-header">
-        <div class="instructor-avatar" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);width:44px;height:44px;">TR</div>
-        <div>
-          <div style="font-weight:700;">Tanya Robinson · The Organizer's Playbook</div>
-          <div class="stars" style="font-size:0.8rem; margin-top:4px;"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+    <!-- Card 2: Amara Osei, J.D. -->
+    <div class="instructor-card animate-on-scroll stagger-2">
+      <div class="instructor-avatar-lg" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">AO</div>
+      <h3>Amara Osei, J.D.</h3>
+      <div class="instructor-specialty">Civil Rights Attorney · Know Your Rights</div>
+      <div class="instructor-stats">
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">31.2K</div>
+          <div class="instructor-stat-label">Students</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">2</div>
+          <div class="instructor-stat-label">Courses</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">4.9★</div>
+          <div class="instructor-stat-label">Rating</div>
         </div>
       </div>
-      <p class="review-text">Marcus doesn't teach you theory — he teaches you how to win. The power mapping framework alone changed how our entire coalition thinks about strategy. Eight months after taking this course, we had 2,000 members and a victory. There is no other training like this.</p>
-      <div class="review-date">April 8, 2026</div>
+      <a href="instructor-amara-osei.html" class="btn btn-secondary w-full" style="justify-content:center;">View Full Profile</a>
     </div>
 
-    <div class="review-card">
-      <div class="review-header">
-        <div class="instructor-avatar" style="background:linear-gradient(135deg,#047857,#065f46);width:44px;height:44px;">DM</div>
-        <div>
-          <div style="font-weight:700;">Darius Mills · Prison Abolition &amp; Reform Guide</div>
-          <div class="stars" style="font-size:0.8rem; margin-top:4px;"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+    <!-- Card 3: Dr. Keisha Morgan -->
+    <div class="instructor-card animate-on-scroll stagger-3">
+      <div class="instructor-avatar-lg" style="background: linear-gradient(135deg, #047857, #065f46);">KM</div>
+      <h3>Dr. Keisha Morgan</h3>
+      <div class="instructor-specialty">Environmental Justice Scholar &amp; Activist</div>
+      <div class="instructor-stats">
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">6.1K</div>
+          <div class="instructor-stat-label">Students</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">2</div>
+          <div class="instructor-stat-label">Courses</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">4.9★</div>
+          <div class="instructor-stat-label">Rating</div>
         </div>
       </div>
-      <p class="review-text">I came to this course as a formerly incarcerated person trying to do advocacy work. Marcus's course gave me language, frameworks, and a strategy toolkit I didn't have before. The history of abolition + the practical campaigning tools is exactly the combination this movement needs.</p>
-      <div class="review-date">March 15, 2026</div>
+      <a href="instructor-keisha-morgan.html" class="btn btn-secondary w-full" style="justify-content:center;">View Full Profile</a>
     </div>
 
-    <div class="review-card">
-      <div class="review-header">
-        <div class="instructor-avatar" style="background:linear-gradient(135deg,#dc2626,#b91c1c);width:44px;height:44px;">LR</div>
-        <div>
-          <div style="font-weight:700;">Luz Reyes · The Organizer's Playbook · Scholarship Recipient</div>
-          <div class="stars" style="font-size:0.8rem; margin-top:4px;"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+    <!-- Card 4: BeKura Mainoo -->
+    <div class="instructor-card animate-on-scroll stagger-1">
+      <div class="instructor-avatar-lg" style="background: linear-gradient(135deg, #7c3aed, #d9a441, #1e1b4b);">BM</div>
+      <h3>BeKura Mainoo</h3>
+      <div class="instructor-specialty">Co-Leader, IRN (VA/757 Operations)</div>
+      <div class="instructor-stats">
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">12.4K</div>
+          <div class="instructor-stat-label">Organizers</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">2</div>
+          <div class="instructor-stat-label">Courses</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">4.9★</div>
+          <div class="instructor-stat-label">Rating</div>
         </div>
       </div>
-      <p class="review-text">I couldn't afford this course and received a full scholarship. That act alone told me everything I needed to know about what this platform stands for. Marcus is the real deal — his escalation ladder framework transformed our rent strike from scattered to front-page news. We won.</p>
-      <div class="review-date">February 3, 2026</div>
+      <a href="instructor-bekura-mainoo.html" class="btn btn-secondary w-full" style="justify-content:center;">View Full Profile</a>
+    </div>
+
+    <!-- Card 5: Aziza Okoro -->
+    <div class="instructor-card animate-on-scroll stagger-2">
+      <div class="instructor-avatar-lg" style="background: linear-gradient(135deg, #16130f, #e2552b, #d9a441);">AO</div>
+      <h3>Aziza Okoro</h3>
+      <div class="instructor-specialty">Executive Director &amp; Founder, IRN</div>
+      <div class="instructor-stats">
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">15.6K</div>
+          <div class="instructor-stat-label">Organizers</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">2</div>
+          <div class="instructor-stat-label">Courses</div>
+        </div>
+        <div class="instructor-stat">
+          <div class="instructor-stat-num">4.9★</div>
+          <div class="instructor-stat-label">Rating</div>
+        </div>
+      </div>
+      <a href="instructor-aziza-okoro.html" class="btn btn-secondary w-full" style="justify-content:center;">View Full Profile</a>
     </div>
 
   </div>
-
-</div><!-- /container -->
+</div>
 
 <!-- FOOTER -->
 <footer class="footer">
@@ -379,19 +193,5 @@
 </footer>
 
 <script src="app.js"></script>
-<script>
-  // Tab navigation for instructor page
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const tab = btn.dataset.tab;
-      ['about','courses','reviews'].forEach(t => {
-        const el = document.getElementById('tab-' + t);
-        if (el) el.classList.toggle('hidden', t !== tab);
-      });
-    });
-  });
-</script>
 </body>
 </html>
