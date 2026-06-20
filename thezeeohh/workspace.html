@@ -196,6 +196,119 @@
 
 <script src="app.js"></script>
 <script>
+/* ── Gemini API Key Modal ── */
+(function initGeminiKey() {
+  if (sessionStorage.getItem('rt_gemini_key')) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'gemini-key-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:99999;
+    background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;
+  `;
+  overlay.innerHTML = `
+    <div style="background:#1c1c1c;border:1px solid rgba(201,168,76,0.4);border-radius:14px;padding:32px;max-width:420px;width:90%;text-align:center;">
+      <div style="font-size:28px;margin-bottom:12px;">🔐</div>
+      <h3 style="color:#c9a84c;margin:0 0 8px;font-size:18px;letter-spacing:0.5px;">Amina — Sovereign AI Key Required</h3>
+      <p style="color:#9ca3af;font-size:13px;margin:0 0 20px;line-height:1.6;">
+        Enter your Google Gemini API key to activate Amina's live AI reasoning.<br>
+        Your key is stored in this browser session only — never sent anywhere except directly to Google's API.
+      </p>
+      <input id="gemini-key-input" type="password"
+        placeholder="Paste Gemini API key here..."
+        style="width:100%;padding:12px;background:#121212;border:1px solid #3f3f46;border-radius:8px;color:white;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:12px;"
+      />
+      <button id="gemini-key-submit"
+        style="width:100%;background:#c9a84c;color:#111;border:none;padding:12px;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
+        Activate Amina
+      </button>
+      <p style="color:#4b5563;font-size:11px;margin:12px 0 0;">
+        Get a free key at <strong style="color:#6b7280;">aistudio.google.com</strong>
+      </p>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  document.getElementById('gemini-key-submit').addEventListener('click', () => {
+    const key = document.getElementById('gemini-key-input').value.trim();
+    if (!key) return;
+    sessionStorage.setItem('rt_gemini_key', key);
+    overlay.remove();
+  });
+
+  document.getElementById('gemini-key-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('gemini-key-submit').click();
+  });
+})();
+
+/* ── Shared Gemini caller ── */
+const AMINA_SYSTEM_PROMPT = `You are Amina, the Sovereign Sentinel of the Radiant Threshold — an AI guide built for grassroots organizers, activists, and community builders. You blend ancestral resistance frameworks with modern strategic thinking to help communities reclaim power and autonomy.
+
+Your areas of deep expertise include: mutual aid networks, tenant organizing, prison abolition, Know Your Rights legal defense, environmental justice, policy advocacy, digital security and OpSec, and community power mapping.
+
+You are grounded, direct, and speak with clarity and warmth. You never use corporate jargon. You center Black, brown, and working-class communities. You are not a lawyer and always recommend consulting legal professionals for specific legal advice.
+
+Key people in the Radiant Threshold network:
+- Aziza Okoro: VP of IRN, teaches Organizer's Playbook and Prison Abolition courses
+- BeKura Mainoo: Founder of IRN, expert in FOIA, public records, and policy design
+- Amara Osei, J.D.: Civil rights attorney, teaches Know Your Rights
+- Dr. Keisha Morgan: Environmental justice scholar
+- James Okafor: Policy Director
+- Zara Chen: Digital Strategist
+
+Keep responses focused, actionable, and under 200 words unless the user asks for depth. Always invite the user to go deeper or take a next step.`;
+
+async function callGemini(userMessage, historyMessages) {
+  const key = sessionStorage.getItem('rt_gemini_key');
+  if (!key) {
+    return "Amina is not yet activated. Please refresh the page and enter your Gemini API key.";
+  }
+
+  const contents = [];
+
+  // Inject system prompt as first user turn (Gemini doesn't have a system role in this API)
+  contents.push({ role: 'user', parts: [{ text: AMINA_SYSTEM_PROMPT }] });
+  contents.push({ role: 'model', parts: [{ text: 'Understood. I am Amina, your Sovereign Sentinel. I am ready.' }] });
+
+  // Add conversation history
+  if (historyMessages && historyMessages.length) {
+    historyMessages.forEach(m => {
+      contents.push({ role: m.role, parts: [{ text: m.text }] });
+    });
+  }
+
+  // Add current message
+  contents.push({ role: 'user', parts: [{ text: userMessage }] });
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents })
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.json();
+      if (res.status === 400 || res.status === 403) {
+        return "Amina's API key appears to be invalid. Please refresh and enter a valid Gemini key.";
+      }
+      return `Amina encountered an error: ${err.error?.message || res.statusText}`;
+    }
+
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Amina has no response at this time.";
+  } catch (e) {
+    return "Amina could not reach the network. Check your connection and try again.";
+  }
+}
+</script>
+<script>
+/* ── War Room conversation history ── */
+const warRoomHistory = [];
     // 1. Initialize the Secure Jitsi Frame
     const domain = "meet.jit.si";
     const options = {
@@ -540,67 +653,76 @@
         }, 1200);
     }
 
-    function handleInstructorSend() {
+    async function handleInstructorSend() {
         const cmd = instInput.value.trim();
         if (!cmd) return;
 
         appendLog("You", cmd);
         instInput.value = '';
+        instBtn.disabled = true;
+        instBtn.textContent = '...';
 
-        setTimeout(() => {
-            if (currentCourse) {
-                appendLog("System Alert", `Saving answer for Lesson ${currentStepIndex + 1} to local database...`, true);
-                
-                if (db) {
-                    try {
-                        const transaction = db.transaction(["session_notes"], "readwrite");
-                        const store = transaction.objectStore("session_notes");
-                        store.add({
-                            course: currentCourse.title,
-                            lesson: currentCourse.steps[currentStepIndex].title,
-                            answer: cmd,
-                            timestamp: new Date().toISOString()
-                        });
-                    } catch (e) {
-                        console.error("IndexedDB error during save:", e);
-                    }
-                }
-                
-                advanceLesson();
-                return;
-            }
-
-            const lowerCmd = cmd.toLowerCase();
-            let responseText = "";
-
-            if (lowerCmd.includes("framework") || lowerCmd.includes("curriculum")) {
-                responseText = "Radiant Threshold strategic framework loaded. Click one of the course buttons at the top of this panel to launch an interactive learning block.";
-            } else if (lowerCmd.includes("talking points")) {
-                responseText = "Here are key talking points for your Jitsi session:<br>1. Data sovereignty keeps infrastructure off corporate clouds.<br>2. Sliding-scale tiers combat economic exclusion.";
-            } else if (lowerCmd.includes("clear history") || lowerCmd.includes("purge")) {
-                if (db) {
-                    try {
-                        const transaction = db.transaction(["session_notes"], "readwrite");
-                        transaction.objectStore("session_notes").clear().onsuccess = () => {
-                            logBox.innerHTML = "";
-                            appendLog("System Alert", "Sovereign data store purged completely.", false);
-                        };
-                    } catch (e) {
-                        console.error("Error purging database:", e);
+        // Handle "purge" command locally
+        const lowerCmd = cmd.toLowerCase();
+        if (lowerCmd.includes("clear history") || lowerCmd.includes("purge")) {
+            if (db) {
+                try {
+                    const transaction = db.transaction(["session_notes"], "readwrite");
+                    transaction.objectStore("session_notes").clear().onsuccess = () => {
                         logBox.innerHTML = "";
-                        appendLog("System Alert", "Error purging data store.", false);
-                    }
-                } else {
+                        appendLog("System Alert", "Sovereign data store purged completely.", false);
+                    };
+                } catch (e) {
                     logBox.innerHTML = "";
                     appendLog("System Alert", "Data store purged locally.", false);
                 }
-                return;
             } else {
-                responseText = `Acknowledged. Note saved locally. To begin an AI-led lecture, select a course from the selector board above.`;
+                logBox.innerHTML = "";
+                appendLog("System Alert", "Data store purged locally.", false);
+            }
+            instBtn.disabled = false;
+            instBtn.textContent = 'Send';
+            return;
+        }
+
+        // If mid-course, save the answer then advance — also send to Gemini for feedback
+        if (currentCourse) {
+            appendLog("System Alert", `Saving answer for Lesson ${currentStepIndex + 1} to local database...`, true);
+            if (db) {
+                try {
+                    const transaction = db.transaction(["session_notes"], "readwrite");
+                    const store = transaction.objectStore("session_notes");
+                    store.add({
+                        course: currentCourse.title,
+                        lesson: currentCourse.steps[currentStepIndex].title,
+                        answer: cmd,
+                        timestamp: new Date().toISOString()
+                    });
+                } catch (e) {
+                    console.error("IndexedDB error during save:", e);
+                }
             }
 
-            appendLog("AI Guide", responseText);
-        }, 600);
+            const lessonCtx = `We are in the course "${currentCourse.title}", lesson "${currentCourse.steps[currentStepIndex].title}". The user submitted this exercise answer: "${cmd}". Give brief, encouraging feedback (2-3 sentences) and reinforce the key lesson concept.`;
+            warRoomHistory.push({ role: 'user', text: lessonCtx });
+            const feedback = await callGemini(lessonCtx, warRoomHistory.slice(0, -1));
+            warRoomHistory.push({ role: 'model', text: feedback });
+            appendLog("AI Guide", feedback.replace(/\n/g, '<br>'));
+
+            advanceLesson();
+            instBtn.disabled = false;
+            instBtn.textContent = 'Send';
+            return;
+        }
+
+        // Free-form Gemini conversation
+        warRoomHistory.push({ role: 'user', text: cmd });
+        const reply = await callGemini(cmd, warRoomHistory.slice(0, -1));
+        warRoomHistory.push({ role: 'model', text: reply });
+        appendLog("AI Guide", reply.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'));
+
+        instBtn.disabled = false;
+        instBtn.textContent = 'Send';
     }
 
     instBtn.addEventListener('click', handleInstructorSend);
