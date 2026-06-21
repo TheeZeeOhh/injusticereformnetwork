@@ -290,9 +290,6 @@
     <div class="dash-nav-item" data-panel="settings">
       <i class="fas fa-gear"></i> Settings
     </div>
-    <div class="dash-nav-item" data-panel="revenue">
-      <i class="fas fa-hand-holding-dollar"></i> Revenue Share
-    </div>
 
     <div style="border-top:1px solid var(--border-subtle); margin: 16px 0 12px; padding-top: 12px;"></div>
 
@@ -689,132 +686,6 @@
       </div>
     </div>
 
-    <!-- PANEL: REVENUE SHARE -->
-    <div id="panel-revenue" class="dash-panel">
-      <div class="dash-section-title" style="margin-top:0;">Revenue Share Program</div>
-
-      <!-- Hero stats -->
-      <div class="dash-stats-row" style="margin-bottom:28px;">
-        <div class="dash-stat-card">
-          <div class="dash-stat-icon" style="background:rgba(201,168,76,0.12);color:#c9a84c;"><i class="fas fa-percent"></i></div>
-          <div><h3 style="color:#c9a84c;">85%</h3><p>Your cut of every sale</p></div>
-        </div>
-        <div class="dash-stat-card">
-          <div class="dash-stat-icon" style="background:rgba(16,185,129,0.12);color:#10b981;"><i class="fas fa-dollar-sign"></i></div>
-          <div><h3 id="rev-total-earned">$0.00</h3><p>Total earned (all time)</p></div>
-        </div>
-        <div class="dash-stat-card">
-          <div class="dash-stat-icon" style="background:rgba(168,85,247,0.12);color:#a855f7;"><i class="fas fa-users"></i></div>
-          <div><h3 id="rev-referrals">0</h3><p>Referrals converted</p></div>
-        </div>
-        <div class="dash-stat-card">
-          <div class="dash-stat-icon" style="background:rgba(59,130,246,0.12);color:#60a5fa;"><i class="fas fa-calendar-check"></i></div>
-          <div><h3 id="rev-next-payout">—</h3><p>Next payout date</p></div>
-        </div>
-      </div>
-
-      <!-- Referral link -->
-      <div class="settings-group">
-        <h3><i class="fas fa-link" style="color:#c9a84c;"></i> Your Sovereign Referral Link</h3>
-        <p>Share this link. When someone enrolls through it, you earn 85% of their first course purchase — paid monthly directly to your wallet.</p>
-        <div style="display:flex;gap:10px;align-items:center;margin-top:4px;">
-          <input type="text" id="rev-ref-link" readonly
-            style="flex:1;padding:11px 14px;background:#0a0a0f;border:1px solid #3f3f46;border-radius:8px;color:#c9a84c;font-family:monospace;font-size:13px;outline:none;"
-            value="" />
-          <button onclick="copyRefLink()" class="btn btn-primary" style="white-space:nowrap;flex-shrink:0;">
-            <i class="fas fa-copy"></i> Copy Link
-          </button>
-        </div>
-        <div id="rev-copy-confirm" style="display:none;margin-top:8px;font-size:12px;color:#10b981;"><i class="fas fa-circle-check"></i> Copied to clipboard!</div>
-      </div>
-
-      <!-- Payout setup -->
-      <div class="settings-group">
-        <h3><i class="fas fa-wallet" style="color:#a855f7;"></i> Payout Setup</h3>
-        <p>Choose how you receive your monthly earnings. All methods are sovereign and never route through third-party tracking networks.</p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;">
-          <div id="rev-method-btc" onclick="selectPayoutMethod('btc')"
-            style="padding:16px;border-radius:10px;border:2px solid #c9a84c;background:rgba(201,168,76,0.08);cursor:pointer;text-align:center;">
-            <div style="font-size:22px;margin-bottom:6px;"><i class="fab fa-bitcoin" style="color:#f59e0b;"></i></div>
-            <div style="font-weight:800;font-size:13px;color:#fff;">Bitcoin</div>
-            <div style="font-size:11px;color:#a1a1aa;margin-top:2px;">Sovereign · Instant</div>
-          </div>
-          <div id="rev-method-cashapp" onclick="selectPayoutMethod('cashapp')"
-            style="padding:16px;border-radius:10px;border:1px solid #3f3f46;background:transparent;cursor:pointer;text-align:center;">
-            <div style="font-size:22px;margin-bottom:6px;">💸</div>
-            <div style="font-weight:800;font-size:13px;color:#fff;">Cash App</div>
-            <div style="font-size:11px;color:#a1a1aa;margin-top:2px;">$Cashtag</div>
-          </div>
-          <div id="rev-method-paypal" onclick="selectPayoutMethod('paypal')"
-            style="padding:16px;border-radius:10px;border:1px solid #3f3f46;background:transparent;cursor:pointer;text-align:center;">
-            <div style="font-size:22px;margin-bottom:6px;"><i class="fab fa-paypal" style="color:#003087;"></i></div>
-            <div style="font-weight:800;font-size:13px;color:#fff;">PayPal</div>
-            <div style="font-size:11px;color:#a1a1aa;margin-top:2px;">Email / @handle</div>
-          </div>
-          <div id="rev-method-zelle" onclick="selectPayoutMethod('zelle')"
-            style="padding:16px;border-radius:10px;border:1px solid #3f3f46;background:transparent;cursor:pointer;text-align:center;">
-            <div style="font-size:22px;margin-bottom:6px;">⚡</div>
-            <div style="font-weight:800;font-size:13px;color:#fff;">Zelle</div>
-            <div style="font-size:11px;color:#a1a1aa;margin-top:2px;">Phone / Email</div>
-          </div>
-        </div>
-        <div id="rev-payout-input-wrap" style="display:flex;flex-direction:column;gap:8px;">
-          <label id="rev-payout-label" style="font-size:12px;font-weight:700;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.4px;">Bitcoin Wallet Address</label>
-          <div style="display:flex;gap:10px;">
-            <input type="text" id="rev-payout-address" placeholder="Enter your Bitcoin wallet address..."
-              style="flex:1;padding:11px 14px;background:#0a0a0f;border:1px solid #3f3f46;border-radius:8px;color:#fff;font-size:13px;outline:none;" />
-            <button onclick="savePayoutMethod()" class="btn btn-primary">Save</button>
-          </div>
-          <div id="rev-payout-saved" style="display:none;font-size:12px;color:#10b981;"><i class="fas fa-circle-check"></i> Payout method saved to local ledger.</div>
-        </div>
-      </div>
-
-      <!-- Earnings breakdown -->
-      <div class="settings-group">
-        <h3><i class="fas fa-chart-bar" style="color:#60a5fa;"></i> Earnings Breakdown</h3>
-        <p style="margin-bottom:16px;">Your referral activity by course. All data is stored locally in your Sovereign ledger.</p>
-        <div id="rev-earnings-table">
-          <div style="text-align:center;padding:32px 0;color:#4b5563;">
-            <i class="fas fa-chart-line" style="font-size:2rem;margin-bottom:10px;display:block;"></i>
-            No referral conversions yet. Share your link to start earning.
-          </div>
-        </div>
-      </div>
-
-      <!-- How it works -->
-      <div class="settings-group">
-        <h3><i class="fas fa-circle-info" style="color:#a855f7;"></i> How It Works</h3>
-        <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px;">
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#c9a84c;flex-shrink:0;">1</div>
-            <div><strong style="color:#fff;">Copy your referral link</strong><br><span style="color:#9ca3af;font-size:13px;">Your unique link is generated automatically and tracked locally.</span></div>
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#c9a84c;flex-shrink:0;">2</div>
-            <div><strong style="color:#fff;">Share with your network</strong><br><span style="color:#9ca3af;font-size:13px;">Post it in your organizing channels, mutual aid groups, or social media.</span></div>
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#c9a84c;flex-shrink:0;">3</div>
-            <div><strong style="color:#fff;">Earn 85% of every sale</strong><br><span style="color:#9ca3af;font-size:13px;">When someone enrolls through your link, you keep 85%. IRN retains 15% to fund the scholarship pool.</span></div>
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#c9a84c;flex-shrink:0;">4</div>
-            <div><strong style="color:#fff;">Get paid monthly</strong><br><span style="color:#9ca3af;font-size:13px;">Payouts process on the 1st of each month to your chosen method. No minimums.</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Apply to teach CTA -->
-      <div style="background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(168,85,247,0.05));border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:24px;text-align:center;margin-top:4px;">
-        <div style="font-size:2rem;margin-bottom:10px;">✊</div>
-        <h3 style="color:#c9a84c;margin:0 0 8px;font-size:16px;">Want to earn as an Instructor?</h3>
-        <p style="color:#9ca3af;font-size:13px;margin:0 0 16px;line-height:1.6;">Apply to create and sell your own course on Radiant Threshold. Keep 85% of every enrollment — the most instructor-friendly structure in movement education.</p>
-        <a href="apply.html" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;">
-          <i class="fas fa-pen-nib"></i> Apply to Teach
-        </a>
-      </div>
-    </div>
-
   </main>
 </div><!-- /dashboard-layout -->
 
@@ -1135,10 +1006,6 @@
   }
 
   // Bind sidebar buttons
-  // Auto-open panel from URL param (e.g. ?panel=revenue)
-  const _urlPanel = new URLSearchParams(location.search).get('panel');
-  if (_urlPanel) showPanel(_urlPanel);
-
   document.querySelectorAll('.dash-nav-item[data-panel]').forEach(item => {
     item.addEventListener('click', () => {
       const panelId = item.getAttribute('data-panel');
@@ -1524,7 +1391,7 @@
         const transaction = db.transaction(["session_notes", "scholarships"], "readwrite");
         transaction.objectStore("session_notes").clear();
         transaction.objectStore("scholarships").clear();
-
+        
         transaction.oncomplete = function() {
           alert("Local database wiped successfully.");
           loadSovereignData();
@@ -1534,99 +1401,6 @@
       }
     }
   }
-
-  /* ── REVENUE SHARE PANEL ── */
-  (function initRevenuePanel() {
-    // Generate or retrieve a stable referral code from localStorage
-    let refCode = localStorage.getItem('rt_ref_code');
-    if (!refCode) {
-      refCode = 'RT-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-      localStorage.setItem('rt_ref_code', refCode);
-    }
-
-    const refLink = `${location.origin}${location.pathname.replace('dashboard.html','')}explore.html?ref=${refCode}`;
-
-    // Populate referral link input when panel is first shown
-    document.querySelector('.dash-nav-item[data-panel="revenue"]').addEventListener('click', function() {
-      initRevPanel(refLink, refCode);
-    });
-
-    function initRevPanel(refLink, refCode) {
-      const linkInput = document.getElementById('rev-ref-link');
-      if (linkInput) linkInput.value = refLink;
-
-      // Stats from localStorage
-      const earned = parseFloat(localStorage.getItem('rt_rev_earned') || '0').toFixed(2);
-      const referrals = parseInt(localStorage.getItem('rt_rev_referrals') || '0');
-      document.getElementById('rev-total-earned').textContent = '$' + earned;
-      document.getElementById('rev-referrals').textContent = referrals;
-
-      // Next payout — 1st of next month
-      const now = new Date();
-      const nextPayout = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      document.getElementById('rev-next-payout').textContent = nextPayout.toLocaleDateString('en-US', { month:'short', day:'numeric' });
-
-      // Load saved payout method
-      const savedMethod = localStorage.getItem('rt_payout_method') || 'btc';
-      const savedAddress = localStorage.getItem('rt_payout_address') || '';
-      selectPayoutMethod(savedMethod, false);
-      const addrInput = document.getElementById('rev-payout-address');
-      if (addrInput) addrInput.value = savedAddress;
-
-      // Check URL for incoming ref conversion (simulate tracking)
-      const params = new URLSearchParams(location.search);
-      if (params.get('ref') === refCode) {
-        // Self-visit — don't count
-      }
-    }
-  })();
-
-  window.selectPayoutMethod = function(method, animate = true) {
-    const methods = ['btc', 'cashapp', 'paypal', 'zelle'];
-    const labels = { btc: 'Bitcoin Wallet Address', cashapp: 'Cash App $Cashtag', paypal: 'PayPal Email or @handle', zelle: 'Zelle Phone or Email' };
-    const placeholders = { btc: 'Enter your Bitcoin wallet address...', cashapp: 'Enter your $Cashtag...', paypal: 'Enter your PayPal email or @handle...', zelle: 'Enter your Zelle phone or email...' };
-
-    methods.forEach(m => {
-      const el = document.getElementById(`rev-method-${m}`);
-      if (!el) return;
-      if (m === method) {
-        el.style.border = '2px solid #c9a84c';
-        el.style.background = 'rgba(201,168,76,0.08)';
-      } else {
-        el.style.border = '1px solid #3f3f46';
-        el.style.background = 'transparent';
-      }
-    });
-
-    const label = document.getElementById('rev-payout-label');
-    const input = document.getElementById('rev-payout-address');
-    if (label) label.textContent = labels[method];
-    if (input) input.placeholder = placeholders[method];
-    if (animate) {
-      const saved = document.getElementById('rev-payout-saved');
-      if (saved) saved.style.display = 'none';
-    }
-  };
-
-  window.savePayoutMethod = function() {
-    const methodEl = document.querySelector('[id^="rev-method-"][style*="2px solid"]');
-    const method = methodEl ? methodEl.id.replace('rev-method-', '') : 'btc';
-    const address = document.getElementById('rev-payout-address').value.trim();
-    if (!address) { alert('Please enter your payout address.'); return; }
-    localStorage.setItem('rt_payout_method', method);
-    localStorage.setItem('rt_payout_address', address);
-    const saved = document.getElementById('rev-payout-saved');
-    if (saved) { saved.style.display = 'block'; setTimeout(() => saved.style.display = 'none', 3000); }
-  };
-
-  window.copyRefLink = function() {
-    const input = document.getElementById('rev-ref-link');
-    if (!input) return;
-    input.select();
-    navigator.clipboard.writeText(input.value).catch(() => document.execCommand('copy'));
-    const confirm = document.getElementById('rev-copy-confirm');
-    if (confirm) { confirm.style.display = 'block'; setTimeout(() => confirm.style.display = 'none', 2500); }
-  };
 </script>
 </body>
 </html>

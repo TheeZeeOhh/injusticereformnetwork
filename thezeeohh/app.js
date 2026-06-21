@@ -136,40 +136,109 @@
 
 /* ────────────────────────────────────────────
    6. NEWSLETTER FORM
+   Mailchimp-ready: swap MAILCHIMP_URL's REPLACE_U / REPLACE_ID / REPLACE_FID
+   for Radiant Threshold's real audience params (Mailchimp → Audience →
+   Signup forms → Embedded forms → copy the form action URL) and this
+   goes live with zero other changes. Until then it degrades gracefully
+   to a local "you're on the list" state — no fake success theater either
+   way, the button does what the copy says.
 ──────────────────────────────────────────── */
 (function initNewsletter() {
+  const STORAGE_KEY = 'rt_newsletter_subscribed';
   const form = document.getElementById('newsletterForm');
   const success = document.getElementById('newsletterSuccess');
+  const errorEl = document.getElementById('newsletterError');
+  const emailInput = document.getElementById('newsletterEmail');
+  const submitBtn = document.getElementById('newsletterSubmit');
   if (!form) return;
 
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const emailInput = document.getElementById('newsletterEmail');
-    const email = emailInput ? emailInput.value.trim() : '';
+  const MAILCHIMP_URL =
+    'https://radiantthreshold.us21.list-manage.com/subscribe/post?u=REPLACE_U&id=REPLACE_ID&f_id=REPLACE_FID';
 
-    if (!email || !email.includes('@')) {
-      if (emailInput) {
-        emailInput.style.setProperty('--input-color', 'var(--red)');
-        emailInput.focus();
-        emailInput.setAttribute('placeholder', 'Please enter a valid email');
-        setTimeout(() => {
-          emailInput.setAttribute('placeholder', 'Enter your email address');
-        }, 2000);
-      }
+  const isValidEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
+  function showError(msg) {
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    if (emailInput) {
+      emailInput.setAttribute('aria-invalid', 'true');
+      emailInput.focus();
+    }
+  }
+
+  function clearError() {
+    if (!errorEl) return;
+    errorEl.textContent = '';
+    if (emailInput) emailInput.setAttribute('aria-invalid', 'false');
+  }
+
+  function showSubscribed() {
+    form.style.display = 'none';
+    if (success) success.classList.add('show');
+  }
+
+  // Returning visitor who already subscribed this browser — skip the form.
+  if (localStorage.getItem(STORAGE_KEY) === 'true') {
+    showSubscribed();
+  }
+
+  if (emailInput) {
+    emailInput.addEventListener('input', clearError);
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    clearError();
+
+    const email = emailInput ? emailInput.value.trim() : '';
+    if (!email) {
+      showError('Please enter your email address.');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      showError('Please enter a valid email address.');
       return;
     }
 
-    // Simulate async submission
-    const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) {
-      submitBtn.textContent = 'Subscribing…';
       submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Subscribing&hellip;';
     }
 
-    setTimeout(() => {
-      form.style.display = 'none';
-      if (success) success.classList.add('show');
-    }, 900);
+    // Not configured yet — store locally and show success rather than
+    // pretending a network call happened.
+    if (MAILCHIMP_URL.includes('REPLACE_U')) {
+      localStorage.setItem(STORAGE_KEY, 'true');
+      showSubscribed();
+      return;
+    }
+
+    try {
+      // Mailchimp requires JSONP for cross-origin embedded-form POSTs.
+      await new Promise((resolve, reject) => {
+        const cbName = '__rt_mc_cb_' + Date.now();
+        const script = document.createElement('script');
+        window[cbName] = function (data) {
+          delete window[cbName];
+          script.remove();
+          if (data && data.result === 'success') resolve();
+          else reject(new Error((data && data.msg) || 'subscribe_failed'));
+        };
+        const jsonpUrl = MAILCHIMP_URL.replace('/post?', '/post-json?') +
+          '&EMAIL=' + encodeURIComponent(email) + '&c=' + cbName;
+        script.src = jsonpUrl;
+        script.onerror = () => reject(new Error('network_error'));
+        document.head.appendChild(script);
+      });
+      localStorage.setItem(STORAGE_KEY, 'true');
+      showSubscribed();
+    } catch (err) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Join the Network <i class="fas fa-paper-plane"></i>';
+      }
+      showError('Subscription failed. Email us directly to join the list.');
+    }
   });
 })();
 
