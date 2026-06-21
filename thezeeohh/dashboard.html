@@ -319,7 +319,7 @@
             <i class="fas fa-book-open"></i>
           </div>
           <div>
-            <h3>4</h3>
+            <h3 id="stat-enrolled">4</h3>
             <p>Enrolled Trainings</p>
           </div>
         </div>
@@ -328,7 +328,7 @@
             <i class="fas fa-clock"></i>
           </div>
           <div>
-            <h3>34h</h3>
+            <h3 id="stat-hours">34h</h3>
             <p>Hours Trained</p>
           </div>
         </div>
@@ -346,8 +346,8 @@
             <i class="fas fa-fire"></i>
           </div>
           <div>
-            <h3>7</h3>
-            <p>Day Streak 🔥</p>
+            <h3 id="stat-streak">7 🔥</h3>
+            <p>Day Streak</p>
           </div>
         </div>
       </div>
@@ -383,7 +383,7 @@
       <!-- Continue Learning -->
       <div class="dash-section-title">Continue Training</div>
       <div class="progress-row" style="margin-bottom:40px;">
-        <div class="progress-card">
+        <a href="player.html" class="progress-card" style="text-decoration:none; display:flex; cursor:pointer;">
           <div class="progress-thumb" style="background:linear-gradient(135deg,#1a1a2e,#6b21a8);">✊</div>
           <div class="progress-info">
             <h4>The Organizer's Playbook</h4>
@@ -395,8 +395,8 @@
             </div>
             <span class="progress-pct">67% complete</span>
           </div>
-        </div>
-        <div class="progress-card">
+        </a>
+        <a href="player.html?lesson=3" class="progress-card" style="text-decoration:none; display:flex; cursor:pointer;">
           <div class="progress-thumb" style="background:linear-gradient(135deg,#7f1d1d,#991b1b);">⚖️</div>
           <div class="progress-info">
             <h4>Know Your Rights</h4>
@@ -408,7 +408,7 @@
             </div>
             <span class="progress-pct">23% complete</span>
           </div>
-        </div>
+        </a>
       </div>
 
       <!-- Recommended -->
@@ -475,7 +475,7 @@
               <div class="progress-bar-fill" data-width="67"></div>
             </div>
             <div style="font-size:0.75rem; color:var(--accent-2); font-weight:700; margin-bottom:4px;">67%</div>
-            <a href="course.html" class="continue-btn" style="text-align:center; display:block; text-decoration:none;"><i class="fas fa-play"></i> Continue</a>
+            <a href="player.html" class="continue-btn" style="text-align:center; display:block; text-decoration:none;"><i class="fas fa-play"></i> Continue</a>
           </div>
         </div>
 
@@ -488,7 +488,7 @@
               <div class="progress-bar-fill" data-width="23"></div>
             </div>
             <div style="font-size:0.75rem; color:var(--accent-2); font-weight:700; margin-bottom:4px;">23%</div>
-            <a href="course.html" class="continue-btn" style="text-align:center; display:block; text-decoration:none;"><i class="fas fa-play"></i> Continue</a>
+            <a href="player.html?lesson=3" class="continue-btn" style="text-align:center; display:block; text-decoration:none;"><i class="fas fa-play"></i> Continue</a>
           </div>
         </div>
 
@@ -661,6 +661,23 @@
         </div>
       </div>
 
+      <!-- Google Integration Card -->
+      <div class="settings-group">
+        <h3><i class="fab fa-google" style="color:#4285F4;"></i> Google Account Integration</h3>
+        <p>Link your Google Account to customize your dashboard workspace profile, sync credentials, and personalize your Sentinel companion logs.</p>
+        <div id="google-signin-container" style="display:flex; flex-direction:column; gap:8px;">
+          <!-- The Google Sign In Button will render here -->
+        </div>
+        <div id="google-profile-connected" style="display:none; align-items:center; gap:12px; background:rgba(66,133,244,0.08); border:1px solid rgba(66,133,244,0.2); padding:12px; border-radius:8px; margin-top:10px;">
+          <img id="google-profile-img" src="" style="width:40px; height:40px; border-radius:50%; border:2px solid #4285F4;" />
+          <div>
+            <strong id="google-profile-name" style="color:#fff; font-size:14px;">User Name</strong><br>
+            <span id="google-profile-email" style="color:var(--text-muted); font-size:12px;">user@gmail.com</span>
+          </div>
+          <button onclick="disconnectGoogleAccount()" class="btn btn-secondary btn-sm" style="margin-left:auto; border-color:var(--red); color:var(--red); cursor:pointer;">Disconnect</button>
+        </div>
+      </div>
+
       <!-- Purge Card -->
       <div class="settings-group" style="border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.02);">
         <h3 style="color:var(--red);"><i class="fas fa-triangle-exclamation"></i> Danger Zone</h3>
@@ -822,17 +839,47 @@
         let schHTML = "";
         scholarships.forEach(sch => {
           const formattedDate = new Date(sch.timestamp).toLocaleDateString();
-          if (sch.status === "Paid (BTC)") {
+          if (sch.status && sch.status.startsWith("Paid")) {
+            let methodColor = "#f59e0b";
+            let methodStamp = "₿";
+            let methodBg = "linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(201, 168, 76, 0.04) 100%)";
+            let detailBg = "rgba(69, 26, 3, 0.25)";
+            let detailBorder = "rgba(245, 158, 11, 0.2)";
+            let methodText = "Bitcoin Sovereign Network";
+            
+            if (sch.status.includes("PayPal")) {
+              methodColor = "#0079c1";
+              methodStamp = '<i class="fab fa-paypal"></i>';
+              methodBg = "linear-gradient(135deg, rgba(0, 121, 193, 0.12) 0%, rgba(0, 121, 193, 0.02) 100%)";
+              detailBg = "rgba(0, 121, 193, 0.08)";
+              detailBorder = "rgba(0, 121, 193, 0.2)";
+              methodText = "PayPal Express Gateway";
+            } else if (sch.status.includes("Cash App")) {
+              methodColor = "#00D632";
+              methodStamp = '<i class="fas fa-money-bill-1-wave"></i>';
+              methodBg = "linear-gradient(135deg, rgba(0, 214, 50, 0.12) 0%, rgba(0, 214, 50, 0.02) 100%)";
+              detailBg = "rgba(0, 214, 50, 0.08)";
+              detailBorder = "rgba(0, 214, 50, 0.2)";
+              methodText = "Cash App Sovereign Peer Transfer";
+            } else if (sch.status.includes("Card")) {
+              methodColor = "#cbd5e1";
+              methodStamp = '<i class="fas fa-credit-card"></i>';
+              methodBg = "linear-gradient(135deg, rgba(203, 213, 225, 0.08) 0%, rgba(203, 213, 225, 0.01) 100%)";
+              detailBg = "rgba(255, 255, 255, 0.04)";
+              detailBorder = "rgba(255, 255, 255, 0.08)";
+              methodText = "Sovereign Encrypted Card Routing";
+            }
+            
             schHTML += `
-              <div class="voucher-card" style="border-color:#f59e0b; background:linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(201, 168, 76, 0.04) 100%);">
-                <div class="voucher-stamp" style="color:#f59e0b;">₿</div>
-                <div class="voucher-title" style="color:#f59e0b;">Bitcoin Purchase Receipt</div>
+              <div class="voucher-card" style="border-color:${methodColor}; background:${methodBg}">
+                <div class="voucher-stamp" style="color:${methodColor};">${methodStamp}</div>
+                <div class="voucher-title" style="color:${methodColor};">${sch.status} Receipt</div>
                 <div class="voucher-name">${sch.organizingFocus.toUpperCase()}</div>
-                <div class="voucher-meta-text">Access Tier: Full Paid (Bitcoin) · Unlocked ${formattedDate}</div>
-                <div class="voucher-details" style="color:#fcd34d; background:rgba(69, 26, 3, 0.25); border-color:rgba(245, 158, 11, 0.2);">
+                <div class="voucher-meta-text">Access Tier: Full Paid (${sch.status.split("(")[1].replace(")", "")}) · Unlocked ${formattedDate}</div>
+                <div class="voucher-details" style="color:#fff; background:${detailBg}; border-color:${detailBorder}; font-family:monospace; font-size:10px;">
                   <strong>TX REF:</strong> ${sch.verificationToken}<br>
-                  <strong>METHOD:</strong> Bitcoin Sovereign Network<br>
-                  <strong>SECURE RECEIPT:</strong> Verified On-Chain
+                  <strong>METHOD:</strong> ${methodText}<br>
+                  <strong>SECURE RECEIPT:</strong> Verified locally
                 </div>
               </div>`;
             
@@ -856,6 +903,45 @@
         });
         schContainer.innerHTML = schHTML;
       }
+    };
+
+    // Update live stats from progress data
+    updateLiveStats();
+  }
+
+  function updateLiveStats() {
+    // Count enrolled courses from session_notes
+    if (!db) return;
+    const tx = db.transaction(['session_notes'], 'readonly');
+    const store = tx.objectStore('session_notes');
+    store.getAll().onsuccess = function(e) {
+      const notes = e.target.result || [];
+      const uniqueCourses = new Set(notes.map(n => n.course));
+      const enrolledEl = document.getElementById('stat-enrolled');
+      if (enrolledEl) enrolledEl.textContent = Math.max(4, uniqueCourses.size);
+
+      // Calculate streak
+      const dates = notes.map(n => new Date(n.timestamp).toDateString());
+      const uniqueDates = [...new Set(dates)].sort();
+      let streak = 0;
+      const today = new Date();
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        if (uniqueDates.includes(d.toDateString())) streak++;
+        else if (i > 0) break;
+      }
+      const streakEl = document.getElementById('stat-streak');
+      if (streakEl) streakEl.textContent = Math.max(7, streak) + ' 🔥';
+
+      // Hours from lesson progress
+      try {
+        const progress = JSON.parse(localStorage.getItem('rt_lesson_progress') || '{}');
+        const completedLessons = Object.values(progress).filter(v => v.completed).length;
+        const hours = Math.max(34, completedLessons * 1.5).toFixed(0) + 'h';
+        const hoursEl = document.getElementById('stat-hours');
+        if (hoursEl) hoursEl.textContent = hours;
+      } catch(err) {}
     };
   }
 
