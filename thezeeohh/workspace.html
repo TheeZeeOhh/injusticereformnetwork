@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://meet.jit.si/external_api.js"></script>
+<style>
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+</style>
 </head>
 <body>
 
@@ -21,6 +27,7 @@
       <a href="explore.html" class="nav-link">Explore</a>
       <a href="instructor.html" class="nav-link">Instructors</a>
       <a href="workspace.html" class="nav-link active">War Room</a>
+      <a href="resources.html" class="nav-link">Resources</a>
       <a href="index.html#pricing" class="nav-link">Access</a>
       <a href="dashboard.html" class="nav-link">Dashboard</a>
     </div>
@@ -38,13 +45,120 @@
   <a href="explore.html" class="nav-link">Explore</a>
   <a href="instructor.html" class="nav-link">Instructors</a>
   <a href="workspace.html" class="nav-link active">War Room</a>
+  <a href="resources.html" class="nav-link">Resources</a>
   <a href="index.html#pricing" class="nav-link">Access</a>
   <a href="dashboard.html" class="nav-link">Dashboard</a>
   <a href="dashboard.html" class="btn btn-primary" style="margin-top:8px;justify-content:center;">Get Started</a>
 </div>
 
+<!-- ═══════════════════════════════════════════
+     CAMPAIGN DASHBOARD
+═══════════════════════════════════════════ -->
+<div style="background:var(--bg-secondary); border-bottom:1px solid var(--border); padding:20px 24px; margin-top:72px;">
+  <div style="max-width:1400px; margin:0 auto;">
+
+    <!-- Dashboard Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); font-weight:700; margin-bottom:4px;"><i class="fas fa-bolt"></i> IRN War Room</div>
+        <h2 style="margin:0; font-size:22px; font-weight:800; color:var(--text-primary);">Active Campaign Dashboard</h2>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <span style="font-size:12px; background:rgba(16,185,129,0.12); color:var(--green); border:1px solid rgba(16,185,129,0.3); padding:4px 12px; border-radius:20px; font-weight:600; display:flex; align-items:center; gap:6px;">
+          <span style="width:7px; height:7px; background:var(--green); border-radius:50%; display:inline-block; animation:pulse 2s infinite;"></span>
+          Live
+        </span>
+        <a href="mailto:IRNVP@pm.me?subject=Submit Campaign for Dashboard" style="font-size:12px; color:var(--accent-1); text-decoration:none; font-weight:600; border:1px solid rgba(99,102,241,0.3); padding:4px 12px; border-radius:6px;">+ Submit Campaign</a>
+      </div>
+    </div>
+
+    <!-- Campaign Cards Row -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:16px; margin-bottom:24px;">
+
+      <!-- Campaign 1 -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-top:3px solid var(--gold); border-radius:10px; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--gold); background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); padding:2px 8px; border-radius:20px;">Accountability</span>
+          <span style="font-size:10px; color:var(--green); font-weight:600;"><i class="fas fa-circle" style="font-size:7px;"></i> Active</span>
+        </div>
+        <h4 style="margin:0 0 8px; font-size:15px; font-weight:700; color:var(--text-primary); line-height:1.3;">Public Records Audit — City Budget Transparency</h4>
+        <p style="font-size:12px; color:var(--text-secondary); margin:0 0 14px; line-height:1.6;">FOIA requests filed with Hampton Roads city government for budget allocation records. Targeting police overtime expenditures.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:var(--text-muted);">Hampton Roads, VA</span>
+          <a href="mailto:IRNVP@pm.me?subject=Budget Audit - Volunteer" style="font-size:11px; font-weight:600; color:var(--gold); text-decoration:none; border:1px solid rgba(245,158,11,0.3); padding:3px 10px; border-radius:5px;">Join</a>
+        </div>
+      </div>
+
+      <!-- Campaign 2 -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-top:3px solid var(--accent-1); border-radius:10px; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent-1); background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.3); padding:2px 8px; border-radius:20px;">Legal Defense</span>
+          <span style="font-size:10px; color:var(--green); font-weight:600;"><i class="fas fa-circle" style="font-size:7px;"></i> Active</span>
+        </div>
+        <h4 style="margin:0 0 8px; font-size:15px; font-weight:700; color:var(--text-primary); line-height:1.3;">Know Your Rights Trainings — Tenant Edition</h4>
+        <p style="font-size:12px; color:var(--text-secondary); margin:0 0 14px; line-height:1.6;">Community-wide KYR sessions focused on tenant rights, eviction defense, and housing court preparation. Free and open to all.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:var(--text-muted);">Multi-chapter</span>
+          <a href="mailto:IRNVP@pm.me?subject=KYR Tenant - Volunteer" style="font-size:11px; font-weight:600; color:var(--accent-1); text-decoration:none; border:1px solid rgba(99,102,241,0.3); padding:3px 10px; border-radius:5px;">Join</a>
+        </div>
+      </div>
+
+      <!-- Campaign 3 -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-top:3px solid var(--accent-2); border-radius:10px; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent-2); background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.3); padding:2px 8px; border-radius:20px;">Policy</span>
+          <span style="font-size:10px; color:var(--gold); font-weight:600;"><i class="fas fa-circle" style="font-size:7px;"></i> Building</span>
+        </div>
+        <h4 style="margin:0 0 8px; font-size:15px; font-weight:700; color:var(--text-primary); line-height:1.3;">Criminal Justice Reform — Sentencing Policy Review</h4>
+        <p style="font-size:12px; color:var(--text-secondary); margin:0 0 14px; line-height:1.6;">Organizing around mandatory minimum sentencing reform. Building coalition of impacted families, advocates, and reform-aligned legislators.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:var(--text-muted);">VA Statewide</span>
+          <a href="mailto:IRNVP@pm.me?subject=Sentencing Reform - Volunteer" style="font-size:11px; font-weight:600; color:var(--accent-2); text-decoration:none; border:1px solid rgba(139,92,246,0.3); padding:3px 10px; border-radius:5px;">Join</a>
+        </div>
+      </div>
+
+      <!-- Campaign 4 -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-top:3px solid var(--green); border-radius:10px; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--green); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); padding:2px 8px; border-radius:20px;">Community</span>
+          <span style="font-size:10px; color:var(--green); font-weight:600;"><i class="fas fa-circle" style="font-size:7px;"></i> Active</span>
+        </div>
+        <h4 style="margin:0 0 8px; font-size:15px; font-weight:700; color:var(--text-primary); line-height:1.3;">Radiant Threshold Platform Launch</h4>
+        <p style="font-size:12px; color:var(--text-secondary); margin:0 0 14px; line-height:1.6;">Recruiting first national cohort of organizers. Building the training infrastructure the movement needs. Help us spread the word.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:var(--text-muted);">National</span>
+          <a href="index.html#courses" style="font-size:11px; font-weight:600; color:var(--green); text-decoration:none; border:1px solid rgba(16,185,129,0.3); padding:3px 10px; border-radius:5px;">Enroll</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Action Bar -->
+    <div style="display:flex; gap:12px; flex-wrap:wrap; border-top:1px solid var(--border); padding-top:16px;">
+      <span style="font-size:12px; color:var(--text-muted); font-weight:600; display:flex; align-items:center; gap:6px; margin-right:4px;"><i class="fas fa-bolt" style="color:var(--gold);"></i> Quick Actions:</span>
+      <a href="mailto:IRNVP@pm.me?subject=FOIA Request Help" style="font-size:12px; color:var(--text-secondary); text-decoration:none; background:var(--bg-card); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-weight:500; transition:0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+        <i class="fas fa-file-circle-question" style="font-size:10px;"></i> File a FOIA Request
+      </a>
+      <a href="resources.html" style="font-size:12px; color:var(--text-secondary); text-decoration:none; background:var(--bg-card); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-weight:500; transition:0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+        <i class="fas fa-toolbox" style="font-size:10px;"></i> Get Organizer Tools
+      </a>
+      <a href="mailto:IRNVP@pm.me?subject=Volunteer Availability" style="font-size:12px; color:var(--text-secondary); text-decoration:none; background:var(--bg-card); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-weight:500; transition:0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+        <i class="fas fa-hand-raised" style="font-size:10px;"></i> Volunteer
+      </a>
+      <a href="courses/organizers-playbook.html" style="font-size:12px; color:var(--text-secondary); text-decoration:none; background:var(--bg-card); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-weight:500; transition:0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+        <i class="fas fa-graduation-cap" style="font-size:10px;"></i> Start Training
+      </a>
+      <a href="mailto:IRNVP@pm.me?subject=Report an Injustice" style="font-size:12px; color:var(--text-secondary); text-decoration:none; background:var(--bg-card); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-weight:500; transition:0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+        <i class="fas fa-triangle-exclamation" style="font-size:10px;"></i> Report an Injustice
+      </a>
+    </div>
+
+  </div>
+</div>
+<!-- END CAMPAIGN DASHBOARD -->
+
 <!-- Main Sovereign Grid Workspace -->
-<div id="sovereign-workspace" style="display: flex; gap: 20px; padding: 20px; height: calc(100vh - 72px); margin-top: 72px; background-color: #121212; color: #fff; font-family: sans-serif; box-sizing: border-box;">
+<div id="sovereign-workspace" style="display: flex; gap: 20px; padding: 20px; height: calc(100vh - 72px); margin-top: 0; background-color: #121212; color: #fff; font-family: sans-serif; box-sizing: border-box;">
     
     <!-- LEFT: Embedded Secure Jitsi Hub + Council Roster -->
     <div style="flex: 2; display: flex; flex-direction: column; background-color: #1c1c1c; border-radius: 12px; border: 1px solid #2e2e2e; overflow: hidden;">
