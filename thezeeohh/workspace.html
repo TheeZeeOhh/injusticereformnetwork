@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://meet.jit.si/external_api.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 
@@ -141,6 +142,55 @@
         
         <!-- PANEL 1: AI TUTOR PANEL -->
         <div id="panel-ai" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+
+            <!-- Amina Mode Toolbar -->
+            <div style="background-color: #0f0f12; padding: 8px 12px; border-bottom: 1px solid #2e2e2e; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+              <span style="font-size: 10px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px;">Amina Mode:</span>
+              <button id="mode-btn-chat" onclick="setAminaMode('chat')" title="Standard AI assistant" style="padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid #c9a84c; background: rgba(201,168,76,0.15); color: #c9a84c; transition: 0.2s;">💬 Chat</button>
+              <button id="mode-btn-transcribe" onclick="setAminaMode('transcribe')" title="Live Jitsi transcription + action items" style="padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid #3f3f46; background: transparent; color: #9ca3af; transition: 0.2s;">🎙️ Transcribe</button>
+              <button id="mode-btn-pdf" onclick="setAminaMode('pdf')" title="Drop a PDF — Amina parses it for loopholes" style="padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid #3f3f46; background: transparent; color: #9ca3af; transition: 0.2s;">📄 Policy Parser</button>
+              <button id="mode-btn-redteam" onclick="setAminaMode('redteam')" title="Hostile scenario roleplay + grading" style="padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid #3f3f46; background: transparent; color: #9ca3af; transition: 0.2s;">⚔️ Adversary</button>
+              <button id="mode-btn-mesh" onclick="setAminaMode('mesh')" title="Peer-to-peer crisis relay" style="padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid #3f3f46; background: transparent; color: #9ca3af; transition: 0.2s;">📡 Mesh Relay</button>
+              <!-- Transcription live indicator -->
+              <span id="transcribe-live-badge" style="display:none; font-size: 10px; background: rgba(239,68,68,0.15); color: #ef4444; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(239,68,68,0.4); font-weight: 700; align-items: center; gap: 4px; margin-left: auto;">
+                <span style="width:6px;height:6px;background:#ef4444;border-radius:50%;display:inline-block;animation:pulseRed 1.5s infinite;"></span> LIVE
+              </span>
+            </div>
+
+            <!-- PDF Drop Zone (hidden until pdf mode) -->
+            <div id="pdf-drop-zone" style="display:none; margin: 10px; border: 2px dashed #3f3f46; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; background: #0f0f12;"
+              ondragover="event.preventDefault(); this.style.borderColor='#c9a84c';"
+              ondragleave="this.style.borderColor='#3f3f46';"
+              ondrop="handlePdfDrop(event)"
+              onclick="document.getElementById('pdf-file-input').click()">
+              <i class="fas fa-file-pdf" style="font-size: 24px; color: #ef4444; margin-bottom: 8px; display: block;"></i>
+              <div style="color: #9ca3af; font-size: 13px; font-weight: 600;">Drop a PDF ordinance, budget, or policy doc here</div>
+              <div style="color: #6b7280; font-size: 11px; margin-top: 4px;">Amina will parse it locally and find loopholes — never uploaded to any server</div>
+              <input type="file" id="pdf-file-input" accept=".pdf" style="display:none;" onchange="handlePdfFile(this.files[0])">
+            </div>
+
+            <!-- Red-team persona selector (hidden until adversary mode) -->
+            <div id="redteam-selector" style="display:none; background: rgba(239,68,68,0.05); border-bottom: 1px solid rgba(239,68,68,0.2); padding: 10px 14px; display: none; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span style="font-size: 11px; font-weight: 700; color: #ef4444;">⚔️ Adversary Persona:</span>
+              <button onclick="setAdversaryPersona('council')" class="rt-persona-btn" style="padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid #ef4444;background:rgba(239,68,68,0.15);color:#ef4444;font-weight:700;">🏛️ City Council Member</button>
+              <button onclick="setAdversaryPersona('landlord')" class="rt-persona-btn" style="padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid #3f3f46;background:transparent;color:#9ca3af;">🏠 Hostile Landlord</button>
+              <button onclick="setAdversaryPersona('journalist')" class="rt-persona-btn" style="padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid #3f3f46;background:transparent;color:#9ca3af;">📰 Bad-Faith Journalist</button>
+              <button onclick="setAdversaryPersona('prosecutor')" class="rt-persona-btn" style="padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid #3f3f46;background:transparent;color:#9ca3af;">⚖️ Prosecutor</button>
+              <button onclick="setAdversaryPersona('ceo')" class="rt-persona-btn" style="padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid #3f3f46;background:transparent;color:#9ca3af;">💼 Corporate CEO</button>
+              <button onclick="gradeMyResponse()" style="padding:3px 12px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid #a855f7;background:rgba(168,85,247,0.15);color:#d8b4fe;font-weight:700;margin-left:auto;">📊 Grade My Last Response</button>
+            </div>
+
+            <!-- Mesh relay panel (hidden until mesh mode) -->
+            <div id="mesh-panel" style="display:none; background: rgba(16,185,129,0.05); border-bottom: 1px solid rgba(16,185,129,0.2); padding: 10px 14px;">
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <span style="font-size:11px;font-weight:700;color:#10b981;">📡 Mesh Relay Status:</span>
+                <span id="mesh-status-badge" style="font-size:10px;background:rgba(16,185,129,0.12);color:#6ee7b7;padding:2px 8px;border-radius:10px;border:1px solid rgba(16,185,129,0.3);font-weight:700;">Initializing...</span>
+                <input id="mesh-alert-input" placeholder="Broadcast encrypted alert to all peers..." style="flex:1;min-width:140px;padding:5px 10px;background:#0a0a0f;border:1px solid #2e2e2e;border-radius:6px;color:#fff;font-size:12px;outline:none;">
+                <button onclick="broadcastMeshAlert()" style="padding:5px 12px;background:#10b981;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Send</button>
+              </div>
+              <div id="mesh-log" style="margin-top:8px;max-height:60px;overflow-y:auto;font-size:11px;color:#6ee7b7;font-family:monospace;"></div>
+            </div>
+
             <!-- Interactive Classroom Selector Board -->
             <div style="background-color: #18181b; padding: 12px 15px; border-bottom: 1px solid #2e2e2e; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                 <span style="font-size: 12px; font-weight: bold; color: #a1a1aa; margin-right: 5px;">📚 Select Course:</span>
@@ -833,6 +883,453 @@
             }
         }
     }
+
+    /* ═══════════════════════════════════════════
+       AMINA ADVANCED FEATURES
+       Step 1: Transcription | Step 2: PDF Parser
+       Step 3: Adversary Mode | Step 4: Mesh Relay
+    ═══════════════════════════════════════════ */
+
+    // ── Mode state ──
+    let aminaMode = 'chat';
+    let adversaryPersona = 'council';
+    let transcriptBuffer = [];
+    let isTranscribing = false;
+    let recognition = null;
+    let pdfContext = null;
+
+    function setAminaMode(mode) {
+        aminaMode = mode;
+
+        // Reset all mode buttons
+        ['chat','transcribe','pdf','redteam','mesh'].forEach(m => {
+            const btn = document.getElementById(`mode-btn-${m}`);
+            if (!btn) return;
+            btn.style.border = '1px solid #3f3f46';
+            btn.style.background = 'transparent';
+            btn.style.color = '#9ca3af';
+        });
+
+        // Activate selected
+        const active = document.getElementById(`mode-btn-${mode}`);
+        if (active) {
+            active.style.border = '1px solid #c9a84c';
+            active.style.background = 'rgba(201,168,76,0.15)';
+            active.style.color = '#c9a84c';
+        }
+
+        // Show/hide contextual panels
+        document.getElementById('pdf-drop-zone').style.display = mode === 'pdf' ? 'block' : 'none';
+        const rtSel = document.getElementById('redteam-selector');
+        rtSel.style.display = mode === 'redteam' ? 'flex' : 'none';
+        document.getElementById('mesh-panel').style.display = mode === 'mesh' ? 'block' : 'none';
+
+        // Mode-specific init
+        if (mode === 'transcribe') startTranscription();
+        else stopTranscription();
+
+        if (mode === 'mesh') initMeshRelay();
+
+        if (mode === 'redteam') {
+            appendLog('Amina', '⚔️ <strong>Adversary Mode activated.</strong> Select a persona above. I will roleplay as that adversary — push back hard, use real tactics they use. Practice your talking points. When you\'re ready for feedback, click "Grade My Last Response".');
+        }
+        if (mode === 'pdf') {
+            appendLog('Amina', '📄 <strong>Policy Parser ready.</strong> Drop any PDF — ordinance, police budget, eviction notice, legislative bill. I will read it locally, cross-reference our Know Your Rights curriculum, and surface the exact pressure points and loopholes.');
+        }
+        if (mode === 'mesh') {
+            appendLog('Amina', '📡 <strong>Mesh Relay online.</strong> Encrypted peer-to-peer broadcast channel active via BroadcastChannel + Jitsi DataChannel. Use the input above to push crisis alerts to all connected organizers on this network instantly.');
+        }
+        if (mode === 'chat') {
+            appendLog('Amina', '💬 <strong>Standard mode.</strong> Ask me anything about organizing strategy, mutual aid, legal rights, policy, or curriculum.');
+        }
+    }
+
+    /* ─────────────────────────────────────────
+       STEP 1 — LIVE TRANSCRIPTION + ACTION ITEMS
+    ───────────────────────────────────────── */
+    function startTranscription() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            appendLog('System Alert', 'Live transcription requires Chrome or Edge. Your browser does not support the Web Speech API.');
+            return;
+        }
+        if (isTranscribing) return;
+
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        transcriptBuffer = [];
+        isTranscribing = true;
+
+        const badge = document.getElementById('transcribe-live-badge');
+        badge.style.display = 'inline-flex';
+
+        appendLog('Amina', '🎙️ <strong>Transcription live.</strong> I am listening to the War Room session. Speak clearly — all speech will be captured, synthesized, and at the end of your session I will extract action items directly into the Draftpad. Click "Transcribe" again to stop and finalize.');
+
+        let interimEl = null;
+
+        recognition.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    transcriptBuffer.push(transcript.trim());
+                    if (interimEl) { interimEl.remove(); interimEl = null; }
+                    appendLog('Transcript', transcript.trim());
+                } else {
+                    interim = transcript;
+                }
+            }
+            // Show interim in a temporary element
+            if (interim) {
+                if (!interimEl) {
+                    interimEl = document.createElement('div');
+                    interimEl.style.cssText = 'padding:8px 10px;border-radius:4px;background:rgba(255,255,255,0.04);border:1px dashed #3f3f46;color:#6b7280;font-style:italic;font-size:13px;';
+                    logBox.appendChild(interimEl);
+                }
+                interimEl.textContent = '...' + interim;
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+        };
+
+        recognition.onerror = (e) => {
+            if (e.error !== 'no-speech') appendLog('System Alert', `Transcription error: ${e.error}`);
+        };
+
+        recognition.onend = () => {
+            if (isTranscribing) recognition.start(); // auto-restart on timeout
+        };
+
+        recognition.start();
+    }
+
+    function stopTranscription() {
+        if (!isTranscribing) return;
+        isTranscribing = false;
+        if (recognition) { recognition.stop(); recognition = null; }
+        document.getElementById('transcribe-live-badge').style.display = 'none';
+        if (transcriptBuffer.length === 0) return;
+
+        const fullTranscript = transcriptBuffer.join(' ');
+        appendLog('System Alert', `Session ended. ${transcriptBuffer.length} utterances captured. Sending to Amina for synthesis...`, true);
+        synthesizeTranscript(fullTranscript);
+    }
+
+    async function synthesizeTranscript(transcript) {
+        const prompt = `You are Amina, Sovereign Sentinel. The following is a raw transcription from a War Room strategy session among organizers:\n\n"${transcript}"\n\nDo three things:\n1. Write a 3-sentence summary of what was discussed.\n2. Extract a numbered list of clear ACTION ITEMS with an assigned owner if mentioned.\n3. Note any unresolved tensions or follow-up questions.\n\nFormat clearly with headers. The action items will be pushed to the Draftpad.`;
+
+        const result = await callGemini(prompt, []);
+        appendLog('Amina', result.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'));
+
+        // Push action items section to Draftpad
+        const actionMatch = result.match(/action items?[\s\S]*?(?=\n\n[A-Z3]|$)/i);
+        if (actionMatch) {
+            const draftpad = document.getElementById('shared-draftpad');
+            const header = `\n\n── WAR ROOM ACTION ITEMS (${new Date().toLocaleString()}) ──\n`;
+            draftpad.value += header + actionMatch[0];
+            appendLog('System Alert', 'Action items pushed to Sovereign Draftpad.', true);
+        }
+    }
+
+    /* ─────────────────────────────────────────
+       STEP 2 — PDF POLICY PARSER (LOCAL RAG)
+    ───────────────────────────────────────── */
+    async function handlePdfDrop(event) {
+        event.preventDefault();
+        event.currentTarget.style.borderColor = '#3f3f46';
+        const file = event.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') handlePdfFile(file);
+    }
+
+    async function handlePdfFile(file) {
+        if (!file) return;
+        appendLog('System Alert', `📄 Loading: <strong>${file.name}</strong> (${(file.size/1024).toFixed(0)} KB). Extracting text locally...`, true);
+
+        try {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const totalPages = pdf.numPages;
+
+            appendLog('System Alert', `Parsing ${totalPages} pages locally — document never leaves your browser...`, true);
+
+            let fullText = '';
+            // Extract up to 30 pages to stay within token limits
+            const pagesToRead = Math.min(totalPages, 30);
+            for (let i = 1; i <= pagesToRead; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                fullText += content.items.map(item => item.str).join(' ') + '\n';
+            }
+
+            if (totalPages > 30) {
+                appendLog('System Alert', `Note: Document has ${totalPages} pages. Analyzing first 30 for token efficiency.`, false);
+            }
+
+            pdfContext = { name: file.name, text: fullText, pages: pagesToRead };
+
+            const prompt = `You are Amina, Sovereign Sentinel and policy analyst for the Injustice Reform Network. An organizer has uploaded a policy document titled "${file.name}".
+
+Cross-reference this document against the Radiant Threshold Know Your Rights and Policy to Power curricula. Your job:
+
+1. **SUMMARY** — What does this document do in plain language? (3-4 sentences)
+2. **PRESSURE POINTS** — List 3-5 specific sections, clauses, or budget line items that community organizers can challenge, exploit, or use as leverage. Quote the exact language where possible.
+3. **LOOPHOLES** — Identify any vague, ambiguous, or legally weak provisions that advocacy attorneys could challenge.
+4. **RECOMMENDED ACTIONS** — What specific steps should organizers take in the next 30 days based on this document?
+5. **FOIA TARGETS** — What specific records should organizers request to build a case around this document?
+
+Document text (first ${pagesToRead} pages):
+---
+${fullText.slice(0, 12000)}
+---`;
+
+            appendLog('Amina', '⏳ Analyzing document against the RT policy framework...');
+            const analysis = await callGemini(prompt, []);
+            warRoomHistory.push({ role: 'user', text: `[PDF uploaded: ${file.name}]` });
+            warRoomHistory.push({ role: 'model', text: analysis });
+
+            // Replace the "analyzing" message with the real result
+            const entries = logBox.querySelectorAll('div');
+            entries[entries.length - 1].innerHTML = `<strong style="color:#c9a84c;">Amina:</strong> <span style="color:#e2e8f0;">${analysis.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</span>`;
+            entries[entries.length - 1].style.backgroundColor = 'rgba(201,168,76,0.1)';
+            entries[entries.length - 1].style.border = '1px solid rgba(201,168,76,0.3)';
+            entries[entries.length - 1].style.padding = '10px';
+            entries[entries.length - 1].style.borderRadius = '6px';
+
+            logBox.scrollTop = logBox.scrollHeight;
+            appendLog('System Alert', `You can now ask Amina follow-up questions about <strong>${file.name}</strong> in the chat below.`, true);
+
+        } catch (err) {
+            appendLog('System Alert', `PDF parse error: ${err.message}. Try a text-based PDF (not a scanned image).`);
+        }
+    }
+
+    /* ─────────────────────────────────────────
+       STEP 3 — ADVERSARY MODE / RED-TEAMING
+    ───────────────────────────────────────── */
+    const ADVERSARY_PERSONAS = {
+        council: {
+            label: '🏛️ City Council Member',
+            prompt: `You are a hostile city council member who consistently votes against tenant protections and police accountability measures. You use procedural delays, deflection, and subtle dismissiveness. You pretend to care about "balance" and "fiscal responsibility" while defending the status quo. Push back hard on every organizing demand. Do NOT break character. After each exchange, subtly probe for weaknesses in the organizer's argument.`
+        },
+        landlord: {
+            label: '🏠 Hostile Landlord',
+            prompt: `You are an aggressive slumlord being confronted by a tenant union. You use legal threats, gaslighting, claims of financial hardship, and divide-and-conquer tactics against renters. You frequently misrepresent tenant rights. Push back hard. Do NOT break character.`
+        },
+        journalist: {
+            label: '📰 Bad-Faith Journalist',
+            prompt: `You are a bad-faith journalist from a right-leaning outlet who is trying to paint the organizing effort as extreme, disorganized, or dangerous. You use leading questions, false equivalencies, and out-of-context quotes. Push back on every answer. Do NOT break character.`
+        },
+        prosecutor: {
+            label: '⚖️ Prosecutor',
+            prompt: `You are an aggressive prosecutor cross-examining a community organizer on the stand. You use aggressive questioning, selective facts, and attempts to get the organizer to contradict themselves. Every answer is an opportunity to pivot and attack credibility. Do NOT break character.`
+        },
+        ceo: {
+            label: '💼 Corporate CEO',
+            prompt: `You are the CEO of a corporation being accused of environmental racism and wage theft by a community coalition. You use PR-polished deflection, "both sides" rhetoric, promises of future action, and subtle threats about jobs leaving the community. Do NOT break character.`
+        }
+    };
+
+    let lastOrganizerResponse = '';
+
+    function setAdversaryPersona(persona) {
+        adversaryPersona = persona;
+        document.querySelectorAll('.rt-persona-btn').forEach(btn => {
+            btn.style.border = '1px solid #3f3f46';
+            btn.style.background = 'transparent';
+            btn.style.color = '#9ca3af';
+            btn.style.fontWeight = '400';
+        });
+        event.currentTarget.style.border = '1px solid #ef4444';
+        event.currentTarget.style.background = 'rgba(239,68,68,0.15)';
+        event.currentTarget.style.color = '#ef4444';
+        event.currentTarget.style.fontWeight = '700';
+
+        const p = ADVERSARY_PERSONAS[persona];
+        appendLog('System Alert', `Adversary locked: <strong>${p.label}</strong>. Begin your argument — I will respond as this persona and challenge every point.`, false);
+    }
+
+    async function gradeMyResponse() {
+        if (!lastOrganizerResponse) {
+            appendLog('System Alert', 'Send at least one message in Adversary Mode before requesting a grade.');
+            return;
+        }
+        const gradePrompt = `You are Amina, Sovereign Sentinel, now acting as a debate coach and movement strategist. An organizer just finished a practice session against a ${ADVERSARY_PERSONAS[adversaryPersona].label} adversary.
+
+Their last response was: "${lastOrganizerResponse}"
+
+Grade them using the Radiant Threshold framework on these criteria:
+1. **Clarity** (1-10) — Was the demand specific and concrete?
+2. **Power Analysis** (1-10) — Did they correctly identify the target and leverage?
+3. **Messaging** (1-10) — Was the framing moral, simple, and action-oriented?
+4. **Handling Deflection** (1-10) — Did they stay on message when pushed?
+5. **Escalation Ladder** (1-10) — Did they name a clear next step or consequence?
+
+Give an overall score, specific feedback on what worked, and one tactical adjustment for next time. Be direct and honest.`;
+
+        const grade = await callGemini(gradePrompt, []);
+        appendLog('Amina', '📊 <strong>Response Graded:</strong><br>' + grade.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'));
+    }
+
+    /* ─────────────────────────────────────────
+       STEP 4 — MESH RELAY (WebRTC + BroadcastChannel)
+    ───────────────────────────────────────── */
+    let meshChannel = null;
+    let meshPeerId = 'ORG-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+    function initMeshRelay() {
+        // BroadcastChannel works across tabs/frames on same origin (local network fallback)
+        if (!meshChannel) {
+            try {
+                meshChannel = new BroadcastChannel('rt_sovereign_mesh');
+                meshChannel.onmessage = (event) => receiveMeshMessage(event.data);
+                updateMeshStatus('BroadcastChannel active', '#10b981');
+                logMesh(`Node ${meshPeerId} online · BroadcastChannel relay established`);
+            } catch (e) {
+                updateMeshStatus('BroadcastChannel unavailable', '#ef4444');
+            }
+        }
+
+        // Also hook into Jitsi DataChannel for cross-device relay
+        if (api) {
+            api.addEventListener('endpointTextMessageReceived', (event) => {
+                let text = '';
+                if (event.eventData?.text) text = event.eventData.text;
+                try {
+                    const payload = JSON.parse(text);
+                    if (payload.type === 'mesh_alert') receiveMeshMessage(payload);
+                } catch(e) {}
+            });
+            updateMeshStatus('Jitsi P2P + BroadcastChannel', '#10b981');
+            logMesh(`Dual relay active: Jitsi DataChannel + BroadcastChannel · Node ${meshPeerId}`);
+        }
+    }
+
+    function broadcastMeshAlert() {
+        const input = document.getElementById('mesh-alert-input');
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        const payload = {
+            type: 'mesh_alert',
+            from: meshPeerId,
+            message: msg,
+            timestamp: Date.now()
+        };
+
+        // Broadcast via BroadcastChannel (same-origin tabs/frames)
+        if (meshChannel) meshChannel.postMessage(payload);
+
+        // Broadcast via Jitsi DataChannel (cross-device in same room)
+        if (api) {
+            try { api.executeCommand('sendEndpointTextMessage', '', JSON.stringify(payload)); } catch(e) {}
+        }
+
+        logMesh(`[SENT] ${msg}`);
+        appendLog('System Alert', `📡 Alert broadcast to all mesh nodes: <strong>"${msg}"</strong>`, true);
+        input.value = '';
+    }
+
+    function receiveMeshMessage(payload) {
+        if (payload.type !== 'mesh_alert') return;
+        const timeStr = new Date(payload.timestamp).toLocaleTimeString();
+        logMesh(`[${timeStr}] FROM ${payload.from}: ${payload.message}`);
+        appendLog('System Alert', `📡 Mesh alert from <strong>${payload.from}</strong>: "${payload.message}"`, true);
+
+        // Flash notification badge on the sovereign channel
+        const notif = document.getElementById('ch-notif');
+        if (notif) notif.style.display = 'inline';
+    }
+
+    function updateMeshStatus(text, color) {
+        const badge = document.getElementById('mesh-status-badge');
+        if (badge) { badge.textContent = text; badge.style.color = color; }
+    }
+
+    function logMesh(text) {
+        const log = document.getElementById('mesh-log');
+        if (!log) return;
+        const line = document.createElement('div');
+        line.textContent = `> ${text}`;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    /* ─────────────────────────────────────────
+       AMINA MODE INTERCEPT — handleInstructorSend override
+       Routes messages through correct mode handler
+    ───────────────────────────────────────── */
+    // Patch: wrap the existing async handleInstructorSend to inject mode logic
+    const _origHandleInstructorSend = handleInstructorSend;
+    async function handleInstructorSend() {
+        const cmd = instInput.value.trim();
+        if (!cmd) return;
+
+        // Adversary mode — route through persona system prompt
+        if (aminaMode === 'redteam') {
+            lastOrganizerResponse = cmd;
+            appendLog('You', cmd);
+            instInput.value = '';
+            instBtn.disabled = true;
+            instBtn.textContent = '...';
+
+            const persona = ADVERSARY_PERSONAS[adversaryPersona];
+            const adversaryHistory = warRoomHistory.filter(m => m._adversary);
+            const systemMsg = persona.prompt + '\n\nYou are mid-confrontation with a community organizer. Respond in character — 2-4 sentences maximum, aggressive but realistic.';
+
+            const reply = await callGemini(cmd, [{ role: 'user', text: systemMsg }, ...adversaryHistory]);
+            warRoomHistory.push({ role: 'user', text: cmd, _adversary: true });
+            warRoomHistory.push({ role: 'model', text: reply, _adversary: true });
+
+            const entry = document.createElement('div');
+            entry.style.cssText = 'padding:10px;border-radius:6px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);';
+            entry.innerHTML = `<strong style="color:#ef4444;">⚔️ ${persona.label}:</strong> <span style="color:#e2e8f0;">${reply.replace(/\n/g,'<br>')}</span>`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+
+            instBtn.disabled = false;
+            instBtn.textContent = 'Send';
+            return;
+        }
+
+        // PDF follow-up — inject document context
+        if (aminaMode === 'pdf' && pdfContext) {
+            appendLog('You', cmd);
+            instInput.value = '';
+            instBtn.disabled = true;
+            instBtn.textContent = '...';
+
+            const contextualPrompt = `The organizer is asking a follow-up question about the uploaded policy document "${pdfContext.name}".\n\nDocument excerpt (for context):\n${pdfContext.text.slice(0, 6000)}\n\nQuestion: ${cmd}`;
+            warRoomHistory.push({ role: 'user', text: contextualPrompt });
+            const reply = await callGemini(contextualPrompt, warRoomHistory.slice(0, -1));
+            warRoomHistory.push({ role: 'model', text: reply });
+            appendLog('Amina', reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'));
+
+            instBtn.disabled = false;
+            instBtn.textContent = 'Send';
+            return;
+        }
+
+        // Transcribe mode — treat input as a manual note during session
+        if (aminaMode === 'transcribe') {
+            appendLog('You (Note)', cmd);
+            instInput.value = '';
+            transcriptBuffer.push('[MANUAL NOTE] ' + cmd);
+            return;
+        }
+
+        // Default: standard Gemini chat
+        await _origHandleInstructorSend.call(this);
+    }
+
+    // Re-bind the patched version
+    instBtn.removeEventListener('click', handleInstructorSend);
+    instBtn.addEventListener('click', handleInstructorSend);
+    instInput.removeEventListener('keypress', handleInstructorSend);
+    instInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleInstructorSend(); });
 </script>
 
 <!-- ═══════════════════════════════════════════
