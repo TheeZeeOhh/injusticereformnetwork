@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Resource Center — Radiant Threshold</title>
+  <meta name="description" content="Free organizing tools used by thousands of activists — power mapping worksheets, FOIA templates, legal rights guides, digital security checklists, and more." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ── Resource Center Specific ── */
+    .resources-hero {
+      background: linear-gradient(135deg, #0d0d1a, #111122);
+      border-bottom: 1px solid var(--border-glass);
+      padding: calc(var(--nav-height) + 48px) 0 48px;
+    }
+    .resources-hero .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .resources-hero .hero-stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .resources-hero .hero-stat i { color: var(--accent-1); }
+
+    /* Search */
+    .search-bar-wrap {
+      position: relative;
+      max-width: 560px;
+      margin-top: 28px;
+    }
+    .search-bar-wrap i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+    #resourceSearch {
+      width: 100%;
+      padding: 13px 16px 13px 44px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color var(--transition-fast);
+    }
+    #resourceSearch:focus { border-color: var(--accent-1); }
+    #resourceSearch::placeholder { color: var(--text-muted); }
+
+    /* Layout */
+    .resources-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 32px;
+      align-items: start;
+      padding: 40px 0 80px;
+    }
+    @media (max-width: 768px) {
+      .resources-layout { grid-template-columns: 1fr; }
+      .res-sidebar { display: none; }
+      .res-sidebar.open { display: block; }
+    }
+
+    /* Sidebar */
+    .res-sidebar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      position: sticky;
+      top: calc(var(--nav-height) + 16px);
+    }
+    .res-sidebar h3 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .cat-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.84rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: left;
+      transition: background var(--transition-fast), color var(--transition-fast);
+      margin-bottom: 2px;
+    }
+    .cat-btn i { width: 16px; text-align: center; font-size: 0.8rem; }
+    .cat-btn .cat-count {
+      margin-left: auto;
+      font-size: 0.72rem;
+      background: rgba(255,255,255,0.07);
+      border-radius: 20px;
+      padding: 1px 7px;
+      color: var(--text-muted);
+    }
+    .cat-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+    .cat-btn.active { background: rgba(99,102,241,0.12); color: var(--accent-1); }
+    .cat-btn.active .cat-count { background: rgba(99,102,241,0.2); color: var(--accent-1); }
+
+    /* Format filter */
+    .format-chips { display: flex; flex-direction: column; gap: 4px; }
+    .fmt-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .fmt-chip i { font-size: 0.78rem; width: 14px; text-align: center; }
+    .fmt-chip:hover { border-color: var(--border-glass); color: var(--text-primary); }
+    .fmt-chip.active { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.08); color: var(--accent-1); }
+
+    /* Main grid */
+    .resources-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .resources-toolbar .result-count {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .resources-toolbar .result-count span { color: var(--text-primary); font-weight: 600; }
+
+    .sort-select {
+      padding: 7px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* Resource Card */
+    .res-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+      position: relative;
+      overflow: hidden;
+    }
+    .res-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity var(--transition-normal);
+    }
+    .res-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.12); box-shadow: var(--shadow-hover); }
+    .res-card:hover::before { opacity: 1; }
+
+    .res-card[data-cat="organizing"]::before { background: linear-gradient(90deg,#6366f1,#8b5cf6); }
+    .res-card[data-cat="legal"]::before { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .res-card[data-cat="digital"]::before { background: linear-gradient(90deg,#10b981,#34d399); }
+    .res-card[data-cat="criminal-justice"]::before { background: linear-gradient(90deg,#ef4444,#f87171); }
+    .res-card[data-cat="environmental"]::before { background: linear-gradient(90deg,#7c9b72,#a8c99e); }
+    .res-card[data-cat="narrative"]::before { background: linear-gradient(90deg,#c9a84c,#f0d080); }
+    .res-card[data-cat="policy"]::before { background: linear-gradient(90deg,#60a5fa,#93c5fd); }
+
+    .res-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .res-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+    .res-card-title {
+      font-size: 0.97rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+    .res-card-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .res-tag {
+      font-size: 0.68rem;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .res-tag.cat { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.08); }
+    .res-tag.fmt-pdf    { background: rgba(239,68,68,0.1);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .res-tag.fmt-doc    { background: rgba(59,130,246,0.1); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+    .res-tag.fmt-template { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+    .res-tag.fmt-guide  { background: rgba(16,185,129,0.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.2); }
+    .res-tag.fmt-video  { background: rgba(139,92,246,0.1); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.2); }
+    .res-tag.free { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+
+    .res-card-desc {
+      font-size: 0.83rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      flex: 1;
+    }
+    .res-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .res-dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.3);
+      color: var(--accent-1);
+      transition: all var(--transition-fast);
+    }
+    .res-dl-btn:hover { background: rgba(99,102,241,0.22); border-color: var(--accent-1); }
+    .res-dl-count { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* Empty state */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state i { font-size: 2.5rem; margin-bottom: 16px; display: block; color: var(--text-tiny); }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* Mobile filter toggle */
+    .mobile-filter-btn {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 0.84rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) { .mobile-filter-btn { display: flex; } }
+
+    /* Featured banner */
+    .featured-banner {
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04));
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .featured-banner i { font-size: 1.6rem; color: var(--accent-1); flex-shrink: 0; }
+    .featured-banner h3 { font-size: 1rem; color: var(--text-primary); margin-bottom: 4px; }
+    .featured-banner p { font-size: 0.82rem; color: var(--text-secondary); }
+    .featured-banner .btn { flex-shrink: 0; margin-left: auto; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;display:block;" />
+    </a>
+    <div class="nav-links">
+      <a href="explore.html" class="nav-link">Explore</a>
+      <a href="instructor.html" class="nav-link">Instructors</a>
+      <a href="workspace.html" class="nav-link">War Room</a>
+      <a href="index.html#pricing" class="nav-link">Access</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+    </div>
+    <div class="nav-actions">
+      <a href="explore.html" class="btn btn-secondary btn-sm">Explore Training</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="explore.html" class="nav-link">Explore</a>
+  <a href="instructor.html" class="nav-link">Instructors</a>
+  <a href="workspace.html" class="nav-link">War Room</a>
+  <a href="index.html#pricing" class="nav-link">Access</a>
+  <a href="dashboard.html" class="nav-link">Dashboard</a>
+</div>
+
+<!-- HERO -->
+<div class="resources-hero">
+  <div class="container">
+    <div class="section-label"><i class="fas fa-box-open"></i> Free Resource Center</div>
+    <h1 style="font-size:2.6rem;font-weight:900;margin-bottom:10px;letter-spacing:-0.03em;">Tools for the <span class="gradient-text">Fight</span></h1>
+    <p style="color:var(--text-secondary);font-size:1rem;max-width:580px;">Free organizing tools used by IRN chapters across the Mid-Atlantic — power mapping worksheets, FOIA letter templates, legal rights guides, digital security checklists, and more. No signup required.</p>
+    <div class="hero-meta">
+      <div class="hero-stat"><i class="fas fa-file-alt"></i> 18 Free Resources</div>
+      <div class="hero-stat"><i class="fas fa-layer-group"></i> 7 Categories</div>
+      <div class="hero-stat"><i class="fas fa-users"></i> Used by 12,000+ organizers</div>
+      <div class="hero-stat"><i class="fas fa-lock-open"></i> No account required</div>
+    </div>
+    <div class="search-bar-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" id="resourceSearch" placeholder="Search resources — e.g. 'FOIA', 'power mapping', 'tenant rights'…" autocomplete="off" />
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+  <div class="resources-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="res-sidebar" id="resSidebar">
+
+      <h3><i class="fas fa-grid-2" style="margin-right:6px;"></i> Category</h3>
+      <div style="margin-bottom:20px;">
+        <button class="cat-btn active" data-cat="all"><i class="fas fa-infinity"></i> All Resources <span class="cat-count">18</span></button>
+        <button class="cat-btn" data-cat="organizing"><i class="fas fa-people-group"></i> Community Organizing <span class="cat-count">4</span></button>
+        <button class="cat-btn" data-cat="legal"><i class="fas fa-scale-balanced"></i> Legal Rights <span class="cat-count">4</span></button>
+        <button class="cat-btn" data-cat="criminal-justice"><i class="fas fa-gavel"></i> Criminal Justice <span class="cat-count">3</span></button>
+        <button class="cat-btn" data-cat="digital"><i class="fas fa-shield-halved"></i> Digital Security <span class="cat-count">3</span></button>
+        <button class="cat-btn" data-cat="narrative"><i class="fas fa-pen-nib"></i> Narrative &amp; Story <span class="cat-count">2</span></button>
+        <button class="cat-btn" data-cat="environmental"><i class="fas fa-leaf"></i> Environmental Justice <span class="cat-count">1</span></button>
+        <button class="cat-btn" data-cat="policy"><i class="fas fa-landmark"></i> Policy &amp; Advocacy <span class="cat-count">1</span></button>
+      </div>
+
+      <div class="divider" style="margin-bottom:20px;"></div>
+
+      <h3><i class="fas fa-file-circle-check" style="margin-right:6px;"></i> Format</h3>
+      <div class="format-chips">
+        <button class="fmt-chip active" data-fmt="all"><i class="fas fa-infinity"></i> All Formats</button>
+        <button class="fmt-chip" data-fmt="pdf"><i class="fas fa-file-pdf" style="color:#f87171;"></i> PDF</button>
+        <button class="fmt-chip" data-fmt="template"><i class="fas fa-file-lines" style="color:#fbbf24;"></i> Template</button>
+        <button class="fmt-chip" data-fmt="guide"><i class="fas fa-book-open" style="color:#6ee7b7;"></i> Guide</button>
+        <button class="fmt-chip" data-fmt="doc"><i class="fas fa-file-word" style="color:#93c5fd;"></i> Doc</button>
+      </div>
+
+      <div class="divider" style="margin:20px 0;"></div>
+
+      <button class="cat-btn" id="resetAll" style="color:var(--text-muted);margin-top:0;">
+        <i class="fas fa-rotate-left"></i> Reset Filters
+      </button>
+
+    </aside>
+
+    <!-- CONTENT -->
+    <div>
+
+      <!-- Toolbar -->
+      <div class="resources-toolbar">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button class="mobile-filter-btn" id="mobileFilterBtn"><i class="fas fa-sliders"></i> Filters</button>
+          <p class="result-count">Showing <span id="resultCount">18</span> resources</p>
+        </div>
+        <select class="sort-select" id="sortSelect">
+          <option value="featured">Featured</option>
+          <option value="name">Name A–Z</option>
+          <option value="popular">Most Downloaded</option>
+        </select>
+      </div>
+
+      <!-- Featured Banner -->
+      <div class="featured-banner animate-on-scroll">
+        <i class="fas fa-star"></i>
+        <div>
+          <h3>Upload to the War Room</h3>
+          <p>All resources work with Amina AI — drop any PDF into the War Room to get instant analysis, legal citations, and campaign strategy in seconds.</p>
+        </div>
+        <a href="workspace.html" class="btn btn-primary btn-sm">Open War Room</a>
+      </div>
+
+      <!-- Resource Grid -->
+      <div class="resources-grid" id="resourceGrid">
+
+        <!-- ── Community Organizing ── -->
+        <div class="res-card animate-on-scroll" data-cat="organizing" data-fmt="template" data-name="Power Mapping Worksheet" data-downloads="3241">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(99,102,241,0.12);color:var(--accent-1);"><i class="fas fa-diagram-project"></i></div>
+            <div>
+              <div class="res-card-title">Power Mapping Worksheet</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Community Organizing</span>
+                <span class="res-tag fmt-template">Template</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Map decision-makers, allies, and opponents for any campaign. Includes stakeholder influence grid, relationship scoring, and shift strategy columns. Used in The Organizer's Playbook curriculum.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Power Mapping Worksheet');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>3.2K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="organizing" data-fmt="guide" data-name="Base-Building Field Guide" data-downloads="2187">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(99,102,241,0.12);color:var(--accent-1);"><i class="fas fa-people-pulling"></i></div>
+            <div>
+              <div class="res-card-title">Base-Building Field Guide</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Community Organizing</span>
+                <span class="res-tag fmt-guide">Guide</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Step-by-step playbook for growing a coalition from 10 to 10,000. Covers door-knocking scripts, one-on-one meeting structure, volunteer pipeline, and retention tactics that actually work.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Base-Building Field Guide');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.2K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="organizing" data-fmt="template" data-name="Campaign Strategy Chart" data-downloads="1876">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(99,102,241,0.12);color:var(--accent-1);"><i class="fas fa-chess"></i></div>
+            <div>
+              <div class="res-card-title">Campaign Strategy Chart</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Community Organizing</span>
+                <span class="res-tag fmt-template">Template</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Midwest Academy-style strategy chart adapted for IRN campaigns. Columns for goal, constituents, allies, opponents, tactics, and timeline. Works for rent strikes, policy fights, and police accountability campaigns.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Campaign Strategy Chart');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>1.9K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="organizing" data-fmt="guide" data-name="Escalation Ladder Planner" data-downloads="1543">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(99,102,241,0.12);color:var(--accent-1);"><i class="fas fa-stairs"></i></div>
+            <div>
+              <div class="res-card-title">Escalation Ladder Planner</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Community Organizing</span>
+                <span class="res-tag fmt-guide">Guide</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Plan your pressure campaign from petition → rally → direct action → civil disobedience. Includes decision triggers for each rung, media hooks, and negotiation readiness checklist.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Escalation Ladder Planner');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>1.5K downloads</span>
+          </div>
+        </div>
+
+        <!-- ── Legal Rights ── -->
+        <div class="res-card animate-on-scroll" data-cat="legal" data-fmt="template" data-name="FOIA Request Letter Template" data-downloads="4102">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(245,158,11,0.12);color:var(--gold);"><i class="fas fa-envelope-open-text"></i></div>
+            <div>
+              <div class="res-card-title">FOIA Request Letter Template</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Legal Rights</span>
+                <span class="res-tag fmt-template">Template</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Ready-to-send FOIA template for requesting police records, body cam footage, complaint histories, and internal affairs files. Includes Virginia FOIA Act citations and 5-day response demand language.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'FOIA Request Letter Template');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>4.1K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="legal" data-fmt="pdf" data-name="Know Your Rights: Police Encounters" data-downloads="5834">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(245,158,11,0.12);color:var(--gold);"><i class="fas fa-id-card"></i></div>
+            <div>
+              <div class="res-card-title">Know Your Rights: Police Encounters</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Legal Rights</span>
+                <span class="res-tag fmt-pdf">PDF</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Pocket-sized rights card covering stops, searches, arrests, and detention. Includes scripts for common scenarios, how to invoke your right to remain silent, and what to document. Available in English and Spanish.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Know Your Rights: Police Encounters');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>5.8K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="legal" data-fmt="template" data-name="Incident Documentation Form" data-downloads="2344">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(245,158,11,0.12);color:var(--gold);"><i class="fas fa-clipboard-list"></i></div>
+            <div>
+              <div class="res-card-title">Incident Documentation Form</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Legal Rights</span>
+                <span class="res-tag fmt-template">Template</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Structured form for documenting police misconduct, use of force, and rights violations immediately after an incident. Captures time, location, officer badge numbers, witness contact, and injury notes for legal follow-up.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Incident Documentation Form');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.3K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="legal" data-fmt="guide" data-name="Tenant Rights Quick Reference" data-downloads="1988">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(245,158,11,0.12);color:var(--gold);"><i class="fas fa-house-crack"></i></div>
+            <div>
+              <div class="res-card-title">Tenant Rights Quick Reference</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Legal Rights</span>
+                <span class="res-tag fmt-guide">Guide</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Virginia landlord-tenant law explained in plain language. Covers eviction timelines, habitability standards, security deposit rights, retaliation protections, and how to organize a rent strike legally.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Tenant Rights Quick Reference');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.0K downloads</span>
+          </div>
+        </div>
+
+        <!-- ── Criminal Justice ── -->
+        <div class="res-card animate-on-scroll" data-cat="criminal-justice" data-fmt="guide" data-name="Wrongful Conviction Intake Guide" data-downloads="1122">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(239,68,68,0.1);color:#f87171;"><i class="fas fa-gavel"></i></div>
+            <div>
+              <div class="res-card-title">Wrongful Conviction Intake Guide</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Criminal Justice</span>
+                <span class="res-tag fmt-guide">Guide</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Initial intake framework for evaluating wrongful conviction cases. Covers evidence review checklist, key legal theories (Brady violations, ineffective assistance, new evidence), and referral pathways to innocence organizations.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Wrongful Conviction Intake Guide');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>1.1K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="criminal-justice" data-fmt="template" data-name="Police Records Request Pack" data-downloads="2670">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(239,68,68,0.1);color:#f87171;"><i class="fas fa-folder-open"></i></div>
+            <div>
+              <div class="res-card-title">Police Records Request Pack</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Criminal Justice</span>
+                <span class="res-tag fmt-template">Template</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Complete packet for requesting body camera footage, use-of-force reports, complaint histories, and disciplinary records. Includes separate templates for Virginia, Maryland, DC, and North Carolina.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Police Records Request Pack');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.7K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="criminal-justice" data-fmt="pdf" data-name="Fines & Fees Relief Roadmap" data-downloads="987">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(239,68,68,0.1);color:#f87171;"><i class="fas fa-receipt"></i></div>
+            <div>
+              <div class="res-card-title">Fines &amp; Fees Relief Roadmap</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Criminal Justice</span>
+                <span class="res-tag fmt-pdf">PDF</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">How to challenge court fines, license suspension for unpaid fees, and garnishment orders. Covers hardship waivers, payment plan negotiation scripts, and the Virginia Debt Waiver program step-by-step.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Fines & Fees Relief Roadmap');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>987 downloads</span>
+          </div>
+        </div>
+
+        <!-- ── Digital Security ── -->
+        <div class="res-card animate-on-scroll" data-cat="digital" data-fmt="pdf" data-name="Activist OpSec Checklist" data-downloads="3456">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(16,185,129,0.1);color:var(--green);"><i class="fas fa-shield-halved"></i></div>
+            <div>
+              <div class="res-card-title">Activist OpSec Checklist</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Digital Security</span>
+                <span class="res-tag fmt-pdf">PDF</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">74-point operational security checklist for organizers, protesters, and advocates. Covers device hygiene, secure communications, protest safety, social media exposure, and counter-surveillance basics.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Activist OpSec Checklist');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>3.5K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="digital" data-fmt="guide" data-name="Secure Comms Setup Guide" data-downloads="2109">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(16,185,129,0.1);color:var(--green);"><i class="fas fa-lock"></i></div>
+            <div>
+              <div class="res-card-title">Secure Comms Setup Guide</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Digital Security</span>
+                <span class="res-tag fmt-guide">Guide</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Step-by-step setup for Signal, ProtonMail, and VPN for organizer teams. Covers disappearing messages, group admin security, burner phone protocols, and encrypted file sharing for sensitive documents.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Secure Comms Setup Guide');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.1K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="digital" data-fmt="pdf" data-name="Digital Organizing Playbook" data-downloads="1654">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(16,185,129,0.1);color:var(--green);"><i class="fas fa-mobile-screen-button"></i></div>
+            <div>
+              <div class="res-card-title">Digital Organizing Playbook</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Digital Security</span>
+                <span class="res-tag fmt-pdf">PDF</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">How to run a campaign online without handing data to surveillance capitalism. Covers ethical social media strategy, peer-to-peer texting, open-source tools, and community-owned platforms.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Digital Organizing Playbook');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>1.7K downloads</span>
+          </div>
+        </div>
+
+        <!-- ── Narrative & Story ── -->
+        <div class="res-card animate-on-scroll" data-cat="narrative" data-fmt="guide" data-name="Public Narrative Framework" data-downloads="2788">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(201,168,76,0.12);color:#c9a84c;"><i class="fas fa-microphone-lines"></i></div>
+            <div>
+              <div class="res-card-title">Public Narrative Framework</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Narrative &amp; Story</span>
+                <span class="res-tag fmt-guide">Guide</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Marshall Ganz's Story of Self / Us / Now framework adapted for IRN campaigns. Includes worksheet prompts, 90-second speech template, and example narratives from civil rights and tenant organizing contexts.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Public Narrative Framework');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.8K downloads</span>
+          </div>
+        </div>
+
+        <div class="res-card animate-on-scroll" data-cat="narrative" data-fmt="template" data-name="Media Pitch & Press Release Template" data-downloads="1432">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(201,168,76,0.12);color:#c9a84c;"><i class="fas fa-newspaper"></i></div>
+            <div>
+              <div class="res-card-title">Media Pitch &amp; Press Release Template</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Narrative &amp; Story</span>
+                <span class="res-tag fmt-template">Template</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Journalist-tested press release format and cold pitch email template for getting your campaign covered. Includes hook formulas, quote placement, and a media contact tracking spreadsheet.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Media Pitch & Press Release Template');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>1.4K downloads</span>
+          </div>
+        </div>
+
+        <!-- ── Environmental Justice ── -->
+        <div class="res-card animate-on-scroll" data-cat="environmental" data-fmt="guide" data-name="Environmental Justice Campaign Starter Kit" data-downloads="876">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(124,155,114,0.12);color:#7c9b72;"><i class="fas fa-leaf"></i></div>
+            <div>
+              <div class="res-card-title">Environmental Justice Campaign Starter Kit</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Environmental Justice</span>
+                <span class="res-tag fmt-guide">Guide</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">How to fight a toxic facility, pollution source, or discriminatory land use decision in your community. Covers EPA complaint filing, environmental data sources, coalition building with health orgs, and legal intervention points.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Environmental Justice Campaign Starter Kit');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>876 downloads</span>
+          </div>
+        </div>
+
+        <!-- ── Policy & Advocacy ── -->
+        <div class="res-card animate-on-scroll" data-cat="policy" data-fmt="doc" data-name="Community Legislative Brief Template" data-downloads="1123">
+          <div class="res-card-top">
+            <div class="res-icon" style="background:rgba(96,165,250,0.1);color:#60a5fa;"><i class="fas fa-landmark"></i></div>
+            <div>
+              <div class="res-card-title">Community Legislative Brief Template</div>
+              <div class="res-card-meta">
+                <span class="res-tag cat">Policy &amp; Advocacy</span>
+                <span class="res-tag fmt-doc">Doc</span>
+                <span class="res-tag free">Free</span>
+              </div>
+            </div>
+          </div>
+          <p class="res-card-desc">Turn community narratives into legislative briefs that lawmakers actually read. Structured format with problem statement, affected population data, policy ask, and community testimony section. Used in BeKura Mainoo's advocacy curriculum.</p>
+          <div class="res-card-footer">
+            <a href="#" class="res-dl-btn" onclick="trackDownload(this,'Community Legislative Brief Template');return false;"><i class="fas fa-download"></i> Download</a>
+            <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>1.1K downloads</span>
+          </div>
+        </div>
+
+        <!-- Empty state (hidden unless all filtered out) -->
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <i class="fas fa-folder-open"></i>
+          <p>No resources match your filters.<br><button onclick="resetAllFilters()" style="color:var(--accent-1);background:none;border:none;cursor:pointer;font-size:0.9rem;margin-top:8px;text-decoration:underline;">Clear all filters</button></p>
+        </div>
+
+      </div><!-- /resources-grid -->
+
+      <!-- Submit a Resource -->
+      <div class="animate-on-scroll" style="margin-top:48px;background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);padding:32px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:220px;">
+          <h3 style="font-size:1.05rem;color:var(--text-primary);margin-bottom:6px;"><i class="fas fa-circle-plus" style="color:var(--accent-1);margin-right:8px;"></i>Have a resource to share?</h3>
+          <p style="font-size:0.84rem;color:var(--text-secondary);">IRN instructors and community members can submit tools for inclusion in the Resource Center. All submissions are reviewed before publishing.</p>
+        </div>
+        <a href="mailto:IRNVP@pm.me?subject=Resource Submission" class="btn btn-secondary btn-sm" style="flex-shrink:0;">Submit a Resource</a>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /layout -->
+</div><!-- /container -->
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html"><img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;" /></a>
+        <p>The premier training platform for activists, organizers, advocates, and changemakers. Train. Organize. Transform.</p>
+        <div class="social-links">
+          <a href="#" class="social-link"><i class="fab fa-x-twitter"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="explore.html">Explore Training</a></li>
+          <li><a href="resources.html">Free Resources</a></li>
+          <li><a href="instructor.html">Instructors</a></li>
+          <li><a href="dashboard.html">My Dashboard</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Educators</h4>
+        <ul>
+          <li><a href="apply.html">Apply to Teach</a></li>
+          <li><a href="dashboard.html?panel=revenue">Revenue Share</a></li>
+          <li><a href="#">Course Builder</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Radiant Threshold, Inc. All rights reserved.</p>
+      <p>Made with <span style="color:var(--accent-2);">♥</span> for organizers everywhere.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+(function() {
+  const cards = Array.from(document.querySelectorAll('.res-card[data-cat]'));
+  const emptyState = document.getElementById('emptyState');
+  const resultCount = document.getElementById('resultCount');
+  const grid = document.getElementById('resourceGrid');
+
+  let activeCat = 'all';
+  let activeFmt = 'all';
+  let searchQuery = '';
+  let sortMode = 'featured';
+
+  // ── Category buttons ──
+  document.querySelectorAll('.cat-btn[data-cat]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn[data-cat]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCat = btn.dataset.cat;
+      render();
+    });
+  });
+
+  // ── Format chips ──
+  document.querySelectorAll('.fmt-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.fmt-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeFmt = chip.dataset.fmt;
+      render();
+    });
+  });
+
+  // ── Search ──
+  document.getElementById('resourceSearch').addEventListener('input', e => {
+    searchQuery = e.target.value.toLowerCase().trim();
+    render();
+  });
+
+  // ── Sort ──
+  document.getElementById('sortSelect').addEventListener('change', e => {
+    sortMode = e.target.value;
+    render();
+  });
+
+  // ── Reset ──
+  document.getElementById('resetAll').addEventListener('click', resetAllFilters);
+  window.resetAllFilters = function() {
+    activeCat = 'all';
+    activeFmt = 'all';
+    searchQuery = '';
+    sortMode = 'featured';
+    document.querySelectorAll('.cat-btn[data-cat]').forEach(b => b.classList.remove('active'));
+    document.querySelector('.cat-btn[data-cat="all"]').classList.add('active');
+    document.querySelectorAll('.fmt-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.fmt-chip[data-fmt="all"]').classList.add('active');
+    document.getElementById('resourceSearch').value = '';
+    document.getElementById('sortSelect').value = 'featured';
+    render();
+  };
+
+  function render() {
+    let visible = cards.filter(card => {
+      const catMatch = activeCat === 'all' || card.dataset.cat === activeCat;
+      const fmtMatch = activeFmt === 'all' || card.dataset.fmt === activeFmt;
+      const q = searchQuery;
+      const textMatch = !q || (
+        card.dataset.name.toLowerCase().includes(q) ||
+        card.querySelector('.res-card-desc').textContent.toLowerCase().includes(q) ||
+        card.dataset.cat.toLowerCase().includes(q)
+      );
+      return catMatch && fmtMatch && textMatch;
+    });
+
+    // Sort
+    if (sortMode === 'name') {
+      visible.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
+    } else if (sortMode === 'popular') {
+      visible.sort((a, b) => parseInt(b.dataset.downloads) - parseInt(a.dataset.downloads));
+    }
+
+    // Hide all, then show filtered in order
+    cards.forEach(c => { c.style.display = 'none'; });
+    visible.forEach(c => {
+      c.style.display = 'flex';
+      grid.appendChild(c); // re-order in DOM for sort
+    });
+
+    // Empty state
+    emptyState.style.display = visible.length === 0 ? 'block' : 'none';
+    resultCount.textContent = visible.length;
+  }
+
+  // ── Mobile sidebar toggle ──
+  document.getElementById('mobileFilterBtn').addEventListener('click', () => {
+    const sidebar = document.getElementById('resSidebar');
+    sidebar.classList.toggle('open');
+  });
+
+  // ── Download tracker ──
+  window.trackDownload = function(el, name) {
+    // Store download count in localStorage
+    const key = 'rt_dl_' + name.replace(/\s+/g, '_');
+    const count = parseInt(localStorage.getItem(key) || '0') + 1;
+    localStorage.setItem(key, count);
+    // Visual feedback
+    const orig = el.innerHTML;
+    el.innerHTML = '<i class="fas fa-check"></i> Downloading…';
+    el.style.background = 'rgba(16,185,129,0.12)';
+    el.style.borderColor = 'rgba(16,185,129,0.3)';
+    el.style.color = 'var(--green)';
+    setTimeout(() => {
+      el.innerHTML = orig;
+      el.style.background = '';
+      el.style.borderColor = '';
+      el.style.color = '';
+    }, 2000);
+  };
+
+  // ── Animate on scroll ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+  // Initial render
+  render();
+})();
+</script>
+</body>
+</html>
