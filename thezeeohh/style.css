@@ -7,31 +7,31 @@
 
 /* ── CSS Variables ── */
 :root {
-  --bg-primary:    #0a0a0f;
-  --bg-secondary:  #111118;
-  --bg-card:       #16161f;
-  --bg-card-hover: #1c1c27;
-  --bg-glass:      rgba(22, 22, 31, 0.7);
-  --border-glass:  rgba(255, 255, 255, 0.07);
-  --border-subtle: rgba(255, 255, 255, 0.04);
+  --bg-primary:    #0e0c0b;
+  --bg-secondary:  #171412;
+  --bg-card:       #1e1b18;
+  --bg-card-hover: #26221f;
+  --bg-glass:      rgba(30, 27, 24, 0.7);
+  --border-glass:  rgba(255, 255, 255, 0.05);
+  --border-subtle: rgba(255, 255, 255, 0.03);
 
-  --accent-1: #6366f1;
-  --accent-2: #8b5cf6;
-  --accent-3: #a855f7;
-  --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
-  --accent-gradient-h: linear-gradient(135deg, #7c7ff5, #a07cf9, #be78fb);
-  --accent-glow: 0 0 40px rgba(99, 102, 241, 0.35);
-  --accent-glow-strong: 0 0 60px rgba(139, 92, 246, 0.5);
+  --accent-1: #c9a84c;
+  --accent-2: #c05a3e;
+  --accent-3: #4d6b53;
+  --accent-gradient: linear-gradient(135deg, #c9a84c, #c05a3e, #4d6b53);
+  --accent-gradient-h: linear-gradient(135deg, #d8b85c, #cc694d, #5a7d61);
+  --accent-glow: 0 0 40px rgba(192, 90, 62, 0.15);
+  --accent-glow-strong: 0 0 60px rgba(201, 168, 76, 0.2);
 
-  --text-primary:   #f0f0f8;
-  --text-secondary: #9ca3af;
-  --text-muted:     #6b7280;
-  --text-tiny:      #4b5563;
+  --text-primary:   #f6f4ee;
+  --text-secondary: #dcd7cc;
+  --text-muted:     #9a9382;
+  --text-tiny:      #6e6758;
 
-  --gold:  #f59e0b;
-  --green: #10b981;
-  --red:   #ef4444;
-  --blue:  #3b82f6;
+  --gold:  #d97706;
+  --green: #15803d;
+  --red:   #b91c1c;
+  --blue:  #1d4ed8;
 
   --radius-sm:  8px;
   --radius-md:  14px;
@@ -39,9 +39,9 @@
   --radius-xl:  28px;
   --radius-full:9999px;
 
-  --shadow-card:  0 4px 24px rgba(0,0,0,0.4);
-  --shadow-hover: 0 16px 48px rgba(0,0,0,0.6), 0 0 30px rgba(99,102,241,0.18);
-  --shadow-glow:  0 8px 32px rgba(99,102,241,0.3);
+  --shadow-card:  0 4px 24px rgba(0,0,0,0.5);
+  --shadow-hover: 0 16px 48px rgba(0,0,0,0.7), 0 0 30px rgba(192,90,62,0.12);
+  --shadow-glow:  0 8px 32px rgba(192,90,62,0.15);
 
   --transition-fast:   0.15s ease;
   --transition-normal: 0.3s cubic-bezier(0.4,0,0.2,1);
