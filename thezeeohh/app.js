@@ -145,101 +145,250 @@
 ──────────────────────────────────────────── */
 (function initNewsletter() {
   const STORAGE_KEY = 'rt_newsletter_subscribed';
-  const form = document.getElementById('newsletterForm');
-  const success = document.getElementById('newsletterSuccess');
-  const errorEl = document.getElementById('newsletterError');
-  const emailInput = document.getElementById('newsletterEmail');
-  const submitBtn = document.getElementById('newsletterSubmit');
-  if (!form) return;
-
   const MAILCHIMP_URL =
     'https://radiantthreshold.us21.list-manage.com/subscribe/post?u=REPLACE_U&id=REPLACE_ID&f_id=REPLACE_FID';
 
   const isValidEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
-  function showError(msg) {
-    if (!errorEl) return;
-    errorEl.textContent = msg;
-    if (emailInput) {
-      emailInput.setAttribute('aria-invalid', 'true');
-      emailInput.focus();
-    }
-  }
+  // 1. Setup inline form (if present on the page)
+  const form = document.getElementById('newsletterForm');
+  const success = document.getElementById('newsletterSuccess');
+  const errorEl = document.getElementById('newsletterError');
+  const emailInput = document.getElementById('newsletterEmail');
+  const submitBtn = document.getElementById('newsletterSubmit');
 
-  function clearError() {
-    if (!errorEl) return;
-    errorEl.textContent = '';
-    if (emailInput) emailInput.setAttribute('aria-invalid', 'false');
-  }
-
-  function showSubscribed() {
-    form.style.display = 'none';
+  function showInlineSubscribed() {
+    if (form) form.style.display = 'none';
     if (success) success.classList.add('show');
   }
 
-  // Returning visitor who already subscribed this browser — skip the form.
-  if (localStorage.getItem(STORAGE_KEY) === 'true') {
-    showSubscribed();
+  if (form && localStorage.getItem(STORAGE_KEY) === 'true') {
+    showInlineSubscribed();
   }
 
   if (emailInput) {
-    emailInput.addEventListener('input', clearError);
+    emailInput.addEventListener('input', () => {
+      if (errorEl) {
+        errorEl.textContent = '';
+        emailInput.setAttribute('aria-invalid', 'false');
+      }
+    });
   }
 
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    clearError();
-
-    const email = emailInput ? emailInput.value.trim() : '';
-    if (!email) {
-      showError('Please enter your email address.');
-      return;
-    }
-    if (!isValidEmail(email)) {
-      showError('Please enter a valid email address.');
-      return;
-    }
-
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = 'Subscribing&hellip;';
-    }
-
-    // Not configured yet — store locally and show success rather than
-    // pretending a network call happened.
-    if (MAILCHIMP_URL.includes('REPLACE_U')) {
-      localStorage.setItem(STORAGE_KEY, 'true');
-      showSubscribed();
-      return;
-    }
-
-    try {
-      // Mailchimp requires JSONP for cross-origin embedded-form POSTs.
-      await new Promise((resolve, reject) => {
-        const cbName = '__rt_mc_cb_' + Date.now();
-        const script = document.createElement('script');
-        window[cbName] = function (data) {
-          delete window[cbName];
-          script.remove();
-          if (data && data.result === 'success') resolve();
-          else reject(new Error((data && data.msg) || 'subscribe_failed'));
-        };
-        const jsonpUrl = MAILCHIMP_URL.replace('/post?', '/post-json?') +
-          '&EMAIL=' + encodeURIComponent(email) + '&c=' + cbName;
-        script.src = jsonpUrl;
-        script.onerror = () => reject(new Error('network_error'));
-        document.head.appendChild(script);
-      });
-      localStorage.setItem(STORAGE_KEY, 'true');
-      showSubscribed();
-    } catch (err) {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Join the Network <i class="fas fa-paper-plane"></i>';
+  if (form) {
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (errorEl) {
+        errorEl.textContent = '';
+        if (emailInput) emailInput.setAttribute('aria-invalid', 'false');
       }
-      showError('Subscription failed. Email us directly to join the list.');
+
+      const email = emailInput ? emailInput.value.trim() : '';
+      if (!email) {
+        if (errorEl) errorEl.textContent = 'Please enter your email address.';
+        if (emailInput) {
+          emailInput.setAttribute('aria-invalid', 'true');
+          emailInput.focus();
+        }
+        return;
+      }
+      if (!isValidEmail(email)) {
+        if (errorEl) errorEl.textContent = 'Please enter a valid email address.';
+        if (emailInput) {
+          emailInput.setAttribute('aria-invalid', 'true');
+          emailInput.focus();
+        }
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Subscribing&hellip;';
+      }
+
+      if (MAILCHIMP_URL.includes('REPLACE_U')) {
+        localStorage.setItem(STORAGE_KEY, 'true');
+        showInlineSubscribed();
+        // Also update modal state if it's open
+        const modalForm = document.getElementById('modalNewsletterForm');
+        const modalSuccess = document.getElementById('modalNewsletterSuccess');
+        if (modalForm) modalForm.style.display = 'none';
+        if (modalSuccess) modalSuccess.style.display = 'flex';
+        return;
+      }
+
+      try {
+        await new Promise((resolve, reject) => {
+          const cbName = '__rt_mc_cb_' + Date.now();
+          const script = document.createElement('script');
+          window[cbName] = function (data) {
+            delete window[cbName];
+            script.remove();
+            if (data && data.result === 'success') resolve();
+            else reject(new Error((data && data.msg) || 'subscribe_failed'));
+          };
+          const jsonpUrl = MAILCHIMP_URL.replace('/post?', '/post-json?') +
+            '&EMAIL=' + encodeURIComponent(email) + '&c=' + cbName;
+          script.src = jsonpUrl;
+          script.onerror = () => reject(new Error('network_error'));
+          document.head.appendChild(script);
+        });
+        localStorage.setItem(STORAGE_KEY, 'true');
+        showInlineSubscribed();
+        const modalForm = document.getElementById('modalNewsletterForm');
+        const modalSuccess = document.getElementById('modalNewsletterSuccess');
+        if (modalForm) modalForm.style.display = 'none';
+        if (modalSuccess) modalSuccess.style.display = 'flex';
+      } catch (err) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Join the Network <i class="fas fa-paper-plane"></i>';
+        }
+        if (errorEl) errorEl.textContent = 'Subscription failed. Email us directly to join the list.';
+      }
+    });
+  }
+
+  // 2. Setup Global Interceptor for Newsletter Links (to trigger modal)
+  document.addEventListener('click', function (e) {
+    const anchor = e.target.closest('a');
+    if (anchor && anchor.getAttribute('href') && anchor.getAttribute('href').includes('newsletterForm')) {
+      e.preventDefault();
+      openNewsletterModal();
     }
   });
+
+  function openNewsletterModal() {
+    let overlay = document.querySelector('.newsletter-modal-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'newsletter-modal-overlay';
+      overlay.innerHTML = `
+        <div class="newsletter-modal-card">
+          <button class="newsletter-modal-close" aria-label="Close modal">&times;</button>
+          <div class="newsletter-modal-header">
+            <h3>Join the Movement</h3>
+            <p>Subscribe to our newsletter for critical campaign updates, tactical guides, and educational materials.</p>
+          </div>
+          <form class="newsletter-form" id="modalNewsletterForm" novalidate style="display: block; width: 100%; max-width: 100%;">
+            <label for="modalNewsletterEmail" class="sr-only">Email address</label>
+            <input type="email" placeholder="Enter your email address" id="modalNewsletterEmail" required style="width: 100%; padding: 0.85rem 1.1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-family: inherit; font-size: 1rem; outline: none; margin-bottom: 12px; transition: all 0.2s;" />
+            <button type="submit" class="btn btn-primary" id="modalNewsletterSubmit" style="width: 100%; justify-content: center; height: 48px;">
+              Join the Network <i class="fas fa-paper-plane" style="margin-left: 8px;"></i>
+            </button>
+          </form>
+          <p class="newsletter-error" id="modalNewsletterError" role="alert" aria-live="assertive" style="text-align: center; margin-top: 12px;"></p>
+          <div class="newsletter-success" id="modalNewsletterSuccess" role="status" aria-live="polite" style="display: none; text-align: center; color: #c9a84c; font-weight: 600; margin-top: 12px; flex-direction: column; align-items: center; gap: 8px;">
+            <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
+            <span>You are on the list! Welcome to the fight.</span>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      // Close handlers
+      overlay.querySelector('.newsletter-modal-close').addEventListener('click', closeNewsletterModal);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeNewsletterModal();
+      });
+
+      // Submit handler
+      const mForm = document.getElementById('modalNewsletterForm');
+      const mEmailInput = document.getElementById('modalNewsletterEmail');
+      const mErrorEl = document.getElementById('modalNewsletterError');
+      const mSuccessEl = document.getElementById('modalNewsletterSuccess');
+      const mSubmitBtn = document.getElementById('modalNewsletterSubmit');
+
+      mEmailInput.addEventListener('input', () => {
+        mErrorEl.textContent = '';
+        mEmailInput.setAttribute('aria-invalid', 'false');
+      });
+
+      mForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        mErrorEl.textContent = '';
+        mEmailInput.setAttribute('aria-invalid', 'false');
+
+        const email = mEmailInput.value.trim();
+        if (!email) {
+          mErrorEl.textContent = 'Please enter your email address.';
+          mEmailInput.setAttribute('aria-invalid', 'true');
+          mEmailInput.focus();
+          return;
+        }
+        if (!isValidEmail(email)) {
+          mErrorEl.textContent = 'Please enter a valid email address.';
+          mEmailInput.setAttribute('aria-invalid', 'true');
+          mEmailInput.focus();
+          return;
+        }
+
+        mSubmitBtn.disabled = true;
+        mSubmitBtn.innerHTML = 'Subscribing&hellip;';
+
+        if (MAILCHIMP_URL.includes('REPLACE_U')) {
+          localStorage.setItem(STORAGE_KEY, 'true');
+          mForm.style.display = 'none';
+          mSuccessEl.style.display = 'flex';
+          showInlineSubscribed();
+          return;
+        }
+
+        try {
+          await new Promise((resolve, reject) => {
+            const cbName = '__rt_mc_cb_modal_' + Date.now();
+            const script = document.createElement('script');
+            window[cbName] = function (data) {
+              delete window[cbName];
+              script.remove();
+              if (data && data.result === 'success') resolve();
+              else reject(new Error((data && data.msg) || 'subscribe_failed'));
+            };
+            const jsonpUrl = MAILCHIMP_URL.replace('/post?', '/post-json?') +
+              '&EMAIL=' + encodeURIComponent(email) + '&c=' + cbName;
+            script.src = jsonpUrl;
+            script.onerror = () => reject(new Error('network_error'));
+            document.head.appendChild(script);
+          });
+          localStorage.setItem(STORAGE_KEY, 'true');
+          mForm.style.display = 'none';
+          mSuccessEl.style.display = 'flex';
+          showInlineSubscribed();
+        } catch (err) {
+          mSubmitBtn.disabled = false;
+          mSubmitBtn.innerHTML = 'Join the Network <i class="fas fa-paper-plane"></i>';
+          mErrorEl.textContent = 'Subscription failed. Email us directly to join the list.';
+        }
+      });
+    }
+
+    // Check pre-subscribed state
+    const mForm = document.getElementById('modalNewsletterForm');
+    const mSuccessEl = document.getElementById('modalNewsletterSuccess');
+    if (localStorage.getItem(STORAGE_KEY) === 'true') {
+      if (mForm) mForm.style.display = 'none';
+      if (mSuccessEl) mSuccessEl.style.display = 'flex';
+    } else {
+      if (mForm) mForm.style.display = 'block';
+      if (mSuccessEl) mSuccessEl.style.display = 'none';
+    }
+
+    // Show modal (triggers CSS transitions)
+    setTimeout(() => overlay.classList.add('show'), 10);
+    document.addEventListener('keydown', handleEscKey);
+  }
+
+  function closeNewsletterModal() {
+    const overlay = document.querySelector('.newsletter-modal-overlay');
+    if (overlay) {
+      overlay.classList.remove('show');
+      document.removeEventListener('keydown', handleEscKey);
+    }
+  }
+
+  function handleEscKey(e) {
+    if (e.key === 'Escape') closeNewsletterModal();
+  }
 })();
 
 
