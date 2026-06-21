@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Organizer's Playbook — Radiant Threshold</title>
+  <meta name="description" content="Master grassroots organizing with Aziza Okoro — power mapping, coalition building, campaign strategy, and winning. 8 modules, 25+ hours, certificate included." />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .playbook-hero { background: linear-gradient(150deg, #0d0d1a 0%, #12091e 50%, #0a0a0f 100%); padding: calc(var(--nav-height) + 60px) 0 56px; border-bottom: 1px solid var(--border-glass); position: relative; overflow: hidden; }
+    .playbook-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 60% 40%, rgba(99,102,241,0.12), transparent); pointer-events: none; }
+    .playbook-hero-inner { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
+    @media (max-width: 860px) { .playbook-hero-inner { grid-template-columns: 1fr; } .hero-sticky-card { display: none; } }
+
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 24px; }
+    .breadcrumb a { color: var(--accent-2); }
+    .breadcrumb i { font-size: 0.65rem; }
+
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); color: #c9a84c; margin-bottom: 18px; }
+    .hero-title { font-size: clamp(1.9rem,4vw,2.9rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 18px; }
+    .hero-sub { font-size: 1rem; color: var(--text-secondary); line-height: 1.7; max-width: 600px; margin-bottom: 24px; }
+    .hero-meta { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 12px; }
+    .hero-meta .stars { color: var(--gold); }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .hero-pill { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; color: var(--text-secondary); background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); border-radius: 999px; padding: 5px 14px; }
+    .hero-pill i { color: var(--accent-2); font-size: 0.78rem; }
+
+    /* Sticky enroll card */
+    .hero-sticky-card { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-xl); padding: 28px; position: sticky; top: calc(var(--nav-height) + 20px); }
+    .sticky-preview { height: 160px; border-radius: var(--radius-md); background: linear-gradient(135deg, #1a1a2e, #6b21a8); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; cursor: pointer; }
+    .play-btn { width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; }
+    .sticky-price { font-size: 1.6rem; font-weight: 900; color: var(--text-primary); margin-bottom: 4px; }
+    .sticky-scale { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 18px; }
+    .sticky-scale a { color: var(--green); font-weight: 600; }
+    .w-full { width: 100%; justify-content: center; }
+    .includes { margin-top: 20px; border-top: 1px solid var(--border-subtle); padding-top: 16px; }
+    .includes h4 { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
+    .inc-item { display: flex; align-items: center; gap: 9px; font-size: 0.82rem; color: var(--text-secondary); padding: 5px 0; }
+    .inc-item i { color: var(--green); font-size: 0.8rem; width: 14px; }
+
+    /* Sections */
+    .playbook-body { padding: 56px 0 80px; }
+    .playbook-layout { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
+    @media (max-width: 860px) { .playbook-layout { grid-template-columns: 1fr; } }
+    .section-block { margin-bottom: 48px; }
+    .section-block h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 18px; }
+
+    .learn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: 28px; }
+    @media (max-width: 600px) { .learn-grid { grid-template-columns: 1fr; } }
+    .learn-item { display: flex; align-items: flex-start; gap: 10px; font-size: 0.87rem; color: var(--text-secondary); }
+    .learn-item i { color: var(--green); margin-top: 3px; flex-shrink: 0; }
+
+    /* Module cards */
+    .module-stack { display: flex; flex-direction: column; gap: 3px; }
+    .module-card { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-md); overflow: hidden; }
+    .module-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none; transition: background var(--transition-fast); }
+    .module-header:hover { background: rgba(255,255,255,0.03); }
+    .module-header-left { display: flex; align-items: center; gap: 14px; }
+    .module-num { width: 32px; height: 32px; border-radius: 8px; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; color: #fff; flex-shrink: 0; }
+    .module-title { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); }
+    .module-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .module-chevron { color: var(--text-muted); transition: transform var(--transition-fast); font-size: 0.8rem; }
+    .module-card.open .module-chevron { transform: rotate(180deg); }
+    .module-body { display: none; padding: 0 20px 20px; }
+    .module-card.open .module-body { display: block; }
+    .module-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 14px; padding-top: 4px; }
+    .lesson-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.83rem; color: var(--text-secondary); }
+    .lesson-row:last-child { border-bottom: none; }
+    .lesson-row i { font-size: 0.82rem; width: 16px; text-align: center; flex-shrink: 0; }
+    .lesson-row i.fa-play-circle { color: var(--accent-2); }
+    .lesson-row i.fa-pen-to-square { color: var(--gold); }
+    .lesson-row i.fa-file-arrow-down { color: var(--green); }
+    .lesson-row i.fa-certificate { color: #c9a84c; }
+    .lesson-dur { margin-left: auto; font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+    .lesson-tag { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+    .tag-preview { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+    .tag-exercise { background: rgba(245,158,11,0.1); color: var(--gold); border: 1px solid rgba(245,158,11,0.25); }
+    .tag-cred { background: rgba(201,168,76,0.1); color: #c9a84c; border: 1px solid rgba(201,168,76,0.3); }
+
+    /* Deliverables */
+    .deliverables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 600px) { .deliverables-grid { grid-template-columns: 1fr; } }
+    .del-item { display: flex; align-items: flex-start; gap: 12px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 16px; }
+    .del-item i { font-size: 1rem; margin-top: 2px; flex-shrink: 0; }
+    .del-item strong { display: block; font-size: 0.88rem; color: var(--text-primary); margin-bottom: 3px; }
+    .del-item span { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* Instructor */
+    .instructor-card { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: 32px; display: flex; gap: 24px; }
+    @media (max-width: 600px) { .instructor-card { flex-direction: column; } }
+    .instructor-card .avatar { width: 88px; height: 88px; border-radius: 50%; background: url('../aziza-okoro.jpg') center/cover; flex-shrink: 0; }
+    .instructor-card h3 { font-size: 1.15rem; margin-bottom: 4px; }
+    .instructor-card .role { color: var(--accent-2); font-size: 0.86rem; margin-bottom: 12px; }
+    .instructor-card p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.75; }
+    .inst-stats { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 14px; }
+    .inst-stat { font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+    .inst-stat i { color: var(--accent-2); }
+
+    /* CTA bottom */
+    .cta-block { background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04)); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-xl); padding: 48px; text-align: center; }
+    .cta-block h2 { font-size: 1.8rem; margin-bottom: 12px; }
+    .cta-block p { color: var(--text-secondary); margin-bottom: 28px; }
+    .cta-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* Mobile enroll bar */
+    .mobile-enroll { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); border-top: 1px solid var(--border-glass); padding: 14px 20px; z-index: 200; align-items: center; justify-content: space-between; gap: 12px; }
+    @media (max-width: 860px) { .mobile-enroll { display: flex; } body { padding-bottom: 76px; } }
+    .mobile-enroll .price { font-size: 1.2rem; font-weight: 800; }
+    .mobile-enroll .scale { font-size: 0.72rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo">
+      <img src="../logo.png" alt="Radiant Threshold" style="height:44px;width:auto;display:block;" />
+    </a>
+    <div class="nav-links">
+      <a href="../explore.html" class="nav-link">Explore</a>
+      <a href="../instructor.html" class="nav-link">Instructors</a>
+      <a href="../workspace.html" class="nav-link">War Room</a>
+      <a href="../resources.html" class="nav-link">Resources</a>
+      <a href="../index.html#pricing" class="nav-link">Access</a>
+      <a href="../dashboard.html" class="nav-link">Dashboard</a>
+    </div>
+    <div class="nav-actions">
+      <a href="../explore.html" class="btn btn-secondary btn-sm">Explore Training</a>
+      <a href="../dashboard.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="../explore.html" class="nav-link">Explore</a>
+  <a href="../instructor.html" class="nav-link">Instructors</a>
+  <a href="../workspace.html" class="nav-link">War Room</a>
+  <a href="../resources.html" class="nav-link">Resources</a>
+  <a href="../index.html#pricing" class="nav-link">Access</a>
+  <a href="../dashboard.html" class="nav-link">Dashboard</a>
+</div>
+
+<!-- HERO -->
+<section class="playbook-hero">
+  <div class="container">
+    <div class="playbook-hero-inner">
+
+      <!-- Left -->
+      <div>
+        <div class="breadcrumb">
+          <a href="../index.html">Home</a>
+          <i class="fas fa-chevron-right"></i>
+          <a href="../academy.html">Academy</a>
+          <i class="fas fa-chevron-right"></i>
+          <span>The Organizer's Playbook</span>
+        </div>
+
+        <div class="hero-badge"><i class="fas fa-award"></i> Bestseller · Flagship Course</div>
+
+        <h1 class="hero-title">The Organizer's Playbook:<br>Building Power from the Ground Up</h1>
+
+        <p class="hero-sub">Master the essential skills frontline organizers use to win real campaigns — power mapping, coalition building, campaign strategy, narrative, and more. Taught by Aziza Okoro, VP of the Injustice Reform Network.</p>
+
+        <div class="hero-meta">
+          <div class="stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            <span style="color:var(--gold);font-weight:700;margin-left:4px;">4.9</span>
+            <span style="color:var(--text-muted);margin-left:4px;">(2,140 reviews)</span>
+          </div>
+          <span><i class="fas fa-users" style="color:var(--accent-2);margin-right:4px;"></i>8,420 organizers enrolled</span>
+          <span style="color:var(--text-muted);">Updated May 2026</span>
+        </div>
+
+        <div style="margin-top:8px; font-size:0.88rem; color:var(--text-secondary);">
+          Created by <a href="../instructor-aziza-okoro.html" style="color:var(--accent-2);font-weight:600;">Aziza Okoro</a>
+          &nbsp;·&nbsp;
+          <span style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:var(--green);padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:700;"><i class="fas fa-hand-holding-heart"></i> Scholarship Available</span>
+        </div>
+
+        <div class="hero-pills">
+          <span class="hero-pill"><i class="fas fa-layer-group"></i> 8 Modules</span>
+          <span class="hero-pill"><i class="fas fa-clock"></i> 25+ Hours</span>
+          <span class="hero-pill"><i class="fas fa-file-pdf"></i> 4 Toolkits Included</span>
+          <span class="hero-pill"><i class="fas fa-certificate"></i> Certificate</span>
+          <span class="hero-pill"><i class="fas fa-infinity"></i> Lifetime Access</span>
+          <span class="hero-pill"><i class="fas fa-broadcast-tower"></i> Live Q&amp;A</span>
+        </div>
+      </div>
+
+      <!-- Right: sticky enroll card -->
+      <div class="hero-sticky-card">
+        <div class="sticky-preview">
+          <div class="play-btn">
+            <i class="fas fa-play" style="color:#fff;font-size:1.1rem;margin-left:3px;"></i>
+          </div>
+          <span style="position:absolute;bottom:10px;left:12px;font-size:0.75rem;color:rgba(255,255,255,0.6);">Preview Course</span>
+        </div>
+        <div class="sticky-price">$97</div>
+        <div class="sticky-scale">Sliding scale $0–$150 · or <a href="../apply.html">apply for full scholarship</a></div>
+        <a href="../dashboard.html" class="btn btn-primary w-full" style="text-decoration:none;display:flex;justify-content:center;font-size:1rem;padding:14px;">
+          Enroll Now — $97
+        </a>
+        <a href="../apply.html" class="btn btn-secondary w-full" style="text-decoration:none;display:flex;justify-content:center;margin-top:10px;color:var(--green);border-color:rgba(16,185,129,0.3);">
+          <i class="fas fa-hand-holding-heart"></i>&nbsp;Apply for Scholarship
+        </a>
+        <div style="text-align:center;margin-top:12px;font-size:0.76rem;color:var(--text-muted);">30-Day Money-Back Guarantee</div>
+        <div class="includes">
+          <h4>This training includes</h4>
+          <div class="inc-item"><i class="fas fa-play-circle"></i> 25+ hours of video lessons</div>
+          <div class="inc-item"><i class="fas fa-file-pdf"></i> 4 downloadable toolkits</div>
+          <div class="inc-item"><i class="fas fa-pen-to-square"></i> 8 hands-on exercises</div>
+          <div class="inc-item"><i class="fas fa-certificate"></i> Movement Credential on completion</div>
+          <div class="inc-item"><i class="fas fa-infinity"></i> Lifetime access, all devices</div>
+          <div class="inc-item"><i class="fas fa-broadcast-tower"></i> Monthly live Q&amp;A with Aziza</div>
+          <div class="inc-item"><i class="fas fa-users"></i> Private organizer community</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- BODY -->
+<div class="playbook-body">
+  <div class="container">
+    <div class="playbook-layout">
+
+      <!-- Left column -->
+      <div>
+
+        <!-- What You'll Learn -->
+        <div class="section-block animate-on-scroll">
+          <h2>What You'll Learn</h2>
+          <div class="learn-grid">
+            <div class="learn-item"><i class="fas fa-check"></i> Build powerful public narratives that move people to action</div>
+            <div class="learn-item"><i class="fas fa-check"></i> Map power and identify who has the ability to say yes</div>
+            <div class="learn-item"><i class="fas fa-check"></i> Design winnable campaigns using the Midwest Academy strategy chart</div>
+            <div class="learn-item"><i class="fas fa-check"></i> Recruit, develop, and sustain high-performing organizer teams</div>
+            <div class="learn-item"><i class="fas fa-check"></i> Run hybrid online/offline campaigns that don't depend on surveillance platforms</div>
+            <div class="learn-item"><i class="fas fa-check"></i> Protect your community with digital security and operational security basics</div>
+            <div class="learn-item"><i class="fas fa-check"></i> Execute direct action with legal support and safety protocols in place</div>
+            <div class="learn-item"><i class="fas fa-check"></i> Train others using the Train-the-Trainer toolkit included in Module 8</div>
+          </div>
+        </div>
+
+        <!-- Framework -->
+        <div class="section-block animate-on-scroll">
+          <h2>Our Framework</h2>
+          <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);padding:28px;">
+            <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;margin-bottom:18px;">This course blends the best of proven organizing methodology with IRN's frontline experience in Hampton Roads and the broader Mid-Atlantic region:</p>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+              <span style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:var(--accent-1);padding:6px 16px;border-radius:999px;font-size:0.82rem;font-weight:600;">Marshall Ganz / Public Narrative</span>
+              <span style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:var(--accent-1);padding:6px 16px;border-radius:999px;font-size:0.82rem;font-weight:600;">Midwest Academy Strategy</span>
+              <span style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:var(--accent-1);padding:6px 16px;border-radius:999px;font-size:0.82rem;font-weight:600;">Training for Change Methods</span>
+              <span style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:var(--accent-1);padding:6px 16px;border-radius:999px;font-size:0.82rem;font-weight:600;">IRN Field Experience</span>
+              <span style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:var(--accent-1);padding:6px 16px;border-radius:999px;font-size:0.82rem;font-weight:600;">Abolitionist Organizing Framework</span>
+            </div>
+            <p style="margin-top:18px;font-size:0.85rem;color:var(--text-muted);"><strong style="color:var(--text-primary);">Core Pillars:</strong> Narrative · Power · Strategy · Action · Reflection</p>
+          </div>
+        </div>
+
+        <!-- Curriculum -->
+        <div class="section-block animate-on-scroll">
+          <h2>Course Curriculum</h2>
+          <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:18px;">8 modules · 25+ hours · 8 exercises · 4 toolkits · 1 capstone project</p>
+          <div class="module-stack">
+
+            <div class="module-card open">
+              <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-header-left">
+                  <div class="module-num">1</div>
+                  <div>
+                    <div class="module-title">Public Narrative — Story of Self, Us &amp; Now</div>
+                    <div class="module-meta">4 lessons · 3h 10m · 1 exercise</div>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down module-chevron"></i>
+              </div>
+              <div class="module-body">
+                <p class="module-desc">Learn Marshall Ganz's proven public narrative framework. You'll understand why story moves people when data doesn't, develop your personal Story of Self, and learn to weave individual stories into a collective call to action.</p>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 1.1 — Why Story? Narrative vs. Argument <span class="lesson-tag tag-preview">Free Preview</span><span class="lesson-dur">22:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 1.2 — Story of Self: Challenge, Choice, Outcome <span class="lesson-tag tag-preview">Free Preview</span><span class="lesson-dur">38:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 1.3 — Story of Us: Building Shared Identity <span class="lesson-dur">44:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 1.4 — Story of Now: The Urgent Call to Action <span class="lesson-dur">36:00</span></div>
+                <div class="lesson-row"><i class="fas fa-pen-to-square"></i> Exercise 1 — Write and record your 90-second Story of Self <span class="lesson-tag tag-exercise">Exercise</span><span class="lesson-dur">60 min</span></div>
+                <div class="lesson-row"><i class="fas fa-file-arrow-down"></i> Toolkit: Public Narrative Worksheet + Peer Feedback Rubric<span class="lesson-dur">PDF</span></div>
+              </div>
+            </div>
+
+            <div class="module-card">
+              <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-header-left">
+                  <div class="module-num">2</div>
+                  <div>
+                    <div class="module-title">Power Mapping &amp; Landscape Analysis</div>
+                    <div class="module-meta">3 lessons · 2h 40m · 1 exercise</div>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down module-chevron"></i>
+              </div>
+              <div class="module-body">
+                <p class="module-desc">You can't win what you can't see. This module teaches you to read a political landscape, identify who holds formal and informal power, and map your allies, opponents, and the targets who can actually give you what you want.</p>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 2.1 — What Is Power? Organized People vs. Organized Money <span class="lesson-dur">40:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 2.2 — Power Mapping: Decision-Makers, Allies, Opponents <span class="lesson-dur">52:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 2.3 — Reading the Political Landscape in Your City <span class="lesson-dur">48:00</span></div>
+                <div class="lesson-row"><i class="fas fa-pen-to-square"></i> Exercise 2 — Complete a Power Map for a real issue in your community <span class="lesson-tag tag-exercise">Exercise</span><span class="lesson-dur">75 min</span></div>
+                <div class="lesson-row"><i class="fas fa-file-arrow-down"></i> Toolkit: Power Mapping Template + Stakeholder Grid<span class="lesson-dur">PDF</span></div>
+              </div>
+            </div>
+
+            <div class="module-card">
+              <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-header-left">
+                  <div class="module-num">3</div>
+                  <div>
+                    <div class="module-title">Strategy &amp; Campaign Design</div>
+                    <div class="module-meta">4 lessons · 3h 50m · 1 exercise</div>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down module-chevron"></i>
+              </div>
+              <div class="module-body">
+                <p class="module-desc">Strategy is the bridge between your base and your win. You'll work through the Midwest Academy Strategy Chart — setting clear goals, choosing the right target, designing a realistic timeline, and matching tactics to resources you actually have.</p>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 3.1 — Goals, Demands, and Winnable Campaigns <span class="lesson-dur">46:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 3.2 — The Strategy Chart: A Campaign Planning Tool That Works <span class="lesson-dur">54:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 3.3 — The Escalation Ladder: Petition to Civil Disobedience <span class="lesson-dur">1h 12m</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 3.4 — Direct Action: Safety, Legal Support, and Logistics <span class="lesson-dur">58:00</span></div>
+                <div class="lesson-row"><i class="fas fa-pen-to-square"></i> Exercise 3 — Complete a full Strategy Chart for your campaign <span class="lesson-tag tag-exercise">Exercise</span><span class="lesson-dur">90 min</span></div>
+                <div class="lesson-row"><i class="fas fa-file-arrow-down"></i> Toolkit: Campaign Strategy Canvas (Midwest Academy format)<span class="lesson-dur">PDF</span></div>
+              </div>
+            </div>
+
+            <div class="module-card">
+              <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-header-left">
+                  <div class="module-num">4</div>
+                  <div>
+                    <div class="module-title">Relational Organizing &amp; Team Building</div>
+                    <div class="module-meta">4 lessons · 3h 20m · 1 exercise</div>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down module-chevron"></i>
+              </div>
+              <div class="module-body">
+                <p class="module-desc">Campaigns are won by teams, not individuals. Learn to conduct effective one-on-one conversations, build leadership ladders that develop new organizers from your base, and structure your team to sustain momentum over the long haul.</p>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 4.1 — The One-on-One: The Atomic Unit of Organizing <span class="lesson-dur">52:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 4.2 — Leadership Ladders: Growing Organizers from Your Base <span class="lesson-dur">46:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 4.3 — Team Structure: Roles, Accountability, and Delegation <span class="lesson-dur">40:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 4.4 — Retention: Keeping People When Campaigns Get Hard <span class="lesson-dur">42:00</span></div>
+                <div class="lesson-row"><i class="fas fa-pen-to-square"></i> Exercise 4 — Conduct two real one-on-one conversations and debrief <span class="lesson-tag tag-exercise">Exercise</span><span class="lesson-dur">Ongoing</span></div>
+              </div>
+            </div>
+
+            <div class="module-card">
+              <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-header-left">
+                  <div class="module-num">5</div>
+                  <div>
+                    <div class="module-title">Digital Tools &amp; Hybrid Organizing</div>
+                    <div class="module-meta">4 lessons · 3h 00m · 1 exercise</div>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down module-chevron"></i>
+              </div>
+              <div class="module-body">
+                <p class="module-desc">Modern campaigns live online and in the streets. This module covers digital security for organizers, social media strategy that doesn't compromise your data, peer-to-peer texting, and how to blend digital and in-person tactics without handing your community to surveillance capitalism.</p>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 5.1 — OpSec for Organizers: Threat Modeling and Secure Tools <span class="lesson-dur">50:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 5.2 — Social Media Strategy Without Feeding the Machine <span class="lesson-dur">44:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 5.3 — Peer-to-Peer Texting, Email, and Digital Mobilization <span class="lesson-dur">46:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 5.4 — Blending Online and Offline: Hybrid Campaign Design <span class="lesson-dur">40:00</span></div>
+                <div class="lesson-row"><i class="fas fa-pen-to-square"></i> Exercise 5 — Build a digital security plan for your team <span class="lesson-tag tag-exercise">Exercise</span><span class="lesson-dur">45 min</span></div>
+                <div class="lesson-row"><i class="fas fa-file-arrow-down"></i> Toolkit: Activist OpSec Checklist + Secure Comms Guide<span class="lesson-dur">PDF</span></div>
+              </div>
+            </div>
+
+            <div class="module-card">
+              <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-header-left">
+                  <div class="module-num">6</div>
+                  <div>
+                    <div class="module-title">Campaign Execution &amp; Earned Media</div>
+                    <div class="module-meta">3 lessons · 2h 45m · 1 exercise</div>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down module-chevron"></i>
+              </div>
+              <div class="module-body">
+                <p class="module-desc">Theory meets the street. Learn how to run day-of actions, manage rapid-response situations, get press coverage without a PR budget, and control your narrative when things don't go according to plan.</p>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 6.1 — Earned Media: Getting Covered Without Paying <span class="lesson-dur">55:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 6.2 — Message Framing: Making Your Cause Impossible to Ignore <span class="lesson-dur">48:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 6.3 — Rapid Response: Controlling the Narrative Under Fire <span class="lesson-dur">1h 02m</span></div>
+                <div class="lesson-row"><i class="fas fa-pen-to-square"></i> Exercise 6 — Draft a press release and media pitch for your campaign <span class="lesson-tag tag-exercise">Exercise</span><span class="lesson-dur">60 min</span></div>
+              </div>
+            </div>
+
+            <div class="module-card">
+              <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-header-left">
+                  <div class="module-num">7</div>
+                  <div>
+                    <div class="module-title">Winning, Evaluation &amp; Sustaining Momentum</div>
+                    <div class="module-meta">3 lessons · 2h 10m</div>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down module-chevron"></i>
+              </div>
+              <div class="module-body">
+                <p class="module-desc">Most organizers don't lose — they stop. Learn how to declare victory (and when to keep pushing), evaluate what worked and what didn't, prevent the post-win slump, and build the internal leadership infrastructure so your campaign outlives any one person.</p>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 7.1 — Declaring Victory: When and How to Win <span class="lesson-dur">40:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 7.2 — Campaign Evaluation: What Worked, What Didn't, What's Next <span class="lesson-dur">44:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 7.3 — Sustaining Momentum: Avoiding the Post-Win Slump <span class="lesson-dur">46:00</span></div>
+              </div>
+            </div>
+
+            <div class="module-card">
+              <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-header-left">
+                  <div class="module-num">8</div>
+                  <div>
+                    <div class="module-title">Train-the-Trainer + Capstone Project</div>
+                    <div class="module-meta">2 lessons · 1h 30m · Capstone + Credential</div>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down module-chevron"></i>
+              </div>
+              <div class="module-body">
+                <p class="module-desc">The final module turns you into a multiplier. You'll receive the full Train-the-Trainer toolkit and learn how to teach these frameworks inside your organization. The capstone project is a complete campaign plan for a real issue — reviewed and credentialed by IRN.</p>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 8.1 — Teaching What You Know: Train-the-Trainer Frameworks <span class="lesson-dur">44:00</span></div>
+                <div class="lesson-row"><i class="fas fa-play-circle"></i> 8.2 — Facilitation Skills for Organizer Trainings <span class="lesson-dur">46:00</span></div>
+                <div class="lesson-row"><i class="fas fa-file-arrow-down"></i> Toolkit: Train-the-Trainer Facilitation Guide + Slide Templates<span class="lesson-dur">PDF</span></div>
+                <div class="lesson-row"><i class="fas fa-pen-to-square"></i> Capstone — Submit a complete campaign plan for a real-world issue <span class="lesson-tag tag-exercise">Capstone</span><span class="lesson-dur">2–3 hrs</span></div>
+                <div class="lesson-row"><i class="fas fa-certificate"></i> Movement Credential — Issued upon capstone approval <span class="lesson-tag tag-cred">Credential</span></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- What You Receive -->
+        <div class="section-block animate-on-scroll">
+          <h2>What You Receive</h2>
+          <div class="deliverables-grid">
+            <div class="del-item"><i class="fas fa-play-circle" style="color:var(--accent-2);"></i><div><strong>25+ Hours of Video</strong><span>Self-paced, lifetime access on any device</span></div></div>
+            <div class="del-item"><i class="fas fa-file-pdf" style="color:#f87171;"></i><div><strong>Full Downloadable Playbook</strong><span>PDF + editable template versions</span></div></div>
+            <div class="del-item"><i class="fas fa-toolbox" style="color:var(--gold);"></i><div><strong>4 Toolkit Downloads</strong><span>Power Map, Strategy Chart, Narrative, OpSec</span></div></div>
+            <div class="del-item"><i class="fas fa-certificate" style="color:#c9a84c;"></i><div><strong>Verifiable Credential</strong><span>IRN-issued Movement Credential on completion</span></div></div>
+            <div class="del-item"><i class="fas fa-users" style="color:var(--green);"></i><div><strong>Private Organizer Community</strong><span>Connect with 12,000+ trained organizers</span></div></div>
+            <div class="del-item"><i class="fas fa-broadcast-tower" style="color:var(--accent-1);"></i><div><strong>Monthly Live Q&amp;A</strong><span>Direct access to Aziza Okoro and IRN team</span></div></div>
+            <div class="del-item"><i class="fas fa-chalkboard-user" style="color:#7c9b72;"></i><div><strong>Train-the-Trainer Toolkit</strong><span>Teach these frameworks in your own org</span></div></div>
+            <div class="del-item"><i class="fas fa-shield-halved" style="color:var(--accent-2);"></i><div><strong>30-Day Money-Back Guarantee</strong><span>No questions asked</span></div></div>
+          </div>
+        </div>
+
+        <!-- Instructor -->
+        <div class="section-block animate-on-scroll">
+          <h2>Your Instructor</h2>
+          <div class="instructor-card">
+            <div class="avatar"></div>
+            <div>
+              <h3>Aziza Okoro</h3>
+              <div class="role">VP, Injustice Reform Network · 20+ Years Baltimore Organizer</div>
+              <div class="inst-stats">
+                <span class="inst-stat"><i class="fas fa-users"></i> 15,600 organizers trained</span>
+                <span class="inst-stat"><i class="fas fa-star" style="color:var(--gold);"></i> 4.9 avg. rating</span>
+                <span class="inst-stat"><i class="fas fa-book"></i> 2 courses</span>
+              </div>
+              <p>Aziza "Zee" Okoro is the Vice President of the Injustice Reform Network (IRN). Based in Baltimore, she is a veteran community organizer and abolitionist strategist dedicated to building non-carceral safety nets that center Trans and Gender-Expansive People of Color. She has trained organizers across 30+ cities and led campaigns that won real policy change at the local and state level.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA bottom -->
+        <div class="cta-block animate-on-scroll">
+          <h2>Ready to Build Real Power?</h2>
+          <p>Join 8,420 organizers who have completed this training — and put it to work in their communities.</p>
+          <div class="cta-buttons">
+            <a href="../dashboard.html" class="btn btn-primary" style="text-decoration:none;padding:14px 32px;font-size:1rem;">Enroll Now — $97</a>
+            <a href="../apply.html" class="btn btn-secondary" style="text-decoration:none;color:var(--green);border-color:rgba(16,185,129,0.3);">Apply for Scholarship</a>
+          </div>
+          <p style="margin-top:16px;font-size:0.8rem;color:var(--text-muted);">Sliding scale: pay what you can ($0–$150). No one turned away for lack of funds.</p>
+        </div>
+
+      </div><!-- /left col -->
+
+      <!-- Right: sticky sidebar (desktop) -->
+      <div style="position:sticky;top:calc(var(--nav-height) + 20px);">
+        <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-xl);padding:24px;margin-bottom:20px;">
+          <h4 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:14px;">Quick Links</h4>
+          <a href="#" onclick="scrollTo(0,0)" style="display:block;padding:8px 0;font-size:0.85rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);">↑ What You'll Learn</a>
+          <a href="../resources.html" style="display:block;padding:8px 0;font-size:0.85rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);"><i class="fas fa-box-open" style="color:var(--accent-1);margin-right:6px;"></i>Free Resources</a>
+          <a href="../workspace.html" style="display:block;padding:8px 0;font-size:0.85rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);"><i class="fas fa-robot" style="color:var(--accent-2);margin-right:6px;"></i>War Room + Amina AI</a>
+          <a href="../academy.html" style="display:block;padding:8px 0;font-size:0.85rem;color:var(--text-secondary);"><i class="fas fa-graduation-cap" style="color:#c9a84c;margin-right:6px;"></i>All Academy Programs</a>
+        </div>
+        <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-lg);padding:20px;text-align:center;">
+          <i class="fas fa-hand-holding-heart" style="font-size:1.5rem;color:var(--green);margin-bottom:10px;display:block;"></i>
+          <strong style="color:#fff;font-size:0.9rem;">Scholarship Available</strong>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin:8px 0 14px;">No one is turned away for lack of funds.</p>
+          <a href="../apply.html" class="btn btn-secondary btn-sm" style="color:var(--green);border-color:rgba(16,185,129,0.3);">Apply Now</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Mobile enroll bar -->
+<div class="mobile-enroll">
+  <div>
+    <div class="price">$97</div>
+    <div class="scale">Sliding scale · scholarship available</div>
+  </div>
+  <a href="../dashboard.html" class="btn btn-primary" style="text-decoration:none;">Enroll Now</a>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="../index.html"><img src="../logo.png" alt="Radiant Threshold" style="height:44px;width:auto;" /></a>
+        <p>The premier training platform for activists, organizers, advocates, and changemakers.</p>
+        <div class="social-links">
+          <a href="#" class="social-link"><i class="fab fa-x-twitter"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+        </div>
+      </div>
+      <div class="footer-col"><h4>Platform</h4><ul><li><a href="../explore.html">Explore Training</a></li><li><a href="../resources.html">Free Resources</a></li><li><a href="../instructor.html">Instructors</a></li><li><a href="../dashboard.html">My Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Academy</h4><ul><li><a href="../academy.html">Academy Home</a></li><li><a href="organizers-playbook.html">Organizer's Playbook</a></li><li><a href="../apply.html">Apply to Teach</a></li></ul></div>
+      <div class="footer-col"><h4>Company</h4><ul><li><a href="#">About Us</a></li><li><a href="../blog.html">Blog</a></li><li><a href="../privacy.html">Privacy Policy</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Radiant Threshold, Inc. All rights reserved.</p>
+      <p>Made with <span style="color:var(--accent-2);">♥</span> for organizers everywhere.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../app.js"></script>
+<script>
+function toggleModule(header) {
+  const card = header.closest('.module-card');
+  card.classList.toggle('open');
+}
+
+// Animate on scroll
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
