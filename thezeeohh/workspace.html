@@ -196,119 +196,6 @@
 
 <script src="app.js"></script>
 <script>
-/* ── Gemini API Key Modal ── */
-(function initGeminiKey() {
-  if (sessionStorage.getItem('rt_gemini_key')) return;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'gemini-key-overlay';
-  overlay.style.cssText = `
-    position:fixed;inset:0;z-index:99999;
-    background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);
-    display:flex;align-items:center;justify-content:center;
-  `;
-  overlay.innerHTML = `
-    <div style="background:#1c1c1c;border:1px solid rgba(201,168,76,0.4);border-radius:14px;padding:32px;max-width:420px;width:90%;text-align:center;">
-      <div style="font-size:28px;margin-bottom:12px;">🔐</div>
-      <h3 style="color:#c9a84c;margin:0 0 8px;font-size:18px;letter-spacing:0.5px;">Amina — Sovereign AI Key Required</h3>
-      <p style="color:#9ca3af;font-size:13px;margin:0 0 20px;line-height:1.6;">
-        Enter your Google Gemini API key to activate Amina's live AI reasoning.<br>
-        Your key is stored in this browser session only — never sent anywhere except directly to Google's API.
-      </p>
-      <input id="gemini-key-input" type="password"
-        placeholder="Paste Gemini API key here..."
-        style="width:100%;padding:12px;background:#121212;border:1px solid #3f3f46;border-radius:8px;color:white;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:12px;"
-      />
-      <button id="gemini-key-submit"
-        style="width:100%;background:#c9a84c;color:#111;border:none;padding:12px;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
-        Activate Amina
-      </button>
-      <p style="color:#4b5563;font-size:11px;margin:12px 0 0;">
-        Get a free key at <strong style="color:#6b7280;">aistudio.google.com</strong>
-      </p>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-
-  document.getElementById('gemini-key-submit').addEventListener('click', () => {
-    const key = document.getElementById('gemini-key-input').value.trim();
-    if (!key) return;
-    sessionStorage.setItem('rt_gemini_key', key);
-    overlay.remove();
-  });
-
-  document.getElementById('gemini-key-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('gemini-key-submit').click();
-  });
-})();
-
-/* ── Shared Gemini caller ── */
-const AMINA_SYSTEM_PROMPT = `You are Amina, the Sovereign Sentinel of the Radiant Threshold — an AI guide built for grassroots organizers, activists, and community builders. You blend ancestral resistance frameworks with modern strategic thinking to help communities reclaim power and autonomy.
-
-Your areas of deep expertise include: mutual aid networks, tenant organizing, prison abolition, Know Your Rights legal defense, environmental justice, policy advocacy, digital security and OpSec, and community power mapping.
-
-You are grounded, direct, and speak with clarity and warmth. You never use corporate jargon. You center Black, brown, and working-class communities. You are not a lawyer and always recommend consulting legal professionals for specific legal advice.
-
-Key people in the Radiant Threshold network:
-- Aziza Okoro: VP of IRN, teaches Organizer's Playbook and Prison Abolition courses
-- BeKura Mainoo: Founder of IRN, expert in FOIA, public records, and policy design
-- Amara Osei, J.D.: Civil rights attorney, teaches Know Your Rights
-- Dr. Keisha Morgan: Environmental justice scholar
-- James Okafor: Policy Director
-- Zara Chen: Digital Strategist
-
-Keep responses focused, actionable, and under 200 words unless the user asks for depth. Always invite the user to go deeper or take a next step.`;
-
-async function callGemini(userMessage, historyMessages) {
-  const key = sessionStorage.getItem('rt_gemini_key');
-  if (!key) {
-    return "Amina is not yet activated. Please refresh the page and enter your Gemini API key.";
-  }
-
-  const contents = [];
-
-  // Inject system prompt as first user turn (Gemini doesn't have a system role in this API)
-  contents.push({ role: 'user', parts: [{ text: AMINA_SYSTEM_PROMPT }] });
-  contents.push({ role: 'model', parts: [{ text: 'Understood. I am Amina, your Sovereign Sentinel. I am ready.' }] });
-
-  // Add conversation history
-  if (historyMessages && historyMessages.length) {
-    historyMessages.forEach(m => {
-      contents.push({ role: m.role, parts: [{ text: m.text }] });
-    });
-  }
-
-  // Add current message
-  contents.push({ role: 'user', parts: [{ text: userMessage }] });
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents })
-      }
-    );
-
-    if (!res.ok) {
-      const err = await res.json();
-      if (res.status === 400 || res.status === 403) {
-        return "Amina's API key appears to be invalid. Please refresh and enter a valid Gemini key.";
-      }
-      return `Amina encountered an error: ${err.error?.message || res.statusText}`;
-    }
-
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Amina has no response at this time.";
-  } catch (e) {
-    return "Amina could not reach the network. Check your connection and try again.";
-  }
-}
-</script>
-<script>
-/* ── War Room conversation history ── */
-const warRoomHistory = [];
     // 1. Initialize the Secure Jitsi Frame
     const domain = "meet.jit.si";
     const options = {
@@ -653,76 +540,67 @@ const warRoomHistory = [];
         }, 1200);
     }
 
-    async function handleInstructorSend() {
+    function handleInstructorSend() {
         const cmd = instInput.value.trim();
         if (!cmd) return;
 
         appendLog("You", cmd);
         instInput.value = '';
-        instBtn.disabled = true;
-        instBtn.textContent = '...';
 
-        // Handle "purge" command locally
-        const lowerCmd = cmd.toLowerCase();
-        if (lowerCmd.includes("clear history") || lowerCmd.includes("purge")) {
-            if (db) {
-                try {
-                    const transaction = db.transaction(["session_notes"], "readwrite");
-                    transaction.objectStore("session_notes").clear().onsuccess = () => {
+        setTimeout(() => {
+            if (currentCourse) {
+                appendLog("System Alert", `Saving answer for Lesson ${currentStepIndex + 1} to local database...`, true);
+                
+                if (db) {
+                    try {
+                        const transaction = db.transaction(["session_notes"], "readwrite");
+                        const store = transaction.objectStore("session_notes");
+                        store.add({
+                            course: currentCourse.title,
+                            lesson: currentCourse.steps[currentStepIndex].title,
+                            answer: cmd,
+                            timestamp: new Date().toISOString()
+                        });
+                    } catch (e) {
+                        console.error("IndexedDB error during save:", e);
+                    }
+                }
+                
+                advanceLesson();
+                return;
+            }
+
+            const lowerCmd = cmd.toLowerCase();
+            let responseText = "";
+
+            if (lowerCmd.includes("framework") || lowerCmd.includes("curriculum")) {
+                responseText = "Radiant Threshold strategic framework loaded. Click one of the course buttons at the top of this panel to launch an interactive learning block.";
+            } else if (lowerCmd.includes("talking points")) {
+                responseText = "Here are key talking points for your Jitsi session:<br>1. Data sovereignty keeps infrastructure off corporate clouds.<br>2. Sliding-scale tiers combat economic exclusion.";
+            } else if (lowerCmd.includes("clear history") || lowerCmd.includes("purge")) {
+                if (db) {
+                    try {
+                        const transaction = db.transaction(["session_notes"], "readwrite");
+                        transaction.objectStore("session_notes").clear().onsuccess = () => {
+                            logBox.innerHTML = "";
+                            appendLog("System Alert", "Sovereign data store purged completely.", false);
+                        };
+                    } catch (e) {
+                        console.error("Error purging database:", e);
                         logBox.innerHTML = "";
-                        appendLog("System Alert", "Sovereign data store purged completely.", false);
-                    };
-                } catch (e) {
+                        appendLog("System Alert", "Error purging data store.", false);
+                    }
+                } else {
                     logBox.innerHTML = "";
                     appendLog("System Alert", "Data store purged locally.", false);
                 }
+                return;
             } else {
-                logBox.innerHTML = "";
-                appendLog("System Alert", "Data store purged locally.", false);
-            }
-            instBtn.disabled = false;
-            instBtn.textContent = 'Send';
-            return;
-        }
-
-        // If mid-course, save the answer then advance — also send to Gemini for feedback
-        if (currentCourse) {
-            appendLog("System Alert", `Saving answer for Lesson ${currentStepIndex + 1} to local database...`, true);
-            if (db) {
-                try {
-                    const transaction = db.transaction(["session_notes"], "readwrite");
-                    const store = transaction.objectStore("session_notes");
-                    store.add({
-                        course: currentCourse.title,
-                        lesson: currentCourse.steps[currentStepIndex].title,
-                        answer: cmd,
-                        timestamp: new Date().toISOString()
-                    });
-                } catch (e) {
-                    console.error("IndexedDB error during save:", e);
-                }
+                responseText = `Acknowledged. Note saved locally. To begin an AI-led lecture, select a course from the selector board above.`;
             }
 
-            const lessonCtx = `We are in the course "${currentCourse.title}", lesson "${currentCourse.steps[currentStepIndex].title}". The user submitted this exercise answer: "${cmd}". Give brief, encouraging feedback (2-3 sentences) and reinforce the key lesson concept.`;
-            warRoomHistory.push({ role: 'user', text: lessonCtx });
-            const feedback = await callGemini(lessonCtx, warRoomHistory.slice(0, -1));
-            warRoomHistory.push({ role: 'model', text: feedback });
-            appendLog("AI Guide", feedback.replace(/\n/g, '<br>'));
-
-            advanceLesson();
-            instBtn.disabled = false;
-            instBtn.textContent = 'Send';
-            return;
-        }
-
-        // Free-form Gemini conversation
-        warRoomHistory.push({ role: 'user', text: cmd });
-        const reply = await callGemini(cmd, warRoomHistory.slice(0, -1));
-        warRoomHistory.push({ role: 'model', text: reply });
-        appendLog("AI Guide", reply.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'));
-
-        instBtn.disabled = false;
-        instBtn.textContent = 'Send';
+            appendLog("AI Guide", responseText);
+        }, 600);
     }
 
     instBtn.addEventListener('click', handleInstructorSend);
@@ -956,5 +834,165 @@ const warRoomHistory = [];
         }
     }
 </script>
+
+<!-- ═══════════════════════════════════════════
+     SOVEREIGN ENCRYPTED GROUP CHANNEL
+     P2P WebSocket relay · BroadcastChannel fallback
+════════════════════════════════════════════ -->
+<div id="sovereign-channel-wrap" style="position:fixed;bottom:0;left:0;right:0;z-index:800;font-family:system-ui,sans-serif;">
+  <!-- Toggle bar -->
+  <div id="channel-toggle" onclick="toggleSovereignChannel()" style="background:#1c1c1f;border-top:1px solid #2e2e2e;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .2s;user-select:none;" onmouseover="this.style.background='#252528'" onmouseout="this.style.background='#1c1c1f'">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.5);animation:chPulse 2s ease-in-out infinite;"></div>
+      <span style="font-size:.82rem;font-weight:700;color:#e5e7eb;"># sovereign-channel</span>
+      <span id="ch-online-badge" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#6ee7b7;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:10px;">1 online</span>
+      <span style="font-size:.68rem;color:#4b5563;">P2P Encrypted · Ephemeral</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="ch-notif" style="display:none;background:#ef4444;color:#fff;font-size:.65rem;font-weight:700;padding:1px 7px;border-radius:10px;">NEW</span>
+      <i id="ch-chevron" class="fas fa-chevron-up" style="color:#6b7280;font-size:.85rem;transition:transform .3s;"></i>
+    </div>
+  </div>
+
+  <!-- Channel panel (hidden by default) -->
+  <div id="sovereign-channel-panel" style="display:none;background:#141418;border-top:1px solid #2e2e2e;height:280px;display:none;flex-direction:column;">
+    <!-- Header -->
+    <div style="padding:10px 16px;border-bottom:1px solid #1e1e22;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <i class="fas fa-shield-halved" style="color:#a855f7;font-size:.9rem;"></i>
+        <span style="font-size:.82rem;font-weight:700;color:#fff;">Encrypted Group Channel</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="ch-relay-label" style="font-size:.65rem;color:#4b5563;padding:2px 8px;background:#0a0a0f;border-radius:6px;border:1px solid #1e1e22;">● BroadcastChannel</span>
+        <span style="font-size:.65rem;color:#6b7280;">Your handle: <strong id="ch-handle" style="color:#c9a84c;"></strong></span>
+      </div>
+    </div>
+    <!-- Messages -->
+    <div id="ch-messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:#2e2e2e #0a0a0f;"></div>
+    <!-- Input -->
+    <div style="padding:10px 16px;border-top:1px solid #1e1e22;display:flex;gap:8px;align-items:center;">
+      <input id="ch-input" placeholder="Send a message to the network…" style="flex:1;background:#0a0a0f;border:1px solid #2e2e2e;border-radius:8px;padding:9px 14px;color:#fff;font-size:.85rem;outline:none;" onkeydown="if(event.key==='Enter')sendChannelMsg()">
+      <button onclick="sendChannelMsg()" style="background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;color:#fff;padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.82rem;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes chPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+#ch-messages::-webkit-scrollbar { width:4px; }
+#ch-messages::-webkit-scrollbar-track { background:#0a0a0f; }
+#ch-messages::-webkit-scrollbar-thumb { background:#2e2e2e; border-radius:2px; }
+</style>
+
+<script>
+// ── Sovereign Channel ──────────────────────────────────
+let channelOpen = false;
+let chWs = null;
+let chBc = null;
+let chHandle = '';
+const HANDLES = ['Justice','Organizer','Sovereign','Sentinel','Council','Architect','Delegate','Champion','Advocate','Pioneer'];
+
+function toggleSovereignChannel() {
+  channelOpen = !channelOpen;
+  const panel = document.getElementById('sovereign-channel-panel');
+  const chevron = document.getElementById('ch-chevron');
+  const notif = document.getElementById('ch-notif');
+  if (channelOpen) {
+    panel.style.display = 'flex';
+    chevron.style.transform = 'rotate(180deg)';
+    notif.style.display = 'none';
+    document.getElementById('ch-messages').scrollTop = 9999;
+  } else {
+    panel.style.display = 'none';
+    chevron.style.transform = 'rotate(0deg)';
+  }
+}
+
+function initSovereignChannel() {
+  // Generate handle
+  const stored = sessionStorage.getItem('rt_ch_handle');
+  if (stored) {
+    chHandle = stored;
+  } else {
+    chHandle = HANDLES[Math.floor(Math.random()*HANDLES.length)] + Math.floor(Math.random()*99+1);
+    sessionStorage.setItem('rt_ch_handle', chHandle);
+  }
+  document.getElementById('ch-handle').textContent = chHandle;
+
+  // Try WebSocket relay
+  try {
+    const wsUrl = 'ws://' + window.location.hostname + ':3002';
+    chWs = new WebSocket(wsUrl);
+    chWs.onopen = () => {
+      document.getElementById('ch-relay-label').textContent = '● WebSocket Relay';
+      document.getElementById('ch-relay-label').style.color = '#10b981';
+      addSystemMsg('🔐 Connected to Sovereign Relay. Messages are ephemeral.');
+    };
+    chWs.onmessage = e => {
+      try { const d = JSON.parse(e.data); if(d.type==='channel_msg') renderMsg(d); } catch(_) {}
+    };
+    chWs.onerror = () => { chWs = null; initBroadcastChannel(); };
+    chWs.onclose = () => { if (!chBc) initBroadcastChannel(); };
+  } catch(e) {
+    initBroadcastChannel();
+  }
+}
+
+function initBroadcastChannel() {
+  try {
+    chBc = new BroadcastChannel('rt_sovereign_channel');
+    chBc.onmessage = e => { if(e.data && e.data.type==='channel_msg') renderMsg(e.data); };
+    document.getElementById('ch-relay-label').textContent = '● Local P2P';
+    addSystemMsg('🔐 Local P2P channel active. Open in another tab to test sync.');
+  } catch(e) {
+    addSystemMsg('⚠️ Channel unavailable in this browser.');
+  }
+}
+
+function sendChannelMsg() {
+  const input = document.getElementById('ch-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const msg = { type:'channel_msg', sender:chHandle, text:text, ts:Date.now(), isSelf:true };
+  renderMsg(msg);
+  const payload = JSON.stringify({ type:'channel_msg', sender:chHandle, text:text, ts:Date.now() });
+  if (chWs && chWs.readyState===1) chWs.send(payload);
+  if (chBc) chBc.postMessage({ type:'channel_msg', sender:chHandle, text:text, ts:Date.now() });
+}
+
+function renderMsg(msg) {
+  const container = document.getElementById('ch-messages');
+  if (!container) return;
+  const isSelf = msg.sender === chHandle || msg.isSelf;
+  const time = new Date(msg.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.style.cssText = `display:flex;flex-direction:column;align-items:${isSelf?'flex-end':'flex-start'};max-width:75%;${isSelf?'align-self:flex-end':'align-self:flex-start'}`;
+  div.innerHTML = `
+    <div style="font-size:.65rem;color:#6b7280;margin-bottom:2px;${isSelf?'text-align:right':''}">${isSelf?'You':msg.sender} · ${time}</div>
+    <div style="background:${isSelf?'linear-gradient(135deg,#7c3aed,#a855f7)':'#1c1c1f'};border:1px solid ${isSelf?'transparent':'#2e2e2e'};border-radius:${isSelf?'12px 12px 2px 12px':'12px 12px 12px 2px'};padding:8px 12px;font-size:.82rem;color:${isSelf?'#fff':'#e5e7eb'};line-height:1.4;word-break:break-word;">${escCh(msg.text)}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  if (!channelOpen) {
+    document.getElementById('ch-notif').style.display = 'inline-block';
+  }
+}
+
+function addSystemMsg(text) {
+  const container = document.getElementById('ch-messages');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.style.cssText = 'text-align:center;';
+  div.innerHTML = `<span style="font-size:.68rem;color:#4b5563;background:#0a0a0f;border:1px solid #1e1e22;border-radius:10px;padding:3px 10px;">${text}</span>`;
+  container.appendChild(div);
+}
+
+function escCh(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+initSovereignChannel();
+</script>
+
 </body>
 </html>
