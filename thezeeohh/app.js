@@ -1546,8 +1546,6 @@ window.openBitcoinPayment = (courseName, usdPrice) => window.openPaymentModal(co
 ──────────────────────────────────────────── */
 (function initOnboarding() {
   if (localStorage.getItem('rt_onboarded')) return;
-  const path = window.location.pathname;
-  if (!path.endsWith('index.html') && path !== '/' && !path.endsWith('/')) return;
 
   const TYPES = [
     { id:'organizer', icon:'✊', label:'Organizer',  desc:'Criminal justice, housing, labor' },
