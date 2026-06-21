@@ -1909,3 +1909,172 @@ input[type="range"]::-webkit-slider-thumb:active { cursor: grabbing; }
   .my-courses-grid { grid-template-columns: 1fr; }
   .achievements-grid { gap: 12px; }
 }
+
+
+/* ============================================
+   MOBILE RESPONSIVE — Radiant Threshold
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Workspace layout — stack vertically */
+  #sovereign-workspace {
+    flex-direction: column !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    padding: 10px !important;
+    padding-bottom: 80px !important;
+  }
+
+  #sovereign-workspace > div {
+    flex: none !important;
+    width: 100% !important;
+    max-height: 55vh;
+  }
+
+  /* Hide council roster sidebar on mobile */
+  #council-sidebar {
+    display: none !important;
+  }
+
+  /* Dashboard layout — sidebar becomes horizontal scroll row */
+  .dashboard-layout {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+
+  .dash-sidebar {
+    width: 100% !important;
+    min-width: unset !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 8px !important;
+    gap: 4px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    scrollbar-width: none;
+  }
+
+  .dash-sidebar::-webkit-scrollbar { display: none; }
+
+  .dash-sidebar-logo { display: none !important; }
+
+  .dash-nav-item {
+    flex-direction: column !important;
+    min-width: 60px !important;
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+    gap: 4px !important;
+    white-space: nowrap;
+    text-align: center;
+    border-radius: 8px !important;
+  }
+
+  .dash-nav-item i { font-size: 1rem !important; }
+  .dash-nav-badge { display: none !important; }
+
+  .dash-main {
+    padding: 16px !important;
+    min-height: unset !important;
+  }
+
+  /* Pricing grid — 1 column */
+  .pricing-tiers,
+  div[style*='grid-template-columns: repeat(3'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* My courses grid */
+  .my-courses-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Progress row */
+  .progress-row {
+    flex-direction: column !important;
+  }
+
+  /* Achievements grid */
+  .achievements-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Footer grid */
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Nav actions hidden on mobile — hamburger handles it */
+  .nav-actions { display: none !important; }
+
+  /* Hero section adjustments */
+  .hero-inner {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  .hero-title { font-size: 2.2rem !important; }
+
+  .hero-stats {
+    justify-content: center !important;
+  }
+
+  /* Settings groups stack */
+  .settings-group div[style*='display:flex'] {
+    flex-direction: column !important;
+  }
+}
+
+/* Mobile Bottom Navigation Bar */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #1c1c1f;
+    border-top: 1px solid #2e2e2e;
+    z-index: 500;
+    align-items: stretch;
+    justify-content: space-around;
+    padding: 0;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+  }
+
+  .mobile-bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 4px;
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+    padding: 8px 4px;
+  }
+
+  .mobile-bottom-nav a i {
+    font-size: 1.1rem;
+  }
+
+  .mobile-bottom-nav a.active,
+  .mobile-bottom-nav a:hover {
+    color: #c9a84c;
+  }
+
+  .mobile-bottom-nav a.active i {
+    filter: drop-shadow(0 0 6px rgba(201,168,76,0.6));
+  }
+}

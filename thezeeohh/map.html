@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organizer Network Map — Radiant Threshold</title>
+  <meta name="description" content="A decentralized network of verified movement builders across the country. Find chapters near you and register your own." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* ── Map page-specific styles ── */
+    #organizer-map {
+      height: 500px;
+      border-radius: 12px;
+      border: 1px solid #2e2e2e;
+      background: #111;
+      z-index: 0;
+    }
+
+    /* Override Leaflet popup to match dark theme */
+    .leaflet-popup-content-wrapper {
+      background: #1c1c1f;
+      color: #f0f0f8;
+      border: 1px solid #2e2e2e;
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    .leaflet-popup-tip {
+      background: #1c1c1f;
+    }
+    .leaflet-popup-content {
+      margin: 14px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .popup-name {
+      font-weight: 700;
+      font-size: 14px;
+      color: #f0f0f8;
+      margin-bottom: 4px;
+    }
+    .popup-city {
+      color: #9ca3af;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .popup-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* Chapter registration form */
+    .register-form-card {
+      background: #1c1c1f;
+      border: 1px solid #2e2e2e;
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 20px;
+    }
+    .register-form-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f0f0f8;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .register-form-card h3 i {
+      color: #c9a84c;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+    }
+    .form-group input,
+    .form-group select {
+      background: #111118;
+      border: 1px solid #2e2e2e;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #f0f0f8;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #c9a84c;
+    }
+    .form-group select option {
+      background: #1c1c1f;
+    }
+    .btn-register {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #c9a84c, #f59e0b);
+      color: #0a0a0f;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 11px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s, transform 0.15s;
+      margin-top: 6px;
+    }
+    .btn-register:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .form-success {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 8px;
+      color: #10b981;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Right panel */
+    .map-right-panel {
+      width: 320px;
+      flex-shrink: 0;
+    }
+    .panel-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #c9a84c;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chapter-list {
+      max-height: 600px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: #2e2e2e transparent;
+    }
+    .chapter-list::-webkit-scrollbar { width: 4px; }
+    .chapter-list::-webkit-scrollbar-track { background: transparent; }
+    .chapter-list::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 4px; }
+
+    .chapter-card {
+      background: #1c1c1f;
+      border: 1px solid #2e2e2e;
+      border-radius: 8px;
+      padding: 14px;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .chapter-card:hover {
+      border-color: rgba(201,168,76,0.3);
+      transform: translateX(3px);
+    }
+    .chapter-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .chapter-name {
+      font-weight: 700;
+      font-size: 13px;
+      color: #f0f0f8;
+      line-height: 1.4;
+    }
+    .chapter-city {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .chapter-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    /* Focus badges */
+    .badge-criminal    { background: rgba(201,168,76,0.15);  color: #c9a84c;  border: 1px solid rgba(201,168,76,0.3);  }
+    .badge-housing     { background: rgba(59,130,246,0.15);  color: #60a5fa;  border: 1px solid rgba(59,130,246,0.3);  }
+    .badge-environment { background: rgba(16,185,129,0.15);  color: #34d399;  border: 1px solid rgba(16,185,129,0.3);  }
+    .badge-labor       { background: rgba(139,92,246,0.15);  color: #a78bfa;  border: 1px solid rgba(139,92,246,0.3);  }
+    .badge-education   { background: rgba(249,115,22,0.15);  color: #fb923c;  border: 1px solid rgba(249,115,22,0.3);  }
+    /* Tier badges */
+    .tier-guest        { background: rgba(107,114,128,0.15); color: #9ca3af;  border: 1px solid rgba(107,114,128,0.3); }
+    .tier-verified     { background: rgba(59,130,246,0.15);  color: #60a5fa;  border: 1px solid rgba(59,130,246,0.3);  }
+    .tier-sovereign    { background: rgba(201,168,76,0.2);   color: #f59e0b;  border: 1px solid rgba(245,158,11,0.5);
+                         box-shadow: 0 0 10px rgba(245,158,11,0.2); }
+
+    /* Hero bar */
+    .map-hero {
+      background: #1c1c1f;
+      border-bottom: 1px solid #2e2e2e;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 72px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .map-hero-left h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #c9a84c, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .map-hero-left p {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .stat-badge {
+      background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(245,158,11,0.1));
+      border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 12px;
+      padding: 12px 20px;
+      text-align: center;
+    }
+    .stat-badge-count {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #c9a84c;
+      line-height: 1;
+    }
+    .stat-badge-label {
+      font-size: 11px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 2px;
+    }
+
+    /* Main map layout */
+    .map-main {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      min-height: calc(100vh - 160px);
+      background: #121212;
+      align-items: flex-start;
+    }
+    .map-left {
+      flex: 2;
+      min-width: 0;
+    }
+
+    @media (max-width: 900px) {
+      .map-main { flex-direction: column; }
+      .map-right-panel { width: 100%; }
+      .form-row { grid-template-columns: 1fr; }
+      #organizer-map { height: 340px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Radiant Threshold" style="height:44px;width:auto;display:block;" />
+    </a>
+    <div class="nav-links">
+      <a href="explore.html" class="nav-link">Explore</a>
+      <a href="instructor.html" class="nav-link">Instructors</a>
+      <a href="workspace.html" class="nav-link">War Room</a>
+      <a href="map.html" class="nav-link active">Map</a>
+      <a href="index.html#pricing" class="nav-link">Access</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+    </div>
+    <div class="nav-actions">
+      <a href="explore.html" class="btn btn-secondary btn-sm">Explore Training</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="explore.html" class="nav-link">Explore</a>
+  <a href="instructor.html" class="nav-link">Instructors</a>
+  <a href="workspace.html" class="nav-link">War Room</a>
+  <a href="map.html" class="nav-link active">Map</a>
+  <a href="index.html#pricing" class="nav-link">Access</a>
+  <a href="dashboard.html" class="nav-link">Dashboard</a>
+</div>
+
+<!-- ── HERO BAR ── -->
+<div class="map-hero">
+  <div class="map-hero-left">
+    <h1><i class="fas fa-network-wired" style="font-size:1.1rem;margin-right:8px;-webkit-text-fill-color:inherit;"></i>The Sovereign Organizer Network</h1>
+    <p>A decentralized network of verified movement builders</p>
+  </div>
+  <div class="stat-badge">
+    <div class="stat-badge-count" id="organizer-count">--</div>
+    <div class="stat-badge-label">Active Chapters</div>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<div class="map-main">
+
+  <!-- LEFT COLUMN: Map + Form -->
+  <div class="map-left">
+    <div id="organizer-map"></div>
+
+    <div class="register-form-card">
+      <h3><i class="fas fa-plus-circle"></i> Add Your Chapter to the Network</h3>
+      <form id="chapter-form" autocomplete="off">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="f-name">Chapter Name</label>
+            <input type="text" id="f-name" placeholder="e.g. Oakland Justice Bloc" required />
+          </div>
+          <div class="form-group">
+            <label for="f-city">City</label>
+            <input type="text" id="f-city" placeholder="e.g. Oakland" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="f-focus">Focus Area</label>
+            <select id="f-focus" required>
+              <option value="" disabled selected>Select focus...</option>
+              <option value="Criminal Justice">Criminal Justice</option>
+              <option value="Housing">Housing</option>
+              <option value="Environment">Environment</option>
+              <option value="Labor">Labor</option>
+              <option value="Education">Education</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="f-tier">Membership Tier</label>
+            <select id="f-tier" required>
+              <option value="" disabled selected>Select tier...</option>
+              <option value="Guest Organizer">Guest Organizer</option>
+              <option value="Verified Organizer">Verified Organizer</option>
+              <option value="Sovereign Tier">Sovereign Tier</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn-register">
+          <i class="fas fa-map-pin"></i> Register Chapter
+        </button>
+        <div class="form-success" id="form-success">
+          <i class="fas fa-check-circle"></i>
+          Chapter registered and added to the map!
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN: Chapter directory -->
+  <div class="map-right-panel">
+    <div class="panel-title">
+      <i class="fas fa-layer-group"></i> Active Chapters
+    </div>
+    <div class="chapter-list" id="chapter-list">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-bottom-nav">
+  <a href="index.html"><i class="fas fa-home"></i>Home</a>
+  <a href="explore.html"><i class="fas fa-compass"></i>Explore</a>
+  <a href="map.html" class="active"><i class="fas fa-map-marker-alt"></i>Map</a>
+  <a href="workspace.html"><i class="fas fa-shield-halved"></i>War Room</a>
+  <a href="dashboard.html"><i class="fas fa-chart-line"></i>Dashboard</a>
+</nav>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+/* ============================================================
+   ORGANIZER NETWORK MAP — Radiant Threshold
+   ============================================================ */
+
+const LS_KEY = 'rt_organizers';
+
+const SEED_ORGANIZERS = [
+  { name: 'Harlem Justice Collective',  city: 'New York',    lat: 40.7580, lng: -73.9855,  focus: 'Criminal Justice', tier: 'Sovereign Tier'    },
+  { name: 'Compton Housing Alliance',   city: 'Los Angeles', lat: 33.8958, lng: -118.2201, focus: 'Housing',          tier: 'Verified Organizer' },
+  { name: 'South Side Labor Council',   city: 'Chicago',     lat: 41.7508, lng: -87.6931,  focus: 'Labor',            tier: 'Sovereign Tier'    },
+  { name: 'Atlanta Solidarity Network', city: 'Atlanta',     lat: 33.7490, lng: -84.3880,  focus: 'Criminal Justice', tier: 'Guest Organizer'   },
+  { name: 'Houston Green Collective',   city: 'Houston',     lat: 29.7604, lng: -95.3698,  focus: 'Environment',      tier: 'Verified Organizer' },
+  { name: 'Detroit Education Front',    city: 'Detroit',     lat: 42.3314, lng: -83.0458,  focus: 'Education',        tier: 'Verified Organizer' },
+];
+
+const FOCUS_COLORS = {
+  'Criminal Justice': { fill: '#c9a84c', stroke: '#f59e0b', cls: 'badge-criminal'    },
+  'Housing':          { fill: '#3b82f6', stroke: '#60a5fa', cls: 'badge-housing'     },
+  'Environment':      { fill: '#10b981', stroke: '#34d399', cls: 'badge-environment' },
+  'Labor':            { fill: '#8b5cf6', stroke: '#a78bfa', cls: 'badge-labor'       },
+  'Education':        { fill: '#f97316', stroke: '#fb923c', cls: 'badge-education'   },
+};
+
+const TIER_CLASS = {
+  'Guest Organizer':    'tier-guest',
+  'Verified Organizer': 'tier-verified',
+  'Sovereign Tier':     'tier-sovereign',
+};
+
+const TIER_ICON = {
+  'Guest Organizer':    'fas fa-user',
+  'Verified Organizer': 'fas fa-check-circle',
+  'Sovereign Tier':     'fas fa-crown',
+};
+
+function loadOrganizers() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+
+function saveOrganizers(list) {
+  localStorage.setItem(LS_KEY, JSON.stringify(list));
+}
+
+function getOrganizers() {
+  let list = loadOrganizers();
+  if (!list || list.length === 0) {
+    list = SEED_ORGANIZERS.map(o => Object.assign({}, o));
+    saveOrganizers(list);
+  }
+  return list;
+}
+
+/* ── Initialize Leaflet map ── */
+const map = L.map('organizer-map', { center: [39, -95], zoom: 4 });
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19,
+}).addTo(map);
+
+const markerGroup = L.layerGroup().addTo(map);
+
+async function geocodeCity(city) {
+  try {
+    const resp = await fetch(
+      'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(city) + '&format=json&limit=1',
+      { headers: { 'Accept-Language': 'en' } }
+    );
+    const data = await resp.json();
+    if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  } catch(e) {}
+  return { lat: 37 + (Math.random() * 10 - 5), lng: -96 + (Math.random() * 20 - 10) };
+}
+
+function popupHTML(org) {
+  const fc = FOCUS_COLORS[org.focus] || FOCUS_COLORS['Criminal Justice'];
+  return '<div class="popup-name">' + org.name + '</div>' +
+         '<div class="popup-city"><i class="fas fa-map-marker-alt" style="color:#c9a84c;font-size:10px;margin-right:4px;"></i>' + org.city + '</div>' +
+         '<span class="popup-badge ' + fc.cls + '">' + org.focus + '</span>';
+}
+
+function addMarker(org) {
+  if (org.lat == null || org.lng == null) return null;
+  const fc = FOCUS_COLORS[org.focus] || { fill: '#c9a84c', stroke: '#f59e0b' };
+  const marker = L.circleMarker([org.lat, org.lng], {
+    radius: 10, fillColor: fc.fill, color: fc.stroke, weight: 2, fillOpacity: 0.9,
+  });
+  marker.bindPopup(popupHTML(org), { maxWidth: 240 });
+  marker.addTo(markerGroup);
+  return marker;
+}
+
+function renderMarkers(organizers) {
+  markerGroup.clearLayers();
+  organizers.forEach(addMarker);
+}
+
+function chapterCardHTML(org) {
+  const fc = FOCUS_COLORS[org.focus] || { cls: 'badge-criminal' };
+  const tc = TIER_CLASS[org.tier] || 'tier-guest';
+  const ti = TIER_ICON[org.tier] || 'fas fa-user';
+  return '<div class="chapter-card" data-lat="' + org.lat + '" data-lng="' + org.lng + '">' +
+           '<div class="chapter-card-header"><div>' +
+             '<div class="chapter-name">' + org.name + '</div>' +
+             '<div class="chapter-city"><i class="fas fa-location-dot" style="font-size:9px;"></i>&nbsp;' + org.city + '</div>' +
+           '</div></div>' +
+           '<div class="chapter-badges">' +
+             '<span class="badge ' + fc.cls + '">' + org.focus + '</span>' +
+             '<span class="badge ' + tc + '"><i class="' + ti + '" style="font-size:9px;"></i>&nbsp;' + org.tier + '</span>' +
+           '</div>' +
+         '</div>';
+}
+
+function renderChapterList(organizers) {
+  const container = document.getElementById('chapter-list');
+  container.innerHTML = organizers.map(chapterCardHTML).join('');
+  container.querySelectorAll('.chapter-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      const lat = parseFloat(card.dataset.lat);
+      const lng = parseFloat(card.dataset.lng);
+      if (!isNaN(lat) && !isNaN(lng)) map.flyTo([lat, lng], 10, { duration: 1.2 });
+    });
+  });
+}
+
+function updateCount(n) {
+  const el = document.getElementById('organizer-count');
+  if (el) el.textContent = n;
+  localStorage.setItem('rt_organizer_count', n);
+}
+
+/* ── Initial render ── */
+let organizers = getOrganizers();
+renderMarkers(organizers);
+renderChapterList(organizers);
+updateCount(organizers.length);
+
+/* ── Form submission ── */
+document.getElementById('chapter-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const name  = document.getElementById('f-name').value.trim();
+  const city  = document.getElementById('f-city').value.trim();
+  const focus = document.getElementById('f-focus').value;
+  const tier  = document.getElementById('f-tier').value;
+  if (!name || !city || !focus || !tier) return;
+
+  const btn = this.querySelector('.btn-register');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
+
+  const coords = await geocodeCity(city);
+  const newOrg = { name: name, city: city, lat: coords.lat, lng: coords.lng, focus: focus, tier: tier };
+  organizers.push(newOrg);
+  saveOrganizers(organizers);
+
+  const marker = addMarker(newOrg);
+  if (marker) {
+    map.flyTo([coords.lat, coords.lng], 9, { duration: 1.5 });
+    setTimeout(function() { marker.openPopup(); }, 1600);
+  }
+
+  renderChapterList(organizers);
+  updateCount(organizers.length);
+
+  const successEl = document.getElementById('form-success');
+  successEl.style.display = 'flex';
+  setTimeout(function() { successEl.style.display = 'none'; }, 4000);
+
+  this.reset();
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-map-pin"></i> Register Chapter';
+});
+</script>
+
+<script src="app.js"></script>
+</body>
+</html>
