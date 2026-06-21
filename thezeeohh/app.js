@@ -1356,6 +1356,10 @@ window.openBitcoinPayment = function(courseName, usdPrice) {
           </h3>
           <button onclick="closeBitcoinPayment()" style="background: none; border: none; color: #cbd5e1; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
         </div>
+
+        <div style="background-color: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.4); border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; font-size: 11px; color: #fca5a5; text-align: center; font-weight: 700; letter-spacing: 0.3px;">
+          ⚠ DEMO MODE — this address is randomly generated and is not a real wallet. Do not send funds. Live payments are not yet connected.
+        </div>
         
         <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
           <div style="text-align: center;">
@@ -1795,3 +1799,33 @@ window.openBitcoinPayment = (courseName, usdPrice) => window.openPaymentModal(co
     goStep(2);
   };
 })();
+
+// ---------------------------------------------------------------
+// Resource download tracking — local-only, no data leaves the browser
+// (consistent with IRN's local-first / Technical Incapacity model).
+// Previously called on every resource card but never defined, which
+// threw a JS error and silently blocked every download on this page.
+// ---------------------------------------------------------------
+function trackDownload(linkEl, resourceName) {
+  try {
+    const key = 'rt_resource_downloads';
+    const counts = JSON.parse(localStorage.getItem(key) || '{}');
+    counts[resourceName] = (counts[resourceName] || 0) + 1;
+    localStorage.setItem(key, JSON.stringify(counts));
+
+    // Optimistically bump the visible counter on the card itself.
+    const card = linkEl.closest('.res-card');
+    const countEl = card && card.querySelector('.res-dl-count');
+    if (countEl) {
+      const base = parseInt(card.dataset.downloads || '0', 10) + counts[resourceName];
+      const display = base >= 1000 ? (base / 1000).toFixed(1) + 'K' : String(base);
+      countEl.innerHTML = '<i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>' + display + ' downloads';
+    }
+  } catch (err) {
+    // Local tracking is a nice-to-have; never let it block the actual download.
+    console.warn('trackDownload: local tracking failed', err);
+  }
+  // Returning true (not false) lets the link's href navigate/download normally.
+  return true;
+}
+
