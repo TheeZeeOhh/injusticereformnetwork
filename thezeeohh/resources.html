@@ -10,7 +10,7 @@
   <style>
     /* ── Resource Center Specific ── */
     .resources-hero {
-      background: linear-gradient(135deg, #0d0d1a, #111122);
+      background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.15) 0%, transparent 60%);
       border-bottom: 1px solid var(--border-glass);
       padding: calc(var(--nav-height) + 48px) 0 48px;
     }
@@ -28,7 +28,7 @@
       font-size: 0.85rem;
       color: var(--text-muted);
     }
-    .resources-hero .hero-stat i { color: var(--accent-1); }
+    .resources-hero .hero-stat i { color: #c9a84c; }
 
     /* Search */
     .search-bar-wrap {
@@ -57,7 +57,7 @@
       outline: none;
       transition: border-color var(--transition-fast);
     }
-    #resourceSearch:focus { border-color: var(--accent-1); }
+    #resourceSearch:focus { border-color: #c9a84c; }
     #resourceSearch::placeholder { color: var(--text-muted); }
 
     /* Layout */
@@ -118,8 +118,8 @@
       color: var(--text-muted);
     }
     .cat-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
-    .cat-btn.active { background: rgba(99,102,241,0.12); color: var(--accent-1); }
-    .cat-btn.active .cat-count { background: rgba(99,102,241,0.2); color: var(--accent-1); }
+    .cat-btn.active { background: rgba(201,168,76,0.12); color: #c9a84c; }
+    .cat-btn.active .cat-count { background: rgba(201,168,76,0.2); color: #c9a84c; }
 
     /* Format filter */
     .format-chips { display: flex; flex-direction: column; gap: 4px; }
@@ -139,7 +139,7 @@
     }
     .fmt-chip i { font-size: 0.78rem; width: 14px; text-align: center; }
     .fmt-chip:hover { border-color: var(--border-glass); color: var(--text-primary); }
-    .fmt-chip.active { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.08); color: var(--accent-1); }
+    .fmt-chip.active { border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.08); color: #c9a84c; }
 
     /* Main grid */
     .resources-toolbar {
@@ -198,10 +198,10 @@
     .res-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.12); box-shadow: var(--shadow-hover); }
     .res-card:hover::before { opacity: 1; }
 
-    .res-card[data-cat="organizing"]::before { background: linear-gradient(90deg,#6366f1,#8b5cf6); }
-    .res-card[data-cat="legal"]::before { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .res-card[data-cat="organizing"]::before { background: linear-gradient(90deg,#c9a84c,#e2552b); }
+    .res-card[data-cat="legal"]::before { background: linear-gradient(90deg,#d9a441,#f59e0b); }
     .res-card[data-cat="digital"]::before { background: linear-gradient(90deg,#10b981,#34d399); }
-    .res-card[data-cat="criminal-justice"]::before { background: linear-gradient(90deg,#ef4444,#f87171); }
+    .res-card[data-cat="criminal-justice"]::before { background: linear-gradient(90deg,#e2552b,#ef4444); }
     .res-card[data-cat="environmental"]::before { background: linear-gradient(90deg,#7c9b72,#a8c99e); }
     .res-card[data-cat="narrative"]::before { background: linear-gradient(90deg,#c9a84c,#f0d080); }
     .res-card[data-cat="policy"]::before { background: linear-gradient(90deg,#60a5fa,#93c5fd); }
@@ -273,12 +273,12 @@
       font-family: inherit;
       cursor: pointer;
       text-decoration: none;
-      background: rgba(99,102,241,0.12);
-      border: 1px solid rgba(99,102,241,0.3);
-      color: var(--accent-1);
+      background: rgba(201,168,76,0.12);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: #c9a84c;
       transition: all var(--transition-fast);
     }
-    .res-dl-btn:hover { background: rgba(99,102,241,0.22); border-color: var(--accent-1); }
+    .res-dl-btn:hover { background: rgba(201,168,76,0.22); border-color: #c9a84c; }
     .res-dl-count { font-size: 0.75rem; color: var(--text-muted); }
 
     /* Empty state */
