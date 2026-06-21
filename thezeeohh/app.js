@@ -1002,7 +1002,7 @@
     "organize": "Organizing is about relationship-building. It means having one-on-one conversations where you listen to what keeps people up at night, and then challenge them to act collectively. Mobilizing is just getting people to a rally; organizing is building the permanent power structure to win.",
     "marcus": "Marcus Webb is no longer with the Injustice Reform Network. I have taken over leading our core curriculum, including the 'Organizer's Playbook' and 'Prison Abolition' courses.",
     "baltimore": "Baltimore is my home and my battleground. Everything I know about organizing was learned on the streets here, working alongside tenant organizers, street medics, and warehouse workers. Power is built from the bottom up, not from executive suites.",
-    "rights": "If you are arrested or police detain you, assert your rights. You have the right to remain silent ('I am exercising my right to remain silent and want to speak to a lawyer'). Don't consent to searches or sign anything without an attorney. Amara Osei, J.D. (our civil rights attorney) covers this in detail in her Know Your Rights training.",
+    "rights": "If you are arrested or police detain you, assert your rights. You have the right to remain silent ('I am exercising my right to remain silent and want to speak to a lawyer'). Don't consent to searches or sign anything without an attorney. Aziza Okoro covers this in detail in her Know Your Rights training.",
     "arrest": "If you are arrested: 1. Assert your right to remain silent ('I am exercising my right to remain silent and want to speak to a lawyer'). 2. Do not sign anything without an attorney. 3. Do not consent to search of your phone or bags. 4. Call your action's jail support line immediately.",
     "police": "When dealing with police: 1. Ask 'Am I free to go?' If yes, walk away. 2. If detained, ask 'Why am I being detained?' 3. You have the right to film them in public spaces. 4. Never lie or physically resist, but never consent to searches or answer questions without a lawyer.",
     "cop": "When dealing with police: 1. Ask 'Am I free to go?' If yes, walk away. 2. If detained, ask 'Why am I being detained?' 3. You have the right to film them in public spaces. 4. Never lie or physically resist, but never consent to searches or answer questions without a lawyer.",
@@ -1011,9 +1011,9 @@
     "policy": "A good policy proposal must be concrete, enforceable, and community-designed. If you want police accountability, demand specific budget reallocations and independent subpoena powers for civilian review boards. BeKura Mainoo is the expert here for policy design.",
     "lobbying": "Lobbying isn't just for corporate interests; it's for the people. When lobbying legislators, bring impacted community members to share testimonies, present concrete draft policies, and follow up with a clear warning: support our bill, or face organized community opposition in the next election cycle.",
     "foster": "Our foster system is heavily carceral and disproportionately tears Black and brown families apart. BeKura Mainoo and First State Advocates fight state-sponsored neglect by helping families demand records, securing legal rep, and lobbying for community family support programs.",
-    "environment": "Environmental racism is a systemic reality. Dr. Keisha Morgan (environmental justice scholar) teaches how to challenge this by training frontline residents to run low-cost air monitors and map toxic outfalls, using that community science to force EPA action or file Title VI lawsuits.",
-    "climate": "Climate justice means centering the frontline communities who bear the brunt of rising temperatures and extreme weather. Our campaigns focus on securing community-owned solar grids, climate resilience hubs, and stopping fossil fuel infrastructure projects locally. Dr. Keisha Morgan teaches a lot of these tactics.",
-    "polluter": "When targeting corporate polluters: 1. Look up their EPA compliance records via the ECHO database. 2. Map their emissions output. 3. Build a coalition of residents, scientists, and legal teams to demand the revocation of their state operating permits. Dr. Keisha Morgan's environmental course is perfect for this.",
+    "environment": "Environmental racism is a systemic reality. BeKura Mainoo teaches how to challenge this by training frontline residents to run low-cost air monitors and map toxic outfalls, using that community science to force EPA action or file Title VI lawsuits.",
+    "climate": "Climate justice means centering the frontline communities who bear the brunt of rising temperatures and extreme weather. Our campaigns focus on securing community-owned solar grids, climate resilience hubs, and stopping fossil fuel infrastructure projects locally. BeKura Mainoo teaches a lot of these tactics.",
+    "polluter": "When targeting corporate polluters: 1. Look up their EPA compliance records via the ECHO database. 2. Map their emissions output. 3. Build a coalition of residents, scientists, and legal teams to demand the revocation of their state operating permits. BeKura Mainoo's environmental course is perfect for this.",
     "pipeline": "Pipeline struggles require a multi-faceted approach. We block construction through physical direct action, environmental impact report lawsuits, and pressuring insurance companies and banks to divest from the project. Standing Rock showed us the power of treaty-based resistance.",
     "hello": "Hey! What organizing challenge or community project are you working on today?",
     "hi": "Hey! What organizing challenge or community project are you working on today?",
@@ -1060,7 +1060,7 @@
     },
     rights: {
       title: "Course 3: Know Your Rights",
-      instructor: "Amara Osei, J.D. (Civil Rights Attorney)",
+      instructor: "Aziza Okoro (Vice President, IRN)",
       steps: [
         {
           title: "Step 1 of 3: The 4th Amendment & Search Defense",
@@ -1096,7 +1096,7 @@
     },
     environmental: {
       title: "Course 5: Environmental Justice",
-      instructor: "Dr. Keisha Morgan (Environmental Scholar)",
+      instructor: "BeKura Mainoo (Founder, IRN)",
       steps: [
         {
           title: "Step 1 of 3: Auditing Corporate Polluters",
