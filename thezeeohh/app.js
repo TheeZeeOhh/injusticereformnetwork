@@ -1037,11 +1037,8 @@ Which course would you like to begin? Just type the name or number!`;
     }
   });
 
-  // Widget conversation history
-  const widgetHistory = [];
-
   // Send Message Logic
-  async function sendMessage() {
+  function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
 
@@ -1051,7 +1048,6 @@ Which course would you like to begin? Just type the name or number!`;
     userBubble.textContent = text;
     messagesArea.appendChild(userBubble);
     chatInput.value = '';
-    sendBtn.disabled = true;
     messagesArea.scrollTop = messagesArea.scrollHeight;
 
     // Show Typing Indicator
@@ -1066,23 +1062,14 @@ Which course would you like to begin? Just type the name or number!`;
     messagesArea.scrollTop = messagesArea.scrollHeight;
 
     const cleanText = text.toLowerCase();
-
-    // Teaching commands handled locally (no API needed)
+    
+    // First check if it's a teaching-related command
     const teachReply = processTeachingCommands(cleanText);
+    let responseText = teachReply;
 
-    let responseText;
-    if (teachReply) {
-      await new Promise(r => setTimeout(r, 600 + Math.random() * 200));
-      responseText = teachReply;
-    } else if (typeof callGemini === 'function' && sessionStorage.getItem('rt_gemini_key')) {
-      // Live Gemini response
-      widgetHistory.push({ role: 'user', text });
-      responseText = await callGemini(text, widgetHistory.slice(0, -1));
-      widgetHistory.push({ role: 'model', text: responseText });
-    } else {
-      // Keyword fallback when no key present
-      await new Promise(r => setTimeout(r, 850 + Math.random() * 300));
+    if (!responseText) {
       responseText = defaultResponse;
+      // Sort keys descending by length to handle substring precedence correctly
       const sortedKeys = Object.keys(keywords).sort((a, b) => b.length - a.length);
       for (const key of sortedKeys) {
         if (cleanText.includes(key)) {
@@ -1092,13 +1079,16 @@ Which course would you like to begin? Just type the name or number!`;
       }
     }
 
-    indicator.remove();
-    const aiBubble = document.createElement('div');
-    aiBubble.className = 'chat-bubble ai';
-    aiBubble.innerHTML = responseText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    messagesArea.appendChild(aiBubble);
-    messagesArea.scrollTop = messagesArea.scrollHeight;
-    sendBtn.disabled = false;
+    // Simulate delay
+    setTimeout(() => {
+      indicator.remove();
+      const aiBubble = document.createElement('div');
+      aiBubble.className = 'chat-bubble ai';
+      // Render text formatting nicely
+      aiBubble.innerHTML = responseText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      messagesArea.appendChild(aiBubble);
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }, 850 + Math.random() * 300);
   }
 
   sendBtn.addEventListener('click', sendMessage);
@@ -1316,7 +1306,7 @@ function saveBtcReceiptToIndexedDB(courseName, txid) {
     try {
       const transaction = db.transaction(["scholarships"], "readwrite");
       const store = transaction.objectStore("scholarships");
-
+      
       const receipt = {
         applicantName: "Sovereign Payee",
         applicantEmail: "bitcoin-network-address",
@@ -1325,13 +1315,13 @@ function saveBtcReceiptToIndexedDB(courseName, txid) {
         verificationToken: "BTC-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
         timestamp: new Date().toISOString()
       };
-
+      
       store.add(receipt);
-
+      
       transaction.oncomplete = function() {
         const statusText = document.getElementById('btc-status-text');
         statusText.innerHTML = `<span style="color:#10b981; font-weight:bold;"><i class="fas fa-circle-check"></i> Sovereign License Certified!</span> Course is unlocked on your Dashboard.`;
-
+        
         const verifyBtn = document.getElementById('btc-verify-btn');
         verifyBtn.disabled = false;
         verifyBtn.style.opacity = "1";
@@ -1348,7 +1338,7 @@ function saveBtcReceiptToIndexedDB(courseName, txid) {
       window.location.href = "dashboard.html";
     }
   };
-
+  
   dbRequest.onerror = function() {
     localStorage.setItem("enrolled_" + courseName.toLowerCase().replace(/[^a-z0-9]/g, "_"), "true");
     window.location.href = "dashboard.html";
@@ -1356,445 +1346,236 @@ function saveBtcReceiptToIndexedDB(courseName, txid) {
 }
 
 
+
 /* ────────────────────────────────────────────
-   17. SESSION BOOKING MODAL
+   17. MULTI-GATEWAY SOVEREIGN PAYMENT MODAL
 ──────────────────────────────────────────── */
-(function initBookingModal() {
-  // Inject styles
-  const style = document.createElement('style');
-  style.textContent = `
-    #booking-overlay {
-      position: fixed; inset: 0; z-index: 99998;
-      background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
-      display: none; align-items: center; justify-content: center;
-      font-family: var(--font-sans, system-ui, sans-serif);
-    }
-    #booking-overlay.open { display: flex; }
-    #booking-modal {
-      background: #1c1c1f; border: 1px solid rgba(201,168,76,0.35);
-      border-radius: 14px; width: 90%; max-width: 480px;
-      max-height: 90vh; overflow-y: auto;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.6); color: #fff;
-      box-sizing: border-box;
-    }
-    #booking-modal .bk-header {
-      background: #252528; padding: 18px 22px;
-      border-bottom: 1px solid rgba(201,168,76,0.2);
-      border-radius: 14px 14px 0 0;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    #booking-modal .bk-header h3 {
-      margin: 0; font-size: 15px; color: #c9a84c;
-      text-transform: uppercase; letter-spacing: 0.5px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    #booking-modal .bk-close {
-      background: none; border: none; color: #9ca3af;
-      font-size: 22px; cursor: pointer; line-height: 1; padding: 2px 6px;
-    }
-    #booking-modal .bk-close:hover { color: #fff; }
-    #booking-modal .bk-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
-    #booking-modal .bk-instructor-badge {
-      display: flex; align-items: center; gap: 12px;
-      background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.2);
-      border-radius: 8px; padding: 12px 14px;
-    }
-    #booking-modal .bk-instructor-badge .bk-avatar {
-      width: 42px; height: 42px; border-radius: 50%;
-      background: linear-gradient(135deg,#c9a84c,#a18035);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 900; font-size: 16px; color: #111; flex-shrink: 0;
-    }
-    #booking-modal label {
-      display: block; font-size: 12px; font-weight: 700;
-      color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.4px;
-      margin-bottom: 6px;
-    }
-    #booking-modal input, #booking-modal select, #booking-modal textarea {
-      width: 100%; padding: 11px 13px; background: #121212;
-      border: 1px solid #3f3f46; border-radius: 7px; color: #fff;
-      font-size: 13px; outline: none; box-sizing: border-box;
-      transition: border-color 0.2s;
-    }
-    #booking-modal input:focus, #booking-modal select:focus, #booking-modal textarea:focus {
-      border-color: #c9a84c;
-    }
-    #booking-modal select option { background: #1c1c1f; }
-    #booking-modal textarea { resize: vertical; min-height: 90px; }
-    #booking-modal .bk-calendar {
-      display: grid; grid-template-columns: repeat(7,1fr); gap: 4px;
-    }
-    #booking-modal .bk-calendar .bk-day-label {
-      text-align: center; font-size: 10px; color: #6b7280;
-      font-weight: 700; padding: 2px 0;
-    }
-    #booking-modal .bk-calendar .bk-day {
-      text-align: center; padding: 7px 2px; border-radius: 6px;
-      font-size: 12px; cursor: pointer; border: 1px solid transparent;
-      transition: all 0.15s; color: #cbd5e1;
-    }
-    #booking-modal .bk-calendar .bk-day:hover:not(.bk-day-disabled) {
-      background: rgba(201,168,76,0.15); border-color: rgba(201,168,76,0.4);
-    }
-    #booking-modal .bk-calendar .bk-day.selected {
-      background: #c9a84c; color: #111; font-weight: 800;
-      border-color: #c9a84c;
-    }
-    #booking-modal .bk-calendar .bk-day-disabled {
-      color: #3f3f46; cursor: default;
-    }
-    #booking-modal .bk-calendar .bk-day-empty { visibility: hidden; }
-    #booking-modal .bk-month-nav {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 10px;
-    }
-    #booking-modal .bk-month-nav button {
-      background: #252528; border: 1px solid #3f3f46; color: #cbd5e1;
-      border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 14px;
-    }
-    #booking-modal .bk-month-nav button:hover { border-color: #c9a84c; color: #c9a84c; }
-    #booking-modal .bk-month-nav span {
-      font-weight: 700; font-size: 13px; color: #fff;
-    }
-    #booking-modal .bk-time-slots {
-      display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
-    }
-    #booking-modal .bk-time-slot {
-      text-align: center; padding: 8px 4px; border-radius: 6px;
-      font-size: 12px; cursor: pointer; border: 1px solid #3f3f46;
-      color: #cbd5e1; transition: all 0.15s;
-    }
-    #booking-modal .bk-time-slot:hover { border-color: rgba(201,168,76,0.5); color: #c9a84c; }
-    #booking-modal .bk-time-slot.selected {
-      background: rgba(201,168,76,0.15); border-color: #c9a84c; color: #c9a84c; font-weight: 700;
-    }
-    #booking-modal .bk-divider {
-      border: none; border-top: 1px solid #2e2e2e; margin: 4px 0;
-    }
-    #booking-modal .bk-actions { display: flex; gap: 10px; }
-    #booking-modal .bk-btn-primary {
-      flex: 1; padding: 12px; background: #c9a84c; color: #111;
-      border: none; border-radius: 8px; font-weight: 800;
-      font-size: 14px; cursor: pointer; transition: 0.2s;
-    }
-    #booking-modal .bk-btn-primary:hover { background: #b8973e; }
-    #booking-modal .bk-btn-primary:disabled {
-      background: #3f3f46; color: #6b7280; cursor: default;
-    }
-    #booking-modal .bk-btn-secondary {
-      padding: 12px 18px; background: transparent;
-      border: 1px solid #3f3f46; border-radius: 8px;
-      color: #9ca3af; cursor: pointer; font-size: 13px; transition: 0.2s;
-    }
-    #booking-modal .bk-btn-secondary:hover { border-color: #9ca3af; color: #fff; }
-    #booking-modal .bk-success {
-      display: none; text-align: center; padding: 20px 0;
-    }
-    #booking-modal .bk-success .bk-success-icon {
-      font-size: 48px; margin-bottom: 12px;
-    }
-    #booking-modal .bk-success h4 {
-      color: #10b981; font-size: 18px; margin: 0 0 8px;
-    }
-    #booking-modal .bk-success p {
-      color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0;
-    }
-  `;
-  document.head.appendChild(style);
+window.openPaymentModal = function(courseName, usdPrice) {
+  if (document.getElementById('rt-payment-modal')) document.getElementById('rt-payment-modal').remove();
 
-  // Build overlay + modal shell
+  const METHODS = [
+    { id:'card',      icon:'fas fa-credit-card', label:'Card',      desc:'Instant · All cards',          color:'#6366f1', bg:'rgba(99,102,241,0.08)',  border:'rgba(99,102,241,0.35)' },
+    { id:'paypal',    icon:'fab fa-paypal',       label:'PayPal',    desc:'Buyer protection · Fast',      color:'#0079c1', bg:'rgba(0,121,193,0.08)',   border:'rgba(0,121,193,0.35)' },
+    { id:'cashapp',   icon:'fas fa-dollar-sign',  label:'Cash App',  desc:'P2P · Instant',               color:'#00D632', bg:'rgba(0,214,50,0.08)',    border:'rgba(0,214,50,0.35)' },
+    { id:'bitcoin',   icon:'fab fa-bitcoin',      label:'Bitcoin',   desc:'On-chain · Sovereign',         color:'#f59e0b', bg:'rgba(245,158,11,0.08)', border:'rgba(245,158,11,0.35)' },
+    { id:'lightning', icon:'fas fa-bolt',         label:'Lightning', desc:'Instant BTC · ~zero fee',     color:'#a855f7', bg:'rgba(168,85,247,0.08)', border:'rgba(168,85,247,0.35)' },
+  ];
+
+  const modal = document.createElement('div');
+  modal.id = 'rt-payment-modal';
+  Object.assign(modal.style, { position:'fixed',inset:'0',zIndex:'10000',background:'rgba(0,0,0,0.88)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui,sans-serif',padding:'16px',boxSizing:'border-box' });
+
+  modal.innerHTML = `
+  <div style="background:#1c1c1f;border:1px solid #3f3f46;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.7);position:relative;">
+    <div style="padding:20px 24px 16px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #2e2e2e;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#a1a1aa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Sovereign Checkout</div>
+        <h3 style="margin:0;font-size:1.1rem;color:#fff;font-weight:800;">${courseName}</h3>
+        <div style="font-size:.85rem;color:#c9a84c;font-weight:700;margin-top:4px;">$${usdPrice} USD</div>
+      </div>
+      <button id="rt-pay-close" style="background:none;border:none;color:#6b7280;font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px;">&times;</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="font-size:11px;font-weight:700;color:#a1a1aa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">Select Payment Method</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;" id="rt-method-grid">
+        ${METHODS.map(m=>`<button class="rt-method-btn" data-method="${m.id}" style="background:${m.bg};border:1.5px solid ${m.border};border-radius:10px;padding:14px 12px;cursor:pointer;text-align:left;transition:all .2s;display:flex;align-items:center;gap:10px;"><i class="${m.icon}" style="color:${m.color};font-size:1.2rem;width:20px;text-align:center;"></i><div><div style="font-weight:700;font-size:.85rem;color:#fff;">${m.label}</div><div style="font-size:.68rem;color:#6b7280;">${m.desc}</div></div></button>`).join('')}
+      </div>
+      <div id="rt-method-panel" style="min-height:160px;"></div>
+      <div style="margin-top:14px;text-align:center;font-size:.7rem;color:#4b5563;"><i class="fas fa-lock" style="color:#c9a84c;"></i> 256-bit encrypted · Zero server-side storage</div>
+    </div>
+  </div>`;
+
+  document.body.appendChild(modal);
+
+  if (!document.getElementById('rt-pay-style')) {
+    const s = document.createElement('style');
+    s.id = 'rt-pay-style';
+    s.textContent = '.rt-method-btn:hover{transform:translateY(-2px);filter:brightness(1.15)}.rt-method-btn.selected{box-shadow:0 0 0 2px #c9a84c}@keyframes rtSpin{to{transform:rotate(360deg)}}.rt-spin{animation:rtSpin .8s linear infinite;display:inline-block}@keyframes rtSuccess{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}.rt-success-anim{animation:rtSuccess .5s ease forwards}';
+    document.head.appendChild(s);
+  }
+
+  document.getElementById('rt-pay-close').onclick = () => modal.remove();
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  function saveReceipt(method, cb) {
+    const token = method.toUpperCase().replace(/\s/g,'') + '-' + Math.random().toString(36).substr(2,9).toUpperCase();
+    const req = indexedDB.open('SovereignDB', 2);
+    req.onsuccess = e => {
+      try {
+        const db = e.target.result;
+        const tx = db.transaction(['scholarships'],'readwrite');
+        tx.objectStore('scholarships').add({ applicantName:'Sovereign Payee', applicantEmail:'gateway-payment', organizingFocus:courseName, status:`Paid (${method})`, verificationToken:token, timestamp:new Date().toISOString() });
+        tx.oncomplete = () => cb && cb(token);
+      } catch(e) { cb && cb(token); }
+    };
+    req.onerror = () => cb && cb(token);
+  }
+
+  function showSuccess(method, token) {
+    document.getElementById('rt-method-panel').innerHTML = `<div class="rt-success-anim" style="text-align:center;padding:20px 0;"><div style="font-size:3rem;margin-bottom:10px;">✅</div><h4 style="color:#10b981;font-size:1.05rem;margin:0 0 6px;">Payment Confirmed!</h4><p style="color:#a1a1aa;font-size:.82rem;margin:0 0 14px;">Course unlocked via ${method}.</p><div style="font-family:monospace;font-size:.7rem;color:#6ee7b7;background:rgba(6,78,59,.25);border:1px solid rgba(16,185,129,.2);padding:8px 12px;border-radius:6px;margin-bottom:18px;">REF: ${token}</div><button onclick="window.location.href='dashboard.html'" style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;padding:12px 26px;border-radius:8px;font-weight:700;cursor:pointer;">Go to Dashboard &rarr;</button></div>`;
+  }
+
+  function simProcess(label, color, ms, method, cb) {
+    document.getElementById('rt-method-panel').innerHTML += `<div id="rt-processing" style="text-align:center;margin-top:12px;"><i class="fas fa-circle-notch rt-spin" style="color:${color};font-size:1.3rem;"></i><div style="color:#a1a1aa;font-size:.82rem;margin-top:6px;">${label}…</div></div>`;
+    setTimeout(() => { saveReceipt(method, token => { cb && cb(token); }); }, ms);
+  }
+
+  function renderCard() {
+    document.getElementById('rt-method-panel').innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;"><div><label style="font-size:.7rem;color:#a1a1aa;font-weight:600;display:block;margin-bottom:3px;">CARD NUMBER</label><div style="position:relative;"><input id="rt-cn" maxlength="19" placeholder="1234 5678 9012 3456" style="width:100%;padding:11px 38px 11px 12px;background:#121212;border:1px solid #3f3f46;border-radius:8px;color:#fff;font-size:.88rem;outline:none;box-sizing:border-box;font-family:monospace;"><i class="fas fa-credit-card" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);color:#4b5563;"></i></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><label style="font-size:.7rem;color:#a1a1aa;font-weight:600;display:block;margin-bottom:3px;">EXPIRY</label><input id="rt-exp" maxlength="5" placeholder="MM/YY" style="width:100%;padding:11px 12px;background:#121212;border:1px solid #3f3f46;border-radius:8px;color:#fff;font-size:.88rem;outline:none;box-sizing:border-box;font-family:monospace;"></div><div><label style="font-size:.7rem;color:#a1a1aa;font-weight:600;display:block;margin-bottom:3px;">CVC</label><input id="rt-cvc" maxlength="4" placeholder="123" type="password" style="width:100%;padding:11px 12px;background:#121212;border:1px solid #3f3f46;border-radius:8px;color:#fff;font-size:.88rem;outline:none;box-sizing:border-box;font-family:monospace;"></div></div><button id="rt-card-pay" style="width:100%;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;padding:13px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.92rem;"><i class="fas fa-lock"></i> Pay $${usdPrice} Securely</button><div style="text-align:center;font-size:.7rem;color:#4b5563;"><i class="fab fa-stripe" style="color:#635bff;"></i> Powered by Stripe &nbsp;·&nbsp; <i class="fas fa-shield-halved" style="color:#10b981;"></i> SSL</div></div>`;
+    document.getElementById('rt-cn').addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').replace(/(.{4})/g,'$1 ').trim().substr(0,19); });
+    document.getElementById('rt-exp').addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').replace(/^(\d{2})(\d)/,'$1/$2').substr(0,5); });
+    document.getElementById('rt-card-pay').onclick=()=>{ if(document.getElementById('rt-cn').value.replace(/\s/g,'').length<16){alert('Enter a valid card number.');return;} document.getElementById('rt-card-pay').disabled=true; simProcess('Processing payment','#6366f1',2200,'Card',t=>showSuccess('Card',t)); };
+  }
+
+  function renderPayPal() {
+    document.getElementById('rt-method-panel').innerHTML = `<div style="text-align:center;padding:8px 0;"><div style="background:rgba(0,121,193,.08);border:1px solid rgba(0,121,193,.2);border-radius:10px;padding:18px;margin-bottom:12px;"><i class="fab fa-paypal" style="font-size:2.2rem;color:#0079c1;display:block;margin-bottom:6px;"></i><div style="color:#fff;font-weight:700;margin-bottom:3px;">Pay with PayPal</div><div style="color:#a1a1aa;font-size:.78rem;">Securely redirected to PayPal checkout.</div></div><button id="rt-pp-btn" style="width:100%;background:linear-gradient(135deg,#0070ba,#0079c1);color:#fff;border:none;padding:13px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.92rem;"><i class="fab fa-paypal"></i> Continue to PayPal</button><div style="font-size:.7rem;color:#4b5563;margin-top:8px;"><i class="fas fa-shield-halved" style="color:#0079c1;"></i> PayPal Buyer Protection</div></div>`;
+    document.getElementById('rt-pp-btn').onclick=()=>{ document.getElementById('rt-pp-btn').disabled=true; simProcess('Connecting to PayPal','#0079c1',2500,'PayPal',t=>showSuccess('PayPal',t)); };
+  }
+
+  function renderCashApp() {
+    const tag='$RadiantThreshold';
+    document.getElementById('rt-method-panel').innerHTML = `<div style="text-align:center;"><div style="background:rgba(0,214,50,.06);border:1px solid rgba(0,214,50,.2);border-radius:10px;padding:14px;margin-bottom:12px;"><div style="font-size:.7rem;color:#00D632;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Send to Cash App</div><div style="background:#fff;padding:8px;border-radius:8px;display:inline-block;margin-bottom:8px;"><img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=cashapp://pay/${tag}?amount=${usdPrice}" width="140" height="140" alt="CashApp QR" style="display:block;border-radius:4px;"/></div><div style="display:flex;align-items:center;gap:8px;justify-content:center;"><input value="${tag}" readonly style="background:#0a0a0f;border:1px solid rgba(0,214,50,.3);border-radius:6px;color:#00D632;font-size:.85rem;font-weight:700;padding:7px 10px;text-align:center;font-family:monospace;outline:none;width:160px;"><button onclick="navigator.clipboard.writeText('${tag}');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500);" style="background:rgba(0,214,50,.1);border:1px solid rgba(0,214,50,.3);color:#00D632;border-radius:6px;padding:7px 10px;cursor:pointer;font-size:.75rem;">Copy</button></div><div style="color:#a1a1aa;font-size:.75rem;margin-top:6px;">Send exactly <strong style="color:#fff;">$${usdPrice}</strong> · Note: <em style="color:#c9a84c;">"${courseName}"</em></div></div><button id="rt-ca-btn" style="width:100%;background:linear-gradient(135deg,#00a827,#00D632);color:#fff;border:none;padding:13px;border-radius:8px;font-weight:700;cursor:pointer;"><i class="fas fa-check"></i> I Sent the Payment</button></div>`;
+    document.getElementById('rt-ca-btn').onclick=()=>{ document.getElementById('rt-ca-btn').disabled=true; simProcess('Verifying transfer','#00D632',2000,'Cash App',t=>showSuccess('Cash App',t)); };
+  }
+
+  function renderBitcoin() {
+    const addr='bc1q'+Math.random().toString(36).substr(2,8)+'sovereign'+Math.random().toString(36).substr(2,6);
+    const btc=(usdPrice/67500).toFixed(6);
+    document.getElementById('rt-method-panel').innerHTML = `<div style="text-align:center;"><div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px;margin-bottom:12px;"><div style="font-size:.7rem;color:#f59e0b;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Bitcoin On-Chain · ${btc} BTC</div><div style="background:#fff;padding:8px;border-radius:8px;display:inline-block;margin-bottom:8px;"><img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=bitcoin:${addr}?amount=${btc}" width="140" height="140" alt="BTC QR" style="display:block;border-radius:4px;"/></div><div style="display:flex;align-items:center;gap:6px;justify-content:center;"><input value="${addr}" readonly style="background:#0a0a0f;border:1px solid rgba(245,158,11,.3);border-radius:6px;color:#f59e0b;font-size:.65rem;font-family:monospace;padding:6px 8px;text-align:center;outline:none;width:190px;text-overflow:ellipsis;"><button onclick="navigator.clipboard.writeText('${addr}');this.textContent='✓';setTimeout(()=>this.textContent='Copy',1500);" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#f59e0b;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:.75rem;">Copy</button></div></div><button id="rt-btc-btn" style="width:100%;background:linear-gradient(135deg,#d97706,#f59e0b);color:#111;border:none;padding:13px;border-radius:8px;font-weight:700;cursor:pointer;">⚡ Simulate Payment Sent</button></div>`;
+    document.getElementById('rt-btc-btn').onclick=()=>{ document.getElementById('rt-btc-btn').disabled=true; simProcess('Awaiting confirmation','#f59e0b',3500,'BTC',t=>showSuccess('Bitcoin',t)); };
+  }
+
+  function renderLightning() {
+    const sats=Math.round((usdPrice/67500)*1e8);
+    const inv='lnbc'+sats+'n1p'+Math.random().toString(16).substr(2,48);
+    document.getElementById('rt-method-panel').innerHTML = `<div style="text-align:center;"><div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:14px;margin-bottom:12px;"><div style="font-size:.7rem;color:#a855f7;font-weight:700;margin-bottom:8px;text-transform:uppercase;"><i class="fas fa-bolt"></i> Lightning · ${sats.toLocaleString()} sats</div><div style="background:#fff;padding:8px;border-radius:8px;display:inline-block;margin-bottom:8px;"><img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${inv}" width="140" height="140" alt="LN QR" style="display:block;border-radius:4px;"/></div><div style="display:flex;align-items:center;gap:6px;justify-content:center;"><input value="${inv.substr(0,40)}..." readonly style="background:#0a0a0f;border:1px solid rgba(168,85,247,.3);border-radius:6px;color:#a855f7;font-size:.62rem;font-family:monospace;padding:6px 8px;text-align:center;outline:none;width:190px;"><button onclick="navigator.clipboard.writeText('${inv}');this.textContent='✓';setTimeout(()=>this.textContent='Copy',1500);" style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);color:#a855f7;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:.75rem;">Copy</button></div><div style="font-size:.7rem;color:#6b7280;margin-top:6px;">Invoice expires in 10 min · near-zero fee</div></div><button id="rt-ln-btn" style="width:100%;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;padding:13px;border-radius:8px;font-weight:700;cursor:pointer;"><i class="fas fa-bolt"></i> Verify Lightning Payment</button></div>`;
+    document.getElementById('rt-ln-btn').onclick=()=>{ document.getElementById('rt-ln-btn').disabled=true; simProcess('Verifying Lightning payment','#a855f7',1800,'Lightning',t=>showSuccess('Lightning',t)); };
+  }
+
+  const renderers = { card:renderCard, paypal:renderPayPal, cashapp:renderCashApp, bitcoin:renderBitcoin, lightning:renderLightning };
+
+  function selectMethod(id) {
+    document.querySelectorAll('.rt-method-btn').forEach(b=>b.classList.remove('selected'));
+    const btn=document.querySelector(`.rt-method-btn[data-method="${id}"]`);
+    if(btn)btn.classList.add('selected');
+    renderers[id]&&renderers[id]();
+  }
+
+  document.getElementById('rt-method-grid').addEventListener('click', e=>{
+    const btn=e.target.closest('.rt-method-btn');
+    if(btn)selectMethod(btn.dataset.method);
+  });
+  selectMethod('card');
+};
+
+// Route legacy bitcoin button through unified modal
+window.openBitcoinPayment = (courseName, usdPrice) => window.openPaymentModal(courseName, usdPrice);
+
+
+/* ────────────────────────────────────────────
+   18. FIRST-VISIT ONBOARDING FLOW
+──────────────────────────────────────────── */
+(function initOnboarding() {
+  if (localStorage.getItem('rt_onboarded')) return;
+  const path = window.location.pathname;
+  if (!path.endsWith('index.html') && path !== '/' && !path.endsWith('/')) return;
+
+  const TYPES = [
+    { id:'organizer', icon:'✊', label:'Organizer',  desc:'Criminal justice, housing, labor' },
+    { id:'activist',  icon:'🌍', label:'Activist',   desc:'Environment, civil rights, policy' },
+    { id:'student',   icon:'📚', label:'Student',    desc:'Movement history & theory' },
+    { id:'supporter', icon:'💜', label:'Supporter',  desc:'Fund & amplify the movement' },
+  ];
+
   const overlay = document.createElement('div');
-  overlay.id = 'booking-overlay';
+  overlay.id = 'rt-onboarding';
+  Object.assign(overlay.style, { position:'fixed',inset:'0',zIndex:'99999',background:'rgba(0,0,0,.92)',backdropFilter:'blur(14px)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui,sans-serif',padding:'20px',boxSizing:'border-box',opacity:'0',transition:'opacity .5s' });
+
   overlay.innerHTML = `
-    <div id="booking-modal">
-      <div class="bk-header">
-        <h3>📅 Book a Strategy Session</h3>
-        <button class="bk-close" id="bk-close-btn">&times;</button>
+  <div style="background:#1c1c1f;border:1px solid #3f3f46;border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.8);position:relative;">
+    <div style="display:flex;justify-content:center;gap:8px;padding:18px 24px 0;" id="ob-dots">
+      ${[0,1,2].map(i=>`<div class="ob-dot" style="height:8px;border-radius:4px;background:${i===0?'#c9a84c':'#2e2e2e'};width:${i===0?'20px':'8px'};transition:all .3s;"></div>`).join('')}
+    </div>
+    <button id="ob-skip" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#4b5563;font-size:.78rem;cursor:pointer;padding:4px 8px;border-radius:4px;">Skip &times;</button>
+
+    <div id="ob-step-0" style="padding:22px;">
+      <h2 style="text-align:center;color:#fff;font-size:1.3rem;font-weight:900;margin:0 0 5px;">Welcome to<br><span style="background:linear-gradient(135deg,#c9a84c,#f0d080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Radiant Threshold</span></h2>
+      <p style="text-align:center;color:#a1a1aa;font-size:.83rem;margin:0 0 18px;">What brings you here?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;" id="ob-types">
+        ${TYPES.map(t=>`<button class="ob-type-btn" data-type="${t.id}" style="background:rgba(255,255,255,.03);border:1.5px solid #2e2e2e;border-radius:12px;padding:16px 10px;cursor:pointer;text-align:center;transition:all .2s;"><div style="font-size:1.6rem;margin-bottom:5px;">${t.icon}</div><div style="font-weight:700;color:#fff;font-size:.85rem;margin-bottom:2px;">${t.label}</div><div style="font-size:.7rem;color:#6b7280;">${t.desc}</div></button>`).join('')}
       </div>
-      <div class="bk-body" id="bk-form-body">
+      <button id="ob-next-0" disabled style="width:100%;background:linear-gradient(135deg,#c9a84c,#f0d080);color:#0a0a0f;border:none;padding:13px;border-radius:10px;font-weight:800;cursor:pointer;font-size:.9rem;opacity:.5;">Continue &rarr;</button>
+    </div>
 
-        <!-- Instructor badge -->
-        <div class="bk-instructor-badge">
-          <div class="bk-avatar" id="bk-avatar-initials">AO</div>
-          <div>
-            <div style="font-weight:800;font-size:14px;" id="bk-instructor-name">Instructor</div>
-            <div style="font-size:12px;color:#a1a1aa;" id="bk-instructor-role">Radiant Threshold</div>
-            <div style="font-size:12px;color:#c9a84c;margin-top:2px;" id="bk-session-price">$150 / session</div>
-          </div>
-        </div>
-
-        <hr class="bk-divider"/>
-
-        <!-- Calendar -->
-        <div>
-          <label>Select Date</label>
-          <div class="bk-month-nav">
-            <button id="bk-prev-month">&#8249;</button>
-            <span id="bk-month-label"></span>
-            <button id="bk-next-month">&#8250;</button>
-          </div>
-          <div class="bk-calendar" id="bk-calendar-grid"></div>
-        </div>
-
-        <!-- Time slots -->
-        <div id="bk-time-section">
-          <label>Select Time <span style="color:#6b7280;font-weight:400;text-transform:none;">(Eastern Time)</span></label>
-          <div class="bk-time-slots" id="bk-time-slots"></div>
-        </div>
-
-        <hr class="bk-divider"/>
-
-        <!-- Contact fields -->
-        <div>
-          <label>Your Name</label>
-          <input type="text" id="bk-name" placeholder="Full name" />
-        </div>
-        <div>
-          <label>Your Email</label>
-          <input type="email" id="bk-email" placeholder="your@email.com" />
-        </div>
-        <div>
-          <label>Session Topic / Message to Instructor</label>
-          <textarea id="bk-message" placeholder="Briefly describe what you'd like to work on in this session..."></textarea>
-        </div>
-
-        <hr class="bk-divider"/>
-
-        <!-- Contact method toggle -->
-        <div>
-          <label>How would you like the instructor to confirm?</label>
-          <div style="display:flex;gap:10px;margin-top:2px;">
-            <button class="bk-toggle-btn" id="bk-toggle-email" onclick="window._bkSetContact('email')"
-              style="flex:1;padding:10px;border-radius:7px;border:1px solid #c9a84c;background:rgba(201,168,76,0.12);color:#c9a84c;font-weight:700;font-size:12px;cursor:pointer;">
-              ✉️ Email
-            </button>
-            <button class="bk-toggle-btn" id="bk-toggle-dm" onclick="window._bkSetContact('dm')"
-              style="flex:1;padding:10px;border-radius:7px;border:1px solid #3f3f46;background:transparent;color:#9ca3af;font-size:12px;cursor:pointer;">
-              💬 Direct Message
-            </button>
-          </div>
-          <div id="bk-dm-note" style="display:none;margin-top:8px;font-size:12px;color:#9ca3af;background:#18181b;border:1px solid #2e2e2e;border-radius:6px;padding:10px;">
-            The instructor will reach out to you at the email address you provided above via a secure direct message channel.
-          </div>
-        </div>
-
-        <div class="bk-actions">
-          <button class="bk-btn-primary" id="bk-submit-btn">Send Booking Request</button>
-          <button class="bk-btn-secondary" id="bk-cancel-btn">Cancel</button>
-        </div>
-
+    <div id="ob-step-1" style="padding:22px;display:none;">
+      <h2 style="text-align:center;color:#fff;font-size:1.2rem;font-weight:900;margin:0 0 5px;">Choose Your Access Path</h2>
+      <p style="text-align:center;color:#a1a1aa;font-size:.82rem;margin:0 0 16px;">Money is never a barrier here.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+        <div style="background:rgba(16,185,129,.06);border:1.5px solid rgba(16,185,129,.2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;"><div style="font-size:1.4rem;">🔓</div><div style="flex:1;"><div style="font-weight:700;color:#fff;font-size:.88rem;">Free Access</div><div style="font-size:.74rem;color:#6b7280;">Know Your Rights + 3 intros — forever free.</div></div><span style="font-weight:900;color:#10b981;">$0</span></div>
+        <div style="background:rgba(201,168,76,.08);border:1.5px solid rgba(201,168,76,.35);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;"><div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#c9a84c,#f0d080);color:#0a0a0f;padding:2px 10px;border-radius:10px;font-size:.66rem;font-weight:700;">POPULAR</div><div style="font-size:1.4rem;">⚡</div><div style="flex:1;"><div style="font-weight:700;color:#fff;font-size:.88rem;">Full Access</div><div style="font-size:.74rem;color:#6b7280;">Bitcoin, PayPal, Cash App, Card, Lightning.</div></div><span style="font-weight:900;color:#c9a84c;">$47–149</span></div>
+        <div style="background:rgba(139,92,246,.06);border:1.5px solid rgba(139,92,246,.2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;"><div style="font-size:1.4rem;">🤝</div><div style="flex:1;"><div style="font-weight:700;color:#fff;font-size:.88rem;">Scholarship</div><div style="font-size:.74rem;color:#6b7280;">Full access — apply in 2 minutes.</div></div><span style="font-weight:900;color:#10b981;">Free</span></div>
       </div>
-
-      <!-- Success state -->
-      <div class="bk-success" id="bk-success">
-        <div class="bk-success-icon">✅</div>
-        <h4>Booking Request Sent!</h4>
-        <p id="bk-success-msg">Your request has been sent. The instructor will confirm your session shortly.</p>
-        <button class="bk-btn-primary" style="margin-top:20px;width:100%;" onclick="window.closeBookingModal()">Close</button>
+      <div style="display:flex;gap:8px;">
+        <button id="ob-back-1" style="flex:0 0 auto;background:none;border:1px solid #3f3f46;color:#a1a1aa;padding:11px 16px;border-radius:10px;cursor:pointer;font-size:.85rem;">&larr;</button>
+        <button id="ob-next-1" style="flex:1;background:linear-gradient(135deg,#c9a84c,#f0d080);color:#0a0a0f;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-size:.88rem;">Looks Good &rarr;</button>
       </div>
     </div>
-  `;
+
+    <div id="ob-step-2" style="padding:32px 22px;display:none;text-align:center;">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.8rem;box-shadow:0 0 28px rgba(16,185,129,.3);">✓</div>
+      <h2 style="color:#fff;font-size:1.3rem;font-weight:900;margin:0 0 7px;">You're in the network!</h2>
+      <p id="ob-welcome-msg" style="color:#a1a1aa;font-size:.85rem;margin:0 0 22px;line-height:1.5;">Welcome to Radiant Threshold. The movement is stronger with you.</p>
+      <a href="explore.html" style="display:block;background:linear-gradient(135deg,#c9a84c,#f0d080);color:#0a0a0f;text-decoration:none;padding:14px;border-radius:10px;font-weight:800;font-size:.95rem;margin-bottom:10px;">Explore Training &rarr;</a>
+      <a href="apply.html" style="display:block;color:#6b7280;font-size:.8rem;text-decoration:none;">Apply for scholarship instead</a>
+    </div>
+  </div>`;
+
   document.body.appendChild(overlay);
+  setTimeout(() => { overlay.style.opacity = '1'; }, 800);
 
-  // State
-  let _instructor = { name: '', role: '', price: '', initials: '' };
-  let _selectedDate = null;
-  let _selectedTime = null;
-  let _contactMethod = 'email';
-  let _calYear, _calMonth;
+  let selectedType = null;
+  let step = 0;
 
-  const TIMES = ['9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-
-  function initCal() {
-    const now = new Date();
-    _calYear = now.getFullYear();
-    _calMonth = now.getMonth();
-    renderCal();
-  }
-
-  function renderCal() {
-    document.getElementById('bk-month-label').textContent = `${MONTHS[_calMonth]} ${_calYear}`;
-    const grid = document.getElementById('bk-calendar-grid');
-    grid.innerHTML = DAYS.map(d => `<div class="bk-day-label">${d}</div>`).join('');
-
-    const firstDay = new Date(_calYear, _calMonth, 1).getDay();
-    const daysInMonth = new Date(_calYear, _calMonth + 1, 0).getDate();
-    const today = new Date(); today.setHours(0,0,0,0);
-
-    for (let i = 0; i < firstDay; i++) {
-      grid.innerHTML += `<div class="bk-day bk-day-empty"></div>`;
-    }
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(_calYear, _calMonth, d);
-      const isPast = date < today;
-      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      const disabled = isPast || isWeekend;
-      const isSelected = _selectedDate && date.toDateString() === _selectedDate.toDateString();
-      grid.innerHTML += `<div class="bk-day${disabled ? ' bk-day-disabled' : ''}${isSelected ? ' selected' : ''}"
-        ${!disabled ? `onclick="window._bkSelectDate(${_calYear},${_calMonth},${d})"` : ''}>
-        ${d}
-      </div>`;
-    }
-  }
-
-  function renderTimeSlots() {
-    const container = document.getElementById('bk-time-slots');
-    container.innerHTML = TIMES.map(t => `
-      <div class="bk-time-slot${_selectedTime === t ? ' selected' : ''}" onclick="window._bkSelectTime('${t}')">
-        ${t}
-      </div>
-    `).join('');
-  }
-
-  // Public API
-  window._bkSelectDate = function(y, m, d) {
-    _selectedDate = new Date(y, m, d);
-    _selectedTime = null;
-    renderCal();
-    renderTimeSlots();
-    document.getElementById('bk-time-section').style.display = 'block';
-  };
-
-  window._bkSelectTime = function(t) {
-    _selectedTime = t;
-    renderTimeSlots();
-  };
-
-  window._bkSetContact = function(method) {
-    _contactMethod = method;
-    const emailBtn = document.getElementById('bk-toggle-email');
-    const dmBtn = document.getElementById('bk-toggle-dm');
-    const dmNote = document.getElementById('bk-dm-note');
-    if (method === 'email') {
-      emailBtn.style.cssText += 'border-color:#c9a84c;background:rgba(201,168,76,0.12);color:#c9a84c;font-weight:700;';
-      dmBtn.style.cssText += 'border-color:#3f3f46;background:transparent;color:#9ca3af;font-weight:400;';
-      dmNote.style.display = 'none';
-    } else {
-      dmBtn.style.cssText += 'border-color:#c9a84c;background:rgba(201,168,76,0.12);color:#c9a84c;font-weight:700;';
-      emailBtn.style.cssText += 'border-color:#3f3f46;background:transparent;color:#9ca3af;font-weight:400;';
-      dmNote.style.display = 'block';
-    }
-  };
-
-  window.openBookingModal = function(instructorName, instructorRole, price) {
-    _instructor = {
-      name: instructorName,
-      role: instructorRole,
-      price: price || '$150 / session',
-      initials: instructorName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()
-    };
-    _selectedDate = null;
-    _selectedTime = null;
-    _contactMethod = 'email';
-
-    document.getElementById('bk-instructor-name').textContent = _instructor.name;
-    document.getElementById('bk-instructor-role').textContent = _instructor.role;
-    document.getElementById('bk-session-price').textContent = _instructor.price;
-    document.getElementById('bk-avatar-initials').textContent = _instructor.initials;
-    document.getElementById('bk-name').value = '';
-    document.getElementById('bk-email').value = '';
-    document.getElementById('bk-message').value = '';
-    document.getElementById('bk-time-section').style.display = 'none';
-    document.getElementById('bk-form-body').style.display = 'flex';
-    document.getElementById('bk-success').style.display = 'none';
-    window._bkSetContact('email');
-    initCal();
-    overlay.classList.add('open');
-  };
-
-  window.closeBookingModal = function() {
-    overlay.classList.remove('open');
-  };
-
-  // Submit
-  document.getElementById('bk-submit-btn').addEventListener('click', function() {
-    const name = document.getElementById('bk-name').value.trim();
-    const email = document.getElementById('bk-email').value.trim();
-    const message = document.getElementById('bk-message').value.trim();
-
-    if (!name || !email) {
-      alert('Please enter your name and email.');
-      return;
-    }
-    if (!_selectedDate) {
-      alert('Please select a date.');
-      return;
-    }
-    if (!_selectedTime) {
-      alert('Please select a time slot.');
-      return;
-    }
-
-    const dateStr = _selectedDate.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-    const subject = encodeURIComponent(`Session Booking Request — ${_instructor.name}`);
-    const body = encodeURIComponent(
-`SESSION BOOKING REQUEST
-=======================
-Instructor: ${_instructor.name}
-Role: ${_instructor.role}
-Requested Date: ${dateStr}
-Requested Time: ${_selectedTime} ET
-Confirmation via: ${_contactMethod === 'email' ? 'Email' : 'Direct Message'}
-
---- APPLICANT INFO ---
-Name: ${name}
-Email: ${email}
-
---- SESSION TOPIC / MESSAGE ---
-${message || '(No message provided)'}
-
----
-Sent via Radiant Threshold Booking System`
-    );
-
-    window.open(`mailto:IRNVP@pm.me?subject=${subject}&body=${body}`, '_blank');
-
-    document.getElementById('bk-form-body').style.display = 'none';
-    document.getElementById('bk-success').style.display = 'block';
-    document.getElementById('bk-success-msg').textContent =
-      _contactMethod === 'email'
-        ? `Your booking request for ${_instructor.name} on ${dateStr} at ${_selectedTime} ET has been sent to IRNVP@pm.me. Expect a confirmation within 24–48 hours.`
-        : `Your booking request has been sent. ${_instructor.name} will reach out to you via direct message to confirm your session.`;
-  });
-
-  // Close handlers
-  document.getElementById('bk-close-btn').addEventListener('click', window.closeBookingModal);
-  document.getElementById('bk-cancel-btn').addEventListener('click', window.closeBookingModal);
-  overlay.addEventListener('click', e => { if (e.target === overlay) window.closeBookingModal(); });
-
-  document.getElementById('bk-prev-month').addEventListener('click', () => {
-    _calMonth--; if (_calMonth < 0) { _calMonth = 11; _calYear--; }
-    renderCal();
-  });
-  document.getElementById('bk-next-month').addEventListener('click', () => {
-    _calMonth++; if (_calMonth > 11) { _calMonth = 0; _calYear++; }
-    renderCal();
-  });
-
-  // Wire up any existing "Book a Session" buttons on the page
-  document.addEventListener('DOMContentLoaded', function() {
-    wireBkButtons();
-  });
-  // Also run immediately in case DOM is already ready
-  wireBkButtons();
-
-  function wireBkButtons() {
-    document.querySelectorAll('a.btn').forEach(btn => {
-      if (btn.textContent.trim() === 'Book a Session' && btn.getAttribute('href') === '#') {
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          // Detect instructor from page context
-          const nameEl = document.querySelector('.instructor-hero-info h1');
-          const roleEl = document.querySelector('.instructor-tagline');
-          const name = nameEl ? nameEl.textContent.trim() : 'Instructor';
-          const role = roleEl ? roleEl.textContent.trim() : 'Radiant Threshold';
-          const price = '$150 / session';
-          window.openBookingModal(name, role, price);
-        });
-      }
+  function dots(n) {
+    document.querySelectorAll('.ob-dot').forEach((d,i) => {
+      d.style.background = i <= n ? '#c9a84c' : '#2e2e2e';
+      d.style.width = i === n ? '20px' : '8px';
     });
   }
-})();
 
+  function goStep(n) {
+    document.getElementById(`ob-step-${step}`).style.display = 'none';
+    step = n;
+    document.getElementById(`ob-step-${step}`).style.display = 'block';
+    dots(step);
+  }
+
+  function dismiss() {
+    localStorage.setItem('rt_onboarded','true');
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 400);
+  }
+
+  document.getElementById('ob-skip').onclick = dismiss;
+
+  document.getElementById('ob-types').addEventListener('click', e => {
+    const btn = e.target.closest('.ob-type-btn');
+    if (!btn) return;
+    document.querySelectorAll('.ob-type-btn').forEach(b => { b.style.borderColor='#2e2e2e'; b.style.background='rgba(255,255,255,.03)'; });
+    btn.style.borderColor = '#c9a84c';
+    btn.style.background = 'rgba(201,168,76,.12)';
+    selectedType = btn.dataset.type;
+    localStorage.setItem('rt_user_type', selectedType);
+    const next = document.getElementById('ob-next-0');
+    next.disabled = false;
+    next.style.opacity = '1';
+  });
+
+  document.getElementById('ob-next-0').onclick = () => goStep(1);
+  document.getElementById('ob-back-1').onclick = () => goStep(0);
+  document.getElementById('ob-next-1').onclick = () => {
+    const labels = { organizer:'Organizer', activist:'Activist', student:'Student', supporter:'Supporter' };
+    document.getElementById('ob-welcome-msg').textContent = `Welcome, ${labels[selectedType]||'Friend'}. Radiant Threshold is built for people committed to lasting change. Let's get started.`;
+    goStep(2);
+  };
+})();
