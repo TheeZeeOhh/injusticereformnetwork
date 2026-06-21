@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Organizer's Playbook — Course Player | Radiant Threshold</title>
+  <meta name="description" content="Live lesson player for The Organizer's Playbook — grassroots organizing training on Radiant Threshold." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ── Reset & viewport lock ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #121212;
+      color: #e2e8f0;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    /* ── Navbar override for player (slim) ── */
+    .player-navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 54px;
+      background: rgba(18,18,18,0.97);
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 200;
+      gap: 16px;
+    }
+    .player-navbar-logo img { height: 36px; width: auto; display: block; }
+    .player-navbar-center {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+    .player-navbar-center a { color: #c9a84c; text-decoration: none; font-weight: 500; transition: color 0.15s; }
+    .player-navbar-center a:hover { color: #f59e0b; }
+    .player-navbar-center .sep { color: rgba(255,255,255,0.2); }
+    .player-navbar-right { display: flex; align-items: center; gap: 10px; }
+    .player-nav-links { display: flex; align-items: center; gap: 2px; }
+    .player-nav-links a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.82rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+    .player-nav-links a:hover { color: #e2e8f0; background: rgba(255,255,255,0.06); }
+    .player-nav-links a.active { color: #c9a84c; }
+
+    /* ── Main player layout ── */
+    .player-layout {
+      display: flex;
+      height: 100vh;
+      padding-top: 54px;
+    }
+
+    /* ── LEFT SIDEBAR ── */
+    .player-sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: #1c1c1c;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-course-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #c9a84c;
+      margin-bottom: 6px;
+    }
+    .sidebar-course-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(201,168,76,0.3) transparent;
+    }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 99px; }
+
+    /* Module group */
+    .module-group { border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .module-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .module-toggle { color: #64748b; font-size: 0.7rem; transition: transform 0.2s; }
+    .module-group.open .module-toggle { transform: rotate(180deg); }
+
+    /* Lesson items */
+    .lesson-list { display: none; }
+    .module-group.open .lesson-list { display: block; }
+
+    .lesson-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px 10px 22px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .lesson-item:hover { background: rgba(255,255,255,0.04); }
+    .lesson-item.active {
+      border-left-color: #c9a84c;
+      background: rgba(201,168,76,0.07);
+    }
+    .lesson-item.active .lesson-title { color: #c9a84c; }
+
+    .lesson-play-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.65rem;
+      color: #94a3b8;
+      transition: all 0.15s;
+    }
+    .lesson-item.active .lesson-play-icon {
+      background: rgba(201,168,76,0.15);
+      color: #c9a84c;
+    }
+    .lesson-item.completed .lesson-play-icon {
+      background: rgba(16,185,129,0.12);
+      color: #10b981;
+    }
+
+    .lesson-meta { flex: 1; min-width: 0; }
+    .lesson-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lesson-duration {
+      font-size: 0.7rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .lesson-check {
+      color: #c9a84c;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .lesson-item.completed .lesson-check { opacity: 1; }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      padding: 16px 18px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Progress ring */
+    .progress-ring-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .progress-ring-svg { transform: rotate(-90deg); }
+    .progress-ring-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 5; }
+    .progress-ring-fill {
+      fill: none;
+      stroke: #c9a84c;
+      stroke-width: 5;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.6s ease;
+    }
+    .progress-ring-label {
+      text-align: left;
+    }
+    .progress-ring-pct {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #c9a84c;
+    }
+    .progress-ring-text {
+      font-size: 0.7rem;
+      color: #64748b;
+      margin-top: 1px;
+    }
+
+    .sidebar-footer-btns {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+    .sidebar-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .sidebar-btn-gold {
+      background: rgba(201,168,76,0.12);
+      color: #c9a84c;
+      border: 1px solid rgba(201,168,76,0.25);
+    }
+    .sidebar-btn-gold:hover { background: rgba(201,168,76,0.22); }
+    .sidebar-btn-outline {
+      background: rgba(255,255,255,0.04);
+      color: #94a3b8;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-btn-outline:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+    .sidebar-btn-outline.notes-active { background: rgba(139,92,246,0.12); color: #a78bfa; border-color: rgba(139,92,246,0.3); }
+
+    /* ── RIGHT MAIN AREA ── */
+    .player-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #121212;
+    }
+
+    /* Top bar */
+    .player-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+      gap: 16px;
+    }
+    .player-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .player-breadcrumb a { color: #c9a84c; text-decoration: none; transition: color 0.15s; }
+    .player-breadcrumb a:hover { color: #f59e0b; }
+    .player-breadcrumb .sep { font-size: 0.6rem; }
+
+    .player-lesson-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #c9a84c;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      flex: 1;
+    }
+
+    .mark-complete-btn {
+      padding: 9px 18px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .mark-complete-btn.incomplete {
+      background: rgba(16,185,129,0.12);
+      color: #10b981;
+      border: 1px solid rgba(16,185,129,0.25);
+    }
+    .mark-complete-btn.incomplete:hover {
+      background: rgba(16,185,129,0.22);
+      box-shadow: 0 0 16px rgba(16,185,129,0.2);
+    }
+    .mark-complete-btn.done {
+      background: rgba(201,168,76,0.12);
+      color: #c9a84c;
+      border: 1px solid rgba(201,168,76,0.3);
+    }
+
+    /* Content scroll area */
+    .player-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px 32px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    .player-content::-webkit-scrollbar { width: 5px; }
+    .player-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+    /* Video embed */
+    .video-container {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      margin-bottom: 24px;
+    }
+    .video-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Tab bar */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      border-radius: 6px 6px 0 0;
+    }
+    .tab-btn:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
+    .tab-btn.active {
+      color: #c9a84c;
+      border-bottom-color: #c9a84c;
+    }
+
+    /* Tab panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeUp 0.3s ease forwards; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Overview tab */
+    .overview-description {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+    .concepts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .concept-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      transition: all 0.15s;
+    }
+    .concept-item:hover { border-color: rgba(201,168,76,0.2); background: rgba(201,168,76,0.04); }
+    .concept-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(201,168,76,0.1);
+      color: #c9a84c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .concept-text h5 { font-size: 0.85rem; font-weight: 700; color: #e2e8f0; margin-bottom: 3px; }
+    .concept-text p { font-size: 0.77rem; color: #64748b; line-height: 1.5; }
+
+    /* Resources tab */
+    .resource-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: all 0.15s;
+    }
+    .resource-item:hover { border-color: rgba(201,168,76,0.2); background: rgba(201,168,76,0.03); }
+    .resource-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: rgba(239,68,68,0.1);
+      color: #f87171;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .resource-info { flex: 1; }
+    .resource-info h5 { font-size: 0.88rem; font-weight: 700; color: #e2e8f0; margin-bottom: 2px; }
+    .resource-info p { font-size: 0.75rem; color: #64748b; }
+    .resource-dl-btn {
+      padding: 7px 14px;
+      border-radius: 7px;
+      background: rgba(201,168,76,0.1);
+      color: #c9a84c;
+      border: 1px solid rgba(201,168,76,0.2);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .resource-dl-btn:hover { background: rgba(201,168,76,0.2); }
+
+    /* Notes tab */
+    .notes-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .notes-header h4 { font-size: 0.95rem; font-weight: 700; color: #e2e8f0; }
+    .notes-save-indicator {
+      font-size: 0.72rem;
+      color: #10b981;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .notes-save-indicator.visible { opacity: 1; }
+    .notes-textarea {
+      width: 100%;
+      min-height: 220px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      padding: 16px;
+      resize: vertical;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .notes-textarea:focus {
+      outline: none;
+      border-color: rgba(139,92,246,0.4);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.08);
+    }
+    .notes-textarea::placeholder { color: #475569; }
+    .notes-hint {
+      font-size: 0.72rem;
+      color: #475569;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Bottom nav */
+    .player-nav-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+      background: rgba(18,18,18,0.9);
+    }
+    .player-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .player-nav-btn:hover:not(:disabled) { border-color: rgba(201,168,76,0.3); color: #c9a84c; background: rgba(201,168,76,0.05); }
+    .player-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .player-nav-btn.next-btn {
+      background: rgba(201,168,76,0.1);
+      color: #c9a84c;
+      border-color: rgba(201,168,76,0.25);
+    }
+    .player-nav-btn.next-btn:hover { background: rgba(201,168,76,0.2); }
+
+    .nav-bottom-info {
+      text-align: center;
+    }
+    .nav-bottom-info span {
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .nav-bottom-info strong {
+      color: #c9a84c;
+    }
+
+    /* Notes slide-in overlay */
+    .notes-panel-overlay {
+      position: fixed;
+      top: 54px; right: 0;
+      width: 360px;
+      bottom: 0;
+      background: #1a1a1a;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      z-index: 150;
+      display: none;
+      flex-direction: column;
+      padding: 20px;
+      gap: 12px;
+      box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+      animation: slideInRight 0.25s ease forwards;
+    }
+    .notes-panel-overlay.open { display: flex; }
+    @keyframes slideInRight {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .notes-overlay-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .notes-overlay-header h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #a78bfa;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .notes-close-btn {
+      background: none;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px;
+      transition: color 0.15s;
+    }
+    .notes-close-btn:hover { color: #e2e8f0; }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: #6ee7b7;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 999;
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      .player-sidebar { width: 240px; }
+      .concepts-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .player-sidebar { display: none; }
+      .player-nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="player-navbar">
+  <a href="index.html" class="player-navbar-logo">
+    <img src="logo.png" alt="Radiant Threshold" />
+  </a>
+  <div class="player-navbar-center">
+    <a href="explore.html">Training Library</a>
+    <span class="sep"><i class="fas fa-chevron-right" style="font-size:0.65rem;"></i></span>
+    <a href="course.html">The Organizer's Playbook</a>
+    <span class="sep"><i class="fas fa-chevron-right" style="font-size:0.65rem;"></i></span>
+    <span id="navbar-lesson-name" style="color:#e2e8f0;">Campaign Strategy 101</span>
+  </div>
+  <div class="player-navbar-right">
+    <nav class="player-nav-links">
+      <a href="explore.html">Explore</a>
+      <a href="instructor.html">Instructors</a>
+      <a href="workspace.html">War Room</a>
+      <a href="dashboard.html" class="active">My Courses</a>
+    </nav>
+    <a href="dashboard.html" class="sidebar-btn sidebar-btn-gold" style="padding:7px 14px; border-radius:7px; font-size:0.78rem;">
+      <i class="fas fa-th-large"></i> Dashboard
+    </a>
+  </div>
+</nav>
+
+<!-- ══ PLAYER LAYOUT ══ -->
+<div class="player-layout">
+
+  <!-- ══ LEFT SIDEBAR ══ -->
+  <aside class="player-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-course-label"><i class="fas fa-play-circle"></i> Now Playing</div>
+      <div class="sidebar-course-title">The Organizer's Playbook</div>
+    </div>
+
+    <div class="sidebar-scroll">
+
+      <!-- Module 1: Campaign Strategy -->
+      <div class="module-group open" id="module-1">
+        <div class="module-header" onclick="toggleModule('module-1')">
+          <span class="module-title"><i class="fas fa-bullhorn" style="margin-right:6px;color:#c9a84c;"></i> Campaign Strategy</span>
+          <i class="fas fa-chevron-down module-toggle"></i>
+        </div>
+        <div class="lesson-list">
+          <div class="lesson-item active" data-lesson="0" onclick="switchLesson(0)">
+            <div class="lesson-play-icon"><i class="fas fa-play"></i></div>
+            <div class="lesson-meta">
+              <div class="lesson-title">Campaign Strategy 101</div>
+              <div class="lesson-duration"><i class="fas fa-clock" style="font-size:0.6rem;"></i> 18 min</div>
+            </div>
+            <i class="fas fa-check-circle lesson-check"></i>
+          </div>
+          <div class="lesson-item" data-lesson="1" onclick="switchLesson(1)">
+            <div class="lesson-play-icon"><i class="fas fa-play"></i></div>
+            <div class="lesson-meta">
+              <div class="lesson-title">Power Mapping & Analysis</div>
+              <div class="lesson-duration"><i class="fas fa-clock" style="font-size:0.6rem;"></i> 24 min</div>
+            </div>
+            <i class="fas fa-check-circle lesson-check"></i>
+          </div>
+          <div class="lesson-item" data-lesson="2" onclick="switchLesson(2)">
+            <div class="lesson-play-icon"><i class="fas fa-play"></i></div>
+            <div class="lesson-meta">
+              <div class="lesson-title">Escalation Tactics</div>
+              <div class="lesson-duration"><i class="fas fa-clock" style="font-size:0.6rem;"></i> 21 min</div>
+            </div>
+            <i class="fas fa-check-circle lesson-check"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 2: Know Your Rights -->
+      <div class="module-group" id="module-2">
+        <div class="module-header" onclick="toggleModule('module-2')">
+          <span class="module-title"><i class="fas fa-scale-balanced" style="margin-right:6px;color:#8b5cf6;"></i> Know Your Rights</span>
+          <i class="fas fa-chevron-down module-toggle"></i>
+        </div>
+        <div class="lesson-list">
+          <div class="lesson-item" data-lesson="3" onclick="switchLesson(3)">
+            <div class="lesson-play-icon"><i class="fas fa-play"></i></div>
+            <div class="lesson-meta">
+              <div class="lesson-title">First Amendment Protections</div>
+              <div class="lesson-duration"><i class="fas fa-clock" style="font-size:0.6rem;"></i> 15 min</div>
+            </div>
+            <i class="fas fa-check-circle lesson-check"></i>
+          </div>
+          <div class="lesson-item" data-lesson="4" onclick="switchLesson(4)">
+            <div class="lesson-play-icon"><i class="fas fa-play"></i></div>
+            <div class="lesson-meta">
+              <div class="lesson-title">Police Encounters Protocol</div>
+              <div class="lesson-duration"><i class="fas fa-clock" style="font-size:0.6rem;"></i> 27 min</div>
+            </div>
+            <i class="fas fa-check-circle lesson-check"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 3: Coalition Building -->
+      <div class="module-group" id="module-3">
+        <div class="module-header" onclick="toggleModule('module-3')">
+          <span class="module-title"><i class="fas fa-handshake" style="margin-right:6px;color:#10b981;"></i> Coalition Building</span>
+          <i class="fas fa-chevron-down module-toggle"></i>
+        </div>
+        <div class="lesson-list">
+          <div class="lesson-item" data-lesson="5" onclick="switchLesson(5)">
+            <div class="lesson-play-icon"><i class="fas fa-play"></i></div>
+            <div class="lesson-meta">
+              <div class="lesson-title">Building Your Base</div>
+              <div class="lesson-duration"><i class="fas fa-clock" style="font-size:0.6rem;"></i> 20 min</div>
+            </div>
+            <i class="fas fa-check-circle lesson-check"></i>
+          </div>
+          <div class="lesson-item" data-lesson="6" onclick="switchLesson(6)">
+            <div class="lesson-play-icon"><i class="fas fa-play"></i></div>
+            <div class="lesson-meta">
+              <div class="lesson-title">Cross-Sector Alliances</div>
+              <div class="lesson-duration"><i class="fas fa-clock" style="font-size:0.6rem;"></i> 23 min</div>
+            </div>
+            <i class="fas fa-check-circle lesson-check"></i>
+          </div>
+          <div class="lesson-item" data-lesson="7" onclick="switchLesson(7)">
+            <div class="lesson-play-icon"><i class="fas fa-play"></i></div>
+            <div class="lesson-meta">
+              <div class="lesson-title">Sustaining the Movement</div>
+              <div class="lesson-duration"><i class="fas fa-clock" style="font-size:0.6rem;"></i> 19 min</div>
+            </div>
+            <i class="fas fa-check-circle lesson-check"></i>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sidebar-scroll -->
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="progress-ring-wrap">
+        <svg class="progress-ring-svg" width="52" height="52" viewBox="0 0 52 52">
+          <circle class="progress-ring-track" cx="26" cy="26" r="21" />
+          <circle class="progress-ring-fill" id="ring-fill" cx="26" cy="26" r="21"
+            stroke-dasharray="131.95"
+            stroke-dashoffset="131.95" />
+        </svg>
+        <div class="progress-ring-label">
+          <div class="progress-ring-pct" id="ring-pct">0%</div>
+          <div class="progress-ring-text">Course complete</div>
+        </div>
+      </div>
+      <div class="sidebar-footer-btns">
+        <a href="#" class="sidebar-btn sidebar-btn-gold" onclick="downloadToolkit(event)">
+          <i class="fas fa-download"></i> Toolkit
+        </a>
+        <button class="sidebar-btn sidebar-btn-outline" id="notes-toggle-btn" onclick="toggleNotesPanel()">
+          <i class="fas fa-pen-to-square"></i> Notes
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ RIGHT MAIN AREA ══ -->
+  <main class="player-main">
+
+    <!-- Top Bar -->
+    <div class="player-topbar">
+      <div style="flex:1; min-width:0;">
+        <div class="player-breadcrumb">
+          <a href="explore.html">Library</a>
+          <span class="sep"><i class="fas fa-chevron-right"></i></span>
+          <a href="course.html">The Organizer's Playbook</a>
+          <span class="sep"><i class="fas fa-chevron-right"></i></span>
+          <span id="topbar-module-name">Campaign Strategy</span>
+        </div>
+        <h2 class="player-lesson-title" id="topbar-lesson-title">Campaign Strategy 101</h2>
+      </div>
+      <button class="mark-complete-btn incomplete" id="mark-complete-btn" onclick="markCurrentComplete()">
+        <i class="fas fa-circle-check"></i>
+        <span id="mark-btn-text">Mark Complete</span>
+      </button>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="player-content" id="player-content">
+
+      <!-- Video -->
+      <div class="video-container">
+        <iframe
+          id="lesson-video"
+          src="https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1"
+          title="Encounter with Saul Alinsky — Community Organizing"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      </div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('overview')"><i class="fas fa-list-ul"></i> Overview</button>
+        <button class="tab-btn" onclick="switchTab('resources')"><i class="fas fa-folder-open"></i> Resources</button>
+        <button class="tab-btn" onclick="switchTab('notes')"><i class="fas fa-pen"></i> Your Notes</button>
+      </div>
+
+      <!-- Tab: Overview -->
+      <div class="tab-panel active" id="tab-overview">
+        <p class="overview-description" id="lesson-desc-1">
+          This foundational lesson examines the architecture of winning campaigns — from identifying the core issue to setting concrete, measurable demands. Drawing on the legacy of Saul Alinsky and modern organizing theory, you'll learn why the most powerful campaigns are built on a clear power analysis: who has what you need, and what it takes to move them.
+        </p>
+        <p class="overview-description" id="lesson-desc-2">
+          Effective campaign strategy is never accidental. Organizers must sequence their actions deliberately — building public pressure, growing the base, and escalating at precisely the right moment. This lesson walks through real-world case studies from the labor movement, environmental justice fights, and tenant organizing to demonstrate these principles in action.
+        </p>
+
+        <div style="font-size:0.82rem; font-weight:700; color:#c9a84c; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:14px; margin-top:8px;">
+          <i class="fas fa-star"></i> Key Concepts
+        </div>
+
+        <div class="concepts-grid">
+          <div class="concept-item">
+            <div class="concept-icon"><i class="fas fa-crosshairs"></i></div>
+            <div class="concept-text">
+              <h5>Winnable Demands</h5>
+              <p>Specific, concrete, achievable asks that build momentum and demonstrate organizational power.</p>
+            </div>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon"><i class="fas fa-network-wired"></i></div>
+            <div class="concept-text">
+              <h5>Power Mapping</h5>
+              <p>Charting who holds decision-making power and mapping relationships between key stakeholders.</p>
+            </div>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon"><i class="fas fa-arrow-trend-up"></i></div>
+            <div class="concept-text">
+              <h5>Escalation Ladders</h5>
+              <p>Sequenced tactics that intensify pressure on a target from petition to direct action.</p>
+            </div>
+          </div>
+          <div class="concept-item">
+            <div class="concept-icon"><i class="fas fa-users"></i></div>
+            <div class="concept-text">
+              <h5>Base Building</h5>
+              <p>Systematically identifying, engaging, and developing leaders within affected communities.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Resources -->
+      <div class="tab-panel" id="tab-resources">
+        <div style="font-size:0.82rem; font-weight:700; color:#c9a84c; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:16px;">
+          <i class="fas fa-folder-open"></i> Downloadable Toolkit
+        </div>
+
+        <div class="resource-item">
+          <div class="resource-icon"><i class="fas fa-file-pdf"></i></div>
+          <div class="resource-info">
+            <h5>Campaign Strategy Worksheet</h5>
+            <p>PDF · 4 pages · Power mapping template + demand-setting framework</p>
+          </div>
+          <a href="#" class="resource-dl-btn" onclick="event.preventDefault(); showToast('📄 Downloading Campaign Strategy Worksheet...');">
+            <i class="fas fa-download"></i> Download
+          </a>
+        </div>
+
+        <div class="resource-item">
+          <div class="resource-icon"><i class="fas fa-file-pdf"></i></div>
+          <div class="resource-info">
+            <h5>Alinsky's Rules for Radicals — Summary Guide</h5>
+            <p>PDF · 12 pages · Key principles, rules, and application examples</p>
+          </div>
+          <a href="#" class="resource-dl-btn" onclick="event.preventDefault(); showToast('📄 Downloading Rules for Radicals Guide...');">
+            <i class="fas fa-download"></i> Download
+          </a>
+        </div>
+
+        <div class="resource-item">
+          <div class="resource-icon"><i class="fas fa-file-pdf"></i></div>
+          <div class="resource-info">
+            <h5>Escalation Tactics Reference Card</h5>
+            <p>PDF · 2 pages · Quick reference for campaign escalation sequencing</p>
+          </div>
+          <a href="#" class="resource-dl-btn" onclick="event.preventDefault(); showToast('📄 Downloading Escalation Reference Card...');">
+            <i class="fas fa-download"></i> Download
+          </a>
+        </div>
+      </div>
+
+      <!-- Tab: Notes -->
+      <div class="tab-panel" id="tab-notes">
+        <div class="notes-header">
+          <h4><i class="fas fa-pen-to-square" style="color:#a78bfa;"></i> Your Lesson Notes</h4>
+          <span class="notes-save-indicator" id="notes-save-indicator"><i class="fas fa-check-circle"></i> Saved to local vault</span>
+        </div>
+        <textarea
+          class="notes-textarea"
+          id="notes-textarea"
+          placeholder="Write your key takeaways, questions, and action items here. Notes are saved privately to your local browser vault — never to any server."
+        ></textarea>
+        <div class="notes-hint">
+          <i class="fas fa-shield-halved" style="color:#8b5cf6;"></i>
+          Auto-saved to SovereignDB on your device — zero server transmission
+        </div>
+      </div>
+
+    </div><!-- /player-content -->
+
+    <!-- Bottom Prev/Next Navigation -->
+    <div class="player-nav-bottom">
+      <button class="player-nav-btn" id="prev-btn" onclick="goToPrev()">
+        <i class="fas fa-chevron-left"></i> Previous
+      </button>
+      <div class="nav-bottom-info">
+        <span>Lesson <strong id="nav-current">1</strong> of <strong>8</strong></span>
+      </div>
+      <button class="player-nav-btn next-btn" id="next-btn" onclick="goToNext()">
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+  </main>
+</div><!-- /player-layout -->
+
+<!-- ══ NOTES SIDE PANEL (overlay) ══ -->
+<div class="notes-panel-overlay" id="notes-side-panel">
+  <div class="notes-overlay-header">
+    <h4><i class="fas fa-pen-to-square"></i> Quick Notes</h4>
+    <button class="notes-close-btn" onclick="toggleNotesPanel()"><i class="fas fa-xmark"></i></button>
+  </div>
+  <textarea
+    class="notes-textarea"
+    id="notes-side-textarea"
+    style="flex:1; min-height:0;"
+    placeholder="Quick notes for this lesson..."
+  ></textarea>
+  <div class="notes-hint">
+    <i class="fas fa-shield-halved" style="color:#8b5cf6;"></i>
+    Synced to your local vault on blur
+  </div>
+  <span class="notes-save-indicator" id="notes-side-save-indicator" style="display:block; text-align:center;">
+    <i class="fas fa-check-circle"></i> Saved to local vault
+  </span>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle"></i>
+  <span id="toast-msg">Done!</span>
+</div>
+
+<script src="app.js"></script>
+<script>
+  // ═══════════════════════════════════════════════
+  //  LESSON DATA
+  // ═══════════════════════════════════════════════
+  const LESSONS = [
+    {
+      id: 'cs-101',
+      module: 'Campaign Strategy',
+      title: 'Campaign Strategy 101',
+      duration: '18 min',
+      videoSrc: 'https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1',
+      desc1: 'This foundational lesson examines the architecture of winning campaigns — from identifying the core issue to setting concrete, measurable demands. Drawing on the legacy of Saul Alinsky and modern organizing theory, you\'ll learn why the most powerful campaigns are built on a clear power analysis: who has what you need, and what it takes to move them.',
+      desc2: 'Effective campaign strategy is never accidental. Organizers must sequence their actions deliberately — building public pressure, growing the base, and escalating at precisely the right moment. This lesson walks through real-world case studies from the labor movement, environmental justice fights, and tenant organizing to demonstrate these principles in action.'
+    },
+    {
+      id: 'cs-102',
+      module: 'Campaign Strategy',
+      title: 'Power Mapping & Analysis',
+      duration: '24 min',
+      videoSrc: 'https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1&start=480',
+      desc1: 'Power mapping is the organizer\'s compass. Before launching any campaign, you must chart the terrain of power — who the decision makers are, who influences them, and where your organization sits in relation to them. This lesson teaches a proven methodology for building a living power map that guides tactical decisions throughout your campaign.',
+      desc2: 'We\'ll cover three categories of actors: targets (those with the power to give you what you want), allies (those who share your interests), and opponents (those who benefit from the status quo). Understanding each category — and the relationships between them — is what separates amateur advocacy from disciplined community organizing.'
+    },
+    {
+      id: 'cs-103',
+      module: 'Campaign Strategy',
+      title: 'Escalation Tactics',
+      duration: '21 min',
+      videoSrc: 'https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1&start=960',
+      desc1: 'Escalation is the engine of organizing. This lesson introduces the escalation ladder — a deliberate sequence of tactics that intensifies pressure on your target when they refuse to meet your demands. From petitions and meetings to public demonstrations, media campaigns, and direct action, each rung of the ladder serves a strategic purpose.',
+      desc2: 'Crucially, escalation is not simply "doing more" — it\'s about choosing the right tactic at the right moment, with the right capacity. We\'ll examine how over-escalating too early can collapse a campaign, and how disciplined escalation builds organizational power and wins.'
+    },
+    {
+      id: 'kyr-101',
+      module: 'Know Your Rights',
+      title: 'First Amendment Protections',
+      duration: '15 min',
+      videoSrc: 'https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1&start=1200',
+      desc1: 'The First Amendment is an organizer\'s most powerful legal shield. This lesson covers the constitutional protections afforded to speech, assembly, petition, and press — and how to assert them confidently during organizing activities. You\'ll learn what is protected, what is not, and how these rights have been shaped by landmark court decisions.',
+      desc2: 'Understanding your rights is not just self-defense — it\'s strategic. When organizers know their rights, they can push boundaries confidently, protect their comrades, and expose illegal police conduct that chills protected activity. This lesson includes practical scripts for asserting your rights in real situations.'
+    },
+    {
+      id: 'kyr-102',
+      module: 'Know Your Rights',
+      title: 'Police Encounters Protocol',
+      duration: '27 min',
+      videoSrc: 'https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1&start=1600',
+      desc1: 'How you respond in the first moments of a police encounter can determine everything. This lesson provides a clear, legally grounded protocol for interactions with law enforcement during organizing activities — from street demonstrations to door-to-door canvassing. We cover what to say, what not to say, and how to document encounters.',
+      desc2: 'We also address the realities of racialized policing and how it shapes risk differently for different organizers. Solidarity means understanding that the same tactics carry different risks for different bodies — and planning accordingly. This lesson includes guidance on rapid response legal support networks.'
+    },
+    {
+      id: 'cb-101',
+      module: 'Coalition Building',
+      title: 'Building Your Base',
+      duration: '20 min',
+      videoSrc: 'https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1&start=2000',
+      desc1: 'No organization is more powerful than its base. Base building is the ongoing, intentional process of identifying, engaging, developing, and retaining leaders from within your target community. This lesson teaches the relational model of organizing — built on deep one-to-one conversations that uncover shared interests and build durable commitments.',
+      desc2: 'We\'ll cover the difference between community members, active supporters, and leaders — and how to move people up the engagement ladder. The lesson includes a proven framework for running effective one-on-one meetings and explains why the best organizing is fundamentally a practice of listening.'
+    },
+    {
+      id: 'cb-102',
+      module: 'Coalition Building',
+      title: 'Cross-Sector Alliances',
+      duration: '23 min',
+      videoSrc: 'https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1&start=2400',
+      desc1: 'The most powerful social movements are coalitions. This lesson explores how to build genuine alliances across different communities, organizations, and issue areas — without compromising your core demands or losing your organizational identity. We\'ll examine the principles of coalition governance, shared messaging, and coordinated action.',
+      desc2: 'Effective coalitions require honest negotiation about power, resources, and credit. This lesson addresses the tensions that emerge in multi-stakeholder alliances and provides tools for navigating conflict while maintaining strategic unity. Case studies include the labor-environmental alliance in the Green New Deal movement and tenant-worker solidarity campaigns.'
+    },
+    {
+      id: 'cb-103',
+      module: 'Coalition Building',
+      title: 'Sustaining the Movement',
+      duration: '19 min',
+      videoSrc: 'https://www.youtube.com/embed/FqS79lC1G-M?rel=0&modestbranding=1&start=2800',
+      desc1: 'Movements that win are movements that last. This final lesson addresses the organizational infrastructure, culture, and practices required to sustain a movement over time — through wins, losses, leadership transitions, and external repression. We\'ll cover membership development, financial sustainability, and the cultivation of organizational identity.',
+      desc2: 'Burnout is the leading cause of movement failure. This lesson provides concrete tools for pacing, care practices, and distributed leadership that keep organizations resilient. We close with a framework for celebrating victories, learning from defeats, and carrying the movement\'s power into the next campaign.'
+    }
+  ];
+
+  const TOTAL_LESSONS = LESSONS.length;
+  let currentLessonIndex = 0;
+  let db = null;
+  let notesToggleOpen = false;
+
+  // ═══════════════════════════════════════════════
+  //  INDEXEDDB INIT
+  // ═══════════════════════════════════════════════
+  const dbRequest = indexedDB.open('SovereignDB', 2);
+
+  dbRequest.onupgradeneeded = function(event) {
+    const d = event.target.result;
+    if (!d.objectStoreNames.contains('session_notes')) {
+      d.createObjectStore('session_notes', { keyPath: 'id', autoIncrement: true });
+    }
+    if (!d.objectStoreNames.contains('scholarships')) {
+      d.createObjectStore('scholarships', { keyPath: 'id', autoIncrement: true });
+    }
+  };
+
+  dbRequest.onsuccess = function(event) {
+    db = event.target.result;
+    console.log('[Player] SovereignDB v2 connected.');
+    initPlayer();
+  };
+
+  dbRequest.onerror = function() {
+    console.error('[Player] DB connection failed — proceeding without persistence.');
+    initPlayer();
+  };
+
+  // ═══════════════════════════════════════════════
+  //  INIT
+  // ═══════════════════════════════════════════════
+  function initPlayer() {
+    // Check URL param for lesson
+    const params = new URLSearchParams(window.location.search);
+    const lessonParam = parseInt(params.get('lesson') || '0', 10);
+    if (!isNaN(lessonParam) && lessonParam >= 0 && lessonParam < TOTAL_LESSONS) {
+      currentLessonIndex = lessonParam;
+    }
+    applyProgress();
+    renderLesson(currentLessonIndex);
+  }
+
+  // ═══════════════════════════════════════════════
+  //  PROGRESS (localStorage)
+  // ═══════════════════════════════════════════════
+  function getProgress() {
+    try {
+      return JSON.parse(localStorage.getItem('rt_lesson_progress') || '{}');
+    } catch(e) { return {}; }
+  }
+
+  function saveProgress(progress) {
+    localStorage.setItem('rt_lesson_progress', JSON.stringify(progress));
+  }
+
+  function applyProgress() {
+    const progress = getProgress();
+    let completedCount = 0;
+    document.querySelectorAll('.lesson-item').forEach(item => {
+      const idx = parseInt(item.getAttribute('data-lesson'));
+      const lesson = LESSONS[idx];
+      if (lesson && progress[lesson.id] && progress[lesson.id].completed) {
+        item.classList.add('completed');
+        completedCount++;
+      } else {
+        item.classList.remove('completed');
+      }
+    });
+    updateProgressRing(completedCount);
+  }
+
+  function updateProgressRing(completedCount) {
+    const pct = Math.round((completedCount / TOTAL_LESSONS) * 100);
+    const circumference = 131.95;
+    const offset = circumference - (pct / 100) * circumference;
+    const fill = document.getElementById('ring-fill');
+    const pctEl = document.getElementById('ring-pct');
+    if (fill) fill.style.strokeDashoffset = offset;
+    if (pctEl) pctEl.textContent = pct + '%';
+  }
+
+  // ═══════════════════════════════════════════════
+  //  RENDER LESSON
+  // ═══════════════════════════════════════════════
+  function renderLesson(idx) {
+    const lesson = LESSONS[idx];
+    if (!lesson) return;
+
+    // Update sidebar active item
+    document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
+    const activeItem = document.querySelector(`.lesson-item[data-lesson="${idx}"]`);
+    if (activeItem) {
+      activeItem.classList.add('active');
+      // Open parent module
+      const moduleGroup = activeItem.closest('.module-group');
+      if (moduleGroup) {
+        document.querySelectorAll('.module-group').forEach(m => m.classList.remove('open'));
+        moduleGroup.classList.add('open');
+      }
+    }
+
+    // Update navbar + topbar
+    document.getElementById('navbar-lesson-name').textContent = lesson.title;
+    document.getElementById('topbar-module-name').textContent = lesson.module;
+    document.getElementById('topbar-lesson-title').textContent = lesson.title;
+
+    // Update video
+    document.getElementById('lesson-video').src = lesson.videoSrc;
+
+    // Update overview text
+    const d1 = document.getElementById('lesson-desc-1');
+    const d2 = document.getElementById('lesson-desc-2');
+    if (d1) d1.textContent = lesson.desc1;
+    if (d2) d2.textContent = lesson.desc2;
+
+    // Update nav counters
+    document.getElementById('nav-current').textContent = idx + 1;
+
+    // Update prev/next buttons
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    if (prevBtn) prevBtn.disabled = (idx === 0);
+    if (nextBtn) nextBtn.disabled = (idx === TOTAL_LESSONS - 1);
+
+    // Update mark complete button state
+    const progress = getProgress();
+    const markBtn = document.getElementById('mark-complete-btn');
+    const markText = document.getElementById('mark-btn-text');
+    if (progress[lesson.id] && progress[lesson.id].completed) {
+      markBtn.classList.remove('incomplete');
+      markBtn.classList.add('done');
+      markText.textContent = '✓ Completed';
+    } else {
+      markBtn.classList.remove('done');
+      markBtn.classList.add('incomplete');
+      markText.textContent = 'Mark Complete';
+    }
+
+    // Update page title
+    document.title = `${lesson.title} — The Organizer's Playbook | Radiant Threshold`;
+
+    // Load notes for this lesson
+    loadNotes(lesson.id);
+
+    // Scroll content to top
+    const content = document.getElementById('player-content');
+    if (content) content.scrollTop = 0;
+
+    // Switch to overview tab
+    switchTab('overview');
+
+    // Update URL without page reload
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('lesson', idx);
+    window.history.replaceState({}, '', newUrl.toString());
+  }
+
+  // ═══════════════════════════════════════════════
+  //  MARK COMPLETE
+  // ═══════════════════════════════════════════════
+  function markCurrentComplete() {
+    const lesson = LESSONS[currentLessonIndex];
+    if (!lesson) return;
+
+    const progress = getProgress();
+    const wasComplete = progress[lesson.id] && progress[lesson.id].completed;
+
+    if (wasComplete) {
+      // Undo — toggle off
+      delete progress[lesson.id];
+      saveProgress(progress);
+      document.getElementById('mark-complete-btn').classList.remove('done');
+      document.getElementById('mark-complete-btn').classList.add('incomplete');
+      document.getElementById('mark-btn-text').textContent = 'Mark Complete';
+      applyProgress();
+      showToast('Lesson unmarked.');
+      return;
+    }
+
+    progress[lesson.id] = { completed: true, timestamp: new Date().toISOString() };
+    saveProgress(progress);
+
+    // Visual update
+    document.getElementById('mark-complete-btn').classList.remove('incomplete');
+    document.getElementById('mark-complete-btn').classList.add('done');
+    document.getElementById('mark-btn-text').textContent = '✓ Completed';
+
+    // Add checkmark to sidebar
+    const activeItem = document.querySelector(`.lesson-item[data-lesson="${currentLessonIndex}"]`);
+    if (activeItem) activeItem.classList.add('completed');
+
+    applyProgress();
+    showToast('🏆 Lesson marked complete!');
+
+    // Auto-advance after short delay
+    setTimeout(() => {
+      if (currentLessonIndex < TOTAL_LESSONS - 1) {
+        goToNext();
+      }
+    }, 1200);
+  }
+
+  // ═══════════════════════════════════════════════
+  //  NAVIGATION
+  // ═══════════════════════════════════════════════
+  function switchLesson(idx) {
+    if (idx < 0 || idx >= TOTAL_LESSONS) return;
+    currentLessonIndex = idx;
+    renderLesson(idx);
+  }
+
+  function goToPrev() {
+    if (currentLessonIndex > 0) {
+      switchLesson(currentLessonIndex - 1);
+    }
+  }
+
+  function goToNext() {
+    if (currentLessonIndex < TOTAL_LESSONS - 1) {
+      switchLesson(currentLessonIndex + 1);
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  //  TAB SWITCHING
+  // ═══════════════════════════════════════════════
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+    const targetPanel = document.getElementById('tab-' + tabId);
+    if (targetPanel) targetPanel.classList.add('active');
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${tabId}'`)) {
+        btn.classList.add('active');
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════════
+  //  MODULE TOGGLE
+  // ═══════════════════════════════════════════════
+  function toggleModule(moduleId) {
+    const group = document.getElementById(moduleId);
+    if (!group) return;
+    group.classList.toggle('open');
+  }
+
+  // ═══════════════════════════════════════════════
+  //  NOTES — IndexedDB
+  // ═══════════════════════════════════════════════
+  function loadNotes(lessonId) {
+    const ta = document.getElementById('notes-textarea');
+    const taSide = document.getElementById('notes-side-textarea');
+    if (ta) ta.value = '';
+    if (taSide) taSide.value = '';
+
+    if (!db) return;
+
+    const tx = db.transaction(['session_notes'], 'readonly');
+    const store = tx.objectStore('session_notes');
+    store.getAll().onsuccess = function(e) {
+      const notes = e.target.result || [];
+      const match = notes.find(n => n.lesson === lessonId && n.course === "The Organizer's Playbook");
+      if (match) {
+        if (ta) ta.value = match.answer || '';
+        if (taSide) taSide.value = match.answer || '';
+      }
+    };
+  }
+
+  function saveNote(lessonId, text) {
+    if (!db) return;
+    const lesson = LESSONS[currentLessonIndex];
+
+    const tx = db.transaction(['session_notes'], 'readwrite');
+    const store = tx.objectStore('session_notes');
+
+    // Find existing note for this lesson
+    store.getAll().onsuccess = function(e) {
+      const notes = e.target.result || [];
+      const existing = notes.find(n => n.lesson === lessonId && n.course === "The Organizer's Playbook");
+
+      const tx2 = db.transaction(['session_notes'], 'readwrite');
+      const store2 = tx2.objectStore('session_notes');
+
+      if (existing) {
+        existing.answer = text;
+        existing.timestamp = new Date().toISOString();
+        store2.put(existing);
+      } else {
+        store2.add({
+          course: "The Organizer's Playbook",
+          lesson: lessonId,
+          answer: text,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      tx2.oncomplete = () => {
+        showSaveIndicator();
+      };
+    };
+  }
+
+  // Attach blur handlers to both textareas
+  function setupNotesSave() {
+    const ta = document.getElementById('notes-textarea');
+    const taSide = document.getElementById('notes-side-textarea');
+
+    function onBlur() {
+      const lesson = LESSONS[currentLessonIndex];
+      if (!lesson) return;
+      const text = this.value.trim();
+      // Sync both textareas
+      if (ta) ta.value = text;
+      if (taSide) taSide.value = text;
+      saveNote(lesson.id, text);
+    }
+
+    if (ta) ta.addEventListener('blur', onBlur);
+    if (taSide) taSide.addEventListener('blur', onBlur);
+
+    // Sync typing between both
+    if (ta) ta.addEventListener('input', () => { if (taSide) taSide.value = ta.value; });
+    if (taSide) taSide.addEventListener('input', () => { if (ta) ta.value = taSide.value; });
+  }
+
+  function showSaveIndicator() {
+    ['notes-save-indicator', 'notes-side-save-indicator'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('visible');
+        setTimeout(() => el.classList.remove('visible'), 2500);
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════════
+  //  NOTES PANEL TOGGLE
+  // ═══════════════════════════════════════════════
+  function toggleNotesPanel() {
+    const panel = document.getElementById('notes-side-panel');
+    const btn = document.getElementById('notes-toggle-btn');
+    if (!panel) return;
+    notesToggleOpen = !notesToggleOpen;
+    panel.classList.toggle('open', notesToggleOpen);
+    btn.classList.toggle('notes-active', notesToggleOpen);
+  }
+
+  // ═══════════════════════════════════════════════
+  //  TOOLKIT DOWNLOAD
+  // ═══════════════════════════════════════════════
+  function downloadToolkit(e) {
+    e.preventDefault();
+    showToast('📦 Organizer\'s Toolkit preparing for download...');
+  }
+
+  // ═══════════════════════════════════════════════
+  //  TOAST
+  // ═══════════════════════════════════════════════
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    const msg = document.getElementById('toast-msg');
+    if (!toast || !msg) return;
+    msg.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // ═══════════════════════════════════════════════
+  //  KEYBOARD NAVIGATION
+  // ═══════════════════════════════════════════════
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goToNext();
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goToPrev();
+    if (e.key === 'c' || e.key === 'C') markCurrentComplete();
+  });
+
+  // ═══════════════════════════════════════════════
+  //  BOOT
+  // ═══════════════════════════════════════════════
+  document.addEventListener('DOMContentLoaded', () => {
+    setupNotesSave();
+  });
+</script>
+</body>
+</html>
