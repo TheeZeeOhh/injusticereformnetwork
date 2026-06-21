@@ -614,12 +614,15 @@
     <h2>Get Movement <span class="gradient-text">Strategy &amp; Resources</span></h2>
     <p>Movement strategy, organizing resources, and new course alerts from the frontlines — delivered to your inbox.</p>
     <form class="newsletter-form" id="newsletterForm" novalidate>
-      <input type="email" placeholder="Enter your email address" id="newsletterEmail" required />
-      <button type="submit" class="btn btn-primary">
+      <label for="newsletterEmail" class="sr-only">Email address</label>
+      <input type="email" placeholder="Enter your email address" id="newsletterEmail"
+             aria-describedby="newsletterError" aria-invalid="false" autocomplete="email" required />
+      <button type="submit" class="btn btn-primary" id="newsletterSubmit">
         Join the Network <i class="fas fa-paper-plane"></i>
       </button>
     </form>
-    <div class="newsletter-success" id="newsletterSuccess">
+    <p class="newsletter-error" id="newsletterError" role="alert" aria-live="assertive"></p>
+    <div class="newsletter-success" id="newsletterSuccess" role="status" aria-live="polite">
       <i class="fas fa-check-circle"></i> You're in! Welcome to the network.
     </div>
     <p style="margin-top:16px; font-size:0.78rem; color:var(--text-muted);">No spam. Unsubscribe anytime. We respect your privacy.</p>
