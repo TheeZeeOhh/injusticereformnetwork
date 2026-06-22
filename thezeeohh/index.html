@@ -1213,6 +1213,20 @@ window.IRNHomeResources = (function () {
       render(filtered);
     },
     download(name, el) {
+      // Direct file download trigger
+      const sanitizeName = (n) => {
+        return n.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-') + '.pdf';
+      };
+      
+      const link = document.createElement('a');
+      link.href = 'downloads/' + sanitizeName(name);
+      link.download = sanitizeName(name);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
       // Local download visual feedback
       const orig = el.innerHTML;
       el.innerHTML = '<i class="fas fa-check"></i> Downloading…';
