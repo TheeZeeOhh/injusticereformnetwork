@@ -448,6 +448,16 @@
     const checked = document.querySelectorAll('[data-filter="category"]:checked');
     activeCategories = Array.from(checked).map(c => c.value);
   }
+
+  // Parse URL query parameter for category on load
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCategory = urlParams.get('category');
+  if (urlCategory) {
+    document.querySelectorAll('[data-filter="category"]').forEach(cb => {
+      cb.checked = (cb.value === urlCategory);
+    });
+  }
+
   syncCategories(); // init
 
   // ── Category checkboxes ──
