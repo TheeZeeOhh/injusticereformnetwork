@@ -385,38 +385,74 @@
 <div class="container">
   <div class="resources-layout">
 
-    <!-- SIDEBAR -->
-    <aside class="res-sidebar" id="resSidebar">
-
-      <h3><i class="fas fa-grid-2" style="margin-right:6px;"></i> Category</h3>
-      <div style="margin-bottom:20px;">
-        <button class="cat-btn active" data-cat="all"><i class="fas fa-infinity"></i> All Resources <span class="cat-count">19</span></button>
-        <button class="cat-btn" data-cat="organizing"><i class="fas fa-people-group"></i> Community Organizing <span class="cat-count">4</span></button>
-        <button class="cat-btn" data-cat="legal"><i class="fas fa-scale-balanced"></i> Legal Rights <span class="cat-count">4</span></button>
-        <button class="cat-btn" data-cat="criminal-justice"><i class="fas fa-gavel"></i> Criminal Justice <span class="cat-count">4</span></button>
-        <button class="cat-btn" data-cat="digital"><i class="fas fa-shield-halved"></i> Digital Security <span class="cat-count">3</span></button>
-        <button class="cat-btn" data-cat="narrative"><i class="fas fa-pen-nib"></i> Narrative &amp; Story <span class="cat-count">2</span></button>
-        <button class="cat-btn" data-cat="environmental"><i class="fas fa-leaf"></i> Environmental Justice <span class="cat-count">1</span></button>
-        <button class="cat-btn" data-cat="policy"><i class="fas fa-landmark"></i> Policy &amp; Advocacy <span class="cat-count">1</span></button>
+    <!-- SIDEBAR (ASCII-Inspired folder card) -->
+    <aside class="res-sidebar-card" id="resSidebar" style="border: 2px solid rgba(201,168,76,0.18); border-radius: 12px; background: var(--bg-card); overflow: hidden; box-shadow: var(--shadow-card); margin-bottom: 30px;">
+      
+      <!-- Card Header -->
+      <div style="background: rgba(201,168,76,0.06); padding: 16px 20px; border-bottom: 2px solid rgba(201,168,76,0.18); display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-family:'Playfair Display', serif; font-size:1.15rem; color:#fff; font-weight:800; margin:0; letter-spacing: 0.3px;"><i class="fas fa-folder-open" style="color:var(--accent-1); margin-right:8px;"></i> IRN Resource Center</h3>
       </div>
 
-      <div class="divider" style="margin-bottom:20px;"></div>
-
-      <h3><i class="fas fa-file-circle-check" style="margin-right:6px;"></i> Format</h3>
-      <div class="format-chips">
-        <button class="fmt-chip active" data-fmt="all"><i class="fas fa-infinity"></i> All Formats</button>
-        <button class="fmt-chip" data-fmt="pdf"><i class="fas fa-file-pdf" style="color:#f87171;"></i> PDF</button>
-        <button class="fmt-chip" data-fmt="template"><i class="fas fa-file-lines" style="color:#fbbf24;"></i> Template</button>
-        <button class="fmt-chip" data-fmt="guide"><i class="fas fa-book-open" style="color:#6ee7b7;"></i> Guide</button>
-        <button class="fmt-chip" data-fmt="doc"><i class="fas fa-file-word" style="color:#93c5fd;"></i> Doc</button>
+      <!-- Categories List -->
+      <div style="padding: 16px 0;">
+        <button class="cat-btn active" data-cat="all" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
+          <span><i class="fas fa-infinity" style="margin-right:8px; color:var(--accent-1);"></i> All Resources</span>
+          <span style="opacity:0.6;">(19)</span>
+        </button>
+        <button class="cat-btn" data-cat="organizing" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
+          <span><i class="fas fa-people-group" style="margin-right:8px; color:var(--accent-1);"></i> Community Organizing</span>
+          <span style="opacity:0.6;">(12)</span>
+        </button>
+        <button class="cat-btn" data-cat="legal" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
+          <span><i class="fas fa-scale-balanced" style="margin-right:8px; color:var(--accent-1);"></i> Legal Rights</span>
+          <span style="opacity:0.6;">(18)</span>
+        </button>
+        <button class="cat-btn" data-cat="criminal-justice" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
+          <span><i class="fas fa-gavel" style="margin-right:8px; color:var(--accent-1);"></i> Criminal Justice</span>
+          <span style="opacity:0.6;">(14)</span>
+        </button>
+        <button class="cat-btn" data-cat="digital" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
+          <span><i class="fas fa-shield-halved" style="margin-right:8px; color:var(--accent-1);"></i> Digital Security</span>
+          <span style="opacity:0.6;">(9)</span>
+        </button>
+        <button class="cat-btn" data-cat="policy" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
+          <span><i class="fas fa-landmark" style="margin-right:8px; color:var(--accent-1);"></i> Policy &amp; Advocacy</span>
+          <span style="opacity:0.6;">(11)</span>
+        </button>
       </div>
 
-      <div class="divider" style="margin:20px 0;"></div>
+      <!-- Action Panel & Filters -->
+      <div style="border-top: 2px solid rgba(201,168,76,0.18); background: rgba(0,0,0,0.15); padding: 18px 20px;">
+        
+        <div class="filter-group-label" style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:12px; letter-spacing:0.5px;">Actions &amp; Tools</div>
+        
+        <!-- Search Resources Button / Input Trigger -->
+        <a href="#resourceSearch" onclick="document.getElementById('resourceSearch').focus(); return false;" class="cat-btn" style="display:flex; align-items:center; gap:10px; width:100%; padding:8px 0; color:var(--text-secondary); font-size:0.85rem; font-weight:600; text-align:left; border:none; background:none;">
+          <i class="fas fa-search" style="color:var(--accent-2); width:16px;"></i> Search Resources
+        </a>
+        
+        <!-- Filter by Topic Toggle -->
+        <a href="#" onclick="document.getElementById('mobileFilterBtn').click(); return false;" class="cat-btn" style="display:flex; align-items:center; gap:10px; width:100%; padding:8px 0; color:var(--text-secondary); font-size:0.85rem; font-weight:600; text-align:left; border:none; background:none;">
+          <i class="fas fa-sliders" style="color:var(--accent-2); width:16px;"></i> Filter by Topic
+        </a>
+        
+        <!-- Download All active / Bulk download simulation -->
+        <a href="downloads/train-the-trainer-toolkit.pdf" download class="cat-btn" style="display:flex; align-items:center; gap:10px; width:100%; padding:8px 0; color:var(--text-secondary); font-size:0.85rem; font-weight:600; text-align:left; border:none; background:none;">
+          <i class="fas fa-download" style="color:var(--accent-2); width:16px;"></i> Download Toolkits
+        </a>
+        
+        <!-- Launch Tool -> link to War room workspace -->
+        <a href="workspace.html" class="cat-btn" style="display:flex; align-items:center; gap:10px; width:100%; padding:8px 0; color:var(--text-secondary); font-size:0.85rem; font-weight:600; text-align:left; border:none; background:none;">
+          <i class="fas fa-arrow-up-right-from-square" style="color:var(--accent-2); width:16px;"></i> Launch War Room
+        </a>
 
-      <button class="cat-btn" id="resetAll" style="color:var(--text-muted);margin-top:0;">
-        <i class="fas fa-rotate-left"></i> Reset Filters
-      </button>
+        <div class="divider" style="margin: 14px 0; border-color: rgba(255,255,255,0.05);"></div>
 
+        <button id="resetAll" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; font-weight:600; display:flex; align-items:center; gap:6px; padding:0; cursor:pointer;">
+          <i class="fas fa-rotate-left"></i> Reset All Filters
+        </button>
+
+      </div>
     </aside>
 
     <!-- CONTENT -->
