@@ -1002,7 +1002,7 @@
     "organize": "Organizing is about relationship-building. It means having one-on-one conversations where you listen to what keeps people up at night, and then challenge them to act collectively. Mobilizing is just getting people to a rally; organizing is building the permanent power structure to win.",
     "marcus": "Marcus Webb is no longer with the Injustice Reform Network. I have taken over leading our core curriculum, including the 'Organizer's Playbook' and 'Prison Abolition' courses.",
     "baltimore": "Baltimore is my home and my battleground. Everything I know about organizing was learned on the streets here, working alongside tenant organizers, street medics, and warehouse workers. Power is built from the bottom up, not from executive suites.",
-    "rights": "If you are arrested or police detain you, assert your rights. You have the right to remain silent ('I am exercising my right to remain silent and want to speak to a lawyer'). Don't consent to searches or sign anything without an attorney. Aziza "Zee" Okoro covers this in detail in her Know Your Rights training.",
+    "rights": "If you are arrested or police detain you, assert your rights. You have the right to remain silent ('I am exercising my right to remain silent and want to speak to a lawyer'). Don't consent to searches or sign anything without an attorney. Aziza 'Zee' Okoro covers this in detail in her Know Your Rights training.",
     "arrest": "If you are arrested: 1. Assert your right to remain silent ('I am exercising my right to remain silent and want to speak to a lawyer'). 2. Do not sign anything without an attorney. 3. Do not consent to search of your phone or bags. 4. Call your action's jail support line immediately.",
     "police": "When dealing with police: 1. Ask 'Am I free to go?' If yes, walk away. 2. If detained, ask 'Why am I being detained?' 3. You have the right to film them in public spaces. 4. Never lie or physically resist, but never consent to searches or answer questions without a lawyer.",
     "cop": "When dealing with police: 1. Ask 'Am I free to go?' If yes, walk away. 2. If detained, ask 'Why am I being detained?' 3. You have the right to film them in public spaces. 4. Never lie or physically resist, but never consent to searches or answer questions without a lawyer.",
@@ -1024,7 +1024,7 @@
   const courseCurriculum = {
     playbook: {
       title: "Course 1: The Organizer's Playbook",
-      instructor: "Aziza "Zee" Okoro (Vice President, IRN · Founder, Radiant Threshold · Founder, Radiant Threshold)",
+      instructor: "Aziza 'Zee' Okoro (Vice President, IRN · Founder, Radiant Threshold)",
       steps: [
         {
           title: "Step 1 of 3: Base Building & Deep Listening",
@@ -1042,7 +1042,7 @@
     },
     abolition: {
       title: "Course 2: Prison Abolition & Reform",
-      instructor: "Aziza "Zee" Okoro (Vice President, IRN · Founder, Radiant Threshold · Founder, Radiant Threshold)",
+      instructor: "Aziza 'Zee' Okoro (Vice President, IRN · Founder, Radiant Threshold)",
       steps: [
         {
           title: "Step 1 of 3: Decarceration & Policy Action",
@@ -1060,7 +1060,7 @@
     },
     rights: {
       title: "Course 3: Know Your Rights",
-      instructor: "Aziza "Zee" Okoro (Vice President, IRN · Founder, Radiant Threshold · Founder, Radiant Threshold)",
+      instructor: "Aziza 'Zee' Okoro (Vice President, IRN · Founder, Radiant Threshold)",
       steps: [
         {
           title: "Step 1 of 3: The 4th Amendment & Search Defense",
@@ -1114,7 +1114,7 @@
     },
     digital: {
       title: "Course 6: Digital Organizing",
-      instructor: "Aziza "Zee" Okoro (Vice President, IRN · Founder, Radiant Threshold)",
+      instructor: "Aziza 'Zee' Okoro (Vice President, IRN · Founder, Radiant Threshold)",
       steps: [
         {
           title: "Step 1 of 3: Rapid Response & Ingress Funnels",
