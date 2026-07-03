@@ -44,8 +44,8 @@ router.post('/', async (req, res) => {
 
   // Select a model from those known to be installed
   // Prefer llama3.2, then mistral, then dolphin-llama3, then fallback
-  const preferredModels = ['llama3.2:latest', 'mistral:7b-instruct-v0.3-q4_K_M', 'dolphin-llama3:latest', 'qwen2.5:0.5b'];
-  let selectedModel = 'llama3.2:latest'; // default default
+  const preferredModels = ['qwen2.5:0.5b', 'llama3.2:latest', 'mistral:7b-instruct-v0.3-q4_K_M', 'dolphin-llama3:latest'];
+  let selectedModel = 'qwen2.5:0.5b'; // lightweight default, loads instantly
 
   // We can query the local Ollama instance
   const postData = JSON.stringify({
