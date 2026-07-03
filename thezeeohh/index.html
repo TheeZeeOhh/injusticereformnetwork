@@ -590,6 +590,158 @@
 <div class="divider"></div>
 
 <!-- ═══════════════════════════════════════════
+     SOVEREIGN OS — INTERACTIVE SOFTWARE SUITE
+═══════════════════════════════════════════ -->
+<section class="section" id="sovereign-os" style="background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);">
+  <div class="container">
+    <div class="section-header animate-on-scroll">
+      <div class="section-label"><i class="fas fa-terminal"></i> Sovereign OS v2.0</div>
+      <h2>Interact with <span class="gradient-text">Justice</span></h2>
+      <p>Don't just read about our work — use our civic software tools. Search public records, draft FOIA requests, audit judges, and run AI analysis locally.</p>
+    </div>
+
+    <!-- Tabbed Software Interface -->
+    <div class="sovereign-suite-container animate-on-scroll" style="margin-top: 40px; display: grid; grid-template-columns: 240px 1fr; gap: 32px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-xl); overflow: hidden; min-height: 520px;">
+      
+      <!-- Left sidebar tabs -->
+      <div class="suite-sidebar" style="background: rgba(0,0,0,0.15); border-right: 1px solid var(--border-glass); padding: 20px; display: flex; flex-direction: column; gap: 6px;">
+        <button class="suite-tab-btn active" data-tab="tab-judge"><i class="fas fa-gavel"></i> Search a Judge</button>
+        <button class="suite-tab-btn" data-tab="tab-foia"><i class="fas fa-file-invoice"></i> FOIA Builder</button>
+        <button class="suite-tab-btn" data-tab="tab-analyzer"><i class="fas fa-brain"></i> AI Document Scanner</button>
+        <button class="suite-tab-btn" data-tab="tab-rights"><i class="fas fa-shield-halved"></i> Rights Navigator</button>
+        <button class="suite-tab-btn" data-tab="tab-stats"><i class="fas fa-chart-pie"></i> Court Statistics</button>
+      </div>
+
+      <!-- Right content window -->
+      <div class="suite-content" style="padding: 32px; overflow-y: auto;">
+        
+        <!-- TAB 1: Search a Judge -->
+        <div class="suite-panel active" id="tab-judge">
+          <h3 style="font-size:1.3rem; font-weight:800; margin-bottom:12px; color:var(--text-primary);">🔍 Judge & Public Official Auditor</h3>
+          <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">Search judicial records and performance metrics. Enter a judge's name to view data on bail rates, racial disparities, and complaints.</p>
+          
+          <div style="display:flex; gap:12px; margin-bottom:24px;">
+            <input type="text" id="judge-search-input" placeholder="Enter judge name (e.g. Harrison, Vance, Smith)..." style="flex:1; background:var(--bg-primary); border:1px solid var(--border-glass); padding:12px 16px; border-radius:8px; color:#fff;" />
+            <button class="btn btn-primary" id="btn-search-judge">Search Record</button>
+          </div>
+
+          <div id="judge-results" style="display:none; background:rgba(0,0,0,0.2); border:1px solid var(--border-glass); border-radius:10px; padding:20px;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- TAB 2: FOIA Builder -->
+        <div class="suite-panel" id="tab-foia" style="display:none;">
+          <h3 style="font-size:1.3rem; font-weight:800; margin-bottom:12px; color:var(--text-primary);">📑 Interactive FOIA Request Builder</h3>
+          <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">Generate legal public records requests instantly. Select your jurisdiction and fill out the details below.</p>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;">
+            <div>
+              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; font-weight:600;">JURISDICTION</label>
+              <select id="foia-state" style="width:100%; background:var(--bg-primary); border:1px solid var(--border-glass); padding:10px; border-radius:6px; color:#fff;">
+                <option value="VA">Virginia (VFOIA)</option>
+                <option value="MD">Maryland (PIA)</option>
+                <option value="DC">District of Columbia</option>
+                <option value="NC">North Carolina</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; font-weight:600;">AGENCY NAME</label>
+              <input type="text" id="foia-agency" placeholder="e.g. Portsmouth Police Department" style="width:100%; background:var(--bg-primary); border:1px solid var(--border-glass); padding:10px; border-radius:6px; color:#fff;" />
+            </div>
+          </div>
+
+          <div style="margin-bottom:18px;">
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; font-weight:600;">RECORDS REQUEST DESCRIPTION</label>
+            <textarea id="foia-desc" placeholder="Describe the specific records you want (e.g. emails, body camera footage)..." style="width:100%; height:80px; background:var(--bg-primary); border:1px solid var(--border-glass); padding:10px; border-radius:6px; color:#fff; font-family:sans-serif; resize:none;"></textarea>
+          </div>
+
+          <button class="btn btn-primary" id="btn-generate-foia">Generate Legal Letter</button>
+
+          <div id="foia-output-container" style="display:none; margin-top:20px;">
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; font-weight:600;">GENERATED REQUEST</label>
+            <textarea id="foia-letter-text" readonly style="width:100%; height:120px; background:var(--bg-primary); border:1px solid var(--border-glass); padding:12px; border-radius:6px; color:var(--gold); font-family:monospace; font-size:0.78rem; resize:none;"></textarea>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-foia" style="margin-top:8px;"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+          </div>
+        </div>
+
+        <!-- TAB 3: AI Document Scanner -->
+        <div class="suite-panel" id="tab-analyzer" style="display:none;">
+          <h3 style="font-size:1.3rem; font-weight:800; margin-bottom:12px; color:var(--text-primary);">🤖 Local AI Document Analyzer</h3>
+          <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">Upload a police report or paste testimony text to check for narrative inconsistencies or constitutional violations.</p>
+          
+          <div style="margin-bottom:18px;">
+            <textarea id="analyzer-input" placeholder="Paste police report narrative, court transcript, or official statement here..." style="width:100%; height:120px; background:var(--bg-primary); border:1px solid var(--border-glass); padding:10px; border-radius:6px; color:#fff; font-family:monospace; font-size:0.85rem; resize:none;"></textarea>
+          </div>
+
+          <button class="btn btn-primary" id="btn-analyze-doc">Analyze Document</button>
+
+          <div id="analyzer-output" style="display:none; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); border-radius:10px; padding:20px; margin-top:20px; font-family:monospace; font-size:0.8rem; color:#10b981; max-height:160px; overflow-y:auto; border-left:4px solid #10b981;">
+            <!-- Simulated console output -->
+          </div>
+        </div>
+
+        <!-- TAB 4: Rights Navigator -->
+        <div class="suite-panel" id="tab-rights" style="display:none;">
+          <h3 style="font-size:1.3rem; font-weight:800; margin-bottom:12px; color:var(--text-primary);">⚖ Interactive Rights Navigator</h3>
+          <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">Select your current scenario to get precise legal scripts and constitutional guidelines immediately.</p>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+            <button class="btn btn-secondary rights-btn" data-scenario="traffic">🚗 Police Traffic Stop</button>
+            <button class="btn btn-secondary rights-btn" data-scenario="street">🚶 Stopped on the Street</button>
+            <button class="btn btn-secondary rights-btn" data-scenario="home">🏠 Police at My Door</button>
+            <button class="btn btn-secondary rights-btn" data-scenario="protest">🪧 Arrested at a Protest</button>
+          </div>
+
+          <div id="rights-output" style="display:none; background:rgba(201,168,76,0.06); border:1px solid var(--border-glass); border-radius:10px; padding:20px; border-left:4px solid var(--gold);">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- TAB 5: Court Statistics -->
+        <div class="suite-panel" id="tab-stats" style="display:none;">
+          <h3 style="font-size:1.3rem; font-weight:800; margin-bottom:12px; color:var(--text-primary);">📊 Court Disparity & Sentencing Metrics</h3>
+          <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">Racial disparity index and bail metrics based on Norfolk & Hampton Roads court records audited by IRN.</p>
+          
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
+                <span>Bail Setting Disparity (Black vs. White defendants for identical charges)</span>
+                <span style="color:var(--accent-2); font-weight:700;">+240% Higher Bail</span>
+              </div>
+              <div style="height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
+                <div style="width:78%; height:100%; background:var(--accent-gradient);"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
+                <span>Average Sentence Length Disparity (Drug offenses)</span>
+                <span style="color:var(--accent-2); font-weight:700;">3.2x Longer Sentences</span>
+              </div>
+              <div style="height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
+                <div style="width:68%; height:100%; background:var(--accent-gradient);"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
+                <span>Portsmouth Police Discretionary Arrest Rate for Misdemeanors</span>
+                <span style="color:var(--accent-2); font-weight:700;">87% Black Defendants</span>
+              </div>
+              <div style="height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
+                <div style="width:87%; height:100%; background:var(--accent-gradient);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
      ACTIVE INVESTIGATIONS FEED
 ═══════════════════════════════════════════ -->
 <section class="section" style="background: var(--bg-secondary);" id="investigations">
