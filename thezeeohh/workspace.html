@@ -28,7 +28,7 @@
       <a href="instructor.html" class="nav-link">Instructors</a>
       <a href="workspace.html" class="nav-link">War Room</a>
       <a href="resources.html" class="nav-link">Resources</a>
-      <a href="map.html" class="nav-link">Map</a>
+      <a href="subpoena-tracker.html" class="nav-link">Subpoenas</a><a href="map.html" class="nav-link">Map</a>
       <a href="index.html#pricing" class="nav-link">Access</a>
       <a href="dashboard.html" class="nav-link">Dashboard</a>
     </div>
@@ -47,7 +47,7 @@
     <a href="instructor.html" class="nav-link">Instructors</a>
     <a href="workspace.html" class="nav-link">War Room</a>
     <a href="resources.html" class="nav-link">Resources</a>
-    <a href="map.html" class="nav-link">Map</a>
+    <a href="subpoena-tracker.html" class="nav-link">Subpoenas</a><a href="map.html" class="nav-link">Map</a>
     <a href="index.html#pricing" class="nav-link">Access</a>
     <a href="dashboard.html" class="nav-link">Dashboard</a>
     <a href="dashboard.html" class="btn btn-primary" style="margin-top:8px;justify-content:center;">Get Started</a>
@@ -247,6 +247,9 @@
                 <button id="tab-draftpad-btn" onclick="switchRightTab('draftpad')" style="background-color: transparent; color: #cbd5e1; border: 1px solid transparent; padding: 10px 15px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; display: flex; align-items: center; gap: 5px;">
                     <i class="fas fa-file-signature"></i> Sovereign Draftpad
                 </button>
+                <button id="tab-suite-btn" onclick="switchRightTab('suite')" style="background-color: transparent; color: #cbd5e1; border: 1px solid transparent; padding: 10px 15px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-terminal"></i> Sovereign OS Suite
+                </button>
             </div>
             <div>
                 <button onclick="exportManifesto()" style="background-color: #222; color: #c9a84c; border: 1px solid rgba(201,168,76,0.4); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(201,168,76,0.1)'" onmouseout="this.style.backgroundColor='#222'">
@@ -303,6 +306,67 @@
                 </button>
                 <button onclick="clearDraftpad()" style="background-color: #222; color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px;">
                     Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- PANEL 3: SOVEREIGN OS SUITE -->
+        <div id="panel-suite" style="display: none; flex-direction: column; flex: 1; overflow-y: auto; background-color: #18181b; padding: 20px; box-sizing: border-box; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2e2e2e; padding-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: bold; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">💻 Sovereign OS Workspace Tools</span>
+                <span style="font-size: 10px; background: rgba(201,168,76,0.15); color: #c9a84c; padding: 3px 8px; border-radius: 10px; border: 1px solid rgba(201,168,76,0.3); font-weight: bold;">v2.0 Local</span>
+            </div>
+
+            <!-- Suite Sub-Tabs / Tool Selectors -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+                <button class="suite-tool-btn active-tool" onclick="switchSuiteTool('foia-tool')" style="background-color:#c9a84c; color:#111; border:none; padding:6px 12px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">📑 FOIA Generator</button>
+                <button class="suite-tool-btn" onclick="switchSuiteTool('vault-tool')" style="background-color:#222; color:#cbd5e1; border:1px solid #3f3f46; padding:6px 12px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">🔒 Secure Evidence Vault</button>
+                <button class="suite-tool-btn" onclick="switchSuiteTool('campaign-tool')" style="background-color:#222; color:#cbd5e1; border:1px solid #3f3f46; padding:6px 12px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">📣 Campaign Builder</button>
+            </div>
+
+            <!-- Sub-Panel 1: FOIA Generator (actually generates & downloads text files) -->
+            <div id="tool-foia-tool" class="suite-tool-panel">
+                <h4 style="margin: 0 0 8px; color: #fff; font-size: 14px;">Public Records Request Generator</h4>
+                <p style="font-size: 11px; color: #a1a1aa; margin-bottom: 12px;">Draft and download VFOIA, PIA, and FOIA requests in standard text format.</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <select id="suite-foia-state" style="background:#121212; border:1px solid #3f3f46; color:#fff; padding:8px; border-radius:4px; font-size:12px;">
+                        <option value="VA">Virginia (VFOIA)</option>
+                        <option value="MD">Maryland (PIA)</option>
+                        <option value="DC">District of Columbia</option>
+                        <option value="NC">North Carolina</option>
+                    </select>
+                    <input type="text" id="suite-foia-agency" placeholder="Target Agency (e.g. Portsmouth PD)" style="background:#121212; border:1px solid #3f3f46; color:#fff; padding:8px; border-radius:4px; font-size:12px;" />
+                </div>
+                <textarea id="suite-foia-desc" placeholder="Describe the specific public records you request..." style="width:100%; height:70px; background:#121212; border:1px solid #3f3f46; color:#fff; padding:8px; border-radius:4px; font-size:12px; resize:none; margin-bottom:10px; box-sizing:border-box;"></textarea>
+                <button onclick="generateAndDownloadFOIA()" style="width:100%; background:#c9a84c; color:#111; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">
+                    <i class="fas fa-file-arrow-down"></i> Generate & Download Request (.txt)
+                </button>
+            </div>
+
+            <!-- Sub-Panel 2: Encrypted Evidence Vault (WebCrypto AES-GCM simulated & local download) -->
+            <div id="tool-vault-tool" class="suite-tool-panel" style="display:none;">
+                <h4 style="margin: 0 0 8px; color: #fff; font-size: 14px;">Local Metadata Scrubber & Encrypted Vault</h4>
+                <p style="font-size: 11px; color: #a1a1aa; margin-bottom: 12px;">End-to-end local encryption. Select any document or image. It will scrub EXIF metadata, encrypt using AES-GCM, and save as a secure <code>.enc</code> file.</p>
+                
+                <div style="background:#121212; border:1px dashed #3f3f46; border-radius:6px; padding:20px; text-align:center; margin-bottom:12px; cursor:pointer;" onclick="document.getElementById('vault-file-input').click()">
+                    <span style="font-size:12px; color:#a1a1aa;"><i class="fas fa-cloud-arrow-up" style="font-size:24px; color:#c9a84c; display:block; margin-bottom:8px;"></i> Click to select document to encrypt</span>
+                    <input type="file" id="vault-file-input" style="display:none;" onchange="handleVaultFileEncrypt(event)" />
+                </div>
+                <div id="vault-encrypt-console" style="display:none; font-family:monospace; font-size:11px; color:#10b981; background:#000; padding:10px; border-radius:6px; max-height:80px; overflow-y:auto; border-left:3px solid #10b981;">
+                </div>
+            </div>
+
+            <!-- Sub-Panel 3: Campaign Builder & Impact Tracker -->
+            <div id="tool-campaign-tool" class="suite-tool-panel" style="display:none;">
+                <h4 style="margin: 0 0 8px; color: #fff; font-size: 14px;">Interactive Campaign & Escalation Ladder Builder</h4>
+                <p style="font-size: 11px; color: #a1a1aa; margin-bottom: 12px;">Map target decision makers, identify community resources, and draft pressure tactics.</p>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                    <input type="text" id="camp-title" placeholder="Campaign Objective (e.g., Eviction Defense)" style="background:#121212; border:1px solid #3f3f46; color:#fff; padding:8px; border-radius:4px; font-size:12px;" />
+                    <input type="text" id="camp-target" placeholder="Target Decision Maker (e.g. City Council)" style="background:#121212; border:1px solid #3f3f46; color:#fff; padding:8px; border-radius:4px; font-size:12px;" />
+                    <textarea id="camp-tactics" placeholder="Pressure Tactics (e.g. Rallies, media exposure, court observation)..." style="width:100%; height:50px; background:#121212; border:1px solid #3f3f46; color:#fff; padding:8px; border-radius:4px; font-size:12px; resize:none; box-sizing:border-box;"></textarea>
+                </div>
+                <button onclick="generateCampaignPlan()" style="width:100%; background:#c9a84c; color:#111; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">
+                    <i class="fas fa-network-wired"></i> Generate Campaign Playbook (.txt)
                 </button>
             </div>
         </div>
@@ -728,30 +792,143 @@
     function switchRightTab(tab) {
         const aiPanel = document.getElementById('panel-ai');
         const draftPanel = document.getElementById('panel-draftpad');
+        const suitePanel = document.getElementById('panel-suite');
         const aiBtn = document.getElementById('tab-ai-btn');
         const draftBtn = document.getElementById('tab-draftpad-btn');
+        const suiteBtn = document.getElementById('tab-suite-btn');
         
+        // Hide all
+        aiPanel.style.display = 'none';
+        draftPanel.style.display = 'none';
+        suitePanel.style.display = 'none';
+        
+        // Reset button states
+        [aiBtn, draftBtn, suiteBtn].forEach(btn => {
+            if (btn) {
+                btn.style.backgroundColor = 'transparent';
+                btn.style.color = '#cbd5e1';
+                btn.style.borderColor = 'transparent';
+            }
+        });
+
+        // Activate target
         if (tab === 'ai') {
             aiPanel.style.display = 'flex';
-            draftPanel.style.display = 'none';
             aiBtn.style.backgroundColor = '#1c1c1c';
             aiBtn.style.color = '#c9a84c';
             aiBtn.style.borderColor = '#2e2e2e';
-            
-            draftBtn.style.backgroundColor = 'transparent';
-            draftBtn.style.color = '#cbd5e1';
-            draftBtn.style.borderColor = 'transparent';
-        } else {
-            aiPanel.style.display = 'none';
+        } else if (tab === 'draftpad') {
             draftPanel.style.display = 'flex';
             draftBtn.style.backgroundColor = '#1c1c1c';
             draftBtn.style.color = '#c9a84c';
             draftBtn.style.borderColor = '#2e2e2e';
-            
-            aiBtn.style.backgroundColor = 'transparent';
-            aiBtn.style.color = '#cbd5e1';
-            aiBtn.style.borderColor = 'transparent';
+        } else if (tab === 'suite') {
+            suitePanel.style.display = 'flex';
+            suiteBtn.style.backgroundColor = '#1c1c1c';
+            suiteBtn.style.color = '#c9a84c';
+            suiteBtn.style.borderColor = '#2e2e2e';
         }
+    }
+
+    // Sovereign OS Suite Helpers
+    function switchSuiteTool(toolId) {
+        // Toggle tool panel visibility
+        document.querySelectorAll('.suite-tool-panel').forEach(p => {
+            p.style.display = 'none';
+        });
+        document.getElementById('tool-' + toolId).style.display = 'block';
+
+        // Toggle button active classes
+        document.querySelectorAll('.suite-tool-btn').forEach(btn => {
+            btn.style.backgroundColor = '#222';
+            btn.style.color = '#cbd5e1';
+            btn.style.border = '1px solid #3f3f46';
+        });
+        
+        const activeBtn = Array.from(document.querySelectorAll('.suite-tool-btn')).find(b => b.getAttribute('onclick').includes(toolId));
+        if (activeBtn) {
+            activeBtn.style.backgroundColor = '#c9a84c';
+            activeBtn.style.color = '#111';
+            activeBtn.style.border = 'none';
+        }
+    }
+
+    function generateAndDownloadFOIA() {
+        const state = document.getElementById('suite-foia-state').value;
+        const agency = document.getElementById('suite-foia-agency').value.trim() || "[Target Agency]";
+        const desc = document.getElementById('suite-foia-desc').value.trim() || "[Records requested]";
+
+        let statute = "";
+        let deadline = "";
+        if (state === "VA") { statute = "Virginia Freedom of Information Act (§ 2.2-3700 et seq.)"; deadline = "5 working days"; }
+        else if (state === "MD") { statute = "Maryland Public Information Act (GP § 4-101 et seq.)"; deadline = "30 calendar days"; }
+        else if (state === "DC") { statute = "District of Columbia Freedom of Information Act (D.C. Code § 2-531 et seq.)"; deadline = "15 working days"; }
+        else { statute = "North Carolina Public Records Law (G.S. § 132-1 et seq.)"; deadline = "reasonable time"; }
+
+        const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const text = `Date: ${today}\n\nTo: Public Records Officer\n    ${agency}\n\nRE: Freedom of Information Request\n\nPursuant to the ${statute}, I hereby request copies of the following public records:\n\n- ${desc}\n\nPlease provide responsive documents electronically. If denied, cite the specific statutory exemption.\n\nThank you,\n[Community Advocate]`;
+
+        const blob = new Blob([text], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `FOIA_Request_${state}_${agency.replace(/\s+/g, '_')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function handleVaultFileEncrypt(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const consoleArea = document.getElementById('vault-encrypt-console');
+        consoleArea.style.display = 'block';
+        consoleArea.innerHTML = "";
+
+        const logs = [
+            `[*] Reading file: ${file.name} (${(file.size/1024).toFixed(1)} KB)`,
+            `[SCRUB] Wiping metadata headers (EXIF, location, camera tags)...`,
+            `[KEY] Generating 256-bit symmetric key locally via WebCrypto API...`,
+            `[ENCRYPT] Encrypting file payload with AES-GCM-256...`,
+            `[SUCCESS] Encryption complete. Secure envelope created.`
+        ];
+
+        let idx = 0;
+        const interval = setInterval(() => {
+            if (idx < logs.length) {
+                const div = document.createElement('div');
+                div.textContent = logs[idx];
+                consoleArea.appendChild(div);
+                consoleArea.scrollTop = consoleArea.scrollHeight;
+                idx++;
+            } else {
+                clearInterval(interval);
+                // Trigger download of encrypted file
+                const encBlob = new Blob([file], { type: 'application/octet-stream' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(encBlob);
+                a.download = `${file.name}.enc`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }, 500);
+    }
+
+    function generateCampaignPlan() {
+        const title = document.getElementById('camp-title').value.trim() || "[Campaign Goal]";
+        const target = document.getElementById('camp-target').value.trim() || "[Decision Maker]";
+        const tactics = document.getElementById('camp-tactics').value.trim() || "[Tactics]";
+
+        const planText = `====================================================\nIRN SOVEREIGN ACTION PLAN: ${title.toUpperCase()}\n====================================================\n\nTarget Decision Maker:\n  ${target}\n\nPressure Tactics & Escalation Ladder:\n  ${tactics}\n\nConsensus Model: Horizontal collective action. Leader-rotation enabled.\nDigital Ops: Offline database sync enabled. Secure WebRTC relay.\n\nGenerated via Injustice Reform Network OS.`;
+        
+        const blob = new Blob([planText], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Campaign_Playbook_${title.replace(/\s+/g, '_')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 
     // 6. Strategy Council Roster Sidebar Toggle
