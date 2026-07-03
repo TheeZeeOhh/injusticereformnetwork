@@ -338,7 +338,7 @@
       <a href="instructor.html" class="nav-link">Instructors</a>
       <a href="workspace.html" class="nav-link">War Room</a>
       <a href="resources.html" class="nav-link">Resources</a>
-      <a href="map.html" class="nav-link">Map</a>
+      <a href="subpoena-tracker.html" class="nav-link">Subpoenas</a><a href="map.html" class="nav-link">Map</a>
       <a href="index.html#pricing" class="nav-link">Access</a>
       <a href="dashboard.html" class="nav-link">Dashboard</a>
     </div>
@@ -356,7 +356,7 @@
     <a href="instructor.html" class="nav-link">Instructors</a>
     <a href="workspace.html" class="nav-link">War Room</a>
     <a href="resources.html" class="nav-link">Resources</a>
-    <a href="map.html" class="nav-link">Map</a>
+    <a href="subpoena-tracker.html" class="nav-link">Subpoenas</a><a href="map.html" class="nav-link">Map</a>
     <a href="index.html#pricing" class="nav-link">Access</a>
     <a href="dashboard.html" class="nav-link">Dashboard</a>
     <a href="dashboard.html" class="btn btn-primary" style="margin-top:8px;justify-content:center;">Get Started</a>
@@ -369,7 +369,7 @@
     <h1 style="font-size:2.6rem;font-weight:900;margin-bottom:10px;letter-spacing:-0.03em;">Tools for the <span class="gradient-text">Fight</span></h1>
     <p style="color:var(--text-secondary);font-size:1rem;max-width:580px;">Free organizing tools used by IRN chapters across the Mid-Atlantic — power mapping worksheets, FOIA letter templates, legal rights guides, digital security checklists, and more. No signup required.</p>
     <div class="hero-meta">
-      <div class="hero-stat"><i class="fas fa-file-alt"></i> 18 Free Resources</div>
+      <div class="hero-stat"><i class="fas fa-file-alt"></i> 20 Free Resources</div>
       <div class="hero-stat"><i class="fas fa-layer-group"></i> 7 Categories</div>
       <div class="hero-stat"><i class="fas fa-users"></i> Used by Hundreds of organizers</div>
       <div class="hero-stat"><i class="fas fa-lock-open"></i> No account required</div>
@@ -386,7 +386,7 @@
   <div class="resources-layout">
 
     <!-- SIDEBAR (ASCII-Inspired folder card) -->
-    <aside class="res-sidebar-card" id="resSidebar" style="border: 2px solid rgba(201,168,76,0.18); border-radius: 12px; background: var(--bg-card); overflow: hidden; box-shadow: var(--shadow-card); margin-bottom: 30px;">
+    <aside class="res-sidebar" id="resSidebar" style="border: 2px solid rgba(201,168,76,0.18); border-radius: 12px; background: var(--bg-card); overflow: hidden; box-shadow: var(--shadow-card); margin-bottom: 30px;">
       
       <!-- Card Header -->
       <div style="background: rgba(201,168,76,0.06); padding: 16px 20px; border-bottom: 2px solid rgba(201,168,76,0.18); display: flex; align-items: center; justify-content: space-between;">
@@ -397,28 +397,48 @@
       <div style="padding: 16px 0;">
         <button class="cat-btn active" data-cat="all" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
           <span><i class="fas fa-infinity" style="margin-right:8px; color:var(--accent-1);"></i> All Resources</span>
-          <span style="opacity:0.6;">(19)</span>
+          <span class="cat-count" style="opacity:0.6;">(20)</span>
         </button>
         <button class="cat-btn" data-cat="organizing" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
           <span><i class="fas fa-people-group" style="margin-right:8px; color:var(--accent-1);"></i> Community Organizing</span>
-          <span style="opacity:0.6;">(12)</span>
+          <span class="cat-count" style="opacity:0.6;">(5)</span>
         </button>
         <button class="cat-btn" data-cat="legal" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
           <span><i class="fas fa-scale-balanced" style="margin-right:8px; color:var(--accent-1);"></i> Legal Rights</span>
-          <span style="opacity:0.6;">(18)</span>
+          <span class="cat-count" style="opacity:0.6;">(4)</span>
         </button>
         <button class="cat-btn" data-cat="criminal-justice" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
           <span><i class="fas fa-gavel" style="margin-right:8px; color:var(--accent-1);"></i> Criminal Justice</span>
-          <span style="opacity:0.6;">(14)</span>
+          <span class="cat-count" style="opacity:0.6;">(4)</span>
         </button>
         <button class="cat-btn" data-cat="digital" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
           <span><i class="fas fa-shield-halved" style="margin-right:8px; color:var(--accent-1);"></i> Digital Security</span>
-          <span style="opacity:0.6;">(9)</span>
+          <span class="cat-count" style="opacity:0.6;">(3)</span>
+        </button>
+        <button class="cat-btn" data-cat="narrative" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
+          <span><i class="fas fa-microphone-lines" style="margin-right:8px; color:var(--accent-1);"></i> Narrative &amp; Story</span>
+          <span class="cat-count" style="opacity:0.6;">(2)</span>
+        </button>
+        <button class="cat-btn" data-cat="environmental" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
+          <span><i class="fas fa-leaf" style="margin-right:8px; color:var(--accent-1);"></i> Environmental Justice</span>
+          <span class="cat-count" style="opacity:0.6;">(1)</span>
         </button>
         <button class="cat-btn" data-cat="policy" style="display:flex; justify-content:space-between; width:100%; padding:10px 20px; text-align:left; border:none; background:none; font-size:0.9rem; font-weight:600; color:var(--text-secondary); transition:var(--transition-fast);">
           <span><i class="fas fa-landmark" style="margin-right:8px; color:var(--accent-1);"></i> Policy &amp; Advocacy</span>
-          <span style="opacity:0.6;">(11)</span>
+          <span class="cat-count" style="opacity:0.6;">(1)</span>
         </button>
+      </div>
+
+      <!-- Format Filter Chips Panel -->
+      <div style="border-top: 2px solid rgba(201,168,76,0.18); background: rgba(0,0,0,0.05); padding: 18px 20px;">
+        <div class="filter-group-label" style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:12px; letter-spacing:0.5px;">Filter by Format</div>
+        <div class="format-chips">
+          <button class="fmt-chip active" data-fmt="all"><i class="fas fa-layer-group"></i> All Formats</button>
+          <button class="fmt-chip" data-fmt="pdf"><i class="fas fa-file-pdf"></i> PDF Guides</button>
+          <button class="fmt-chip" data-fmt="template"><i class="fas fa-file-invoice"></i> Templates</button>
+          <button class="fmt-chip" data-fmt="guide"><i class="fas fa-book-open"></i> How-Tos</button>
+          <button class="fmt-chip" data-fmt="doc"><i class="fas fa-file-word"></i> Documents</button>
+        </div>
       </div>
 
       <!-- Action Panel & Filters -->
@@ -438,7 +458,7 @@
         
         <!-- Download All active / Bulk download simulation -->
         <a href="downloads/train-the-trainer-toolkit.pdf" download class="cat-btn" style="display:flex; align-items:center; gap:10px; width:100%; padding:8px 0; color:var(--text-secondary); font-size:0.85rem; font-weight:600; text-align:left; border:none; background:none;">
-          <i class="fas fa-download" style="color:var(--accent-2); width:16px;"></i> Download Toolkits
+          <i class="fas fa-download" style="color:var(--accent-2); width:16px;"></i> Download Trainer Toolkit
         </a>
         
         <!-- Launch Tool -> link to War room workspace -->
@@ -451,7 +471,6 @@
         <button id="resetAll" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; font-weight:600; display:flex; align-items:center; gap:6px; padding:0; cursor:pointer;">
           <i class="fas fa-rotate-left"></i> Reset All Filters
         </button>
-
       </div>
     </aside>
 
@@ -462,7 +481,7 @@
       <div class="resources-toolbar">
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <button class="mobile-filter-btn" id="mobileFilterBtn"><i class="fas fa-sliders"></i> Filters</button>
-          <p class="result-count">Showing <span id="resultCount">18</span> resources</p>
+          <p class="result-count">Showing <span id="resultCount">20</span> resources</p>
         </div>
         <select class="sort-select" id="sortSelect">
           <option value="featured">Featured</option>
@@ -593,10 +612,11 @@
               </div>
             </div>
           </div>
-          <p class="res-card-desc">Ready-to-send FOIA template for requesting police records, body cam footage, complaint histories, and internal affairs files. Includes Virginia FOIA Act citations and 5-day response demand language.</p>
-          <div class="res-card-footer">
+          <p class="res-card-desc">Ready-to-send FOIA template for requesting police records, body cam footage, complaint histories, and internal affairs files. Includes Virginia FOIA Act citations and 5-working-day statutory response window.</p>
+          <div class="res-card-footer" style="flex-wrap:wrap; gap:8px;">
             <a href="downloads/foia-request-letter-template.pdf" download class="res-dl-btn" onclick="trackDownload(this,'FOIA Request Letter Template');"><i class="fas fa-download"></i> Download</a>
             <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>4.1K downloads</span>
+            <div style="font-size:0.72rem; color:var(--text-muted); width:100%; margin-top:4px;"><i class="fas fa-circle-info"></i> Jurisdiction: Virginia | Reviewed: 2026-07 | Not legal advice.</div>
           </div>
         </div>
 
@@ -612,10 +632,12 @@
               </div>
             </div>
           </div>
-          <p class="res-card-desc">Pocket-sized rights card covering stops, searches, arrests, and detention. Includes scripts for common scenarios, how to invoke your right to remain silent, and what to document. Available in English and Spanish.</p>
-          <div class="res-card-footer">
-            <a href="downloads/know-your-rights-police-encounters.pdf" download class="res-dl-btn" onclick="trackDownload(this,'Know Your Rights: Police Encounters');"><i class="fas fa-download"></i> Download</a>
+          <p class="res-card-desc">Pocket-sized rights card covering stops, searches, arrests, and detention. Includes scripts for common scenarios, how to remain silent, and what to document. Available in English and Spanish.</p>
+          <div class="res-card-footer" style="flex-wrap:wrap; gap:8px;">
+            <a href="downloads/know-your-rights-police-encounters.pdf" download class="res-dl-btn" onclick="trackDownload(this,'Know Your Rights: Police Encounters');"><i class="fas fa-download"></i> English PDF</a>
+            <a href="downloads/know-your-rights-police-encounters-es.pdf" download class="res-dl-btn" onclick="trackDownload(this,'Know Your Rights: Police Encounters (ES)');"><i class="fas fa-download"></i> Español PDF</a>
             <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>5.8K downloads</span>
+            <div style="font-size:0.72rem; color:var(--text-muted); width:100%; margin-top:4px;"><i class="fas fa-circle-info"></i> Jurisdiction: Virginia | Reviewed: 2026-07 | Not legal advice.</div>
           </div>
         </div>
 
@@ -632,9 +654,10 @@
             </div>
           </div>
           <p class="res-card-desc">Structured form for documenting police misconduct, use of force, and rights violations immediately after an incident. Captures time, location, officer badge numbers, witness contact, and injury notes for legal follow-up.</p>
-          <div class="res-card-footer">
+          <div class="res-card-footer" style="flex-wrap:wrap; gap:8px;">
             <a href="downloads/incident-documentation-form.pdf" download class="res-dl-btn" onclick="trackDownload(this,'Incident Documentation Form');"><i class="fas fa-download"></i> Download</a>
             <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.3K downloads</span>
+            <div style="font-size:0.72rem; color:var(--text-muted); width:100%; margin-top:4px;"><i class="fas fa-circle-info"></i> Jurisdiction: Virginia | Reviewed: 2026-07 | Not legal advice.</div>
           </div>
         </div>
 
@@ -651,9 +674,10 @@
             </div>
           </div>
           <p class="res-card-desc">Virginia landlord-tenant law explained in plain language. Covers eviction timelines, habitability standards, security deposit rights, retaliation protections, and how to organize a rent strike legally.</p>
-          <div class="res-card-footer">
+          <div class="res-card-footer" style="flex-wrap:wrap; gap:8px;">
             <a href="downloads/tenant-rights-quick-reference.pdf" download class="res-dl-btn" onclick="trackDownload(this,'Tenant Rights Quick Reference');"><i class="fas fa-download"></i> Download</a>
             <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.0K downloads</span>
+            <div style="font-size:0.72rem; color:var(--text-muted); width:100%; margin-top:4px;"><i class="fas fa-circle-info"></i> Jurisdiction: Virginia | Reviewed: 2026-07 | Not legal advice.</div>
           </div>
         </div>
 
@@ -671,9 +695,10 @@
             </div>
           </div>
           <p class="res-card-desc">Initial intake framework for evaluating wrongful conviction cases. Covers evidence review checklist, key legal theories (Brady violations, ineffective assistance, new evidence), and referral pathways to innocence organizations.</p>
-          <div class="res-card-footer">
+          <div class="res-card-footer" style="flex-wrap:wrap; gap:8px;">
             <a href="downloads/wrongful-conviction-intake-guide.pdf" download class="res-dl-btn" onclick="trackDownload(this,'Wrongful Conviction Intake Guide');"><i class="fas fa-download"></i> Download</a>
             <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>1.1K downloads</span>
+            <div style="font-size:0.72rem; color:var(--text-muted); width:100%; margin-top:4px;"><i class="fas fa-circle-info"></i> Jurisdiction: Virginia | Reviewed: 2026-07 | Not legal advice.</div>
           </div>
         </div>
 
@@ -690,9 +715,10 @@
             </div>
           </div>
           <p class="res-card-desc">Complete packet for requesting body camera footage, use-of-force reports, complaint histories, and disciplinary records. Includes separate templates for Virginia, Maryland, DC, and North Carolina.</p>
-          <div class="res-card-footer">
+          <div class="res-card-footer" style="flex-wrap:wrap; gap:8px;">
             <a href="downloads/police-records-request-pack.pdf" download class="res-dl-btn" onclick="trackDownload(this,'Police Records Request Pack');"><i class="fas fa-download"></i> Download</a>
             <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>2.7K downloads</span>
+            <div style="font-size:0.72rem; color:var(--text-muted); width:100%; margin-top:4px;"><i class="fas fa-circle-info"></i> Jurisdiction: VA, MD, DC, NC | Reviewed: 2026-07 | Not legal advice.</div>
           </div>
         </div>
 
@@ -709,9 +735,10 @@
             </div>
           </div>
           <p class="res-card-desc">How to challenge court fines, license suspension for unpaid fees, and garnishment orders. Covers hardship waivers, payment plan negotiation scripts, and the Virginia Debt Waiver program step-by-step.</p>
-          <div class="res-card-footer">
+          <div class="res-card-footer" style="flex-wrap:wrap; gap:8px;">
             <a href="downloads/fines-fees-relief-roadmap.pdf" download class="res-dl-btn" onclick="trackDownload(this,'Fines & Fees Relief Roadmap');"><i class="fas fa-download"></i> Download</a>
             <span class="res-dl-count"><i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>987 downloads</span>
+            <div style="font-size:0.72rem; color:var(--text-muted); width:100%; margin-top:4px;"><i class="fas fa-circle-info"></i> Jurisdiction: Virginia | Reviewed: 2026-07 | Not legal advice.</div>
           </div>
         </div>
 
@@ -884,6 +911,7 @@
         <div style="flex:1;min-width:220px;">
           <h3 style="font-size:1.05rem;color:var(--text-primary);margin-bottom:6px;"><i class="fas fa-circle-plus" style="color:var(--accent-1);margin-right:8px;"></i>Have a resource to share?</h3>
           <p style="font-size:0.84rem;color:var(--text-secondary);">IRN instructors and community members can submit tools for inclusion in the Resource Center. All submissions are reviewed before publishing.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><i class="fas fa-triangle-exclamation" style="color:#ef4444;margin-right:4px;"></i> <strong>Security Notice:</strong> Do not send confidential, privileged, or case-specific evidence over plain email. For sensitive materials, use the encrypted Evidence Vault in the <a href="workspace.html" style="color:var(--accent-1);text-decoration:underline;">War Room</a>.</p>
         </div>
         <a href="mailto:IRNVP@pm.me?subject=Resource Submission" class="btn btn-secondary btn-sm" style="flex-shrink:0;">Submit a Resource</a>
       </div>
@@ -946,7 +974,7 @@
 
     
     <div style="margin-top:20px; font-size:0.8rem; opacity:0.8; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; text-align:center;">
-      <p>Injustice Reform Network is a registered 501(c)(3) tax-exempt nonprofit organization. EIN: 87-1234567. Mailing Address: P.O. Box 1234, Richmond, VA 23218. Official website: <a href="https://injusticereformnetwork.org" target="_blank" rel="noopener" style="color:var(--accent-1); text-decoration:underline;">injusticereformnetwork.org</a></p>
+      <p>Injustice Reform Network is a grassroots collaborative operating in alliance with registered non-profit and legal partners. Mailing Address: P.O. Box 1234, Richmond, VA 23218. Official website: <a href="https://injusticereformnetwork.org" target="_blank" rel="noopener" style="color:var(--accent-1); text-decoration:underline;">injusticereformnetwork.org</a></p>
     </div>
 <div class="footer-bottom">
       <p>© 2026 Radiant Threshold · Injustice Reform Network. All rights reserved.</p>
@@ -955,7 +983,7 @@
   </div>
 </footer>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 <script>
 (function() {
   const cards = Array.from(document.querySelectorAll('.res-card[data-cat]'));
@@ -1007,23 +1035,61 @@
     activeFmt = 'all';
     searchQuery = '';
     sortMode = 'featured';
+    
     document.querySelectorAll('.cat-btn[data-cat]').forEach(b => b.classList.remove('active'));
-    document.querySelector('.cat-btn[data-cat="all"]').classList.add('active');
+    const catAll = document.querySelector('.cat-btn[data-cat="all"]');
+    if (catAll) catAll.classList.add('active');
+
     document.querySelectorAll('.fmt-chip').forEach(c => c.classList.remove('active'));
-    document.querySelector('.fmt-chip[data-fmt="all"]').classList.add('active');
+    const fmtAll = document.querySelector('.fmt-chip[data-fmt="all"]');
+    if (fmtAll) fmtAll.classList.add('active');
+
     document.getElementById('resourceSearch').value = '';
     document.getElementById('sortSelect').value = 'featured';
     render();
   };
+
+  // Dynamic category counts (M4, M5)
+  function updateCategoryCounts() {
+    document.querySelectorAll('.cat-btn[data-cat]').forEach(btn => {
+      const cat = btn.dataset.cat;
+      const n = cat === 'all' ? cards.length : cards.filter(c => c.dataset.cat === cat).length;
+      const countEl = btn.querySelector('.cat-count');
+      if (countEl) countEl.textContent = `(${n})`;
+    });
+  }
+
+  // Dynamic local-first download counts rendering (M6)
+  function updateDownloadCounts() {
+    cards.forEach(card => {
+      const name = card.dataset.name;
+      const key = 'rt_dl_' + name.replace(/\s+/g, '_');
+      const localCount = parseInt(localStorage.getItem(key) || '0');
+      const baseCount = parseInt(card.dataset.downloads || '0');
+      const total = baseCount + localCount;
+      
+      const countEl = card.querySelector('.res-dl-count');
+      if (countEl) {
+        let displayStr = total;
+        if (total >= 1000) {
+          displayStr = (total / 1000).toFixed(1) + 'K';
+        }
+        countEl.innerHTML = `<i class="fas fa-arrow-down" style="font-size:0.7rem;margin-right:3px;"></i>${displayStr} downloads`;
+      }
+    });
+  }
 
   function render() {
     let visible = cards.filter(card => {
       const catMatch = activeCat === 'all' || card.dataset.cat === activeCat;
       const fmtMatch = activeFmt === 'all' || card.dataset.fmt === activeFmt;
       const q = searchQuery;
+      
+      const catLabel = (card.querySelector('.res-tag.cat')?.textContent || '').toLowerCase();
       const textMatch = !q || (
         card.dataset.name.toLowerCase().includes(q) ||
         card.querySelector('.res-card-desc').textContent.toLowerCase().includes(q) ||
+        catLabel.includes(q) ||
         card.dataset.cat.toLowerCase().includes(q)
       );
       return catMatch && fmtMatch && textMatch;
@@ -1033,7 +1099,13 @@
     if (sortMode === 'name') {
       visible.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
     } else if (sortMode === 'popular') {
-      visible.sort((a, b) => parseInt(b.dataset.downloads) - parseInt(a.dataset.downloads));
+      visible.sort((a, b) => {
+        const keyA = 'rt_dl_' + a.dataset.name.replace(/\s+/g, '_');
+        const keyB = 'rt_dl_' + b.dataset.name.replace(/\s+/g, '_');
+        const dlA = parseInt(a.dataset.downloads || '0') + parseInt(localStorage.getItem(keyA) || '0');
+        const dlB = parseInt(b.dataset.downloads || '0') + parseInt(localStorage.getItem(keyB) || '0');
+        return dlB - dlA;
+      });
     }
 
     // Hide all, then show filtered in order
@@ -1060,6 +1132,10 @@
     const key = 'rt_dl_' + name.replace(/\s+/g, '_');
     const count = parseInt(localStorage.getItem(key) || '0') + 1;
     localStorage.setItem(key, count);
+    
+    // Update display instantly
+    updateDownloadCounts();
+
     // Visual feedback
     const orig = el.innerHTML;
     el.innerHTML = '<i class="fas fa-check"></i> Downloading…';
@@ -1080,7 +1156,9 @@
   }, { threshold: 0.08 });
   document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
 
-  // Initial render
+  // Initialize
+  updateCategoryCounts();
+  updateDownloadCounts();
   render();
 })();
 </script>
