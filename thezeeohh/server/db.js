@@ -99,6 +99,27 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now')),
     UNIQUE(user_id, course_id)
   );
+
+  CREATE TABLE IF NOT EXISTS foia_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    state TEXT NOT NULL,
+    request_date TEXT DEFAULT (date('now')),
+    status TEXT NOT NULL DEFAULT 'Pending' CHECK(status IN ('Pending', 'Fulfilled', 'Denied')),
+    notes TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS docket_alerts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    docket_id TEXT UNIQUE NOT NULL,
+    case_name TEXT,
+    docket_number TEXT,
+    court TEXT,
+    state_jurisdiction TEXT NOT NULL,
+    date_filed TEXT,
+    url TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // ─── Seed Data ──────────────────────────────────────────────────────────────
@@ -197,6 +218,34 @@ function seed() {
 
   // Sample student
   insertUser.run('student@example.com', hash('password123'), 'Alex Johnson', 'student', 'Aspiring developer');
+
+  // Seed FOIA requests
+  const insertFOIA = db.prepare('INSERT INTO foia_requests (state, request_date, status, notes) VALUES (?, ?, ?, ?)');
+  insertFOIA.run('ME', '2026-03-05', 'Fulfilled', 'Requested DOJ subpoena communications with Maine DOC.');
+  insertFOIA.run('VA', '2026-04-12', 'Pending', 'Requested public safety subpoena communications with Virginia DOC.');
+  insertFOIA.run('MD', '2026-05-01', 'Pending', 'Subpoena audit for Maryland DOC.');
+  insertFOIA.run('NC', '2026-05-15', 'Denied', 'North Carolina DOC refused records citing administrative exemption.');
+
+  // Seed Docket alerts
+  const insertDocket = db.prepare('INSERT INTO docket_alerts (docket_id, case_name, docket_number, court, state_jurisdiction, date_filed, url) VALUES (?, ?, ?, ?, ?, ?, ?)');
+  insertDocket.run(
+    'ME-2026-104', 
+    'U.S. Department of Justice v. Maine Department of Corrections', 
+    '2:26-cv-00104', 
+    'U.S. District Court for the District of Maine', 
+    'ME', 
+    '2026-03-12', 
+    'https://www.courtlistener.com/docket/68291024/us-v-maine-doc/'
+  );
+  insertDocket.run(
+    'MD-2026-452', 
+    'In Re: Subpoena to Maryland Department of Public Safety', 
+    '1:26-cv-01452', 
+    'U.S. District Court for the District of Maryland', 
+    'MD', 
+    '2026-04-18', 
+    'https://www.courtlistener.com/docket/68341029/in-re-subpoena-md-doc/'
+  );
 
   console.log('✅ Database seeded successfully');
 }
