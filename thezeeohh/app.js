@@ -1266,7 +1266,7 @@ Which course would you like to begin? Just type the name or number!`;
   });
 
   // Send Message Logic
-  function sendMessage() {
+  async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
 
@@ -1295,24 +1295,71 @@ Which course would you like to begin? Just type the name or number!`;
     const teachReply = processTeachingCommands(cleanText);
     let responseText = teachReply;
 
-    if (!responseText) {
-      responseText = defaultResponse;
-      // Sort keys descending by length to handle substring precedence correctly
-      const sortedKeys = Object.keys(keywords).sort((a, b) => b.length - a.length);
-      for (const key of sortedKeys) {
-        if (cleanText.includes(key)) {
-          responseText = keywords[key];
-          break;
+    if (responseText) {
+      setTimeout(() => {
+        indicator.remove();
+        const aiBubble = document.createElement('div');
+        aiBubble.className = 'chat-bubble ai';
+        aiBubble.innerHTML = responseText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        messagesArea.appendChild(aiBubble);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      }, 850 + Math.random() * 300);
+      return;
+    }
+
+    // Capture history
+    const history = [];
+    const messageElements = messagesArea.querySelectorAll('.chat-bubble');
+    const startIdx = Math.max(0, messageElements.length - 6);
+    for (let i = startIdx; i < messageElements.length; i++) {
+      const el = messageElements[i];
+      if (el === userBubble) continue;
+      history.push({
+        sender: el.classList.contains('user') ? 'user' : 'ai',
+        text: el.textContent.trim()
+      });
+    }
+
+    // Try live chat API
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: text, history })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.response) {
+          indicator.remove();
+          const aiBubble = document.createElement('div');
+          aiBubble.className = 'chat-bubble ai';
+          aiBubble.innerHTML = data.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+          messagesArea.appendChild(aiBubble);
+          messagesArea.scrollTop = messagesArea.scrollHeight;
+          return;
         }
+      }
+    } catch (e) {
+      console.log("Local chat API offline or running in static mode, using fallback database.");
+    }
+
+    // Fallback to static keyword matching
+    responseText = defaultResponse;
+    const sortedKeys = Object.keys(keywords).sort((a, b) => b.length - a.length);
+    for (const key of sortedKeys) {
+      if (cleanText.includes(key)) {
+        responseText = keywords[key];
+        break;
       }
     }
 
-    // Simulate delay
     setTimeout(() => {
       indicator.remove();
       const aiBubble = document.createElement('div');
       aiBubble.className = 'chat-bubble ai';
-      // Render text formatting nicely
       aiBubble.innerHTML = responseText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       messagesArea.appendChild(aiBubble);
       messagesArea.scrollTop = messagesArea.scrollHeight;
