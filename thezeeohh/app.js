@@ -1886,3 +1886,475 @@ function trackDownload(linkEl, resourceName) {
   return true;
 }
 
+
+/* ────────────────────────────────────────────
+   17. SOVEREIGN RADIO PLAYER WIDGET
+   ──────────────────────────────────────────── */
+(function initSovereignRadioWidget() {
+  // Styles injection
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    #sovereign-radio-widget {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 9999;
+      font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+    }
+    #radio-toggle-btn {
+      background: linear-gradient(135deg, #1e1b18, #0e0c0b);
+      color: #c9a84c;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      padding: 14px 22px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #radio-toggle-btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(201, 168, 76, 0.6);
+      box-shadow: 0 6px 24px rgba(201, 168, 76, 0.15);
+    }
+    #radio-window {
+      display: none;
+      width: 320px;
+      background: rgba(18, 18, 22, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      flex-direction: column;
+      margin-bottom: 12px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #radio-window.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .radio-header {
+      background: rgba(30, 30, 35, 0.85);
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .radio-header-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .radio-logo {
+      font-size: 1.2rem;
+      color: #c9a84c;
+      animation: pulse-radio 2s infinite alternate;
+    }
+    @keyframes pulse-radio {
+      0% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+    .radio-close-btn {
+      background: none;
+      border: none;
+      color: #9a9382;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+    .radio-close-btn:hover {
+      color: #f6f4ee;
+    }
+    .radio-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .radio-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.03);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .radio-live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #c9a84c;
+    }
+    .radio-live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #c9a84c;
+    }
+    .radio-live-dot.active {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: blink-live 1.5s infinite;
+    }
+    @keyframes blink-live {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .radio-channel-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #f6f4ee;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+    .radio-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+    .radio-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #f6f4ee;
+      transition: all 0.2s;
+    }
+    .radio-btn:hover {
+      background: rgba(201, 168, 76, 0.15);
+      border-color: #c9a84c;
+      color: #c9a84c;
+    }
+    .radio-btn.play-btn {
+      width: 54px;
+      height: 54px;
+      background: #c9a84c;
+      color: #111;
+      border: none;
+    }
+    .radio-btn.play-btn:hover {
+      transform: scale(1.05);
+      background: #dfbc5a;
+      color: #111;
+    }
+    .radio-channels-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .channel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: #9a9382;
+      transition: all 0.2s;
+    }
+    .channel-item:hover {
+      background: rgba(255,255,255,0.04);
+      color: #f6f4ee;
+    }
+    .channel-item.active {
+      background: rgba(201, 168, 76, 0.08);
+      border-color: rgba(201, 168, 76, 0.3);
+      color: #c9a84c;
+      font-weight: 600;
+    }
+    .radio-volume {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: #9a9382;
+      margin-top: 4px;
+    }
+    .volume-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1);
+      outline: none;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #c9a84c;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .volume-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    
+    /* Visualizer Bouncing Bars */
+    .radio-visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 18px;
+    }
+    .vis-bar {
+      width: 3px;
+      height: 3px;
+      background-color: #c9a84c;
+      border-radius: 2px;
+      transition: height 0.1s;
+    }
+    .vis-bar.playing {
+      animation: bounce 0.8s ease-in-out infinite alternate;
+    }
+    .vis-bar:nth-child(2).playing { animation-delay: 0.15s; }
+    .vis-bar:nth-child(3).playing { animation-delay: 0.30s; }
+    .vis-bar:nth-child(4).playing { animation-delay: 0.45s; }
+    @keyframes bounce {
+      0% { height: 3px; }
+      100% { height: 18px; }
+    }
+  `;
+  document.head.appendChild(styleEl);
+
+  // Widget Container
+  const widget = document.createElement('div');
+  widget.id = 'sovereign-radio-widget';
+  widget.innerHTML = `
+    <div id="radio-window">
+      <div class="radio-header">
+        <div class="radio-header-info">
+          <span class="radio-logo">📻</span>
+          <div style="display: flex; flex-direction: column;">
+            <span style="color: white; font-weight: 700; font-size: 0.88rem;">Sovereign Radio</span>
+            <span style="color: #c9a84c; font-size: 0.72rem; font-family: 'DM Mono', monospace; font-weight: 600;">108.1 FM · HR / BAL</span>
+          </div>
+        </div>
+        <button id="radio-close-btn" class="radio-close-btn" aria-label="Close Radio">✕</button>
+      </div>
+      
+      <div class="radio-body">
+        <div class="radio-status">
+          <div class="radio-live-badge">
+            <span class="radio-live-dot" id="radio-live-dot"></span>
+            <span id="radio-status-text">OFFLINE</span>
+          </div>
+          <span class="radio-channel-title" id="radio-channel-title">Sovereign Beats</span>
+          
+          <div class="radio-visualizer">
+            <div class="vis-bar" id="vis-1"></div>
+            <div class="vis-bar" id="vis-2"></div>
+            <div class="vis-bar" id="vis-3"></div>
+            <div class="vis-bar" id="vis-4"></div>
+          </div>
+        </div>
+
+        <div class="radio-controls">
+          <button class="radio-btn" id="radio-prev-btn" title="Previous Channel">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+          </button>
+          <button class="radio-btn play-btn" id="radio-play-btn" title="Play">
+            <svg id="play-icon" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pause-icon" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button class="radio-btn" id="radio-next-btn" title="Next Channel">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6z"/></svg>
+          </button>
+        </div>
+
+        <div class="radio-channels-list">
+          <div class="channel-item active" data-index="0">
+            <span>1. Sovereign Beats (Lofi Coding)</span>
+            <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem;">Live</span>
+          </div>
+          <div class="channel-item" data-index="1">
+            <span>2. Accountability Scanner (Police)</span>
+            <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem;">Ambient</span>
+          </div>
+          <div class="channel-item" data-index="2">
+            <span>3. Abolition Briefings (Briefs)</span>
+            <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem;">Speech</span>
+          </div>
+        </div>
+
+        <div class="radio-volume">
+          <span>🔊</span>
+          <input type="range" class="volume-slider" id="radio-volume-slider" min="0" max="1" step="0.05" value="0.5">
+        </div>
+      </div>
+    </div>
+    <button id="radio-toggle-btn">
+      📻 Sovereign Radio
+    </button>
+  `;
+  document.body.appendChild(widget);
+
+  // Audio streams configuration
+  const channels = [
+    {
+      name: "Sovereign Beats",
+      url: "https://coderadio-admin.freecodecamp.org/radio/8010/radio.mp3",
+      type: "live"
+    },
+    {
+      name: "Accountability Scanner",
+      url: "https://stream.zeno.fm/f3wvbbq1y1duv",
+      type: "ambient"
+    },
+    {
+      name: "Abolition Briefings",
+      url: "https://stream.syntheticzen.fm/ambient",
+      type: "speech"
+    }
+  ];
+
+  let currentChannelIdx = 0;
+  const audio = new Audio();
+  audio.volume = 0.5;
+
+  // DOM Elements
+  const rToggleBtn = document.getElementById('radio-toggle-btn');
+  const rCloseBtn = document.getElementById('radio-close-btn');
+  const rWindow = document.getElementById('radio-window');
+  const rPlayBtn = document.getElementById('radio-play-btn');
+  const rPrevBtn = document.getElementById('radio-prev-btn');
+  const rNextBtn = document.getElementById('radio-next-btn');
+  const rLiveDot = document.getElementById('radio-live-dot');
+  const rStatusText = document.getElementById('radio-status-text');
+  const rChannelTitle = document.getElementById('radio-channel-title');
+  const rVolumeSlider = document.getElementById('radio-volume-slider');
+  const rChannelItems = document.querySelectorAll('.channel-item');
+  const playIcon = document.getElementById('play-icon');
+  const pauseIcon = document.getElementById('pause-icon');
+  const visBars = document.querySelectorAll('.vis-bar');
+
+  // Toggle Visibility
+  rToggleBtn.addEventListener('click', () => {
+    const isClosed = rWindow.style.display === 'none' || !rWindow.classList.contains('open');
+    if (isClosed) {
+      rWindow.style.display = 'flex';
+      rWindow.offsetHeight;
+      rWindow.classList.add('open');
+      rToggleBtn.style.transform = 'scale(0.9)';
+      rToggleBtn.style.opacity = '0';
+      setTimeout(() => {
+        rToggleBtn.style.display = 'none';
+      }, 200);
+    }
+  });
+
+  function closeWidget() {
+    rWindow.classList.remove('open');
+    rToggleBtn.style.display = 'flex';
+    rToggleBtn.offsetHeight;
+    rToggleBtn.style.transform = 'scale(1)';
+    rToggleBtn.style.opacity = '1';
+    setTimeout(() => {
+      rWindow.style.display = 'none';
+    }, 300);
+  }
+
+  rCloseBtn.addEventListener('click', closeWidget);
+
+  // Play / Pause Logic
+  function setPlayState(isPlaying) {
+    if (isPlaying) {
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+      rLiveDot.classList.add('active');
+      rStatusText.textContent = channels[currentChannelIdx].type === 'live' ? 'LIVE' : 'PLAYING';
+      visBars.forEach(bar => bar.classList.add('playing'));
+    } else {
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+      rLiveDot.classList.remove('active');
+      rStatusText.textContent = 'PAUSED';
+      visBars.forEach(bar => bar.classList.remove('playing'));
+    }
+  }
+
+  async function playChannel(idx) {
+    currentChannelIdx = idx;
+    audio.src = channels[idx].url;
+    rChannelTitle.textContent = channels[idx].name;
+    
+    rChannelItems.forEach((item, index) => {
+      if (index === idx) item.classList.add('active');
+      else item.classList.remove('active');
+    });
+
+    rStatusText.textContent = "TUNING...";
+    try {
+      await audio.play();
+      setPlayState(true);
+    } catch (err) {
+      console.warn("Audio playback failed", err);
+      setPlayState(false);
+    }
+  }
+
+  rPlayBtn.addEventListener('click', () => {
+    if (audio.paused) {
+      if (!audio.src) {
+        playChannel(currentChannelIdx);
+      } else {
+        audio.play().then(() => setPlayState(true)).catch(() => setPlayState(false));
+      }
+    } else {
+      audio.pause();
+      setPlayState(false);
+    }
+  });
+
+  rPrevBtn.addEventListener('click', () => {
+    let prev = currentChannelIdx - 1;
+    if (prev < 0) prev = channels.length - 1;
+    playChannel(prev);
+  });
+
+  rNextBtn.addEventListener('click', () => {
+    let next = currentChannelIdx + 1;
+    if (next >= channels.length) next = 0;
+    playChannel(next);
+  });
+
+  rVolumeSlider.addEventListener('input', (e) => {
+    audio.volume = e.target.value;
+  });
+
+  rChannelItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const idx = parseInt(item.dataset.index, 10);
+      playChannel(idx);
+    });
+  });
+})();
+
