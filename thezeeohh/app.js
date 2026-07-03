@@ -2221,17 +2221,17 @@ function trackDownload(linkEl, resourceName) {
   const channels = [
     {
       name: "Sovereign Beats",
-      url: "https://coderadio-admin.freecodecamp.org/radio/8010/radio.mp3",
+      url: "https://coderadio-admin-v2.freecodecamp.org/listen/coderadio/radio.mp3",
       type: "live"
     },
     {
       name: "Accountability Scanner",
-      url: "https://stream.zeno.fm/f3wvbbq1y1duv",
+      url: "https://ice1.somafm.com/groovesalad-256-mp3",
       type: "ambient"
     },
     {
       name: "Abolition Briefings",
-      url: "https://stream.syntheticzen.fm/ambient",
+      url: "https://ice1.somafm.com/lush-128-mp3",
       type: "speech"
     }
   ];
