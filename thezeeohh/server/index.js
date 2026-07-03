@@ -32,6 +32,7 @@ app.use('/api/instructors', require('./routes/instructors'));
 app.use('/api/newsletter',  require('./routes/newsletter'));
 app.use('/api/reviews',     require('./routes/reviews'));
 app.use('/api/chat',        require('./routes/chat'));
+app.use('/api/subpoenas',    require('./routes/subpoenas'));
 
 // ─── Health check ─────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
