@@ -301,7 +301,7 @@
     <div class="dash-nav-item" style="color:var(--text-muted);" onclick="alert('Help documentation is stored locally in the Sovereign resources module.')">
       <i class="fas fa-circle-question"></i> Help &amp; Support
     </div>
-    <div class="dash-nav-item" style="color:var(--red);" onclick="purgeSovereignLedger()">
+    <div class="dash-nav-item" style="color:var(--red);" onclick="window.location.href='index.html'">
       <i class="fas fa-arrow-right-from-bracket"></i> Sign Out
     </div>
   </aside>
@@ -1404,6 +1404,13 @@
       } else {
         alert("Purge cancelled.");
       }
+    }
+  }
+
+  function disconnectGoogleAccount() {
+    if (confirm("Disconnect your Google account from this dashboard?")) {
+      document.getElementById('google-profile-connected').style.display = 'none';
+      document.getElementById('google-signin-container').style.display = 'flex';
     }
   }
 </script>
