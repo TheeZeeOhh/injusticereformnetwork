@@ -733,9 +733,9 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
           <div class="field" style="margin-bottom:11px"><label>Source</label>
             <select id="run-source" onchange="updateRunSrc()"><option value="">— Select source —</option><option value="all">All owed (cumulative balance)</option><option value="training">Specific training</option><option value="campaign">Specific campaign</option><option value="custom">Custom flat amount per member</option></select>
           </div>
-          <div id="run-tr-sel" style="display:none" class="field" style="margin-bottom:11px"><label>Select training</label><select id="run-tr-id"></select></div>
-          <div id="run-cp-sel" style="display:none" class="field" style="margin-bottom:11px"><label>Select campaign</label><select id="run-cp-id"></select></div>
-          <div id="run-custom-wrap" style="display:none" class="field" style="margin-bottom:11px"><label>Custom amount per member ($)</label><input type="number" id="run-custom-val" placeholder="0.00"></div>
+          <div id="run-tr-sel" class="field" style="display:none; margin-bottom:11px"><label>Select training</label><select id="run-tr-id"></select></div>
+          <div id="run-cp-sel" class="field" style="display:none; margin-bottom:11px"><label>Select campaign</label><select id="run-cp-id"></select></div>
+          <div id="run-custom-wrap" class="field" style="display:none; margin-bottom:11px"><label>Custom amount per member ($)</label><input type="number" id="run-custom-val" placeholder="0.00"></div>
           <div class="flex-end"><button class="btn primary" onclick="genPayoutRun()">Generate payout preview →</button></div>
         </div>
         <div class="card" id="run-preview-card" style="display:none">
