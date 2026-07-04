@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Organizer's Playbook — Cohort Enrollment</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0a; color: #f0e6d6; }
+  .hero { background: linear-gradient(135deg, #8B0000 0%, #2d1b0e 60%, #0a0a0a 100%); padding: 60px 20px; text-align: center; }
+  .hero h1 { font-size: 2.8em; margin-bottom: 10px; color: #fff; text-shadow: 2px 2px 0 #8B0000; }
+  .hero p { font-size: 1.2em; color: #d4b896; max-width: 700px; margin: 0 auto 20px; }
+  .badge { display: inline-block; background: #8B0000; color: #fff; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9em; margin-bottom: 20px; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 60px 20px; }
+  .cohort-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 30px; }
+  .cohort-card { background: #1a1a1a; border: 2px solid #8B0000; border-radius: 12px; padding: 30px; position: relative; transition: transform 0.3s; }
+  .cohort-card:hover { transform: translateY(-6px); }
+  .cohort-card.featured { border-color: #d4b896; box-shadow: 0 0 30px rgba(212,184,150,0.15); }
+  .cohort-card h3 { font-size: 1.6em; margin-bottom: 8px; color: #fff; }
+  .cohort-card .price { font-size: 2.4em; font-weight: 800; color: #d4b896; margin: 16px 0; }
+  .cohort-card .price span { font-size: 0.5em; color: #888; font-weight: 400; }
+  .cohort-card ul { list-style: none; margin: 16px 0; }
+  .cohort-card ul li { padding: 8px 0; border-bottom: 1px solid #2a2a2a; color: #ccc; }
+  .cohort-card ul li::before { content: '✓ '; color: #8B0000; font-weight: bold; }
+  .btn { display: block; width: 100%; padding: 14px; background: #8B0000; color: #fff; border: none; border-radius: 6px; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 16px; text-decoration: none; text-align: center; }
+  .btn:hover { background: #a00; }
+  .btn.secondary { background: #333; }
+  .btn.secondary:hover { background: #444; }
+  .scholarship-note { background: #2d1b0e; border-left: 4px solid #d4b896; padding: 20px; border-radius: 6px; margin-top: 40px; }
+  .email-capture { margin-top: 50px; background: #1a1a1a; padding: 40px; border-radius: 12px; border: 2px solid #d4b896; text-align: center; }
+  .email-capture input[type="email"] { padding: 14px; width: 70%; border: none; border-radius: 6px; font-size: 1em; background: #333; color: #fff; }
+  .email-capture button { padding: 14px 28px; background: #8B0000; color: #fff; border: none; border-radius: 6px; font-size: 1em; font-weight: 700; cursor: pointer; }
+
+  footer { text-align: center; padding: 30px 20px; color: #666; font-size: 0.9em; }
+  .featured-badge { position: absolute; top: -14px; right: 20px; background: #d4b896; color: #0a0a0a; padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 0.8em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <span class="badge">✊ NEW COHORT — JOIN NOW</span>
+    <h1>The Organizer's Playbook</h1>
+    <p>18 video lessons · 5 sections · Campaign templates included · Verified Organizer Credential</p>
+  </div>
+
+  <div class="container">
+    <div class="cohort-grid">
+      <!-- Entry -->
+      <div class="cohort-card">
+        <h3>Entry</h3>
+        <p style="color:#888">Self-paced access · Community support</p>
+        <div class="price">$97 <span>one-time</span></div>
+        <ul>
+          <li>All 18 video lessons</li>
+          <li>PDF toolkits & templates</li>
+          <li>Community forum access</li>
+          <li>Movement Credential</li>
+          <li>Lifetime access</li>
+        </ul>
+        <a href="#" class="btn">Enroll — Self Paced</a>
+      </div>
+
+      <!-- Accelerated Cohort (featured) -->
+      <div class="cohort-card featured">
+        <div class="featured-badge">Popular</div>
+        <h3>Accelerated Cohort</h3>
+        <p style="color:#d4b896">6-week guided cohort · Live Q&As · Peer pods</p>
+        <div class="price">$197 <span>one-time</span></div>
+        <ul>
+          <li>Everything in Entry</li>
+          <li>6-week structured cohort</li>
+          <li>Live Q&A w/ Aziza Okoro</li>
+          <li>Peer accountability pods</li>
+          <li>Discernment check-ins</li>
+          <li>Certificate of Completion</li>
+        </ul>
+        <a href="#" class="btn">Enroll — Next Cohort</a>
+      </div>
+
+      <!-- Organizing Director -->
+      <div class="cohort-card">
+        <h3>Organizing Director</h3>
+        <p style="color:#888">For leaders training multiple chapters</p>
+        <div class="price">$497 <span>one-time</span></div>
+        <ul>
+          <li>Everything in Accelerated</li>
+          <li>Trainer's slide deck</li>
+          <li>Facilitation guide</li>
+          <li>Bulk license (up to 30 seats)</li>
+          <li>1hr strategy session with Zee</li>
+          <li>Custom campaign review</li>
+        </ul>
+        <a href="#" class="btn">Enroll — Bulk Access</a>
+      </div>
+    </div>
+
+    <div class="scholarship-note">
+      <h3 style="color:#d4b896">🤝 Scholarship Available</h3>
+      <p style="color:#ccc; margin-top:8px;">Money is never a barrier. Apply for Full Access scholarship — 100% free. Takes 2 minutes. <a href="#" style="color:#8B0000;">Apply now →</a></p>
+    </div>
+
+    <div class="email-capture">
+      <h2 style="color:#fff; margin-bottom: 12px;">Get the Free Preview + Scholarship Info</h2>
+      <p style="color:#ccc; margin-bottom: 20px;">First two lessons + cohort calendar delivered to your inbox.</p>
+      <form onsubmit="alert('Captured! In a real deployment this would hit your CRM.)'; return false;">
+        <input type="email" placeholder="organizer@community.org" required>
+        <button type="submit">Join the Network →</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <p>Organizer's Playbook © Radiant Threshold · Injustice Reform Network</p>
+    <p style="margin-top: 6px;">[Payments: Bitcoin · PayPal · Cash App · Card · Lightning]</p>
+  </footer>
+</body>
+</html>
