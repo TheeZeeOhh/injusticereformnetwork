@@ -1008,6 +1008,9 @@
     if (targetNav) {
       targetNav.classList.add('active');
     }
+
+    // Refresh dynamic panels when activated
+    if (panelId === 'progress' || panelId === 'certificates') loadSovereignData();
   }
 
   // Bind sidebar buttons
