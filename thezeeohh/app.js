@@ -632,18 +632,8 @@
 /* ────────────────────────────────────────────
    10. DASHBOARD SIDEBAR — Active state toggle
 ──────────────────────────────────────────── */
-(function initDashSidebar() {
-  const navItems = document.querySelectorAll('.dash-nav-item[data-panel]');
-  if (!navItems.length) return;
-
-  navItems.forEach(item => {
-    item.addEventListener('click', () => {
-      navItems.forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-      // Could switch panels here if implemented
-    });
-  });
-})();
+// Dashboard sidebar panel switching is handled inline in dashboard.html
+// (showPanel), which also refreshes dynamic panels. No handler needed here.
 
 
 /* ────────────────────────────────────────────
