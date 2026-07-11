@@ -13,6 +13,54 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
   }
+
+  /* ── Mobile layout (<=768px) ─────────────────────────────
+     workspace.html was built desktop-only; these rules let the
+     fixed side-by-side dashboard stack and reflow on phones.
+     !important is required to override the inline styles. */
+  @media (max-width: 768px) {
+    /* Main war-room: stack panels vertically, drop fixed 100vh height */
+    #sovereign-workspace {
+      flex-direction: column !important;
+      height: auto !important;
+      padding: 12px !important;
+      gap: 12px !important;
+    }
+    /* Direct children of the workspace fill the width and get real height */
+    #sovereign-workspace > div {
+      flex: none !important;
+      width: 100% !important;
+    }
+    /* Jitsi + roster row: stack instead of side-by-side */
+    #sovereign-workspace > div > div {
+      flex-direction: column !important;
+    }
+    /* Give the embedded video a usable height on mobile */
+    #jitsi-root {
+      height: 60vh !important;
+      min-height: 320px !important;
+      width: 100% !important;
+    }
+    /* Council sidebar: full width, no fixed 240px, sits below video */
+    #council-sidebar {
+      width: 100% !important;
+      border-left: none !important;
+      border-top: 1px solid #2e2e2e !important;
+      max-height: 200px !important;
+    }
+    /* Collapse any two-column grids inside the workspace to one column */
+    #sovereign-workspace [style*="grid-template-columns"] {
+      grid-template-columns: 1fr !important;
+    }
+    /* Fixed bottom channel bar: keep it, but pad the page so it
+       doesn't cover content, and cap its expanded height */
+    #sovereign-channel-wrap {
+      max-height: 55vh !important;
+    }
+    body {
+      padding-bottom: 56px !important;
+    }
+  }
 </style>
 </head>
 <body>
