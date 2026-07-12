@@ -148,9 +148,13 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  // Manual Panic / BridgeVault Closure. Drops the Vault B key from RAM. The
-  // passphrase was never cached, so Vault B data is cryptographically
-  // inaccessible until the operator re-enters passphrase B via unlockVaultB.
+  // Manual Panic / BridgeVault Closure. Drops the Vault B key reference (finding
+  // M4). Note: the derived AES key is a NON-EXTRACTABLE CryptoKey, so its raw
+  // bytes live in the engine's internal memory, never in the JS heap — JS cannot
+  // overwrite them, and dropping the reference makes the key GC-eligible rather
+  // than deterministically scrubbed. Deterministic zeroization requires holding
+  // the key in Rust (see docs/model2-hardware-vault-b.md, step 2). The passphrase
+  // was never cached, so Vault B data is inaccessible until re-entry regardless.
   panicWipeVaultB: () => {
     set({ vaultBKey: null, vaultBError: null });
   },
@@ -160,7 +164,10 @@ export const useAuthStore = create((set) => ({
   },
 
   logout: () => {
-    // Instantly wipe all keys from RAM
+    // Drop all key references from RAM. As with panicWipeVaultB, these are
+    // non-extractable CryptoKeys — dereferenced here and GC-eligible, not
+    // deterministically zeroized (finding M4; true zeroize is the Rust custody
+    // work). Passphrases were never cached.
     set({
       user: null,
       isAuthenticated: false,

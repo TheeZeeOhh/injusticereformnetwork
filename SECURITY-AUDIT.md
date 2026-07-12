@@ -101,7 +101,17 @@ below concern how those primitives are composed into a system.
   the crypto layer stays storage-free. First-run enrollment is also labelled
   explicitly in the UI. RESIDUAL: a typed-twice passphrase confirmation at
   enrollment is still a UI nicety not yet added.
-- **M2, M4 — OPEN.** Not yet addressed.
+- **M4 — PARTIALLY ADDRESSED / rest DEFERRED.** The vault keys are
+  non-extractable CryptoKeys, so their raw bytes never enter the JS heap and JS
+  has no primitive to overwrite them — dropping the reference (as
+  panicWipeVaultB/logout do) is the only wipe mechanism available at the JS
+  layer, and it makes the key GC-eligible, not deterministically scrubbed. The
+  overstated "instantly wipe/annihilate" claims in code and UI have been
+  corrected to describe this accurately. TRUE deterministic zeroization requires
+  holding the key in Rust with `zeroize` — captured as step 2 of
+  `docs/model2-hardware-vault-b.md` and deferred with the rest of that work.
+- **M2 — OPEN.** Not yet addressed (GCM IV-collision only relevant at extreme
+  per-key record counts).
 
 Note: these remediations are from an internal review with an automated test
 suite. They do NOT substitute for the independent security review the README

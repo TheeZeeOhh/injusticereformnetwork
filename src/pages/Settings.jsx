@@ -180,7 +180,7 @@ export default function Settings() {
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Hardware Dead-Man's Switch</h2>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-            Designate a USB token. If it is removed while armed, all vault keys are instantly wiped from memory.
+            Designate a USB token. If it is removed while armed, all vault keys are dropped from memory (references cleared; reclaimed by the runtime).
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button onClick={refreshUsbDevices} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
