@@ -1,3 +1,0 @@
-# KPIs
-
-*Drafting in progress...*

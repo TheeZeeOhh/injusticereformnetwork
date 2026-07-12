@@ -1,0 +1,49 @@
+// Sanctuary operational schema.
+//
+// This database intentionally contains NO client PHI. Patient/client records,
+// case notes, appointments, and messages live ONLY in the client-side encrypted
+// local vault (IndexedDB, AES-256-GCM, passphrase-derived keys). The models below
+// are operational telemetry consumed by the intelligence daemons, plus non-PHI
+// note templates.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model NoteTemplate {
+  id             String        @id @default(uuid())
+  title          String
+  content        String
+  createdAt      DateTime      @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  category  String
+  details   String?
+}
+
+model BamHistory {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  score     Float
+  delta     Float
+}
+
+model EmberFund {
+  id        Int      @id @default(autoincrement())
+  balance   Float    @default(0)
+}
+
+model RevenueLog {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  revenue   Float
+  processed Boolean  @default(false)
+}
