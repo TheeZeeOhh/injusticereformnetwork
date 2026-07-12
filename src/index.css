@@ -1,0 +1,298 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap');
+
+:root {
+  /* Official IRN Design System */
+  --charcoal: #0a0a0f;
+  --charcoal-light: #15151f;
+  --charcoal-lighter: #20202e;
+  --ember: #e2552b;
+  --ember-dim: rgba(226, 85, 43, 0.15);
+  --gold: #d9a441;
+  --gold-dim: rgba(217, 164, 65, 0.15);
+  --bone: #ece4d4;
+  --bone-dim: #b0a99c;
+  
+  /* System / States */
+  --green: #2a8b5e;
+  --red: #b82b2b;
+  --border: #2a2a35;
+
+  /* Font Families */
+  --font-serif: 'Playfair Display', serif;
+  --font-mono: 'DM Mono', monospace;
+
+  /* UI Mappings (to maintain component compatibility) */
+  --bg-color-main: var(--charcoal);
+  --bg-color-surface: var(--charcoal-light);
+  --bg-glass: rgba(21, 21, 31, 0.8);
+  --bg-glass-dark: rgba(10, 10, 15, 0.9);
+  
+  --color-primary: var(--gold);
+  --color-primary-light: #ebb552;
+  --color-secondary: var(--bone);
+  --color-accent: var(--ember);
+  
+  --text-primary: var(--bone);
+  --text-secondary: var(--bone-dim);
+  --text-tertiary: #807a70;
+  
+  --border-color: var(--border);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.4);
+  
+  /* Legacy specific overrides */
+  --navy: var(--charcoal);
+  --vault-a: var(--gold);
+  --vault-b: var(--ember);
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+  
+  --transition-fast: 0.15s ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-mono);
+  background-color: var(--bg-color-main);
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.2;
+}
+
+/* Glassmorphism / Panels */
+.glass-panel {
+  background: var(--bg-color-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-glass);
+  border-radius: var(--radius-sm);
+}
+
+.glass-panel-dark {
+  background: var(--bg-color-main);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-glass);
+  border-radius: var(--radius-sm);
+  z-index: 2;
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  border: none;
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+}
+
+.btn-primary {
+  background: var(--charcoal-lighter);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background: var(--gold-dim);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* Layout Utilities */
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--charcoal);
+}
+
+.sidebar {
+  width: 280px;
+  height: 100%;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  border-right: 1px solid var(--border-color);
+  background: var(--charcoal-light);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.75rem;
+  font-family: var(--font-serif);
+  font-weight: 800;
+  color: var(--bone);
+  letter-spacing: 0.02em;
+}
+
+.sidebar-logo-icon {
+  width: 32px;
+  height: 32px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23d9a441"><path d="M12 2L2 7l10 5 10-5-10-5zm0 7.5L5 6.5l7-3.5 7 3.5-7 3.5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>') no-repeat center center;
+  background-size: contain;
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.nav-item {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+
+.nav-item:hover, .nav-item.active {
+  background: var(--charcoal-lighter);
+  color: var(--gold);
+  border-left-color: var(--ember);
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 3rem;
+  background: var(--charcoal-light);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--charcoal);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--border-color);
+  width: 400px;
+}
+
+.search-bar input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--bone);
+  margin-left: 0.5rem;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--charcoal);
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* Dashboard / Module Overrides */
+.dashboard {
+  padding: 1.5rem 3rem 3rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 2px solid var(--gold);
+}
+
+.stat-title {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  color: var(--bone);
+}
+
+/* Inputs & Textareas */
+input, select, textarea {
+  font-family: var(--font-mono);
+  background: var(--charcoal-lighter) !important;
+  color: var(--bone) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--gold) !important;
+}
