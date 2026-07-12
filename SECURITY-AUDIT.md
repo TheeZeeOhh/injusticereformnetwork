@@ -110,8 +110,15 @@ below concern how those primitives are composed into a system.
   corrected to describe this accurately. TRUE deterministic zeroization requires
   holding the key in Rust with `zeroize` — captured as step 2 of
   `docs/model2-hardware-vault-b.md` and deferred with the rest of that work.
-- **M2 — OPEN.** Not yet addressed (GCM IV-collision only relevant at extreme
-  per-key record counts).
+- **M2 — DOCUMENTED / ACCEPTED at current scale.** Random 96-bit IVs are safe
+  until ~2^32 encryptions under one key (birthday bound). This app encrypts a
+  handful of records per client individually, so that ceiling is unreachable in
+  practice. The reasoning and the revisit trigger (switch to a deterministic
+  counter nonce if per-key volume ever approaches that range) are recorded at the
+  IV-generation site in `cryptoEngine.js`. No code change.
+
+Every finding from this review is now resolved, deferred with a written design,
+or accepted-with-documentation. See the per-finding sections below for detail.
 
 Note: these remediations are from an internal review with an automated test
 suite. They do NOT substitute for the independent security review the README
