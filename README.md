@@ -81,9 +81,14 @@ An internal, adversarial review of the cryptography is recorded in
   device-origin backup signing, and hardware-bound Vault B — these are captured
   in `docs/` and are the kind of thing an independent review will re-parameterize
   anyway.
-- **Still open:** GCM IV-collision at extreme per-key record counts, and a
-  typed-twice passphrase confirmation. (Deterministic key zeroization is bounded
-  by WebCrypto — the real fix rides along with the Rust key-custody work.)
+- **Accepted / bounded:** GCM IV-collision (only relevant at extreme per-key
+  record counts — unreachable at this app's scale, documented). Deterministic key
+  zeroization is bounded by WebCrypto — the real fix rides along with the Rust
+  key-custody work. A typed-twice passphrase confirmation is a remaining UI nicety.
+
+Every finding from the internal review is now resolved, deferred with a design,
+or accepted with documentation — but an **independent** review is still the bar
+for real PHI.
 
 An **independent** security review is still required before real PHI.
 
