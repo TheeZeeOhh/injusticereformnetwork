@@ -241,14 +241,17 @@ anyway). C1 (steps 4–5) builds on top.
 
 ---
 
-## Open decisions for the maintainer
-1. **C1 model:** confirm Model 1 first, Model 2 later? (recommended)
-2. **Vault B recovery:** if a separate Vault B passphrase is forgotten, Vault B
-   is unrecoverable by design. Is that acceptable, or is an (escrowed,
-   passphrase-A-wrapped) recovery blob wanted — noting that recovery blob
-   *weakens* C1's separation and partially reintroduces the original problem?
-3. **vaultTag plumbing:** explicit call-site param (auditable) vs. key-tagging
-   in the store (fewer edits)? (recommend explicit.)
-4. **Migration UX:** silent-on-login for C2 vs. an explicit "upgrade your vault"
-   screen for the C1 re-key (recommended for C1 because it touches Vault B
-   secrets and should be a deliberate, acknowledged action).
+## Maintainer decisions (RESOLVED 2026-07-12)
+1. **C1 model:** **Model 1 first** (independent Vault B passphrase), Model 2
+   (hardware binding) as a later hardening milestone. — CONFIRMED.
+2. **Vault B recovery:** **Unrecoverable by design.** No escrow / recovery blob.
+   A forgotten Vault B passphrase means Vault B data is permanently lost. This
+   preserves full C1 separation (a recovery blob would partially reintroduce the
+   original weakness). Onboarding and the upgrade screen MUST warn the operator
+   of this explicitly and require acknowledgement. — CONFIRMED.
+3. **vaultTag plumbing:** **Explicit call-site param.** — CONFIRMED (already
+   implemented in C2 work).
+4. **Migration UX:** **Explicit "upgrade your vault" screen** for the C1 Vault B
+   re-key (not silent), because it touches Vault B secrets and must be a
+   deliberate, acknowledged action. (C2's v1→v2 pass stays silent-on-login.)
+   — CONFIRMED.

@@ -67,12 +67,22 @@ export default function Onboarding() {
         {step === 2 && (
           <div style={{ animation: 'fadeIn 0.5s' }}>
             <h1 style={{ color: 'var(--gold)', fontFamily: 'var(--font-serif)', marginBottom: '1rem' }}>Cryptographic Setup</h1>
-            <p style={{ color: 'var(--bone)', marginBottom: '2rem', fontSize: '1.1rem' }}>
+            <p style={{ color: 'var(--bone)', marginBottom: '1.5rem', fontSize: '1.1rem' }}>
               This device's unique random salts have been generated. Your actual
               AES-256-GCM vault keys are derived from the passphrase you set on the
               next screen — via PBKDF2 (600,000 iterations) — and are held only in
               memory. No key material is ever written to disk or leaves this device.
             </p>
+            <div style={{ background: 'rgba(226, 85, 43, 0.1)', padding: '1rem 1.25rem', borderRadius: '4px', borderLeft: '4px solid var(--ember)', marginBottom: '2rem' }}>
+              <p style={{ color: 'var(--bone)', fontSize: '0.9rem', margin: 0, lineHeight: 1.6 }}>
+                <strong>Vault B is separate.</strong> The most sensitive records
+                (42 CFR Part 2, HRT) live in Vault B, which uses its <strong>own
+                distinct passphrase</strong>. You will set it the first time you
+                open Vault B. It is <strong>unrecoverable by design</strong>: there
+                is no reset and no escrow, so if you forget it, Vault B data is
+                permanently lost.
+              </p>
+            </div>
             <div style={{ background: 'var(--charcoal-lighter)', padding: '1.5rem', borderRadius: '4px', border: '1px solid var(--gold)', marginBottom: '2rem' }}>
               <div style={{ color: 'var(--gold)', fontSize: '2rem', marginBottom: '1rem', textAlign: 'center' }}>🔐</div>
               <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--bone)', fontSize: '0.85rem', lineHeight: 1.6, margin: 0 }}>
