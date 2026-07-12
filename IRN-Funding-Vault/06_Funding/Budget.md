@@ -1,3 +1,0 @@
-# Budget
-
-*Drafting in progress...*
