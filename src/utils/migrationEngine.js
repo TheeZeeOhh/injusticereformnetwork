@@ -34,6 +34,15 @@ export function vaultTagForId(recordId) {
   return 'A';
 }
 
+// True if any encrypted record belonging to `vaultTag` ('A' | 'B') exists in the
+// store. Used to guard enrollment against silent re-enrollment over orphaned
+// data (finding H1): "no verifier but records exist" is a lost-verifier state,
+// not a first run.
+export async function vaultHasRecords(vaultTag) {
+  const all = await getAllRecords();
+  return all.some((rec) => vaultTagForId(rec.id) === vaultTag);
+}
+
 // Migrates every legacy v1 record to v2, decrypting with the vault key that owns
 // it and re-encrypting with the matching AAD. Requires BOTH vault keys because a
 // single IndexedDB store interleaves Vault A and Vault B records.
