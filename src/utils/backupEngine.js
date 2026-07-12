@@ -20,8 +20,17 @@ import {
 
 const BACKUP_VERSION = 1;
 
+// Chunked base64 encode — avoids the RangeError that spreading a large array
+// into String.fromCharCode causes (finding L1). Backups serialize every record's
+// ciphertext, so this path must handle large buffers.
 function bytesToB64(bytes) {
-  return btoa(String.fromCharCode(...new Uint8Array(bytes)));
+  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let binary = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < arr.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, arr.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
 }
 
 function b64ToBytes(b64) {
