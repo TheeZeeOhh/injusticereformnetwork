@@ -6,7 +6,11 @@ import {
   vaultExists,
   vaultBEnrolled
 } from '../utils/cryptoEngine';
-import { migrateRecordsToV2, rekeyVaultB as rekeyVaultBRecords } from '../utils/migrationEngine';
+import {
+  migrateRecordsToV2,
+  rekeyVaultB as rekeyVaultBRecords,
+  vaultHasRecords
+} from '../utils/migrationEngine';
 import { passphraseRejectionReason } from '../utils/passphrasePolicy';
 
 export const useAuthStore = create((set) => ({
@@ -44,8 +48,10 @@ export const useAuthStore = create((set) => ({
 
       // 2. Enroll (first login) or verify against Vault A's encrypted verifier.
       //    A wrong passphrase fails the AES-GCM auth check here and is rejected
-      //    before any real record is decrypted.
-      const isValid = await createOrVerifyPassphrase(vaultAKey, 'A');
+      //    before any real record is decrypted. recordsExist guards against
+      //    silently re-enrolling over orphaned records (finding H1).
+      const recordsExist = !vaultExists() ? await vaultHasRecords('A') : false;
+      const isValid = await createOrVerifyPassphrase(vaultAKey, 'A', { recordsExist });
 
       if (!isValid) {
         throw new Error("Incorrect passphrase. Vault decryption denied.");
@@ -98,7 +104,12 @@ export const useAuthStore = create((set) => ({
         if (reason) throw new Error(reason);
       }
       const vaultBKey = await deriveVaultBKey(passphraseB);
-      const ok = await createOrVerifyPassphrase(vaultBKey, 'B');
+      // Guard against silent re-enrollment over orphaned Vault B records (H1).
+      // Legacy installs with existing B records must go through the re-key
+      // upgrade (rekeyVaultB), not a plain enroll — so refuse enroll here if B
+      // records already exist without a B verifier.
+      const bRecordsExist = !vaultBEnrolled() ? await vaultHasRecords('B') : false;
+      const ok = await createOrVerifyPassphrase(vaultBKey, 'B', { recordsExist: bRecordsExist });
       if (!ok) {
         throw new Error("Incorrect Vault B passphrase. Vault B stays closed.");
       }

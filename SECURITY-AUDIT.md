@@ -94,7 +94,14 @@ below concern how those primitives are composed into a system.
   signature (per-install asymmetric keypair in the OS keychain) is deferred —
   it is Tauri-only and the audit will likely set the scheme. Design captured in
   `docs/backup-authenticity-M3.md`.
-- **H1, M2, M4 — OPEN.** Not yet addressed.
+- **H1 — REMEDIATED (core vector).** Enrollment now refuses to silently
+  re-enroll a new passphrase when encrypted records already exist without a
+  verifier (lost/cleared verifier), which previously orphaned all records and
+  allowed passphrase pre-seeding. The caller supplies a records-exist check so
+  the crypto layer stays storage-free. First-run enrollment is also labelled
+  explicitly in the UI. RESIDUAL: a typed-twice passphrase confirmation at
+  enrollment is still a UI nicety not yet added.
+- **M2, M4 — OPEN.** Not yet addressed.
 
 Note: these remediations are from an internal review with an automated test
 suite. They do NOT substitute for the independent security review the README
