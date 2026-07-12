@@ -78,7 +78,13 @@ below concern how those primitives are composed into a system.
   risks reworking it later. Deferred to the audit; the design/migration approach
   is captured in the H2 task. Until then, the KDF remains PBKDF2-SHA256 at 600k
   iterations, so H2's seizure-resistance caveat still applies.
-- **H1, M2, M3, M4, L1–L3 — OPEN.** Not yet addressed.
+- **L1 — REMEDIATED.** base64 encoders now chunk instead of spreading the whole
+  array into `String.fromCharCode`, so large records/backups no longer throw
+  `RangeError`.
+- **L2 — REMEDIATED.** A present-but-corrupt salt store now throws instead of
+  silently regenerating salts (which would orphan all existing records). Only a
+  genuinely empty store generates fresh salts.
+- **H1, M2, M3, M4, L3 — OPEN.** Not yet addressed.
 
 Note: these remediations are from an internal review with an automated test
 suite. They do NOT substitute for the independent security review the README

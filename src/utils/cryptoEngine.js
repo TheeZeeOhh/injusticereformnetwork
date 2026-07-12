@@ -13,8 +13,18 @@ const CRYPTO_CONFIG = {
 const SALT_STORAGE_KEY = 'sanctuary_vault_salts_v1';
 const SALT_BYTES = 16;
 
+// Chunked base64 encode. Spreading a whole Uint8Array into
+// String.fromCharCode(...bytes) throws RangeError once the array exceeds the
+// engine's argument limit (~64-128k), so we build the binary string in fixed
+// slices (finding L1). Correctness fix for large records/backups.
 function toBase64(bytes) {
-  return btoa(String.fromCharCode(...bytes));
+  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let binary = '';
+  const CHUNK = 0x8000; // 32k elements per fromCharCode call
+  for (let i = 0; i < arr.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, arr.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
 }
 
 function fromBase64(b64) {
@@ -82,18 +92,34 @@ export async function importSaltStore(json) {
 // Salts are stored in the OS keychain under Tauri, else localStorage in dev.
 async function getOrCreateSalts() {
   const stored = await readSaltStore();
-  if (stored) {
+
+  // A PRESENT-but-corrupt salt store must NOT be silently overwritten (finding
+  // L2). Regenerating salts would derive different keys and permanently orphan
+  // every record encrypted under the old salts, with no warning or consent. We
+  // throw so the caller can surface the problem and the operator can recover the
+  // salt store (e.g. from a backup) or make an informed decision.
+  if (stored !== null && stored !== undefined && stored !== '') {
+    let parsed;
     try {
-      const { saltA, saltB } = JSON.parse(stored);
-      if (saltA && saltB) {
-        return { saltA: fromBase64(saltA), saltB: fromBase64(saltB) };
-      }
+      parsed = JSON.parse(stored);
     } catch {
-      // Corrupt salt record — fall through and regenerate. Note: any records
-      // encrypted under the previous (unreadable) salts would be unrecoverable,
-      // but a corrupt salt store already implies that.
+      throw new Error(
+        'Vault salt store is corrupt and cannot be parsed. Refusing to ' +
+        'regenerate salts, which would make all existing records ' +
+        'permanently unreadable. Restore the salt store from a backup.'
+      );
     }
+    if (parsed && parsed.saltA && parsed.saltB) {
+      return { saltA: fromBase64(parsed.saltA), saltB: fromBase64(parsed.saltB) };
+    }
+    throw new Error(
+      'Vault salt store is present but missing saltA/saltB. Refusing to ' +
+      'regenerate salts (that would orphan all existing records). Restore the ' +
+      'salt store from a backup.'
+    );
   }
+
+  // Genuinely empty store (first run on this device) — generate and persist.
   const saltA = window.crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   const saltB = window.crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   await writeSaltStore(
