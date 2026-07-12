@@ -2,9 +2,12 @@ import { create } from 'zustand';
 import {
   deriveVaultAKey,
   deriveVaultBKey,
-  createOrVerifyPassphrase
+  createOrVerifyPassphrase,
+  vaultExists,
+  vaultBEnrolled
 } from '../utils/cryptoEngine';
 import { migrateRecordsToV2, rekeyVaultB as rekeyVaultBRecords } from '../utils/migrationEngine';
+import { passphraseRejectionReason } from '../utils/passphrasePolicy';
 
 export const useAuthStore = create((set) => ({
   user: null, // Basic demographics (non-sensitive)
@@ -24,8 +27,15 @@ export const useAuthStore = create((set) => ({
     set({ isDecrypting: true, error: null });
 
     try {
-      if (passphrase.length < 8) {
-        throw new Error("Passphrase too short. Minimum 8 characters required.");
+      if (!passphrase) {
+        throw new Error("Passphrase required.");
+      }
+      // Enforce the strength policy only on FIRST enrollment (finding H3).
+      // Returning users may hold a legacy passphrase that predates the policy —
+      // locking them out would destroy their data, so we only gate new vaults.
+      if (!vaultExists()) {
+        const reason = passphraseRejectionReason(passphrase, { userInputs: [username] });
+        if (reason) throw new Error(reason);
       }
 
       // 1. Derive the VAULT A key only (passphrase A). Vault B requires a
@@ -77,8 +87,15 @@ export const useAuthStore = create((set) => ({
   unlockVaultB: async (passphraseB) => {
     set({ vaultBError: null });
     try {
-      if (!passphraseB || passphraseB.length < 8) {
-        throw new Error("Vault B passphrase too short. Minimum 8 characters.");
+      if (!passphraseB) {
+        throw new Error("Vault B passphrase required.");
+      }
+      // On first-ever Vault B enrollment, enforce the strength policy. On later
+      // unlocks it is a challenge against the existing verifier, so we don't
+      // re-gate strength (that would lock out a legacy B passphrase).
+      if (!vaultBEnrolled()) {
+        const reason = passphraseRejectionReason(passphraseB);
+        if (reason) throw new Error(reason);
       }
       const vaultBKey = await deriveVaultBKey(passphraseB);
       const ok = await createOrVerifyPassphrase(vaultBKey, 'B');
