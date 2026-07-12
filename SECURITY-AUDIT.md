@@ -68,7 +68,17 @@ below concern how those primitives are composed into a system.
   re-key. Vault B is unrecoverable by design (no escrow). Model 2 (hardware
   binding) remains a later hardening milestone.
 - **M1 — REMEDIATED** as part of C1 (Vault B now has its own verifier).
-- **H1, H2, H3, M2, M3, M4, L1–L3 — OPEN.** Not yet addressed.
+- **H3 — REMEDIATED.** zxcvbn-based strength policy (length >= 12 and score >= 3)
+  enforced at every enrollment point, with a live strength meter at first login.
+- **H2 — DEFERRED (intentionally).** Strengthening the KDF (Argon2id, or raising
+  PBKDF2 iterations) changes EVERY derived key — both vault keys, the HMAC backup
+  key, and both verifiers — so it requires a KDF-version tag plus a full re-key
+  migration. Because an independent security review will set the exact KDF
+  algorithm and parameters anyway, doing this large, high-blast-radius change now
+  risks reworking it later. Deferred to the audit; the design/migration approach
+  is captured in the H2 task. Until then, the KDF remains PBKDF2-SHA256 at 600k
+  iterations, so H2's seizure-resistance caveat still applies.
+- **H1, M2, M3, M4, L1–L3 — OPEN.** Not yet addressed.
 
 Note: these remediations are from an internal review with an automated test
 suite. They do NOT substitute for the independent security review the README
