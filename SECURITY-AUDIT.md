@@ -84,7 +84,17 @@ below concern how those primitives are composed into a system.
 - **L2 — REMEDIATED.** A present-but-corrupt salt store now throws instead of
   silently regenerating salts (which would orphan all existing records). Only a
   genuinely empty store generates fresh salts.
-- **H1, M2, M3, M4, L3 — OPEN.** Not yet addressed.
+- **L3 — REMEDIATED.** The backup signature now covers a deterministic,
+  key-order-independent canonical form (recursive key sort) instead of relying on
+  JS insertion order. Legacy backups still verify (fallback). Covered by tests
+  including a key-reorder case.
+- **M3 — DEFERRED (claim corrected).** The overstated authenticity comment in
+  `backupEngine.js` has been corrected: the passphrase HMAC proves tamper-
+  evidence and passphrase-holding, NOT device origin. The actual device-origin
+  signature (per-install asymmetric keypair in the OS keychain) is deferred —
+  it is Tauri-only and the audit will likely set the scheme. Design captured in
+  `docs/backup-authenticity-M3.md`.
+- **H1, M2, M4 — OPEN.** Not yet addressed.
 
 Note: these remediations are from an internal review with an automated test
 suite. They do NOT substitute for the independent security review the README
