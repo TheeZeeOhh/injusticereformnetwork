@@ -25,7 +25,7 @@ export default function ConsentManager() {
     async function loadIndex() {
       if (!vaultBKey) return;
       try {
-        const idx = await loadSecureRecord(vaultBKey, INDEX_ID);
+        const idx = await loadSecureRecord(vaultBKey, INDEX_ID, 'B');
         if (idx) setIndex(idx);
       } catch {
         setStatus('Could not decrypt consent index with the current Vault B key.');
@@ -50,11 +50,11 @@ export default function ConsentManager() {
       grantedAt: new Date().toISOString()
     };
     try {
-      await saveSecureRecord(vaultBKey, id, record);
+      await saveSecureRecord(vaultBKey, id, record, 'B');
       const summary = { id, clientRef: form.clientRef.trim(), category: form.category, status: 'GRANTED', grantedAt: record.grantedAt };
       const updatedIndex = [...index, summary];
       setIndex(updatedIndex);
-      await saveSecureRecord(vaultBKey, INDEX_ID, updatedIndex);
+      await saveSecureRecord(vaultBKey, INDEX_ID, updatedIndex, 'B');
       setStatus(`Consent minted and stored in Vault B (${form.category}).`);
       setForm({ clientRef: '', category: '42cfr', scope: '', revocationDate: '' });
     } catch (err) {
@@ -67,11 +67,11 @@ export default function ConsentManager() {
     const updatedIndex = index.map(c => c.id === id ? { ...c, status: 'REVOKED' } : c);
     setIndex(updatedIndex);
     try {
-      const rec = await loadSecureRecord(vaultBKey, id);
+      const rec = await loadSecureRecord(vaultBKey, id, 'B');
       if (rec) {
-        await saveSecureRecord(vaultBKey, id, { ...rec, status: 'REVOKED', revokedAt: new Date().toISOString() });
+        await saveSecureRecord(vaultBKey, id, { ...rec, status: 'REVOKED', revokedAt: new Date().toISOString() }, 'B');
       }
-      await saveSecureRecord(vaultBKey, INDEX_ID, updatedIndex);
+      await saveSecureRecord(vaultBKey, INDEX_ID, updatedIndex, 'B');
       setStatus('Consent revoked.');
     } catch (err) {
       setStatus('Revoke failed: ' + err.message);

@@ -16,7 +16,7 @@ export default function Schedule() {
     async function loadAppointments() {
       if (!vaultAKey) return;
       try {
-        const stored = await loadSecureRecord(vaultAKey, 'appointments');
+        const stored = await loadSecureRecord(vaultAKey, 'appointments', 'A');
         if (stored) setAppointments(stored);
       } catch (err) {
         console.warn('No encrypted appointments found yet.');

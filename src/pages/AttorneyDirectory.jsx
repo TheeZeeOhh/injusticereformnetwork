@@ -25,7 +25,7 @@ export default function AttorneyDirectory() {
     async function loadDirectory() {
       if (!vaultAKey) return;
       try {
-        const stored = await loadSecureRecord(vaultAKey, 'attorney_directory');
+        const stored = await loadSecureRecord(vaultAKey, 'attorney_directory', 'A');
         if (stored) setAttorneys(stored);
       } catch {
         console.warn("No attorney directory found, using default seed list.");
@@ -39,7 +39,7 @@ export default function AttorneyDirectory() {
     setAttorneys(updated);
     if (!vaultAKey) return;
     try {
-      await saveSecureRecord(vaultAKey, 'attorney_directory', updated);
+      await saveSecureRecord(vaultAKey, 'attorney_directory', updated, 'A');
     } catch (err) {
       console.error("Failed to save attorney directory to vault", err);
     }
