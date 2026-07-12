@@ -403,6 +403,13 @@ export function buildRecordAad(vaultTag, recordId) {
 // (record-id/vault binding, finding C2) is wired in a later task. When present,
 // the V2 magic is prepended to the AAD so the envelope version is authenticated.
 export async function encryptRecord(cryptoKey, data, aad) {
+  // Random 96-bit IV per encryption. AES-GCM leaks catastrophically on IV REUSE
+  // under the same key, and random 96-bit IVs hit the birthday bound near ~2^32
+  // encryptions per key (finding M2). At this app's scale — a handful of records
+  // per client, encrypted individually — that ceiling is unreachable, so random
+  // IVs are safe here. If per-key encryption volume ever approached that range,
+  // switch to a deterministic counter-based nonce. Documented, intentionally not
+  // changed.
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
   const encodedData = encodeText(JSON.stringify(data));
 
