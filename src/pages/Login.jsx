@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
+import { vaultExists } from '../utils/cryptoEngine';
+import { evaluatePassphrase } from '../utils/passphrasePolicy';
 import { OPERATOR_NAME_KEY } from './Onboarding';
+
+const METER_COLORS = ['#e11d48', '#f97316', '#eab308', '#84cc16', '#4ade80'];
 
 export default function Login() {
   const { loginWithPassphrase, isDecrypting, error } = useAuthStore();
@@ -9,6 +13,14 @@ export default function Login() {
   const [passphrase, setPassphrase] = useState('');
   const [role, setRole] = useState('Lead Navigator');
   const [vaultStatus, setVaultStatus] = useState('');
+
+  // First-ever login on this device enrolls the passphrase, so we show a live
+  // strength meter and enforce the policy (finding H3). Returning users (a vault
+  // already exists) just authenticate against their existing passphrase.
+  const isEnrolling = !vaultExists();
+  const strength = isEnrolling && passphrase
+    ? evaluatePassphrase(passphrase, { userInputs: [username] })
+    : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,10 +85,29 @@ export default function Login() {
               style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}
               required
             />
+            {strength && (
+              <div style={{ marginTop: '0.6rem' }}>
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '0.35rem' }}>
+                  {[0, 1, 2, 3, 4].map(i => (
+                    <div key={i} style={{ flex: 1, height: '4px', borderRadius: '2px', background: i <= strength.score ? METER_COLORS[strength.score] : 'var(--border-color)', transition: '0.2s' }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: strength.acceptable ? '#4ade80' : '#fda4af' }}>
+                  {strength.acceptable
+                    ? `Strength: ${strength.label} ✓`
+                    : (strength.reason || `Strength: ${strength.label}`)}
+                </div>
+                {!strength.acceptable && strength.suggestions[0] && (
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '0.2rem' }}>
+                    {strength.suggestions[0]}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          <button type="submit" className="btn-primary" disabled={isDecrypting} style={{ marginTop: '0.5rem', background: 'var(--color-accent)', color: 'white', border: 'none', fontWeight: 'bold', letterSpacing: '0.05em' }}>
-            {isDecrypting ? 'Opening Vault A...' : 'Decrypt & Authenticate'}
+          <button type="submit" className="btn-primary" disabled={isDecrypting || (isEnrolling && strength && !strength.acceptable)} style={{ marginTop: '0.5rem', background: 'var(--color-accent)', color: 'white', border: 'none', fontWeight: 'bold', letterSpacing: '0.05em', opacity: (isEnrolling && strength && !strength.acceptable) ? 0.5 : 1 }}>
+            {isDecrypting ? 'Opening Vault A...' : (isEnrolling ? 'Set Passphrase & Create Vault' : 'Decrypt & Authenticate')}
           </button>
         </form>
 
