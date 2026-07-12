@@ -46,11 +46,19 @@ describe('authStore — C1 Model 1 vault lifecycle', () => {
     expect(s.vaultBKey).toBeNull(); // the core C1 behavior
   });
 
-  it('rejects a short login passphrase', async () => {
+  it('rejects a short login passphrase at enrollment (H3)', async () => {
     await useAuthStore.getState().loginWithPassphrase('op', 'short', 'Lead');
     const s = useAuthStore.getState();
     expect(s.isAuthenticated).toBe(false);
-    expect(s.error).toMatch(/too short/i);
+    expect(s.error).toMatch(/at least 12 characters/i);
+  });
+
+  it('rejects a long-but-weak login passphrase at enrollment (H3)', async () => {
+    // 12+ chars but trivially guessable -> zxcvbn score below policy floor.
+    await useAuthStore.getState().loginWithPassphrase('op', 'passwordpassword', 'Lead');
+    const s = useAuthStore.getState();
+    expect(s.isAuthenticated).toBe(false);
+    expect(s.error).toBeTruthy();
   });
 
   it('unlockVaultB enrolls on first use then opens Vault B', async () => {

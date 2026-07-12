@@ -16,6 +16,7 @@ import {
   createOrVerifyPassphrase,
   vaultBEnrolled
 } from './cryptoEngine';
+import { passphraseRejectionReason } from './passphrasePolicy';
 
 // Classifies a record id to the vault it belongs to. Vault B holds the sensitive
 // (42 CFR Part 2 / HRT) classes; everything else is Vault A. This MUST match the
@@ -113,9 +114,10 @@ export async function rekeyVaultB(loginPassphrase, newPassphraseB) {
     // Already migrated — nothing to do. Idempotent no-op.
     return { rekeyed: 0 };
   }
-  if (!newPassphraseB || newPassphraseB.length < 8) {
-    throw new Error('New Vault B passphrase too short. Minimum 8 characters.');
-  }
+  // The new Vault B passphrase is always a fresh enrollment — enforce the full
+  // strength policy (finding H3), plus the distinct-from-login rule.
+  const reason = passphraseRejectionReason(newPassphraseB);
+  if (reason) throw new Error(reason);
   if (newPassphraseB === loginPassphrase) {
     throw new Error('Vault B passphrase must differ from the login passphrase.');
   }
