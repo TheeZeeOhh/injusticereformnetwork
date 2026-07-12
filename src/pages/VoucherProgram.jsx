@@ -17,9 +17,9 @@ export default function VoucherProgram() {
     async function loadVouchers() {
       if (!vaultAKey) return;
       try {
-        const storedVouchers = await loadSecureRecord(vaultAKey, 'vouchers');
+        const storedVouchers = await loadSecureRecord(vaultAKey, 'vouchers', 'A');
         if (storedVouchers) setVouchers(storedVouchers);
-        const storedBudget = await loadSecureRecord(vaultAKey, 'voucher_budget');
+        const storedBudget = await loadSecureRecord(vaultAKey, 'voucher_budget', 'A');
         if (storedBudget !== null && storedBudget !== undefined) setBudget(storedBudget);
       } catch (err) {
         console.warn("No voucher records found, using defaults.");
@@ -58,8 +58,8 @@ export default function VoucherProgram() {
 
     if (!vaultAKey) return;
     try {
-      await saveSecureRecord(vaultAKey, 'vouchers', updatedVouchers);
-      await saveSecureRecord(vaultAKey, 'voucher_budget', updatedBudget);
+      await saveSecureRecord(vaultAKey, 'vouchers', updatedVouchers, 'A');
+      await saveSecureRecord(vaultAKey, 'voucher_budget', updatedBudget, 'A');
     } catch (err) {
       console.error("Failed to persist vouchers to vault", err);
     }
@@ -71,7 +71,7 @@ export default function VoucherProgram() {
 
     if (!vaultAKey) return;
     try {
-      await saveSecureRecord(vaultAKey, 'vouchers', updatedVouchers);
+      await saveSecureRecord(vaultAKey, 'vouchers', updatedVouchers, 'A');
     } catch (err) {
       console.error("Failed to persist vouchers to vault", err);
     }

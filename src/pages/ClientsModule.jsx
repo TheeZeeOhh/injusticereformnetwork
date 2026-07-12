@@ -26,7 +26,7 @@ export default function ClientsModule() {
     async function loadDirectory() {
       if (!vaultAKey) return;
       try {
-        const dir = await loadSecureRecord(vaultAKey, 'client_directory');
+        const dir = await loadSecureRecord(vaultAKey, 'client_directory', 'A');
         if (dir) setClientDirectory(dir);
       } catch (err) {
         console.warn("No client directory found, using default.");
@@ -40,7 +40,7 @@ export default function ClientsModule() {
     async function loadActiveClient() {
       if (!vaultAKey || !activeClientId) return;
       try {
-        const stored = await loadSecureRecord(vaultAKey, activeClientId);
+        const stored = await loadSecureRecord(vaultAKey, activeClientId, 'A');
         if (stored) {
           setClientData(stored);
         } else {
@@ -59,7 +59,7 @@ export default function ClientsModule() {
     setIsSaving(true);
     try {
       // Save client profile
-      await saveSecureRecord(vaultAKey, activeClientId, clientData);
+      await saveSecureRecord(vaultAKey, activeClientId, clientData, 'A');
       
       // Update & Save directory
       const updatedDir = [...clientDirectory];
@@ -70,7 +70,7 @@ export default function ClientsModule() {
         updatedDir.push({ id: activeClientId, name: clientData.legalName || 'Unnamed Client', status: 'Active' });
       }
       setClientDirectory(updatedDir);
-      await saveSecureRecord(vaultAKey, 'client_directory', updatedDir);
+      await saveSecureRecord(vaultAKey, 'client_directory', updatedDir, 'A');
       
       alert('Client securely saved to local IndexedDB Vault.');
     } catch (err) {

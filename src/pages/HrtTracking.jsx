@@ -27,7 +27,7 @@ export default function HrtTracking() {
     async function load() {
       if (!vaultBKey || !clientRef.trim()) return;
       try {
-        const stored = await loadSecureRecord(vaultBKey, `hrt_${clientRef.trim()}`);
+        const stored = await loadSecureRecord(vaultBKey, `hrt_${clientRef.trim()}`, 'B');
         if (stored) {
           setRecord(stored);
           setStatus('Existing Vault B record loaded.');
@@ -46,7 +46,7 @@ export default function HrtTracking() {
     if (!clientRef.trim()) { setStatus('Enter a client reference ID first.'); return; }
     setIsSaving(true);
     try {
-      await saveSecureRecord(vaultBKey, `hrt_${clientRef.trim()}`, record);
+      await saveSecureRecord(vaultBKey, `hrt_${clientRef.trim()}`, record, 'B');
       setStatus('HRT record encrypted and saved to Vault B.');
     } catch (err) {
       setStatus('Save failed: ' + err.message);

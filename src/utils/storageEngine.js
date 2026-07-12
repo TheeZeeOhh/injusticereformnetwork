@@ -1,4 +1,4 @@
-import { encryptRecord, decryptRecord } from './cryptoEngine';
+import { encryptRecord, decryptRecord, buildRecordAad } from './cryptoEngine';
 
 const DB_NAME = 'SanctuaryVault';
 const STORE_NAME = 'encryptedRecords';
@@ -44,11 +44,18 @@ async function dbOperation(mode, callback) {
 }
 
 /**
- * Encrypts a JSON payload using the provided AES-GCM RAM key and stores it offline in IndexedDB.
+ * Encrypts a JSON payload using the provided AES-GCM RAM key and stores it
+ * offline in IndexedDB.
+ *
+ * `vaultTag` ('A' | 'B') binds the record's identity into the ciphertext as AAD
+ * (finding C2): the resulting v2 blob only decrypts under this same
+ * (vaultTag, recordId) pair, so it cannot be relocated to another id or replayed
+ * across vaults. Pass the vault whose key you supplied ('B' for Vault B modules).
  */
-export async function saveSecureRecord(key, recordId, payload) {
+export async function saveSecureRecord(key, recordId, payload, vaultTag) {
   try {
-    const encryptedPayload = await encryptRecord(key, payload);
+    const aad = buildRecordAad(vaultTag, recordId);
+    const encryptedPayload = await encryptRecord(key, payload, aad);
     await dbOperation('readwrite', store => {
       return store.put({ id: recordId, data: encryptedPayload });
     });
@@ -61,16 +68,22 @@ export async function saveSecureRecord(key, recordId, payload) {
 
 /**
  * Loads and decrypts a record from IndexedDB using the provided AES-GCM RAM key.
+ *
+ * `vaultTag` ('A' | 'B') reconstructs the AAD used at write time. Legacy v1
+ * records ignore AAD (they predate C2 and decrypt as before); v2 records require
+ * the matching (vaultTag, recordId), so a wrong tag or a relocated blob fails
+ * authentication and surfaces as a read failure.
  */
-export async function loadSecureRecord(key, recordId) {
+export async function loadSecureRecord(key, recordId, vaultTag) {
   try {
     const record = await dbOperation('readonly', store => {
       return store.get(recordId);
     });
-    
+
     if (!record || !record.data) return null;
-    
-    const decryptedPayload = await decryptRecord(key, record.data);
+
+    const aad = buildRecordAad(vaultTag, recordId);
+    const decryptedPayload = await decryptRecord(key, record.data, aad);
     return decryptedPayload;
   } catch (err) {
     console.error("Failed to load/decrypt secure record:", err);

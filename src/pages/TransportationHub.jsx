@@ -16,7 +16,7 @@ export default function TransportationHub() {
     async function loadRequests() {
       if (!vaultAKey) return;
       try {
-        const stored = await loadSecureRecord(vaultAKey, 'transport_requests');
+        const stored = await loadSecureRecord(vaultAKey, 'transport_requests', 'A');
         if (stored) setRides(stored);
       } catch (err) {
         console.warn("No transport requests found, using defaults.");
@@ -28,7 +28,7 @@ export default function TransportationHub() {
   const persistRides = async (updatedRides) => {
     if (!vaultAKey) return;
     try {
-      await saveSecureRecord(vaultAKey, 'transport_requests', updatedRides);
+      await saveSecureRecord(vaultAKey, 'transport_requests', updatedRides, 'A');
     } catch (err) {
       console.error("Failed to persist transport requests to vault", err);
     }

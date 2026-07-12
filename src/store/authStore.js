@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { deriveVaultKeys, createOrVerifyPassphrase } from '../utils/cryptoEngine';
+import { migrateRecordsToV2 } from '../utils/migrationEngine';
 
 export const useAuthStore = create((set, get) => ({
   user: null, // Basic demographics (non-sensitive)
@@ -32,15 +33,25 @@ export const useAuthStore = create((set, get) => ({
         throw new Error("Incorrect passphrase. Vault decryption denied.");
       }
 
-      // 3. Keep keys only in active volatile RAM
-      set({ 
-        user: { username, role: role || 'Lead Navigator' }, 
+      // 3. One-time, idempotent upgrade of any legacy v1 records to v2 (AAD
+      //    identity binding, finding C2). Runs on every login; already-v2
+      //    records are skipped. A single bad record is logged, not fatal — so
+      //    migration never blocks login.
+      try {
+        await migrateRecordsToV2(vaultAKey, vaultBKey);
+      } catch (mErr) {
+        console.warn('v1->v2 record migration pass did not complete cleanly:', mErr);
+      }
+
+      // 4. Keep keys only in active volatile RAM
+      set({
+        user: { username, role: role || 'Lead Navigator' },
         isAuthenticated: true,
         vaultAKey,
         vaultBKey,
-        isDecrypting: false 
+        isDecrypting: false
       });
-      
+
     } catch (err) {
       set({ error: err.message, isDecrypting: false });
     }

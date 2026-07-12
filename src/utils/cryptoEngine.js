@@ -250,31 +250,106 @@ export async function createOrVerifyPassphrase(vaultAKey) {
 const encodeText = (text) => new TextEncoder().encode(text);
 const decodeText = (buffer) => new TextDecoder().decode(buffer);
 
-// Encrypt JSON serializable data using AES-GCM
-export async function encryptRecord(cryptoKey, data) {
+// --- Record envelope versioning ---
+//
+// v1 (legacy): IV(12) || ciphertext          — no version marker, no AAD.
+// v2 (current): MAGIC(4) || IV(12) || ciphertext — AAD-capable (see C2).
+//
+// The v2 magic is a distinctive 4-byte prefix so the reader can tell v2 from a
+// legacy v1 payload whose first bytes are a *random* 12-byte IV. A random IV
+// matching all four magic bytes has probability ~2^-32, so misdetecting a v1
+// blob as v2 is effectively impossible. A single ambiguous version byte would
+// collide with a v1 IV 1-in-256 of the time, so we use four bytes instead.
+//
+// "SA" (0x53 0x41) = Sanctuary, 0x02 = envelope version, 0x00 = reserved.
+// The whole magic is fed into the v2 AAD (when AAD is used) so the version
+// cannot be stripped or downgraded without failing the GCM auth tag.
+const V2_MAGIC = new Uint8Array([0x53, 0x41, 0x02, 0x00]);
+
+function hasV2Magic(payload) {
+  if (payload.length < V2_MAGIC.length) return false;
+  for (let i = 0; i < V2_MAGIC.length; i++) {
+    if (payload[i] !== V2_MAGIC[i]) return false;
+  }
+  return true;
+}
+
+// True if a stored payload is already in the v2 (AAD-capable) envelope. Used by
+// the migration pass to skip records that have already been upgraded, making the
+// migration idempotent and re-runnable.
+export function isV2Payload(payload) {
+  return hasV2Magic(payload);
+}
+
+// Builds the canonical AAD (Additional Authenticated Data) that binds a v2
+// record to the exact slot it may occupy (finding C2). The AAD is not secret —
+// it is authenticated, not encrypted — so a record's ciphertext only validates
+// under the same (vaultTag, recordId) it was sealed with. Relocating a blob to a
+// different id, or replaying a Vault B blob into a Vault A slot, fails the GCM
+// auth tag.
+//
+// vaultTag must be 'A' or 'B'; recordId is the IndexedDB key. The literal
+// 'sanctuaryv2|' domain-separates this scheme from any future one.
+export function buildRecordAad(vaultTag, recordId) {
+  if (vaultTag !== 'A' && vaultTag !== 'B') {
+    throw new Error(`Invalid vaultTag '${vaultTag}': expected 'A' or 'B'.`);
+  }
+  if (typeof recordId !== 'string' || recordId.length === 0) {
+    throw new Error('recordId must be a non-empty string for AAD binding.');
+  }
+  return new TextEncoder().encode(`sanctuaryv2|${vaultTag}|${recordId}`);
+}
+
+// Encrypt JSON serializable data using AES-256-GCM into a v2 envelope.
+//
+// `aad` (optional Uint8Array) is bound as AES-GCM additionalData. Task #1 keeps
+// it as a passthrough — callers do not yet supply it; the AAD *content*
+// (record-id/vault binding, finding C2) is wired in a later task. When present,
+// the V2 magic is prepended to the AAD so the envelope version is authenticated.
+export async function encryptRecord(cryptoKey, data, aad) {
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
   const encodedData = encodeText(JSON.stringify(data));
 
+  const algo = { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, iv };
+  if (aad) {
+    algo.additionalData = new Uint8Array([...V2_MAGIC, ...aad]);
+  }
+
   const cipherBuffer = await window.crypto.subtle.encrypt(
-    { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, iv },
+    algo,
     cryptoKey,
     encodedData
   );
 
-  // Combine IV and CipherText so they can be stored together
-  const payload = new Uint8Array(iv.length + cipherBuffer.byteLength);
-  payload.set(iv, 0);
-  payload.set(new Uint8Array(cipherBuffer), iv.length);
+  // MAGIC(4) || IV(12) || ciphertext, stored together.
+  const payload = new Uint8Array(
+    V2_MAGIC.length + iv.length + cipherBuffer.byteLength
+  );
+  payload.set(V2_MAGIC, 0);
+  payload.set(iv, V2_MAGIC.length);
+  payload.set(new Uint8Array(cipherBuffer), V2_MAGIC.length + iv.length);
   return payload;
 }
 
-// Decrypt combined IV+CipherText payload using AES-GCM
-export async function decryptRecord(cryptoKey, payload) {
-  const iv = payload.slice(0, 12);
-  const cipherBuffer = payload.slice(12);
+// Decrypt a record payload, transparently handling BOTH envelope formats:
+//   - v2 (MAGIC || IV || ct): AAD-aware. If the record was sealed with AAD, the
+//     same `aad` must be supplied here or GCM authentication fails.
+//   - v1 (IV || ct): legacy, no AAD. Read as-is so existing records keep
+//     working until the migration pass rewrites them to v2.
+export async function decryptRecord(cryptoKey, payload, aad) {
+  const isV2 = hasV2Magic(payload);
+
+  const offset = isV2 ? V2_MAGIC.length : 0;
+  const iv = payload.slice(offset, offset + 12);
+  const cipherBuffer = payload.slice(offset + 12);
+
+  const algo = { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, iv };
+  if (isV2 && aad) {
+    algo.additionalData = new Uint8Array([...V2_MAGIC, ...aad]);
+  }
 
   const decryptedBuffer = await window.crypto.subtle.decrypt(
-    { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, iv },
+    algo,
     cryptoKey,
     cipherBuffer
   );

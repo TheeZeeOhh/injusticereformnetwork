@@ -22,7 +22,7 @@ export default function StaffingKanban() {
     async function loadBoard() {
       if (!vaultAKey) return;
       try {
-        const stored = await loadSecureRecord(vaultAKey, 'staffing_board');
+        const stored = await loadSecureRecord(vaultAKey, 'staffing_board', 'A');
         if (stored) setProspects(stored);
       } catch (err) {
         console.warn("No staffing board found, using defaults.");
@@ -34,7 +34,7 @@ export default function StaffingKanban() {
   const persistBoard = async (updatedProspects) => {
     if (!vaultAKey) return;
     try {
-      await saveSecureRecord(vaultAKey, 'staffing_board', updatedProspects);
+      await saveSecureRecord(vaultAKey, 'staffing_board', updatedProspects, 'A');
     } catch (err) {
       console.error("Failed to persist staffing board to vault", err);
     }
