@@ -95,9 +95,9 @@ export default function UserManual() {
               <ul>
                 <li style={{ marginBottom: '0.5rem' }}><strong>Encryption at rest:</strong> Every record is encrypted with AES-256-GCM before being written to the local IndexedDB store. The authentication tag means tampered ciphertext will fail to decrypt.</li>
                 <li style={{ marginBottom: '0.5rem' }}><strong>Key derivation:</strong> Your Vault A and Vault B keys are derived from your passphrase using PBKDF2-SHA256 with 600,000 iterations, over random per-install salts.</li>
-                <li style={{ marginBottom: '0.5rem' }}><strong>Keys live in RAM only:</strong> Derived keys are held in memory and never written to disk. Logging out, closing the app, or pulling the USB token wipes them.</li>
+                <li style={{ marginBottom: '0.5rem' }}><strong>Keys live in RAM only:</strong> Derived keys are held in memory and never written to disk. Logging out, closing the app, or pulling the USB token drops them from memory (they become inaccessible and are reclaimed by the runtime).</li>
                 <li style={{ marginBottom: '0.5rem' }}><strong>Salts in the OS keychain:</strong> Inside the desktop app, the per-install salts are stored in the operating system credential store, not in browser storage.</li>
-                <li><strong>BridgeVault closure:</strong> The "Close Vault B" control in the header instantly drops the Vault B key from memory, locking sensitive 42 CFR records while general (Vault A) operations continue. Re-authenticate to reopen.</li>
+                <li><strong>BridgeVault closure:</strong> The "Close Vault B" control in the header drops the Vault B key from memory, locking sensitive 42 CFR records while general (Vault A) operations continue. Re-authenticate to reopen.</li>
               </ul>
             </>
           )}

@@ -170,7 +170,7 @@ function App() {
       const { listen } = await import('@tauri-apps/api/event');
       unlisten = await listen('usb-disconnect-kill-signal', () => {
         logout();
-        alert('USB security token removed. All vault keys have been wiped from memory.');
+        alert('USB security token removed. All vault keys have been dropped from memory.');
       });
     })();
     return () => { if (unlisten) unlisten(); };
@@ -338,7 +338,7 @@ function App() {
                 <button
                   className="btn-primary"
                   onClick={panicWipeVaultB}
-                  title="BridgeVault closure: instantly wipe the Vault B key from memory"
+                  title="BridgeVault closure: drop the Vault B key from memory"
                   style={{ background: '#e11d48', color: 'white', fontWeight: 'bold' }}
                 >
                   🚨 Close Vault B
