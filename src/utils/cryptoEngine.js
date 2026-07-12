@@ -301,7 +301,16 @@ export function vaultBEnrolled() {
 // `vaultKey` is the derived key for `vaultTag` ('A' | 'B'). The verifier is
 // sealed WITHOUT record AAD (it is not a vault record and has no recordId), so a
 // plain encryptRecord/decryptRecord round-trip is used.
-export async function createOrVerifyPassphrase(vaultKey, vaultTag = 'A') {
+//
+// `opts.recordsExist` (boolean) guards against silent re-enrollment (finding
+// H1). If NO verifier is stored but the caller reports that encrypted records
+// for this vault already exist, the verifier was lost/cleared/corrupted — NOT a
+// genuine first run. Silently enrolling here would derive a new key that
+// permanently orphans those records (and would let a local attacker pre-seed a
+// passphrase over someone else's data). We refuse and throw instead of enrolling.
+// The caller (which can see IndexedDB) supplies recordsExist; cryptoEngine stays
+// free of a storage dependency (avoids an import cycle).
+export async function createOrVerifyPassphrase(vaultKey, vaultTag = 'A', opts = {}) {
   const storageKey = verifierStorageKey(vaultTag);
   const stored = localStorage.getItem(storageKey);
 
@@ -317,7 +326,17 @@ export async function createOrVerifyPassphrase(vaultKey, vaultTag = 'A') {
     }
   }
 
-  // ENROLL: no verifier yet — create one under this key.
+  // No verifier stored. Genuine first run only if there are also no records.
+  if (opts.recordsExist) {
+    throw new Error(
+      `Vault ${vaultTag} has existing encrypted records but its passphrase ` +
+      `verifier is missing. Refusing to enroll a new passphrase, which would ` +
+      `permanently orphan those records. Restore the verifier (and salts) from ` +
+      `a backup, or clear the vault deliberately if this data is expendable.`
+    );
+  }
+
+  // ENROLL: no verifier and no records — create one under this key.
   const payload = await encryptRecord(vaultKey, VERIFIER_PLAINTEXT);
   localStorage.setItem(storageKey, toBase64(payload));
   return true;
