@@ -23,7 +23,7 @@ export default function VisualCanvas() {
     async function load() {
       if (!vaultAKey) return;
       try {
-        const stored = await loadSecureRecord(vaultAKey, BOARD_ID);
+        const stored = await loadSecureRecord(vaultAKey, BOARD_ID, 'A');
         if (stored) setNodes(stored);
       } catch {
         setStatus('Could not decrypt the saved board.');
@@ -36,7 +36,7 @@ export default function VisualCanvas() {
     setNodes(next);
     if (!vaultAKey) return;
     try {
-      await saveSecureRecord(vaultAKey, BOARD_ID, next);
+      await saveSecureRecord(vaultAKey, BOARD_ID, next, 'A');
     } catch (err) {
       setStatus('Save failed: ' + err.message);
     }

@@ -14,7 +14,7 @@ export default function DischargeGenerator() {
     async function loadDirectory() {
       if (!vaultAKey) return;
       try {
-        const dir = await loadSecureRecord(vaultAKey, 'client_directory');
+        const dir = await loadSecureRecord(vaultAKey, 'client_directory', 'A');
         if (dir) setPatients(dir);
       } catch (err) {
         console.warn('No encrypted client directory available yet.');
@@ -28,7 +28,7 @@ export default function DischargeGenerator() {
     // Pull the full decrypted client record from the local vault on demand.
     let patient = patients.find(p => p.id === selectedPatient);
     try {
-      const record = await loadSecureRecord(vaultAKey, selectedPatient);
+      const record = await loadSecureRecord(vaultAKey, selectedPatient, 'A');
       if (record) {
         patient = { ...patient, name: record.legalName || patient?.name, status: record.status || patient?.status };
       }

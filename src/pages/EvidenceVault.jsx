@@ -51,7 +51,7 @@ export default function EvidenceVault() {
     async function loadIndex() {
       if (!vaultAKey) return;
       try {
-        const idx = await loadSecureRecord(vaultAKey, INDEX_ID);
+        const idx = await loadSecureRecord(vaultAKey, INDEX_ID, 'A');
         if (idx) setIndex(idx);
       } catch {
         setStatus('Could not decrypt the evidence index with the current key.');
@@ -77,7 +77,7 @@ export default function EvidenceVault() {
       await saveSecureRecord(vaultAKey, `evidence_blob_${id}`, {
         b64: bytesToB64(buf),
         mime: file.type || 'application/octet-stream'
-      });
+      }, 'A');
 
       const summary = {
         id,
@@ -90,7 +90,7 @@ export default function EvidenceVault() {
       };
       const updated = [summary, ...index];
       setIndex(updated);
-      await saveSecureRecord(vaultAKey, INDEX_ID, updated);
+      await saveSecureRecord(vaultAKey, INDEX_ID, updated, 'A');
       setStatus(`Sealed ${file.name} · SHA-256 ${hash.slice(0, 12)}…`);
     } catch (err) {
       setStatus('Upload failed: ' + err.message);
@@ -103,14 +103,14 @@ export default function EvidenceVault() {
     if (!vaultAKey) return;
     setStatus(`Verifying ${item.name}…`);
     try {
-      const blob = await loadSecureRecord(vaultAKey, `evidence_blob_${item.id}`);
+      const blob = await loadSecureRecord(vaultAKey, `evidence_blob_${item.id}`, 'A');
       if (!blob) { setStatus('Stored file bytes not found — integrity FAILED.'); return; }
       const bytes = b64ToBytes(blob.b64);
       const recomputed = await sha256Hex(bytes.buffer);
       const ok = recomputed === item.hash;
       const updated = index.map((x) => x.id === item.id ? { ...x, verified: ok } : x);
       setIndex(updated);
-      await saveSecureRecord(vaultAKey, INDEX_ID, updated);
+      await saveSecureRecord(vaultAKey, INDEX_ID, updated, 'A');
       setStatus(ok
         ? `✓ ${item.name} integrity VERIFIED — hash matches intake.`
         : `✗ ${item.name} integrity FAILED — bytes do not match recorded hash!`);
@@ -123,7 +123,7 @@ export default function EvidenceVault() {
   const download = async (item) => {
     if (!vaultAKey) return;
     try {
-      const blob = await loadSecureRecord(vaultAKey, `evidence_blob_${item.id}`);
+      const blob = await loadSecureRecord(vaultAKey, `evidence_blob_${item.id}`, 'A');
       if (!blob) { setStatus('Stored file bytes not found.'); return; }
       const bytes = b64ToBytes(blob.b64);
       const url = URL.createObjectURL(new Blob([bytes], { type: blob.mime }));

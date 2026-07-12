@@ -16,7 +16,7 @@ export default function Messages() {
     async function loadThread() {
       if (!vaultAKey) return;
       try {
-        const thread = await loadSecureRecord(vaultAKey, THREAD_ID);
+        const thread = await loadSecureRecord(vaultAKey, THREAD_ID, 'A');
         if (thread) setMessages(thread);
       } catch (err) {
         console.warn('No local message thread yet.');
@@ -44,7 +44,7 @@ export default function Messages() {
     setMessages(updated);
     setNewMessage('');
     try {
-      await saveSecureRecord(vaultAKey, THREAD_ID, updated);
+      await saveSecureRecord(vaultAKey, THREAD_ID, updated, 'A');
     } catch (err) {
       console.error('Failed to persist message to encrypted vault:', err);
     }
