@@ -4,10 +4,15 @@
 //
 // A backup carries ONLY AES-GCM ciphertext (the same blobs already at rest in
 // IndexedDB) — PHI is never serialized in plaintext. The whole record set is
-// signed with an HMAC-SHA-256 key derived from the operator passphrase, so any
-// tampering is detected BEFORE restore, and only a passphrase-holder can forge
-// a valid signature. Restore refuses to write anything unless the signature
-// verifies.
+// signed with an HMAC-SHA-256 key derived from the operator passphrase, so
+// tampering is detected BEFORE restore, and restore refuses to write anything
+// unless the signature verifies.
+//
+// AUTHENTICITY SCOPE (finding M3): because the HMAC key is derived from the
+// passphrase, a valid signature proves only "produced by SOMEONE who holds the
+// passphrase", NOT "produced by the origin device". Anyone with the passphrase
+// can forge a valid backup. Device-origin authenticity (a per-install asymmetric
+// signature) is DEFERRED — see docs/backup-authenticity-M3.md.
 import { getAllRecords, putRawRecord } from './storageEngine';
 import {
   deriveHmacKey,
@@ -18,7 +23,53 @@ import {
   saltAFromStoreJson
 } from './cryptoEngine';
 
-const BACKUP_VERSION = 1;
+const BACKUP_VERSION = 2;
+
+// Deterministic canonicalization for the signed payload (finding L3).
+//
+// The signature must cover a representation that does NOT depend on JS object
+// key insertion order. Plain JSON.stringify happens to be stable today only
+// because keys are inserted in a fixed order; a refactor that reordered them, or
+// added a field on one side, could silently break verification or leave a field
+// outside the signed bytes. canonicalize() recursively sorts object keys, so the
+// signed string is a function of the DATA, not of how the object was built.
+function canonicalize(value) {
+  if (Array.isArray(value)) {
+    return '[' + value.map(canonicalize).join(',') + ']';
+  }
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value).sort();
+    return (
+      '{' +
+      keys.map((k) => JSON.stringify(k) + ':' + canonicalize(value[k])).join(',') +
+      '}'
+    );
+  }
+  return JSON.stringify(value);
+}
+
+// The exact fields the signature covers, in a fixed shape. Both create and
+// verify build this from the same helper so they can never drift apart.
+function signedView(obj) {
+  return canonicalize({
+    version: obj.version,
+    createdAt: obj.createdAt,
+    salts: obj.salts,
+    records: obj.records
+  });
+}
+
+// Legacy (v1) canonical form: the previous code signed JSON.stringify of the
+// payload with keys in this exact insertion order. Retained so backups created
+// before the L3 fix still verify.
+function legacyCanonical(obj) {
+  return JSON.stringify({
+    version: obj.version,
+    createdAt: obj.createdAt,
+    salts: obj.salts,
+    records: obj.records
+  });
+}
 
 // Chunked base64 encode — avoids the RangeError that spreading a large array
 // into String.fromCharCode causes (finding L1). Backups serialize every record's
@@ -64,7 +115,8 @@ export async function createBackup(passphrase) {
     salts,
     records
   };
-  const canonical = JSON.stringify(payload);
+  // Sign the deterministic, order-independent canonical form (finding L3).
+  const canonical = signedView(payload);
 
   const hmacKey = await deriveHmacKey(passphrase);
   const hmac = await signData(hmacKey, canonical);
@@ -98,21 +150,17 @@ export async function restoreBackup(passphrase, backup) {
     throw new Error('Malformed backup file.');
   }
 
-  // Recompute the canonical string exactly as createBackup produced it (same
-  // key order).
-  const canonical = JSON.stringify({
-    version: backup.version,
-    createdAt: backup.createdAt,
-    salts: backup.salts,
-    records: backup.records
-  });
-
   // Verify against the backup's OWN salts, WITHOUT persisting them to this
   // device. A failed verification therefore never mutates local state — this
   // is what makes cross-device restore both portable and safe.
   const backupSaltA = backup.salts ? saltAFromStoreJson(backup.salts) : null;
   const hmacKey = await deriveHmacKey(passphrase, backupSaltA);
-  const ok = await verifyData(hmacKey, canonical, backup.hmac);
+
+  // Accept the current deterministic canonical form (v2, finding L3) OR the
+  // legacy insertion-order JSON form, so backups made before the fix still
+  // restore. Either valid signature is sufficient.
+  const okV2 = await verifyData(hmacKey, signedView(backup), backup.hmac);
+  const ok = okV2 || (await verifyData(hmacKey, legacyCanonical(backup), backup.hmac));
   if (!ok) {
     throw new Error(
       'Backup signature verification FAILED. The file was tampered with or the passphrase is wrong. Restore aborted.'
