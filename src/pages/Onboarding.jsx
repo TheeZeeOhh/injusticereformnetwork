@@ -99,7 +99,7 @@ export default function Onboarding() {
           <div style={{ animation: 'fadeIn 0.5s' }}>
             <h1 style={{ color: 'var(--gold)', fontFamily: 'var(--font-serif)', marginBottom: '1rem' }}>Hardware Dead-Man's Switch</h1>
             <p style={{ color: 'var(--bone)', marginBottom: '2rem', fontSize: '1.1rem' }}>
-              Please insert your designated YubiKey or secure USB token. If this token is violently removed, Sanctuary will instantly annihilate all cryptographic keys in RAM.
+              Please insert your designated YubiKey or secure USB token. If this token is removed while armed, Sanctuary drops all cryptographic keys from RAM (they become inaccessible and are reclaimed by the runtime).
             </p>
             <div style={{ background: 'rgba(226, 85, 43, 0.1)', padding: '1.5rem', borderRadius: '4px', borderLeft: '4px solid var(--ember)', marginBottom: '2rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}>

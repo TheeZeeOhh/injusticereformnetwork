@@ -34,7 +34,7 @@ because it is never stored in plaintext and the keys live only in RAM.
 | Passphrase check | Encrypted verifier blob (wrong passphrase fails AES-GCM auth); enrollment refuses to silently re-create a vault over existing records |
 | Backups | HMAC-signed over a deterministic canonical form, portable, verify-before-restore; ciphertext only. The signature proves tamper-evidence + passphrase-holding, **not** device origin (device-origin signing is a tracked, deferred item) |
 | Dual vaults | Vault A (general) and Vault B (42 CFR Part 2, HRT, sensitive) are keyed on **independent passphrases**; Vault B stays closed after login and opens only via an explicit unlock |
-| Panic close | "Close Vault B" drops the Vault B key from RAM; because the Vault B passphrase is never cached, re-opening requires re-entering it |
+| Panic close | "Close Vault B" drops the Vault B key reference from RAM; because the Vault B passphrase is never cached, re-opening requires re-entering it. Keys are non-extractable CryptoKeys (raw bytes never in the JS heap); deterministic zeroization needs the deferred Rust key-custody work |
 | Hardware switch | USB dead-man's switch (rusb) drops RAM keys on token removal. This is presence-detection only; true cryptographic hardware binding is designed but not yet built |
 
 ## Modules
@@ -81,8 +81,9 @@ An internal, adversarial review of the cryptography is recorded in
   device-origin backup signing, and hardware-bound Vault B — these are captured
   in `docs/` and are the kind of thing an independent review will re-parameterize
   anyway.
-- **Still open:** minor items (GCM IV-collision at extreme scale, deterministic
-  key zeroization) and a typed-twice passphrase confirmation.
+- **Still open:** GCM IV-collision at extreme per-key record counts, and a
+  typed-twice passphrase confirmation. (Deterministic key zeroization is bounded
+  by WebCrypto — the real fix rides along with the Rust key-custody work.)
 
 An **independent** security review is still required before real PHI.
 
