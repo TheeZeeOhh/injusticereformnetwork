@@ -56,6 +56,24 @@ below concern how those primitives are composed into a system.
 | L2 | LOW | Corrupt-salt fallback silently orphans all prior records | No (data loss) |
 | L3 | LOW | `JSON.stringify` used as canonical form for HMAC | No (fragility) |
 
+## Remediation status (updated 2026-07-12)
+
+- **C2 — REMEDIATED.** Records now bind (vaultTag, recordId) as AES-GCM AAD via a
+  versioned envelope; legacy records auto-upgrade on login. Substitution/
+  relocation now fails authentication. Covered by tests.
+- **C1 — REMEDIATED (Model 1).** Vault B is keyed on an INDEPENDENT passphrase;
+  it stays closed after login and opens only via explicit unlock. Panic-close is
+  now cryptographically meaningful, and a login-passphrase holder alone cannot
+  read Vault B. Legacy installs upgrade via an explicit "upgrade your vault"
+  re-key. Vault B is unrecoverable by design (no escrow). Model 2 (hardware
+  binding) remains a later hardening milestone.
+- **M1 — REMEDIATED** as part of C1 (Vault B now has its own verifier).
+- **H1, H2, H3, M2, M3, M4, L1–L3 — OPEN.** Not yet addressed.
+
+Note: these remediations are from an internal review with an automated test
+suite. They do NOT substitute for the independent security review the README
+gates real-PHI use on.
+
 ---
 
 ## CRITICAL

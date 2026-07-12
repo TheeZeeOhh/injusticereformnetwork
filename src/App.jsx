@@ -6,7 +6,8 @@ import Schedule from './pages/Schedule';
 import Messages from './pages/Messages';
 import Login from './pages/Login';
 import { useAuthStore } from './store/authStore';
-import { vaultExists } from './utils/cryptoEngine';
+import { vaultExists, vaultBEnrolled } from './utils/cryptoEngine';
+import { needsVaultBRekey } from './utils/migrationEngine';
 import './index.css';
 
 function DashboardHome() {
@@ -100,7 +101,64 @@ const GlobalTicker = () => (
 
 function App() {
   const location = useLocation();
-  const { isAuthenticated, isOnboarded, user, logout, vaultBKey, panicWipeVaultB } = useAuthStore();
+  const { isAuthenticated, isOnboarded, user, logout, vaultBKey, panicWipeVaultB, unlockVaultB, rekeyVaultB } = useAuthStore();
+
+  // Explicit Vault B unlock (finding C1). Vault B is closed after login and
+  // requires its OWN separate passphrase. Three cases:
+  //   1. Legacy install with pre-C1 Vault B records -> "upgrade your vault"
+  //      re-key: decrypt with the login passphrase, set a new Vault B passphrase.
+  //   2. First-ever unlock, no legacy data -> enroll a new Vault B passphrase.
+  //   3. Already enrolled -> challenge the existing Vault B passphrase.
+  // Cases 1 and 2 both set a new passphrase, so they show the
+  // unrecoverable-by-design warning and require acknowledgement (no escrow).
+  const handleUnlockVaultB = async () => {
+    // Case 1: legacy re-key upgrade.
+    if (await needsVaultBRekey()) {
+      const ack = window.confirm(
+        'Upgrade Vault B security.\n\n' +
+        'Your Vault B records currently share your login passphrase. This ' +
+        'upgrade moves them to a SEPARATE Vault B passphrase so closing Vault B ' +
+        'actually protects them.\n\n' +
+        'WARNING: the new Vault B passphrase is UNRECOVERABLE by design — no ' +
+        'reset, no escrow. If you forget it, Vault B data is permanently lost.\n\n' +
+        'Press OK to continue.'
+      );
+      if (!ack) return;
+      const loginPass = window.prompt('Confirm your LOGIN passphrase to decrypt existing Vault B records:');
+      if (!loginPass) return;
+      const newPassB = window.prompt('Choose a NEW Vault B passphrase (min 8 chars, different from login):');
+      if (!newPassB) return;
+      const ok = await rekeyVaultB(loginPass, newPassB);
+      if (!ok) {
+        alert(useAuthStore.getState().vaultBError || 'Vault B upgrade failed. Nothing was changed.');
+      }
+      return;
+    }
+
+    const firstTime = !vaultBEnrolled();
+    if (firstTime) {
+      const ack = window.confirm(
+        'Set the Vault B passphrase.\n\n' +
+        'Vault B protects the most sensitive records (42 CFR Part 2, HRT). It ' +
+        'uses a SEPARATE passphrase from your login.\n\n' +
+        'WARNING: Vault B is UNRECOVERABLE by design. There is no reset and no ' +
+        'escrow. If you forget this passphrase, Vault B data is permanently ' +
+        'lost.\n\n' +
+        'Press OK to acknowledge and set your Vault B passphrase.'
+      );
+      if (!ack) return;
+    }
+    const passB = window.prompt(
+      firstTime
+        ? 'Choose a Vault B passphrase (min 8 chars, different from your login):'
+        : 'Enter your Vault B passphrase to unlock:'
+    );
+    if (!passB) return;
+    const ok = await unlockVaultB(passB);
+    if (!ok) {
+      alert(useAuthStore.getState().vaultBError || 'Vault B unlock failed.');
+    }
+  };
 
   // Hardware dead-man's switch: when the Rust poll thread detects the armed USB
   // token was removed, it emits 'usb-disconnect-kill-signal'. We respond by
@@ -276,15 +334,25 @@ function App() {
             </div>
             <div className="user-profile">
               <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{user?.role}</span>
-              <button
-                className="btn-primary"
-                onClick={panicWipeVaultB}
-                disabled={!vaultBKey}
-                title="BridgeVault closure: instantly wipe the Vault B key from memory"
-                style={{ background: vaultBKey ? '#e11d48' : 'var(--charcoal)', color: 'white', fontWeight: 'bold' }}
-              >
-                {vaultBKey ? '🚨 Close Vault B' : 'Vault B Closed'}
-              </button>
+              {vaultBKey ? (
+                <button
+                  className="btn-primary"
+                  onClick={panicWipeVaultB}
+                  title="BridgeVault closure: instantly wipe the Vault B key from memory"
+                  style={{ background: '#e11d48', color: 'white', fontWeight: 'bold' }}
+                >
+                  🚨 Close Vault B
+                </button>
+              ) : (
+                <button
+                  className="btn-primary"
+                  onClick={handleUnlockVaultB}
+                  title="Open Vault B with its separate passphrase"
+                  style={{ background: 'var(--charcoal)', color: 'white', fontWeight: 'bold' }}
+                >
+                  🔒 Unlock Vault B
+                </button>
+              )}
               <button className="btn-primary" onClick={logout} style={{ background: 'var(--charcoal)' }}>Logout</button>
               <Link to="/profile" style={{ textDecoration: 'none' }}>
                 <div className="avatar" style={{ cursor: 'pointer' }} title="Edit Profile">

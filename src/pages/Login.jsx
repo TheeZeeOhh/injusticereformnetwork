@@ -13,7 +13,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (username && passphrase) {
-      setVaultStatus('Deriving Dual-Vault Keys via PBKDF2 (600,000 iterations)...');
+      setVaultStatus('Deriving Vault A key via PBKDF2 (600,000 iterations)...');
       await loginWithPassphrase(username, passphrase, role);
     }
   };
@@ -76,7 +76,7 @@ export default function Login() {
           </div>
 
           <button type="submit" className="btn-primary" disabled={isDecrypting} style={{ marginTop: '0.5rem', background: 'var(--color-accent)', color: 'white', border: 'none', fontWeight: 'bold', letterSpacing: '0.05em' }}>
-            {isDecrypting ? 'Decrypting Vaults...' : 'Decrypt & Authenticate'}
+            {isDecrypting ? 'Opening Vault A...' : 'Decrypt & Authenticate'}
           </button>
         </form>
 

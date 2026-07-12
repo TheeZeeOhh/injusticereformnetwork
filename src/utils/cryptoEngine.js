@@ -163,22 +163,22 @@ export async function verifyData(hmacKey, dataString, signatureB64) {
   }
 }
 
-export async function deriveVaultKeys(passphrase) {
+// Derives a single AES-256-GCM vault key from a passphrase and a specific salt.
+// Non-extractable: the raw key bytes never enter the JS heap.
+async function deriveKeyFromPassphrase(passphrase, salt) {
   const enc = new TextEncoder();
-  const { saltA, saltB } = await getOrCreateSalts();
-
   const keyMaterial = await window.crypto.subtle.importKey(
     'raw',
     enc.encode(passphrase),
     { name: 'PBKDF2' },
     false,
-    ['deriveBits', 'deriveKey']
+    ['deriveKey']
   );
 
-  const vaultAKey = await window.crypto.subtle.deriveKey(
+  return window.crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: saltA,
+      salt,
       iterations: CRYPTO_CONFIG.KDF_ITERATIONS,
       hash: CRYPTO_CONFIG.HASH_ALGO
     },
@@ -187,20 +187,42 @@ export async function deriveVaultKeys(passphrase) {
     false,
     ['encrypt', 'decrypt']
   );
+}
 
-  const vaultBKey = await window.crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: saltB,
-      iterations: CRYPTO_CONFIG.KDF_ITERATIONS,
-      hash: CRYPTO_CONFIG.HASH_ALGO
-    },
-    keyMaterial,
-    { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, length: CRYPTO_CONFIG.KEY_LENGTH },
-    false,
-    ['encrypt', 'decrypt']
-  );
+// Vault A key: derived from the PRIMARY passphrase and saltA.
+export async function deriveVaultAKey(passphraseA) {
+  const { saltA } = await getOrCreateSalts();
+  return deriveKeyFromPassphrase(passphraseA, saltA);
+}
 
+// Vault B key: derived from an INDEPENDENT passphrase and saltB (finding C1).
+// Because Vault B is keyed on its own secret — not merely a different salt on the
+// same passphrase — a holder of passphrase A alone cannot re-derive it, and
+// panic-closing Vault B is cryptographically meaningful. Vault B is unrecoverable
+// by design: there is no escrow, so a forgotten passphrase B means Vault B data
+// is permanently inaccessible.
+export async function deriveVaultBKey(passphraseB) {
+  const { saltB } = await getOrCreateSalts();
+  return deriveKeyFromPassphrase(passphraseB, saltB);
+}
+
+// Derives the LEGACY (pre-C1) Vault B key: on old installs Vault B records were
+// encrypted under the LOGIN passphrase plus saltB (there was no separate Vault B
+// passphrase). The re-key upgrade (task #8) uses this to decrypt those records
+// once, before re-encrypting them under the new independent Vault B passphrase.
+export async function deriveLegacyVaultBKey(loginPassphrase) {
+  const { saltB } = await getOrCreateSalts();
+  return deriveKeyFromPassphrase(loginPassphrase, saltB);
+}
+
+// DEPRECATED (pre-C1): derives BOTH vault keys from ONE passphrase. Retained only
+// so existing callers keep working until the auth flow is migrated to the split
+// passphrases (task #9). Under C1 this does NOT provide real vault separation —
+// use deriveVaultAKey / deriveVaultBKey instead.
+export async function deriveVaultKeys(passphrase) {
+  const { saltA, saltB } = await getOrCreateSalts();
+  const vaultAKey = await deriveKeyFromPassphrase(passphrase, saltA);
+  const vaultBKey = await deriveKeyFromPassphrase(passphrase, saltB);
   return { vaultAKey, vaultBKey };
 }
 
@@ -215,24 +237,53 @@ export async function deriveVaultKeys(passphrase) {
 // fail here (the auth tag won't validate), so we can reject it BEFORE any real
 // record is touched. The verifier is ciphertext — not secret — so localStorage
 // is an acceptable, stable home in both browser and Tauri.
-const VERIFIER_STORAGE_KEY = 'sanctuary_vault_verifier_v1';
 const VERIFIER_PLAINTEXT = 'SANCTUARY_VAULT_VERIFIER';
+// Vault A keeps the original storage key for backward compatibility with
+// installs enrolled before C1. Vault B gets its own verifier so passphrase B can
+// be validated at unlock time (also closes finding M1).
+const VERIFIER_STORAGE_KEY_A = 'sanctuary_vault_verifier_v1';
+const VERIFIER_STORAGE_KEY_B = 'sanctuary_vault_b_verifier_v1';
 
-// True once a vault has been enrolled on this device (a verifier exists). Used
+function verifierStorageKey(vaultTag) {
+  if (vaultTag === 'A') return VERIFIER_STORAGE_KEY_A;
+  if (vaultTag === 'B') return VERIFIER_STORAGE_KEY_B;
+  throw new Error(`Invalid vaultTag '${vaultTag}': expected 'A' or 'B'.`);
+}
+
+// True once Vault A has been enrolled on this device (its verifier exists). Used
 // to decide first-run onboarding vs. returning-user login. Not a security
 // check — just a "has this device been set up yet?" signal.
 export function vaultExists() {
-  return localStorage.getItem(VERIFIER_STORAGE_KEY) !== null;
+  return localStorage.getItem(VERIFIER_STORAGE_KEY_A) !== null;
 }
 
-export async function createOrVerifyPassphrase(vaultAKey) {
-  const stored = localStorage.getItem(VERIFIER_STORAGE_KEY);
+// True once Vault B has its own verifier (i.e. an independent Vault B passphrase
+// has been enrolled under C1). Distinguishes a C1-migrated install from a legacy
+// one whose Vault B still shares the Vault A passphrase.
+export function vaultBEnrolled() {
+  return localStorage.getItem(VERIFIER_STORAGE_KEY_B) !== null;
+}
+
+// Enroll-or-challenge a vault's passphrase via its encrypted verifier blob.
+//
+// If no verifier exists for this vault (ENROLL): encrypt a known constant under
+// the derived key and persist it. If one exists (CHALLENGE): try to decrypt it;
+// AES-GCM authentication makes a wrong passphrase fail (bad auth tag), so we can
+// reject BEFORE any real record is touched. The verifier is ciphertext, not
+// secret, so localStorage is an acceptable, stable home.
+//
+// `vaultKey` is the derived key for `vaultTag` ('A' | 'B'). The verifier is
+// sealed WITHOUT record AAD (it is not a vault record and has no recordId), so a
+// plain encryptRecord/decryptRecord round-trip is used.
+export async function createOrVerifyPassphrase(vaultKey, vaultTag = 'A') {
+  const storageKey = verifierStorageKey(vaultTag);
+  const stored = localStorage.getItem(storageKey);
 
   if (stored) {
     // CHALLENGE: try to decrypt the existing verifier.
     try {
       const payload = fromBase64(stored);
-      const decoded = await decryptRecord(vaultAKey, payload);
+      const decoded = await decryptRecord(vaultKey, payload);
       return decoded === VERIFIER_PLAINTEXT;
     } catch {
       // Auth tag failed to validate → wrong passphrase.
@@ -241,8 +292,8 @@ export async function createOrVerifyPassphrase(vaultAKey) {
   }
 
   // ENROLL: no verifier yet — create one under this key.
-  const payload = await encryptRecord(vaultAKey, VERIFIER_PLAINTEXT);
-  localStorage.setItem(VERIFIER_STORAGE_KEY, toBase64(payload));
+  const payload = await encryptRecord(vaultKey, VERIFIER_PLAINTEXT);
+  localStorage.setItem(storageKey, toBase64(payload));
   return true;
 }
 
