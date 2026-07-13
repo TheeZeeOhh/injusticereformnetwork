@@ -16,9 +16,20 @@ import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 const INDEX_A = 'med_index';   // Vault A index
 const INDEX_B = 'med_index_b'; // Vault B index
 
+// MAT (medication-assisted treatment for substance use) is folded into this
+// module rather than a separate one, so all sensitive medication records live in
+// one place. MAT records are 42 CFR Part 2 data and MUST go to Vault B — typing a
+// MAT medication auto-flags the record sensitive. This is a RECORD of a client's
+// existing MAT, not prescribing or dosing authority.
+export const MAT_MEDS = ['buprenorphine', 'suboxone', 'subutex', 'methadone', 'naltrexone', 'vivitrol', 'sublocade'];
+export function isMatMed(name) {
+  const n = (name || '').toLowerCase();
+  return MAT_MEDS.some((m) => n.includes(m));
+}
+
 const EMPTY = {
   clientRef: '', medication: '', dose: '', frequency: '',
-  prescriber: '', pharmacy: '', refillDate: '', status: 'Active', sensitive: false
+  prescriber: '', pharmacy: '', program: '', refillDate: '', status: 'Active', sensitive: false
 };
 
 export default function MedicationManagement() {
@@ -61,7 +72,13 @@ export default function MedicationManagement() {
     load();
   }, [vaultBKey]);
 
-  const update = (field, value) => setForm({ ...form, [field]: value });
+  const update = (field, value) => {
+    const next = { ...form, [field]: value };
+    // Typing a MAT medication auto-flags the record sensitive (Vault B, 42 CFR
+    // Part 2). The Navigator can still manually mark other meds sensitive.
+    if (field === 'medication' && isMatMed(value)) next.sensitive = true;
+    setForm(next);
+  };
 
   const handleAdd = async () => {
     if (!form.clientRef.trim() || !form.medication.trim()) {
@@ -148,11 +165,17 @@ export default function MedicationManagement() {
           <input placeholder="Frequency" value={form.frequency} onChange={(e) => update('frequency', e.target.value)} style={inp} />
           <input placeholder="Prescriber" value={form.prescriber} onChange={(e) => update('prescriber', e.target.value)} style={inp} />
           <input placeholder="Pharmacy" value={form.pharmacy} onChange={(e) => update('pharmacy', e.target.value)} style={inp} />
+          <input placeholder="Program / clinic (MAT)" value={form.program} onChange={(e) => update('program', e.target.value)} style={inp} />
           <input type="date" title="Next refill" value={form.refillDate} onChange={(e) => update('refillDate', e.target.value)} style={inp} />
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--bone)' }}>
             <input type="checkbox" checked={form.sensitive} onChange={(e) => update('sensitive', e.target.checked)} />
             Sensitive (HRT / MAT → Vault B)
           </label>
+          {isMatMed(form.medication) && (
+            <div style={{ gridColumn: '1 / -1', fontSize: '0.75rem', color: '#fda4af', fontFamily: 'var(--font-mono)' }}>
+              MAT medication detected — this record is 42 CFR Part 2 and will be stored in Vault B.
+            </div>
+          )}
           <button className="btn-primary" onClick={handleAdd} style={{ gridColumn: '1 / -1' }}>Save Medication</button>
         </div>
       )}
