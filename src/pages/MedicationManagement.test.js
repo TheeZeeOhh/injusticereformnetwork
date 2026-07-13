@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
 import { saveSecureRecord, loadSecureRecord } from '../utils/storageEngine';
 import { deriveVaultAKey, deriveVaultBKey } from '../utils/cryptoEngine';
+import { isMatMed } from './MedicationManagement';
 
 // Medication Management routing: general meds -> Vault A index ('med_index'),
 // sensitive (HRT/MAT) meds -> Vault B index ('med_index_b'). Sensitive meds must
@@ -45,6 +46,15 @@ describe('Medication Management vault routing', () => {
     // The Vault B index must NOT decrypt under the Vault A key.
     await expect(loadSecureRecord(aKey, INDEX_B, 'B')).rejects.toThrow();
     await expect(loadSecureRecord(aKey, INDEX_B, 'A')).rejects.toThrow();
+  });
+
+  it('detects MAT medications (which auto-route to Vault B)', () => {
+    expect(isMatMed('Suboxone 8mg')).toBe(true);
+    expect(isMatMed('buprenorphine/naloxone')).toBe(true);
+    expect(isMatMed('methadone')).toBe(true);
+    expect(isMatMed('Lisinopril')).toBe(false);
+    expect(isMatMed('Estradiol')).toBe(false); // HRT is sensitive but not MAT
+    expect(isMatMed('')).toBe(false);
   });
 
   it('keeps the two indexes independent (A and B do not collide)', async () => {
