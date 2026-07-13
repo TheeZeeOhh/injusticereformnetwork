@@ -31,3 +31,8 @@ keyring = "4"
 # system libusb-1.0. Used only to enumerate device VID:PID — never to read data
 # off the token.
 rusb = "0.9"
+
+# Linux desktop only: WebKitGTK, to grant the microphone (getUserMedia) permission
+# the webview otherwise denies by default. Version pinned to what Tauri/wry links.
+[target.'cfg(target_os = "linux")'.dependencies]
+webkit2gtk = { version = "2.0", features = ["v2_16"] }

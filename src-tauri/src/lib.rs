@@ -179,6 +179,33 @@ pub fn run() {
             
             let app_handle = app.handle().clone();
 
+            // Grant the microphone permission the WebKitGTK webview denies by
+            // default, so on-device Audio Intake (getUserMedia) works in the
+            // desktop build. We allow ONLY user-media (mic/camera) requests and
+            // deny everything else (geolocation, notifications, etc.) so this is
+            // not a blanket permission grant. Linux desktop only.
+            #[cfg(target_os = "linux")]
+            {
+                use tauri::Manager;
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.with_webview(|webview| {
+                        use webkit2gtk::{
+                            PermissionRequestExt, WebViewExt, UserMediaPermissionRequest,
+                        };
+                        use webkit2gtk::glib::object::Cast;
+                        let wv = webview.inner();
+                        wv.connect_permission_request(|_wv, req| {
+                            if req.downcast_ref::<UserMediaPermissionRequest>().is_some() {
+                                req.allow();
+                            } else {
+                                req.deny();
+                            }
+                            true
+                        });
+                    });
+                }
+            }
+
             // Spawn the hardware polling daemon. When armed, it enumerates the
             // USB bus once per second and checks whether the designated token is
             // still present. Physical removal -> emit the kill signal so the
