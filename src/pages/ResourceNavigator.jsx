@@ -32,10 +32,21 @@ const RESOURCES = [
   { name: 'SNAP Enrollment', addr: 'Maryland DHR', note: 'Food assistance', phone: '410-767-7500', cat: 'Financial' },
   { name: 'Tax Sale Legal Aid', addr: 'Baltimore City', note: 'ACLU + MVP for property defense', phone: '410-889-8550', cat: 'Legal' },
   { name: 'Baltimore Harm Reduction', addr: 'Baltimore City', note: 'Naloxone, safer use supplies', phone: 'baltimoreharmreduction.org', cat: 'Harm Reduction' },
-  { name: 'Free Narcan', addr: 'Many Baltimore pharmacies', note: 'No prescription required in MD', phone: 'baltimoreharmreduction.org', cat: 'Harm Reduction' }
+  { name: 'Free Narcan', addr: 'Many Baltimore pharmacies', note: 'No prescription required in MD', phone: 'baltimoreharmreduction.org', cat: 'Harm Reduction' },
+
+  // --- Food & Recovery anchors (Path B) ---
+  // These are well-known statewide anchors added as a starting scaffold. Details
+  // were NOT verified against a live source (knowledge cutoff), so each is marked
+  // unverified. Confirm current phone/address/hours before referring a client.
+  { name: 'Maryland Food Bank', addr: 'Baltimore (statewide network)', note: 'Food pantry network + partner locator', phone: '410-737-8282', cat: 'Food', unverified: true },
+  { name: 'Maryland 211', addr: 'Statewide', note: 'Food, benefits & essential-needs referral line', phone: '211', cat: 'Food', unverified: true },
+  { name: 'SNAP Enrollment', addr: 'Maryland DHR', note: 'Food assistance (also listed under Food)', phone: '410-767-7500', cat: 'Food', unverified: true },
+  { name: 'Maryland Crisis / Recovery Line', addr: 'Statewide', note: 'Substance-use crisis & treatment referral', phone: '1-800-422-0009', cat: 'Recovery', unverified: true },
+  { name: 'SAMHSA National Helpline', addr: 'National', note: 'Free, confidential treatment referral, 24/7', phone: '1-800-662-4357', cat: 'Recovery', unverified: true },
+  { name: '988 Recovery Support', addr: 'National', note: 'Call or text 988 for MH/substance crisis', phone: '988', cat: 'Recovery', unverified: true }
 ];
 
-const CATEGORIES = ['All', 'Healthcare', 'Housing', 'Legal', 'Crisis', 'Harm Reduction', 'Financial'];
+const CATEGORIES = ['All', 'Healthcare', 'Housing', 'Legal', 'Crisis', 'Harm Reduction', 'Financial', 'Food', 'Recovery'];
 
 // Crisis lines surfaced prominently regardless of filter.
 const CRISIS = RESOURCES.filter((r) => r.cat === 'Crisis');
@@ -149,6 +160,11 @@ export default function ResourceNavigator() {
                 </button>
               </div>
               <div style={{ color: 'var(--gold)', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', margin: '0.25rem 0' }}>{r.cat}</div>
+              {r.unverified && (
+                <div title="Details not verified against a live source — confirm before referring a client" style={{ display: 'inline-block', fontSize: '0.62rem', fontFamily: 'var(--font-mono)', color: '#fbbf24', border: '1px solid #b45309', background: 'rgba(251,191,36,0.08)', borderRadius: '4px', padding: '1px 6px', marginBottom: '0.35rem' }}>
+                  ⚠ VERIFY BEFORE REFERRAL
+                </div>
+              )}
               <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '0.4rem' }}>{r.note}</div>
               <div style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>{r.addr}</div>
               <div style={{ color: 'var(--gold)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', marginTop: '0.3rem' }}>{r.phone}</div>

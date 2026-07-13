@@ -59,6 +59,7 @@ export default function AminaPanel({ resources, onFocusResource }) {
                     <button key={r.name} onClick={() => onFocusResource?.(r)} style={{ textAlign: 'left', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>
                       <div style={{ color: 'var(--bone)', fontSize: '0.8rem', fontWeight: 'bold' }}>{r.name}</div>
                       <div style={{ color: 'var(--gold)', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>{r.phone}</div>
+                      {r.unverified && <div style={{ color: '#fbbf24', fontSize: '0.62rem', fontFamily: 'var(--font-mono)' }}>⚠ verify before referral</div>}
                     </button>
                   ))}
                 </div>
@@ -98,6 +99,7 @@ export default function AminaPanel({ resources, onFocusResource }) {
                   {r.note}<br />
                   {r.addr}<br />
                   {r.phone}
+                  {r.unverified && <><br /><span style={{ color: '#b45309' }}>⚠ verify before referral</span></>}
                 </Popup>
               </Marker>
             ))}
