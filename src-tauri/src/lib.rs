@@ -34,13 +34,46 @@ fn usb_present(vid: u16, pid: u16) -> bool {
 
 /// Lists currently-connected USB devices as "vid:pid" strings so the operator
 /// can select which token to designate as the kill-switch. Enumeration only.
+/// When the device can be opened, a readable "vid:pid — Manufacturer Product"
+/// label is returned so the operator can tell devices apart; if it can't be
+/// opened (common without udev permissions), the bare "vid:pid" is returned.
 #[tauri::command]
 fn list_usb_devices() -> Result<Vec<String>, String> {
     let list = rusb::devices().map_err(|e| format!("USB enumeration failed: {e}"))?;
     let mut out = Vec::new();
     for d in list.iter() {
         if let Ok(desc) = d.device_descriptor() {
-            out.push(format!("{:04x}:{:04x}", desc.vendor_id(), desc.product_id()));
+            let id = format!("{:04x}:{:04x}", desc.vendor_id(), desc.product_id());
+            // Skip internal root hubs (Linux Foundation) — they aren't tokens.
+            if desc.vendor_id() == 0x1d6b {
+                continue;
+            }
+            // Try to read a human-readable name; fall back to the bare id.
+            let label = match d.open() {
+                Ok(handle) => {
+                    let timeout = std::time::Duration::from_millis(200);
+                    let lang = handle
+                        .read_languages(timeout)
+                        .ok()
+                        .and_then(|l| l.into_iter().next());
+                    let name = lang.and_then(|lang| {
+                        let man = handle.read_manufacturer_string(lang, &desc, timeout).ok();
+                        let prod = handle.read_product_string(lang, &desc, timeout).ok();
+                        match (man, prod) {
+                            (Some(m), Some(p)) => Some(format!("{m} {p}")),
+                            (None, Some(p)) => Some(p),
+                            (Some(m), None) => Some(m),
+                            _ => None,
+                        }
+                    });
+                    match name {
+                        Some(n) => format!("{id} — {n}"),
+                        None => id,
+                    }
+                }
+                Err(_) => id,
+            };
+            out.push(label);
         }
     }
     out.sort();
@@ -56,7 +89,10 @@ fn arm_deadmans_switch(
     state: tauri::State<'_, UsbLockState>,
     vid_pid: String,
 ) -> Result<String, String> {
-    let (vid_s, pid_s) = vid_pid
+    // Accept either a bare "vid:pid" or the labelled "vid:pid — Name" form the
+    // device list may return. Take only the leading vid:pid token.
+    let id_part = vid_pid.split_whitespace().next().unwrap_or("").trim();
+    let (vid_s, pid_s) = id_part
         .split_once(':')
         .ok_or_else(|| "vid_pid must be in 'vid:pid' hex form, e.g. 1050:0407".to_string())?;
     let vid = u16::from_str_radix(vid_s.trim(), 16).map_err(|_| "invalid vendor id".to_string())?;

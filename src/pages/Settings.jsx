@@ -182,18 +182,34 @@ export default function Settings() {
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
             Designate a USB token. If it is removed while armed, all vault keys are dropped from memory (references cleared; reclaimed by the runtime).
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button onClick={refreshUsbDevices} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
-              Scan USB
-            </button>
-            <select value={selectedUsb} onChange={e => setSelectedUsb(e.target.value)} style={{ flex: 1, minWidth: '140px', padding: '0.4rem', background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
-              <option value="">-- Select token (vid:pid) --</option>
-              {usbDevices.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button onClick={armKillSwitch} disabled={!selectedUsb} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
-              Arm
+          <button onClick={refreshUsbDevices} className="btn-primary" style={{ alignSelf: 'flex-start', background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
+            Scan USB
+          </button>
+
+          {/* Device picker: a styled button list, not a native <select>. Native
+              <option> elements render invisibly in the GTK/webkit webview, so
+              this list is used instead. Click a device to select it as the token. */}
+          {usbDevices.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>Select the token to watch:</div>
+              {usbDevices.map(d => {
+                const sel = selectedUsb === d;
+                return (
+                  <button key={d} onClick={() => setSelectedUsb(d)} style={{ textAlign: 'left', padding: '0.5rem 0.75rem', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', cursor: 'pointer', background: sel ? 'var(--gold)' : 'var(--charcoal-lighter)', color: sel ? 'var(--charcoal)' : 'var(--bone)', border: sel ? '1px solid var(--gold)' : '1px solid var(--border-color)' }}>
+                    {sel ? '● ' : '○ '}{d}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+              No devices listed yet. Plug in your token and click <strong>Scan USB</strong>.
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button onClick={armKillSwitch} disabled={!selectedUsb} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', padding: '0.4rem 1rem', fontWeight: 'bold', opacity: selectedUsb ? 1 : 0.5, cursor: selectedUsb ? 'pointer' : 'not-allowed' }}>
+              Arm{selectedUsb ? ` (${selectedUsb})` : ''}
             </button>
             <button onClick={disarmKillSwitch} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
               Disarm
