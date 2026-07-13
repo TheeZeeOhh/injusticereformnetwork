@@ -23,6 +23,40 @@ import { pipeline, env } from '@huggingface/transformers';
 env.allowLocalModels = false;
 env.allowRemoteModels = true;
 
+// Route model downloads through the Rust backend (finding: HF Xet CDN vs
+// tauri:// CORS freeze). HuggingFace redirects model files to a Xet CDN whose
+// CORS only allows the huggingface.co origin, so the webview's own fetch hangs.
+// The Rust `fetch_model_file` command downloads server-side (no CORS) and returns
+// the bytes, which we wrap back into a Response. Non-HF URLs and non-Tauri
+// contexts (browser dev) fall through to native fetch unchanged.
+const nativeFetch = globalThis.fetch.bind(globalThis);
+
+// Detect a Tauri context (internals injected on the global scope). In a worker
+// there is no `window`; Tauri v2 also injects internals into workers via self.
+const inTauri = typeof self !== 'undefined' && !!self.__TAURI_INTERNALS__;
+
+env.fetch = async (urlOrPath, options) => {
+  const url = typeof urlOrPath === 'string' ? urlOrPath : urlOrPath?.url;
+  const isHf = typeof url === 'string' && /^https?:\/\/(huggingface\.co|hf\.co|cdn-lfs[^/]*\.huggingface\.co)\//.test(url);
+
+  if (isHf && inTauri) {
+    try {
+      // Import lazily so browser-dev (no Tauri) never pulls this path.
+      const { invoke } = await import('@tauri-apps/api/core');
+      const bytes = await invoke('fetch_model_file', { url });
+      const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      return new Response(arr, {
+        status: 200,
+        headers: { 'Content-Type': 'application/octet-stream' }
+      });
+    } catch (err) {
+      // Surface the backend error rather than silently hanging.
+      return new Response(null, { status: 502, statusText: String(err) });
+    }
+  }
+  return nativeFetch(urlOrPath, options);
+};
+
 // whisper-base is a good accuracy/size tradeoff (~145MB) for field speech.
 // whisper-tiny (~40MB) is the faster fallback.
 const MODEL_ID = 'Xenova/whisper-base';
