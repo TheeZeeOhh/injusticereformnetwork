@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
+import AminaPanel from './AminaPanel';
 
 // Resource Navigator — recovered from the original Sanctuary
 // (Baltimore's Safe Haven & Data Sovereignty Platform). A curated directory of
@@ -12,15 +13,17 @@ const SAVED_ID = 'saved_resources';
 
 // Real Baltimore/Maryland resources, recovered verbatim from the original app's
 // dataset. Do not fabricate additions — this is community-curated knowledge.
+// lat/lng are present only for resources with a fixed physical Baltimore-area
+// address, for the map pins. Hotlines / statewide / national entries have none.
 const RESOURCES = [
-  { name: 'Chase Brexton Health Care', addr: '1001 Cathedral St', note: 'Gender-affirming, LGBTQ+ primary care', phone: '410-837-2050', cat: 'Healthcare' },
-  { name: 'GBMC Transgender Services', addr: '6701 N Charles St, Towson', note: 'Hormone therapy, surgery referrals', phone: '443-849-2000', cat: 'Healthcare' },
+  { name: 'Chase Brexton Health Care', addr: '1001 Cathedral St', note: 'Gender-affirming, LGBTQ+ primary care', phone: '410-837-2050', cat: 'Healthcare', lat: 39.3009, lng: -76.6160 },
+  { name: 'GBMC Transgender Services', addr: '6701 N Charles St, Towson', note: 'Hormone therapy, surgery referrals', phone: '443-849-2000', cat: 'Healthcare', lat: 39.4009, lng: -76.6236 },
   { name: 'Planned Parenthood MD', addr: 'Multiple locations', note: 'Hormone care, trans-affirming', phone: '1-800-230-7526', cat: 'Healthcare' },
   { name: 'Homeless Services Hotline', addr: 'Baltimore City', note: '24/7 emergency housing routing', phone: '410-361-9028', cat: 'Housing' },
-  { name: 'Healthcare for the Homeless', addr: '111 Park Ave', note: 'Housing + health services', phone: '410-837-5533', cat: 'Housing' },
-  { name: 'Baltimore Station', addr: '140 W West St', note: 'Transitional housing', phone: '410-779-4801', cat: 'Housing' },
-  { name: 'ACLU of Maryland', addr: '3600 Clipper Mill Rd', note: 'Civil rights, trans legal support', phone: '410-889-8550', cat: 'Legal' },
-  { name: 'Maryland Volunteer Lawyers', addr: '201 N Charles St', note: 'Free civil legal assistance', phone: '410-539-6800', cat: 'Legal' },
+  { name: 'Healthcare for the Homeless', addr: '111 Park Ave', note: 'Housing + health services', phone: '410-837-5533', cat: 'Housing', lat: 39.2926, lng: -76.6178 },
+  { name: 'Baltimore Station', addr: '140 W West St', note: 'Transitional housing', phone: '410-779-4801', cat: 'Housing', lat: 39.2740, lng: -76.6155 },
+  { name: 'ACLU of Maryland', addr: '3600 Clipper Mill Rd', note: 'Civil rights, trans legal support', phone: '410-889-8550', cat: 'Legal', lat: 39.3320, lng: -76.6480 },
+  { name: 'Maryland Volunteer Lawyers', addr: '201 N Charles St', note: 'Free civil legal assistance', phone: '410-539-6800', cat: 'Legal', lat: 39.2884, lng: -76.6146 },
   { name: 'Trans Equity Maryland', addr: 'Statewide', note: 'Name/gender marker changes', phone: 'mdtransequality.org', cat: 'Legal' },
   { name: 'Trans Lifeline', addr: 'National', note: 'By and for trans people', phone: '877-565-8860', cat: 'Crisis' },
   { name: 'Baltimore Crisis Response', addr: 'Baltimore City', note: 'Non-police mobile crisis', phone: '410-433-5175', cat: 'Crisis' },
@@ -105,6 +108,9 @@ export default function ResourceNavigator() {
           ))}
         </div>
       </div>
+
+      {/* Amina assistant + map */}
+      <AminaPanel resources={RESOURCES} onFocusResource={(r) => { setCat('All'); setQuery(r.name); }} />
 
       {/* Controls */}
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
