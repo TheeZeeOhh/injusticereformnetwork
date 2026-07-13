@@ -149,6 +149,51 @@ fn set_vault_salts(salts_json: String) -> Result<(), String> {
         .map_err(|e| format!("keychain write error: {e}"))
 }
 
+// --- Backend model fetch (Audio Intake / Whisper) ---
+//
+// The webview runs from `tauri://localhost`; HuggingFace serves model files via a
+// redirect to its Xet CDN whose CORS only allows the `huggingface.co` origin, so
+// the frontend fetch freezes. Fetching from Rust has no CORS/origin restriction
+// and follows the redirect normally. transformers.js's `env.fetch` is overridden
+// (frontend) to call this command for model files.
+//
+// SECURITY: only HuggingFace hosts are allowed, so the webview cannot use this as
+// an open outbound proxy.
+fn is_allowed_model_host(url: &str) -> bool {
+    match reqwest::Url::parse(url) {
+        Ok(u) => matches!(
+            u.host_str(),
+            Some("huggingface.co")
+                | Some("hf.co")
+                | Some("cdn-lfs.huggingface.co")
+                | Some("cdn-lfs-us-1.huggingface.co")
+        ),
+        Err(_) => false,
+    }
+}
+
+/// Downloads a model file server-side and returns its bytes. Redirects (incl. the
+/// HF Xet CDN) are followed by reqwest. Restricted to HuggingFace hosts.
+#[tauri::command]
+async fn fetch_model_file(url: String) -> Result<Vec<u8>, String> {
+    if !is_allowed_model_host(&url) {
+        return Err(format!("Refused: {url} is not an allowed model host."));
+    }
+    let resp = reqwest::Client::new()
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("model fetch failed: {e}"))?;
+    if !resp.status().is_success() {
+        return Err(format!("model fetch HTTP {}", resp.status()));
+    }
+    let bytes = resp
+        .bytes()
+        .await
+        .map_err(|e| format!("model read failed: {e}"))?;
+    Ok(bytes.to_vec())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let usb_state = UsbLockState {
@@ -166,7 +211,8 @@ pub fn run() {
             disarm_deadmans_switch,
             list_usb_devices,
             get_vault_salts,
-            set_vault_salts
+            set_vault_salts,
+            fetch_model_file
         ])
         .setup(move |app| {
             if cfg!(debug_assertions) {
