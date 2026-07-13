@@ -48,6 +48,18 @@ const RESOURCES = [
 
 const CATEGORIES = ['All', 'Healthcare', 'Housing', 'Legal', 'Crisis', 'Harm Reduction', 'Financial', 'Food', 'Recovery'];
 
+// Derive a city bucket from an address for the city filter. Statewide/National
+// entries (hotlines) are bucketed so a city pick never hides them.
+function cityOf(addr) {
+  const a = (addr || '').toLowerCase();
+  if (a.includes('national')) return 'National';
+  if (a.includes('statewide') || a.includes('maryland dhr') || a.includes('multiple')) return 'Statewide';
+  if (a.includes('towson')) return 'Towson';
+  return 'Baltimore';
+}
+
+const CITIES = ['All', ...Array.from(new Set(RESOURCES.map((r) => cityOf(r.addr)))).sort()];
+
 // Crisis lines surfaced prominently regardless of filter.
 const CRISIS = RESOURCES.filter((r) => r.cat === 'Crisis');
 
@@ -55,6 +67,7 @@ export default function ResourceNavigator() {
   const { vaultBKey } = useAuthStore();
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState('All');
+  const [city, setCity] = useState('All');
   const [saved, setSaved] = useState([]); // array of resource names
   const [status, setStatus] = useState('');
 
@@ -88,6 +101,12 @@ export default function ResourceNavigator() {
 
   const visible = RESOURCES.filter((r) => {
     if (cat !== 'All' && r.cat !== cat) return false;
+    // City filter: a specific city pick still always shows Statewide/National
+    // entries (hotlines) so they're never hidden behind a city choice.
+    if (city !== 'All') {
+      const c = cityOf(r.addr);
+      if (c !== city && c !== 'Statewide' && c !== 'National') return false;
+    }
     if (query.trim()) {
       const q = query.trim().toLowerCase();
       return (
@@ -132,6 +151,9 @@ export default function ResourceNavigator() {
           placeholder="Search resources..."
           style={{ flex: 1, minWidth: '220px', padding: '0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}
         />
+        <select value={city} onChange={(e) => setCity(e.target.value)} title="Filter by city" style={{ padding: '0.4rem 0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+          {CITIES.map((c) => <option key={c} value={c}>{c === 'All' ? 'All cities' : c}</option>)}
+        </select>
         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
           {CATEGORIES.map((c) => (
             <button key={c} onClick={() => setCat(c)} style={{ background: cat === c ? 'var(--gold)' : 'transparent', color: cat === c ? 'var(--charcoal)' : 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '0.35rem 0.7rem', borderRadius: '4px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
