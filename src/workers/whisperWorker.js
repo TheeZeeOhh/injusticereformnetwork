@@ -11,9 +11,17 @@
 //                   natively, so no separate translation model is needed)
 import { pipeline, env } from '@huggingface/transformers';
 
-// Allow remote model download (first run) + local cache thereafter. We do NOT
-// set any telemetry; transformers.js runs offline once cached.
-env.allowLocalModels = true;
+// Fetch the model from the HuggingFace CDN (first run) and rely on the browser
+// HTTP cache thereafter — transformers.js runs offline once cached.
+//
+// IMPORTANT (finding: desktop model-load failure): in the Tauri desktop build the
+// app is served from `tauri://localhost`, which has no filesystem model path. If
+// local models are allowed, transformers.js tries a local URL first, the app
+// server answers unknown paths with index.html, and the HTML ("<") fails JSON
+// parsing → "Unrecognized token '<'". So we DISABLE local model lookup and force
+// the remote path. remoteHost defaults to https://huggingface.co/.
+env.allowLocalModels = false;
+env.allowRemoteModels = true;
 
 // whisper-base is a good accuracy/size tradeoff (~145MB) for field speech.
 // whisper-tiny (~40MB) is the faster fallback.
