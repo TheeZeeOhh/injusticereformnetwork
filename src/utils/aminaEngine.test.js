@@ -31,6 +31,21 @@ describe('guidedReply (Tier 1)', () => {
     expect(r.text).toMatch(/gender-affirming|housing|legal/i);
   });
 
+  it('routes food and recovery intents, and flags unverified resources', () => {
+    const withNew = [
+      ...RES,
+      { name: 'Maryland Food Bank', cat: 'Food', phone: '410-737-8282', note: 'pantry', addr: 'Baltimore', unverified: true },
+      { name: 'SAMHSA National Helpline', cat: 'Recovery', phone: '1-800-662-4357', note: 'referral', addr: 'National', unverified: true }
+    ];
+    const food = guidedReply('my client is hungry, needs a food pantry', withNew);
+    expect(food.resources[0].cat).toBe('Food');
+    expect(food.text).toMatch(/verify|double-check|confirm/i);
+
+    const recovery = guidedReply('client wants to get into MAT treatment', withNew);
+    expect(recovery.resources[0].cat).toBe('Recovery');
+    expect(recovery.text).toMatch(/verify|double-check|confirm/i);
+  });
+
   it('has a recovered, affirming persona', () => {
     expect(AMINA_SYSTEM).toMatch(/Trans Women of Color/i);
     expect(AMINA_SYSTEM).toMatch(/affirming/i);
