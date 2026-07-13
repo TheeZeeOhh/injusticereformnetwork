@@ -32,6 +32,11 @@ let transcriber = null;
 async function getTranscriber() {
   if (!transcriber) {
     transcriber = await pipeline('automatic-speech-recognition', MODEL_ID, {
+      // Force full-precision (fp32) weights. The default picks a quantized
+      // variant (q4/q8) whose format the bundled onnxruntime-web cannot decode
+      // ("Missing required scale … TransposeDQWeightsForMatMulNBits") — loading
+      // fp32 sidesteps that broken quantization path. Larger download, reliable.
+      dtype: 'fp32',
       // progress_callback streams model-download progress to the UI.
       progress_callback: (p) => {
         self.postMessage({ type: 'model-progress', payload: p });
