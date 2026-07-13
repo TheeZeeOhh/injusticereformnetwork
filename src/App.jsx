@@ -100,6 +100,68 @@ const GlobalTicker = () => (
   </>
 );
 
+// Grouped sidebar navigation. Sections make ~25 modules findable, and pull the
+// sensitive (Vault B / 42 CFR Part 2) modules into their own clearly-labelled
+// group so the security boundary is visible in the UI.
+const NAV_GROUPS = [
+  {
+    title: 'Client Care',
+    items: [
+      { to: '/', icon: '📊', label: 'Dashboard' },
+      { to: '/clients', icon: '👥', label: 'Clients' },
+      { to: '/meds', icon: '💊', label: 'Medications' },
+      { to: '/discharge', icon: '📋', label: 'Discharge Gen' },
+      { to: '/telehealth', icon: '📹', label: 'Telehealth' },
+      { to: '/audio', icon: '🎙️', label: 'Audio Intake' }
+    ]
+  },
+  {
+    title: 'Sensitive · Vault B (42 CFR)',
+    items: [
+      { to: '/hrt', icon: '🏳️‍⚧️', label: 'HRT Continuity' },
+      { to: '/consent', icon: '📜', label: 'Consent' }
+    ]
+  },
+  {
+    title: 'Resources & Docs',
+    items: [
+      { to: '/resources', icon: '🏳️‍🌈', label: 'Resource Navigator' },
+      { to: '/docs', icon: '📁', label: 'Document Library' },
+      { to: '/evidence', icon: '🔐', label: 'Evidence Vault' },
+      { to: '/vouchers', icon: '🎫', label: 'Voucher Program' },
+      { to: '/transport', icon: '🚗', label: 'Transportation Hub' }
+    ]
+  },
+  {
+    title: 'Legal & Advocacy',
+    items: [
+      { to: '/foia', icon: '⚖️', label: 'FOIA Gen' },
+      { to: '/attorneys', icon: '⚖️', label: 'Attorneys' },
+      { to: '/canvas', icon: '🎨', label: 'Visual Canvas' }
+    ]
+  },
+  {
+    title: 'Operations & Staff',
+    items: [
+      { to: '/schedule', icon: '📅', label: 'Schedule' },
+      { to: '/shifts', icon: '🔄', label: 'Shift Swaps' },
+      { to: '/staffing', icon: '📋', label: 'Staffing Pipeline' },
+      { to: '/oncall', icon: '🚨', label: 'On-Call Dashboard' },
+      { to: '/templates', icon: '📝', label: 'Dispatch Log' },
+      { to: '/messages', icon: '💬', label: 'Messages' },
+      { to: '/intelligence', icon: '🧠', label: 'Intelligence Layer' }
+    ]
+  },
+  {
+    title: 'System',
+    items: [
+      { to: '/manual', icon: '📘', label: 'User Manual' },
+      { to: '/onboarding', icon: '🚀', label: 'Onboarding' },
+      { to: '/settings', icon: '⚙️', label: 'Settings' }
+    ]
+  }
+];
+
 function App() {
   const location = useLocation();
   const { isAuthenticated, isOnboarded, user, logout, vaultBKey, panicWipeVaultB, unlockVaultB, rekeyVaultB } = useAuthStore();
@@ -198,136 +260,20 @@ function App() {
           </div>
           
           <ul className="nav-links">
-            <Link to="/" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/' ? 'active' : ''}`}>
-                <span>📊</span> Dashboard
-              </li>
-            </Link>
-            <Link to="/clients" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/clients' ? 'active' : ''}`}>
-                <span>👥</span> Clients
-              </li>
-            </Link>
-            <Link to="/templates" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/templates' ? 'active' : ''}`}>
-                <span>📝</span> Dispatch Log
-              </li>
-            </Link>
-            <Link to="/canvas" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/canvas' ? 'active' : ''}`}>
-                <span>🎨</span> Visual Canvas
-              </li>
-            </Link>
-            <Link to="/foia" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/foia' ? 'active' : ''}`}>
-                <span>⚖️</span> FOIA Gen
-              </li>
-            </Link>
-            <Link to="/evidence" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/evidence' ? 'active' : ''}`}>
-                <span>🔐</span> Evidence Vault
-              </li>
-            </Link>
-            <Link to="/attorneys" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/attorneys' ? 'active' : ''}`}>
-                <span>⚖️</span> Attorneys
-              </li>
-            </Link>
-            <Link to="/audio" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/audio' ? 'active' : ''}`}>
-                <span>🎙️</span> Audio Intake
-              </li>
-            </Link>
-            <Link to="/telehealth" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/telehealth' ? 'active' : ''}`}>
-                <span>📹</span> Telehealth
-              </li>
-            </Link>
-            <Link to="/discharge" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/discharge' ? 'active' : ''}`}>
-                <span>📋</span> Discharge Gen
-              </li>
-            </Link>
-            <Link to="/schedule" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/schedule' ? 'active' : ''}`}>
-                <span>📅</span> Schedule
-              </li>
-            </Link>
-            <Link to="/shifts" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/shifts' ? 'active' : ''}`}>
-                <span>🔄</span> Shift Swaps
-              </li>
-            </Link>
-            <Link to="/messages" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/messages' ? 'active' : ''}`}>
-                <span>💬</span> Messages
-              </li>
-            </Link>
-            <Link to="/intelligence" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/intelligence' ? 'active' : ''}`}>
-                <span>🧠</span> Intelligence Layer
-              </li>
-            </Link>
-            <Link to="/meds" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/meds' ? 'active' : ''}`}>
-                <span>💊</span> Medications
-              </li>
-            </Link>
-            <Link to="/hrt" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/hrt' ? 'active' : ''}`}>
-                <span>🏳️‍⚧️</span> HRT Continuity
-              </li>
-            </Link>
-            <Link to="/consent" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/consent' ? 'active' : ''}`}>
-                <span>📜</span> Consent (Vault B)
-              </li>
-            </Link>
-            <Link to="/resources" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/resources' ? 'active' : ''}`}>
-                <span>🏳️‍🌈</span> Resource Navigator
-              </li>
-            </Link>
-            <Link to="/oncall" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/oncall' ? 'active' : ''}`}>
-                <span>🚨</span> On-Call Dashboard
-              </li>
-            </Link>
-            <Link to="/staffing" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/staffing' ? 'active' : ''}`}>
-                <span>📋</span> Staffing Pipeline
-              </li>
-            </Link>
-            <Link to="/docs" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/docs' ? 'active' : ''}`}>
-                <span>📁</span> Document Library
-              </li>
-            </Link>
-            <Link to="/transport" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/transport' ? 'active' : ''}`}>
-                <span>🚗</span> Transportation Hub
-              </li>
-            </Link>
-            <Link to="/vouchers" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/vouchers' ? 'active' : ''}`}>
-                <span>🎫</span> Voucher Program
-              </li>
-            </Link>
-            <Link to="/manual" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/manual' ? 'active' : ''}`}>
-                <span>📘</span> User Manual
-              </li>
-            </Link>
-            <Link to="/onboarding" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/onboarding' ? 'active' : ''}`}>
-                <span>🚀</span> Onboarding
-              </li>
-            </Link>
-            <Link to="/settings" style={{ textDecoration: 'none' }}>
-              <li className={`nav-item ${location.pathname === '/settings' ? 'active' : ''}`}>
-                <span>⚙️</span> Settings
-              </li>
-            </Link>
+            {NAV_GROUPS.map((group) => (
+              <React.Fragment key={group.title}>
+                <li style={{ listStyle: 'none', padding: '0.9rem 1rem 0.3rem', fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', pointerEvents: 'none' }}>
+                  {group.title}
+                </li>
+                {group.items.map((item) => (
+                  <Link key={item.to} to={item.to} style={{ textDecoration: 'none' }}>
+                    <li className={`nav-item ${location.pathname === item.to ? 'active' : ''}`}>
+                      <span>{item.icon}</span> {item.label}
+                    </li>
+                  </Link>
+                ))}
+              </React.Fragment>
+            ))}
           </ul>
         </aside>
 
