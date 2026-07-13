@@ -66,6 +66,7 @@ import Onboarding from './pages/Onboarding';
 import Settings from './pages/Settings';
 import HrtTracking from './pages/HrtTracking';
 import ConsentManager from './pages/ConsentManager';
+import ResourceNavigator from './pages/ResourceNavigator';
 import TransportationHub from './pages/TransportationHub';
 import VoucherProgram from './pages/VoucherProgram';
 import UserManual from './pages/UserManual';
@@ -282,6 +283,11 @@ function App() {
                 <span>📜</span> Consent (Vault B)
               </li>
             </Link>
+            <Link to="/resources" style={{ textDecoration: 'none' }}>
+              <li className={`nav-item ${location.pathname === '/resources' ? 'active' : ''}`}>
+                <span>🏳️‍🌈</span> Resource Navigator
+              </li>
+            </Link>
             <Link to="/oncall" style={{ textDecoration: 'none' }}>
               <li className={`nav-item ${location.pathname === '/oncall' ? 'active' : ''}`}>
                 <span>🚨</span> On-Call Dashboard
@@ -381,6 +387,7 @@ function App() {
               <Route path="/meds" element={<MedicationManagement />} />
               <Route path="/hrt" element={<HrtTracking />} />
               <Route path="/consent" element={<ConsentManager />} />
+              <Route path="/resources" element={<ResourceNavigator />} />
               <Route path="/oncall" element={<OnCallDashboard />} />
               <Route path="/staffing" element={<StaffingKanban />} />
               <Route path="/docs" element={<DocumentLibrary />} />
