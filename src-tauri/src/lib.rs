@@ -194,6 +194,76 @@ async fn fetch_model_file(url: String) -> Result<Vec<u8>, String> {
     Ok(bytes.to_vec())
 }
 
+// --- Hosted assistant call (generic bureaucracy questions ONLY) --------------
+//
+// The frontend router (routeEngine.js) + guardrails (guardrails.js) decide
+// whether a message is eligible to leave the device. By the time this command
+// is invoked, the message MUST already be a generic, referent-free question.
+// This command deliberately accepts ONLY a bare question string and a system
+// prompt — it has no access to the resource list, client records, or vault, so
+// PHI cannot ride along even if a frontend bug tried to send it.
+//
+// SECURITY:
+//   * The Anthropic API key lives ONLY here, read from the environment. It is
+//     never exposed to the webview/JS bundle.
+//   * Outbound host is allowlisted to api.anthropic.com, so this cannot be used
+//     as an open proxy (same discipline as fetch_model_file).
+//   * On any missing key / network / API error, returns Err so the frontend
+//     falls back to the LOCAL path rather than failing open.
+const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
+
+#[tauri::command]
+async fn hosted_assistant_ask(question: String, system_prompt: String) -> Result<String, String> {
+    let api_key = std::env::var("SANCTUARY_ANTHROPIC_KEY")
+        .map_err(|_| "hosted model unavailable (no key configured)".to_string())?;
+
+    // Defense in depth: refuse anything that is not a short, single question.
+    // The real gate is the frontend router; this is a backstop against an
+    // oversized payload (which would signal something other than a generic Q).
+    if question.trim().is_empty() {
+        return Err("empty question".to_string());
+    }
+    if question.len() > 600 {
+        return Err("refused: question too long for the generic hosted path".to_string());
+    }
+
+    let body = serde_json::json!({
+        "model": "claude-opus-4-8",
+        "max_tokens": 1024,
+        "system": system_prompt,
+        "messages": [{ "role": "user", "content": question }]
+    });
+
+    let resp = reqwest::Client::new()
+        .post(ANTHROPIC_API_URL)
+        .header("x-api-key", api_key)
+        .header("anthropic-version", "2023-06-01")
+        .header("content-type", "application/json")
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("hosted request failed: {e}"))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("hosted API HTTP {}", resp.status()));
+    }
+
+    let data: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("hosted response parse failed: {e}"))?;
+
+    // Anthropic messages API: content is an array of blocks; take the first text.
+    let text = data
+        .get("content")
+        .and_then(|c| c.as_array())
+        .and_then(|arr| arr.iter().find_map(|b| b.get("text").and_then(|t| t.as_str())))
+        .map(|s| s.to_string())
+        .ok_or_else(|| "hosted response had no text".to_string())?;
+
+    Ok(text)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let usb_state = UsbLockState {
@@ -212,7 +282,8 @@ pub fn run() {
             list_usb_devices,
             get_vault_salts,
             set_vault_salts,
-            fetch_model_file
+            fetch_model_file,
+            hosted_assistant_ask
         ])
         .setup(move |app| {
             if cfg!(debug_assertions) {
