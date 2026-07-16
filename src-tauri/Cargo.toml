@@ -35,7 +35,7 @@ rusb = "0.9"
 # from Rust bypasses the tauri://localhost CORS/origin restriction that blocks
 # the frontend from following HuggingFace's Xet CDN redirect. Already in the tree
 # transitively via Tauri. rustls-tls avoids a system OpenSSL dependency.
-reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "json"] }
 
 # Linux desktop only: WebKitGTK, to grant the microphone (getUserMedia) permission
 # the webview otherwise denies by default. Version pinned to what Tauri/wry links.
