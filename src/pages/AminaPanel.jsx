@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { askAmina, isAminaLlmAvailable } from '../utils/aminaEngine';
+import { askWifey, isAminaLlmAvailable } from '../utils/aminaEngine';
 
 // Fix Leaflet's default marker icon paths (they break under bundlers otherwise).
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -10,9 +10,33 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 L.Icon.Default.mergeOptions({ iconUrl: markerIcon, iconRetinaUrl: markerIcon2x, shadowUrl: markerShadow });
 
-// Amina chat + Baltimore resource map. Amina is LOCAL-ONLY: real LLM via Ollama
-// when present, honest guided assistant otherwise. The map uses OpenStreetMap
-// tiles (network tile fetches — see the caveat note in the UI).
+// Per-message provenance badge. The hosted label is deliberately the loudest:
+// a navigator must never be misled about a question having left the device.
+const SOURCE_LABEL = {
+  hosted: { text: 'uplink · sent to hosted model (Anthropic) · not on-device', color: '#fbbf24' },
+  crisis: { text: 'crisis support · handled locally', color: '#f87171' },
+  escalate: { text: 'escalated to navigator · handled locally', color: '#f87171' },
+  llm: { text: 'local AI (Ollama) · on-device', color: 'var(--text-tertiary)' },
+  guided: { text: 'guided mode · on-device', color: 'var(--text-tertiary)' }
+};
+
+function SourceBadge({ source }) {
+  const meta = SOURCE_LABEL[source];
+  if (!meta) return null;
+  return (
+    <div style={{ marginTop: '0.25rem', fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: meta.color }}>
+      {meta.text}
+    </div>
+  );
+}
+
+// Assistant chat + Baltimore resource map. HYBRID routing (see askWifey):
+// client-specific questions stay LOCAL (Ollama or guided, no data leaves the
+// device); only generic, referent-free bureaucracy questions may reach the
+// hosted model via the Rust `hosted_assistant_ask` command, and only ever as
+// a bare question with NO client/resource data attached. Crisis and escalation
+// are handled locally and never routed out. The map uses OpenStreetMap tiles
+// (network tile fetches — see the caveat note in the UI).
 export default function AminaPanel({ resources, onFocusResource }) {
   const mapped = resources.filter((r) => typeof r.lat === 'number' && typeof r.lng === 'number');
   const [messages, setMessages] = useState([
@@ -32,7 +56,7 @@ export default function AminaPanel({ resources, onFocusResource }) {
     setInput('');
     setMessages((m) => [...m, { from: 'user', text }]);
     setThinking(true);
-    const reply = await askAmina(text, resources);
+    const reply = await askWifey(text, resources);
     setMessages((m) => [...m, { from: 'amina', text: reply.text, resources: reply.resources, source: reply.source }]);
     setThinking(false);
   };
@@ -53,6 +77,7 @@ export default function AminaPanel({ resources, onFocusResource }) {
               <div style={{ background: m.from === 'user' ? 'var(--gold)' : 'var(--charcoal-lighter)', color: m.from === 'user' ? 'var(--charcoal)' : 'var(--bone)', padding: '0.5rem 0.75rem', borderRadius: '10px', fontSize: '0.85rem', lineHeight: 1.4 }}>
                 {m.text}
               </div>
+              {m.from === 'amina' && <SourceBadge source={m.source} />}
               {m.resources && m.resources.length > 0 && (
                 <div style={{ marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                   {m.resources.map((r) => (
