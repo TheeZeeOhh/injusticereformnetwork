@@ -2,9 +2,15 @@ import React, { useState, useRef } from 'react';
 import { nukeStorage } from '../utils/storageEngine';
 import { downloadBackup, restoreBackup } from '../utils/backupEngine';
 import { useAuthStore } from '../store/authStore';
+import { useSettingsStore } from '../store/settingsStore';
 
 export default function Settings() {
   const { logout } = useAuthStore();
+  const ticker = useSettingsStore(s => s.ticker);
+  const setTickerEnabled = useSettingsStore(s => s.setTickerEnabled);
+  const setTickerSpeed = useSettingsStore(s => s.setTickerSpeed);
+  const setTickerMessages = useSettingsStore(s => s.setTickerMessages);
+  const resetTicker = useSettingsStore(s => s.resetTicker);
   const [isNuking, setIsNuking] = useState(false);
   const [backupStatus, setBackupStatus] = useState('');
   const fileInputRef = useRef(null);
@@ -86,6 +92,15 @@ export default function Settings() {
   });
 
   const toggle = (key) => setSettings({ ...settings, [key]: !settings[key] });
+
+  // Ticker message editing (operates on the persisted settings store).
+  const updateTickerMessage = (i, value) => {
+    const next = [...ticker.messages];
+    next[i] = value;
+    setTickerMessages(next);
+  };
+  const removeTickerMessage = (i) => setTickerMessages(ticker.messages.filter((_, idx) => idx !== i));
+  const addTickerMessage = () => setTickerMessages([...ticker.messages, 'New alert']);
 
   const handleNuke = async () => {
     const confirm1 = window.confirm("WARNING: You are about to initiate a scorched-earth protocol. All local records, keys, and hive-mind fragments will be permanently destroyed.");
@@ -172,6 +187,63 @@ export default function Settings() {
             </div>
             <button onClick={() => toggle('highContrast')} className="btn-primary" style={{ background: settings.highContrast ? '#4ade80' : 'var(--charcoal-lighter)', color: settings.highContrast ? '#0f172a' : 'var(--text-secondary)', padding: '0.4rem 1rem' }}>
               {settings.highContrast ? 'ON' : 'OFF'}
+            </button>
+          </div>
+        </div>
+
+        {/* Status Ticker */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Status Ticker</h2>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Show Ticker</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Scrolling status bar at the top of the app.</div>
+            </div>
+            <button onClick={() => setTickerEnabled(!ticker.enabled)} className="btn-primary" style={{ background: ticker.enabled ? '#4ade80' : 'var(--charcoal-lighter)', color: ticker.enabled ? '#0f172a' : 'var(--text-secondary)', padding: '0.4rem 1rem' }}>
+              {ticker.enabled ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+            <div>
+              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Scroll Speed</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Seconds per loop — lower is faster.</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <input type="range" min="5" max="60" step="1" value={ticker.speed} onChange={e => setTickerSpeed(e.target.value)} style={{ accentColor: 'var(--gold)' }} />
+              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--bone)', fontSize: '0.85rem', minWidth: '2.5rem', textAlign: 'right' }}>{ticker.speed}s</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Messages</div>
+            {ticker.messages.map((msg, i) => (
+              <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={msg}
+                  onChange={e => updateTickerMessage(i, e.target.value)}
+                  style={{ flex: 1, padding: '0.5rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
+                />
+                <button onClick={() => removeTickerMessage(i)} title="Remove" style={{ background: 'var(--charcoal-lighter)', color: 'var(--ember)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.4rem 0.7rem', cursor: 'pointer', fontFamily: 'var(--font-mono)' }}>
+                  ✕
+                </button>
+              </div>
+            ))}
+            {ticker.messages.length === 0 && (
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+                No messages — the ticker is hidden until you add one.
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button onClick={addTickerMessage} className="btn-primary" style={{ background: 'var(--gold)', color: 'var(--charcoal)', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
+              + Add Message
+            </button>
+            <button onClick={resetTicker} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
+              Reset to Default
             </button>
           </div>
         </div>
