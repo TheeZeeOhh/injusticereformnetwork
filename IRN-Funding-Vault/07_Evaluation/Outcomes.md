@@ -1,3 +1,0 @@
-# Outcomes
-
-*Drafting in progress...*
