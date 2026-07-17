@@ -12,6 +12,11 @@ export default function Settings() {
   const setTickerSpeed = useSettingsStore(s => s.setTickerSpeed);
   const setTickerMessages = useSettingsStore(s => s.setTickerMessages);
   const resetTicker = useSettingsStore(s => s.resetTicker);
+  const jitsiDomain = useSettingsStore(s => s.jitsi.domain);
+  const setJitsiDomain = useSettingsStore(s => s.setJitsiDomain);
+  // Local raw input so typing dots/hyphens isn't filtered mid-entry; committed
+  // (normalized) to the store on blur.
+  const [jitsiInput, setJitsiInput] = useState(jitsiDomain);
   const [isNuking, setIsNuking] = useState(false);
   const [backupStatus, setBackupStatus] = useState('');
   const fileInputRef = useRef(null);
@@ -277,6 +282,30 @@ export default function Settings() {
             <button onClick={resetTicker} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
               Reset to Default
             </button>
+          </div>
+        </div>
+
+        {/* Telehealth (self-hosted Jitsi) */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Telehealth Server</h2>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+            Your self-hosted Jitsi domain. Telehealth routes only here — there is no public fallback. If this is empty, telehealth calls are disabled.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Jitsi domain (host only, e.g. meet.yourorg.org)</label>
+            <input
+              type="text"
+              value={jitsiInput}
+              onChange={e => setJitsiInput(e.target.value)}
+              onBlur={() => setJitsiDomain(jitsiInput)}
+              placeholder="meet.yourorg.org"
+              style={{ padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}
+            />
+          </div>
+          <div style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: jitsiDomain ? '#4ade80' : '#f87171' }}>
+            {jitsiDomain
+              ? `✓ Telehealth will connect to https://${jitsiDomain}`
+              : '✗ No server configured — telehealth is disabled.'}
           </div>
         </div>
 
