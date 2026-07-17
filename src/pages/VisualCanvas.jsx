@@ -8,39 +8,51 @@ import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 //
 // Scope note: this is an honest sticky-note/whiteboard, NOT a full vector editor
 // (no freehand drawing / shapes) — those were removed rather than faked.
-const BOARD_ID = 'canvas_board';
+const GLOBAL_BOARD_ID = 'canvas_board';
 
-export default function VisualCanvas() {
+// Reusable board. `boardId` selects which encrypted vault record it reads/writes,
+// so the standalone page and each client chart can hold independent boards.
+export function CanvasBoard({ boardId = GLOBAL_BOARD_ID }) {
   const { vaultAKey } = useAuthStore();
   const [nodes, setNodes] = useState([]);
   const [status, setStatus] = useState('');
   const dragState = useRef(null); // { id, offsetX, offsetY }
   const boardRef = useRef(null);
+  // Mirror of the latest nodes so drag-end / blur saves the CURRENT positions,
+  // not the stale array captured by the handler's closure.
+  const nodesRef = useRef([]);
+  nodesRef.current = nodes;
 
   const vaultOpen = !!vaultAKey;
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
-      if (!vaultAKey) return;
+      setStatus('');
+      if (!vaultAKey) { setNodes([]); return; }
       try {
-        const stored = await loadSecureRecord(vaultAKey, BOARD_ID, 'A');
-        if (stored) setNodes(stored);
+        const stored = await loadSecureRecord(vaultAKey, boardId, 'A');
+        if (!cancelled) setNodes(Array.isArray(stored) ? stored : []);
       } catch {
-        setStatus('Could not decrypt the saved board.');
+        if (!cancelled) { setNodes([]); setStatus('Could not decrypt the saved board.'); }
       }
     }
     load();
-  }, [vaultAKey]);
+    return () => { cancelled = true; };
+  }, [vaultAKey, boardId]);
 
   const persist = async (next) => {
     setNodes(next);
     if (!vaultAKey) return;
     try {
-      await saveSecureRecord(vaultAKey, BOARD_ID, next, 'A');
+      await saveSecureRecord(vaultAKey, boardId, next, 'A');
     } catch (err) {
       setStatus('Save failed: ' + err.message);
     }
   };
+
+  // Persist whatever is currently in nodesRef (used after drag / on blur).
+  const persistCurrent = () => persist(nodesRef.current);
 
   const addNode = () => {
     const id = `n-${Date.now()}`;
@@ -49,7 +61,7 @@ export default function VisualCanvas() {
   };
 
   const updateText = (id, text) => {
-    persist(nodes.map((n) => n.id === id ? { ...n, text } : n));
+    setNodes((prev) => prev.map((n) => n.id === id ? { ...n, text } : n));
   };
 
   const removeNode = (id) => {
@@ -79,20 +91,14 @@ export default function VisualCanvas() {
   const onMouseUp = () => {
     if (dragState.current) {
       dragState.current = null;
-      // Persist final positions once the drag ends.
-      persist(nodes);
+      // Persist final positions once the drag ends (from the live ref).
+      persistCurrent();
     }
   };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ color: 'var(--gold)', margin: 0, fontFamily: 'var(--font-serif)' }}>Visual Canvas</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)', margin: 0 }}>
-            Offline note board for case timelines and evidence threads. Drag to arrange; saved encrypted to your vault.
-          </p>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <button onClick={addNode} disabled={!vaultOpen} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', fontWeight: 'bold', opacity: vaultOpen ? 1 : 0.5 }}>
           + Add Note
         </button>
@@ -110,7 +116,7 @@ export default function VisualCanvas() {
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
         className="glass-panel"
-        style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#111', backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+        style={{ flex: 1, minHeight: '360px', position: 'relative', overflow: 'hidden', background: '#111', backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px' }}
       >
         {nodes.map((node) => (
           <div
@@ -124,7 +130,7 @@ export default function VisualCanvas() {
             <textarea
               value={node.text}
               onChange={(e) => updateText(node.id, e.target.value)}
-              onBlur={() => persist(nodes)}
+              onBlur={persistCurrent}
               style={{ width: '100%', minHeight: '60px', background: 'transparent', border: 'none', color: 'var(--bone)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', resize: 'vertical', outline: 'none' }}
             />
           </div>
@@ -146,6 +152,21 @@ export default function VisualCanvas() {
           {status}
         </div>
       )}
+    </div>
+  );
+}
+
+// Standalone page: a single global board under the app's Legal & Advocacy nav.
+export default function VisualCanvas() {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div>
+        <h1 style={{ color: 'var(--gold)', margin: 0, fontFamily: 'var(--font-serif)' }}>Visual Canvas</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)', margin: 0 }}>
+          Offline note board for case timelines and evidence threads. Drag to arrange; saved encrypted to your vault.
+        </p>
+      </div>
+      <CanvasBoard boardId={GLOBAL_BOARD_ID} />
     </div>
   );
 }

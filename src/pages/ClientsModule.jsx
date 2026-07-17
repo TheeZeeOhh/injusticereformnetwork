@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
+import { CanvasBoard } from './VisualCanvas';
 
 // Fixed staff-administered intake (needs assessment). Psychosocial / needs only:
 // health, substance, and clinical questions deliberately live in Vault B (42-CFR),
@@ -480,29 +481,12 @@ export default function ClientsModule() {
           </div>
         )}
 
-        {/* VISUAL CANVAS TIMELINE */}
+        {/* VISUAL CANVAS TIMELINE — per-client encrypted board */}
         {activeTab === 'canvas' && (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h2 style={{ color: 'var(--gold)', margin: 0, fontFamily: 'var(--font-serif)' }}>Visual Case Canvas</h2>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: 'var(--charcoal)', border: '1px solid var(--border-color)' }}>+ Add Node</button>
-              </div>
-            </div>
-            
-            <div style={{ 
-              flex: 1, 
-              background: 'var(--charcoal-light)', 
-              borderRadius: '8px', 
-              border: '1px solid var(--border-color)',
-              position: 'relative',
-              overflow: 'hidden',
-              backgroundImage: 'radial-gradient(var(--border-color) 1px, transparent 1px)',
-              backgroundSize: '20px 20px'
-            }}>
-               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
-                  Canvas Engine Loading...
-                </div>
+            <h2 style={{ color: 'var(--gold)', margin: '0 0 1rem', fontFamily: 'var(--font-serif)' }}>Visual Case Canvas</h2>
+            <div style={{ flex: 1 }}>
+              <CanvasBoard boardId={`canvas_${activeClientId}`} />
             </div>
           </div>
         )}
