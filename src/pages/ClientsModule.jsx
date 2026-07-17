@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 
+// Fixed staff-administered intake (needs assessment). Psychosocial / needs only:
+// health, substance, and clinical questions deliberately live in Vault B (42-CFR),
+// not this Vault-A record. Edit this array to change the questionnaire.
+const INTAKE_QUESTIONS = [
+  { id: 'housingStatus', label: 'Current housing situation', type: 'select',
+    options: ['Stably housed', 'Temporary / doubled-up', 'Shelter', 'Unsheltered', 'Prefer not to say'] },
+  { id: 'housingRisk', label: 'At risk of losing housing in the next 30 days?', type: 'yesno' },
+  { id: 'incomeSource', label: 'Primary source of income', type: 'select',
+    options: ['Employment', 'Benefits (SSI/SSDI/TANF)', 'Family / informal', 'None', 'Prefer not to say'] },
+  { id: 'benefitsHelp', label: 'Needs help applying for benefits?', type: 'yesno' },
+  { id: 'legalNeeds', label: 'Current legal needs', type: 'text' },
+  { id: 'idDocuments', label: 'Has government photo ID?', type: 'yesno' },
+  { id: 'safetyConcerns', label: 'Any immediate safety concerns?', type: 'yesno' },
+  { id: 'safetyNotes', label: 'Safety / other notes', type: 'text' },
+];
+
 export default function ClientsModule() {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
   const [activeClientId, setActiveClientId] = useState(null);
@@ -28,6 +44,12 @@ export default function ClientsModule() {
   const [smsSending, setSmsSending] = useState(false);
   const [smsStatus, setSmsStatus] = useState(null);
   const [nextAppt, setNextAppt] = useState(null);
+
+  // Intake (needs assessment) state — one Vault-A record per client.
+  const [intakeAnswers, setIntakeAnswers] = useState({});
+  const [intakeMeta, setIntakeMeta] = useState(null); // { updatedAt }
+  const [intakeSaving, setIntakeSaving] = useState(false);
+  const [intakeStatus, setIntakeStatus] = useState(null);
 
   // Build the reminder message, folding in the appointment date when we have one.
   const reminderFor = (appt) => {
@@ -85,6 +107,23 @@ export default function ClientsModule() {
         }
         setNextAppt(upcoming);
         setSmsBody(reminderFor(upcoming));
+
+        // Load this client's intake record (if any).
+        setIntakeStatus(null);
+        try {
+          const intake = await loadSecureRecord(vaultAKey, `intake_${activeClientId}`, 'A');
+          if (intake && typeof intake === 'object') {
+            setIntakeAnswers(intake.answers || {});
+            setIntakeMeta(intake.updatedAt ? { updatedAt: intake.updatedAt } : null);
+          } else {
+            setIntakeAnswers({});
+            setIntakeMeta(null);
+          }
+        } catch (err) {
+          console.warn('No intake record for this client yet.', err);
+          setIntakeAnswers({});
+          setIntakeMeta(null);
+        }
       } catch (err) {
         console.error("Failed to load secure client record", err);
       }
@@ -122,8 +161,31 @@ export default function ClientsModule() {
     setActiveClientId(newId);
     setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false });
     setSmsStatus(null);
+    setIntakeAnswers({});
+    setIntakeMeta(null);
+    setIntakeStatus(null);
     setActiveTab('profile');
     setViewMode('detail');
+  };
+
+  const handleSaveIntake = async () => {
+    if (!vaultAKey || !activeClientId) return;
+    setIntakeSaving(true);
+    setIntakeStatus(null);
+    try {
+      const updatedAt = new Date().toISOString();
+      await saveSecureRecord(
+        vaultAKey,
+        `intake_${activeClientId}`,
+        { answers: intakeAnswers, updatedAt },
+        'A'
+      );
+      setIntakeMeta({ updatedAt });
+      setIntakeStatus({ ok: true, msg: 'Intake saved to vault.' });
+    } catch (err) {
+      setIntakeStatus({ ok: false, msg: err?.message || 'Failed to save intake.' });
+    }
+    setIntakeSaving(false);
   };
 
   const handleSendReminder = async () => {
@@ -160,6 +222,7 @@ export default function ClientsModule() {
 
   const tabs = [
     { id: 'profile', icon: '👤', label: 'Profile' },
+    { id: 'intake', icon: '📋', label: 'Intake' },
     { id: 'health', icon: '⚕️', label: 'Health & Meds' },
     { id: 'housing', icon: '🏠', label: 'Housing' },
     { id: 'canvas', icon: '🎨', label: 'Visual Canvas' }
@@ -315,6 +378,86 @@ export default function ClientsModule() {
                   </span>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* INTAKE */}
+        {activeTab === 'intake' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+              <h2 style={{ color: 'var(--gold)', margin: 0, fontFamily: 'var(--font-serif)' }}>Intake / Needs Assessment</h2>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                {intakeMeta?.updatedAt ? `Last updated ${new Date(intakeMeta.updatedAt).toLocaleString()}` : 'Not yet completed'}
+              </span>
+            </div>
+
+            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+              Staff-administered. Health and substance questions are handled separately under Vault B (42-CFR).
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {INTAKE_QUESTIONS.map(q => (
+                <div key={q.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}>{q.label}</label>
+
+                  {q.type === 'text' && (
+                    <textarea
+                      value={intakeAnswers[q.id] || ''}
+                      onChange={e => setIntakeAnswers({ ...intakeAnswers, [q.id]: e.target.value })}
+                      rows={2}
+                      style={{ width: '100%', padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', resize: 'vertical' }}
+                    />
+                  )}
+
+                  {q.type === 'select' && (
+                    <select
+                      value={intakeAnswers[q.id] || ''}
+                      onChange={e => setIntakeAnswers({ ...intakeAnswers, [q.id]: e.target.value })}
+                      style={{ width: '100%', padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}
+                    >
+                      <option value="">— select —</option>
+                      {q.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
+                  )}
+
+                  {q.type === 'yesno' && (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {['Yes', 'No'].map(opt => (
+                        <button
+                          key={opt}
+                          onClick={() => setIntakeAnswers({ ...intakeAnswers, [q.id]: opt })}
+                          style={{
+                            padding: '0.4rem 1.25rem', borderRadius: '4px', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '0.85rem',
+                            border: '1px solid var(--border-color)',
+                            background: intakeAnswers[q.id] === opt ? 'var(--gold)' : 'var(--charcoal-lighter)',
+                            color: intakeAnswers[q.id] === opt ? 'var(--charcoal)' : 'var(--text-secondary)',
+                            fontWeight: intakeAnswers[q.id] === opt ? 'bold' : 'normal',
+                          }}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+              <button
+                className="btn-primary"
+                onClick={handleSaveIntake}
+                disabled={intakeSaving}
+                style={{ background: 'var(--gold)', color: 'var(--charcoal)', fontWeight: 'bold', opacity: intakeSaving ? 0.6 : 1 }}
+              >
+                {intakeSaving ? 'Encrypting…' : 'Save intake to Vault'}
+              </button>
+              {intakeStatus && (
+                <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: intakeStatus.ok ? '#4ade80' : '#f87171' }}>
+                  {intakeStatus.msg}
+                </span>
+              )}
             </div>
           </div>
         )}
