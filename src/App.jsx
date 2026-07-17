@@ -6,6 +6,7 @@ import Schedule from './pages/Schedule';
 import Messages from './pages/Messages';
 import Login from './pages/Login';
 import { useAuthStore } from './store/authStore';
+import { useSettingsStore } from './store/settingsStore';
 import { vaultExists, vaultBEnrolled } from './utils/cryptoEngine';
 import { needsVaultBRekey } from './utils/migrationEngine';
 import './index.css';
@@ -75,30 +76,36 @@ import FOIAGenerator from './pages/FOIAGenerator';
 import EvidenceVault from './pages/EvidenceVault';
 import AttorneyDirectory from './pages/AttorneyDirectory';
 
-const GlobalTicker = () => (
-  <>
-    <div style={{ background: 'var(--charcoal)', color: 'var(--bone)', padding: '0.4rem 1rem', display: 'flex', gap: '2rem', fontSize: '0.85rem', overflow: 'hidden', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border-color)', borderTop: '2px solid var(--ember)', zIndex: 9999 }}>
-      <div style={{ display: 'flex', gap: '3rem', animation: 'scroll 20s linear infinite' }}>
-        <span style={{ color: 'var(--ember)' }}>🚨 [Predictive Interrupter] High-Tension Alert: Crisis detected!</span>
-        <span style={{ color: 'var(--gold)' }}>🛡️ [Policy Sentinel] 2026 Civil Monetary Penalty adjustments detected.</span>
-        <span style={{ color: 'var(--bone)' }}>🧠 [Clinical Co-Pilot] Clinical Alert: Record flagged for triage!</span>
-        <span style={{ color: 'var(--ember)' }}>🔥 [Ember Fund] New revenue swept to Sovereignty Fund.</span>
-        
-        {/* Duplicated for seamless loop */}
-        <span style={{ color: 'var(--ember)' }}>🚨 [Predictive Interrupter] High-Tension Alert: Crisis detected!</span>
-        <span style={{ color: 'var(--gold)' }}>🛡️ [Policy Sentinel] 2026 Civil Monetary Penalty adjustments detected.</span>
-        <span style={{ color: 'var(--bone)' }}>🧠 [Clinical Co-Pilot] Clinical Alert: Record flagged for triage!</span>
-        <span style={{ color: 'var(--ember)' }}>🔥 [Ember Fund] New revenue swept to Sovereignty Fund.</span>
+// Cycle through the theme accent colors so the marquee keeps its multicolor look
+// regardless of how many messages the user configures.
+const TICKER_COLORS = ['var(--ember)', 'var(--gold)', 'var(--bone)'];
+
+const GlobalTicker = () => {
+  const ticker = useSettingsStore(state => state.ticker);
+
+  if (!ticker.enabled || ticker.messages.length === 0) return null;
+
+  // Duplicate the message set so the -50% keyframe loops seamlessly.
+  const loop = [...ticker.messages, ...ticker.messages];
+
+  return (
+    <>
+      <div style={{ background: 'var(--charcoal)', color: 'var(--bone)', padding: '0.4rem 1rem', display: 'flex', gap: '2rem', fontSize: '0.85rem', overflow: 'hidden', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border-color)', borderTop: '2px solid var(--ember)', zIndex: 9999 }}>
+        <div style={{ display: 'flex', gap: '3rem', animation: `scroll ${ticker.speed}s linear infinite` }}>
+          {loop.map((msg, i) => (
+            <span key={i} style={{ color: TICKER_COLORS[i % TICKER_COLORS.length] }}>{msg}</span>
+          ))}
+        </div>
       </div>
-    </div>
-    <style>{`
-      @keyframes scroll {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-      }
-    `}</style>
-  </>
-);
+      <style>{`
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+    </>
+  );
+};
 
 // Grouped sidebar navigation. Sections make ~25 modules findable, and pull the
 // sensitive (Vault B / 42 CFR Part 2) modules into their own clearly-labelled
