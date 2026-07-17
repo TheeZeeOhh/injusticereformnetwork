@@ -1,4 +1,5 @@
 import { encryptRecord, decryptRecord, buildRecordAad } from './cryptoEngine';
+import { appendEntry } from './auditLog';
 
 const DB_NAME = 'SanctuaryVault';
 const STORE_NAME = 'encryptedRecords';
@@ -59,6 +60,9 @@ export async function saveSecureRecord(key, recordId, payload, vaultTag) {
     await dbOperation('readwrite', store => {
       return store.put({ id: recordId, data: encryptedPayload });
     });
+    // Tamper-evident audit trail (metadata only, never PHI). Fire-and-forget so
+    // logging can never block or fail a vault write.
+    appendEntry({ action: 'write', recordId, vaultTag });
     return true;
   } catch (err) {
     console.error("Failed to save secure record:", err);
@@ -84,6 +88,8 @@ export async function loadSecureRecord(key, recordId, vaultTag) {
 
     const aad = buildRecordAad(vaultTag, recordId);
     const decryptedPayload = await decryptRecord(key, record.data, aad);
+    // Log the successful read of an existing record (metadata only, never PHI).
+    appendEntry({ action: 'read', recordId, vaultTag });
     return decryptedPayload;
   } catch (err) {
     console.error("Failed to load/decrypt secure record:", err);
@@ -119,6 +125,9 @@ export async function putRawRecord(record) {
  * Destroys all stored data. Used in catastrophic failure scenarios.
  */
 export async function nukeStorage() {
+  // Record the wipe in the SEPARATE audit DB (which this does not delete), so a
+  // scorched-earth event remains provable afterward. Await so it lands first.
+  await appendEntry({ action: 'delete', recordId: '*ALL*', vaultTag: null });
   return new Promise((resolve, reject) => {
     const request = indexedDB.deleteDatabase(DB_NAME);
     request.onsuccess = () => resolve(true);

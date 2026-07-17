@@ -189,6 +189,29 @@ export async function verifyData(hmacKey, dataString, signatureB64) {
   }
 }
 
+// Derives a RAM-only AES-256-GCM key for sealing the tamper-evident audit log.
+// Domain-separated from the vault + HMAC keys by a distinct context appended to
+// saltA (same technique as deriveHmacKey). Non-extractable: the raw bytes never
+// enter the JS heap, and the key is never persisted — so after logout / panic /
+// device seizure the audit log is ciphertext with no key on disk. This is what
+// keeps the log from disclosing which clients had (e.g. Vault B / 42 CFR Part 2)
+// access, while the hash chain still runs over the sealed payload.
+export async function deriveAuditKey(passphrase) {
+  const enc = new TextEncoder();
+  const { saltA } = await getOrCreateSalts();
+  const auditSalt = new Uint8Array([...saltA, ...enc.encode('AUDIT_LOG_CTX')]);
+  const keyMaterial = await window.crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), { name: 'PBKDF2' }, false, ['deriveKey']
+  );
+  return window.crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: auditSalt, iterations: CRYPTO_CONFIG.KDF_ITERATIONS, hash: CRYPTO_CONFIG.HASH_ALGO },
+    keyMaterial,
+    { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, length: CRYPTO_CONFIG.KEY_LENGTH },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
 // Derives a single AES-256-GCM vault key from a passphrase and a specific salt.
 // Non-extractable: the raw key bytes never enter the JS heap.
 async function deriveKeyFromPassphrase(passphrase, salt) {

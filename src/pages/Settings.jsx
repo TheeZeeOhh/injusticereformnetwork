@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { nukeStorage } from '../utils/storageEngine';
 import { downloadBackup, restoreBackup } from '../utils/backupEngine';
+import { getEntries, verifyChain, appendEntry } from '../utils/auditLog';
 import { useAuthStore } from '../store/authStore';
 import { useSettingsStore } from '../store/settingsStore';
 
@@ -37,6 +38,7 @@ export default function Settings() {
     try {
       const { invoke } = await import('@tauri-apps/api/core');
       const msg = await invoke('arm_deadmans_switch', { vidPid: selectedUsb });
+      appendEntry({ action: 'admin', recordId: 'killswitch_arm', vaultTag: null });
       setUsbStatus(msg);
     } catch (err) {
       setUsbStatus('Arm failed: ' + err);
@@ -48,6 +50,7 @@ export default function Settings() {
     try {
       const { invoke } = await import('@tauri-apps/api/core');
       const msg = await invoke('disarm_deadmans_switch');
+      appendEntry({ action: 'admin', recordId: 'killswitch_disarm', vaultTag: null });
       setUsbStatus(msg);
     } catch (err) {
       setUsbStatus('Disarm failed: ' + err);
@@ -60,6 +63,7 @@ export default function Settings() {
     setBackupStatus('Building signed backup...');
     try {
       await downloadBackup(passphrase);
+      appendEntry({ action: 'admin', recordId: 'backup_export', vaultTag: null });
       setBackupStatus('Signed backup downloaded. Store it somewhere safe.');
     } catch (err) {
       setBackupStatus('Backup failed: ' + err.message);
@@ -79,6 +83,7 @@ export default function Settings() {
       const text = await file.text();
       const backup = JSON.parse(text);
       const { restored } = await restoreBackup(passphrase, backup);
+      appendEntry({ action: 'admin', recordId: `backup_restore:${restored}`, vaultTag: null });
       setBackupStatus(`Signature verified. Restored ${restored} record(s).`);
     } catch (err) {
       setBackupStatus('Restore aborted: ' + err.message);
@@ -101,6 +106,33 @@ export default function Settings() {
   };
   const removeTickerMessage = (i) => setTickerMessages(ticker.messages.filter((_, idx) => idx !== i));
   const addTickerMessage = () => setTickerMessages([...ticker.messages, 'New alert']);
+
+  // Tamper-evident audit log viewer.
+  const [auditEntries, setAuditEntries] = useState([]);
+  const [auditVerify, setAuditVerify] = useState(null);
+
+  const refreshAudit = async () => {
+    try {
+      const entries = await getEntries();
+      // Show the most recent first, cap the rendered list.
+      setAuditEntries(entries.slice(-100).reverse());
+    } catch {
+      setAuditEntries([]);
+    }
+  };
+
+  useEffect(() => { refreshAudit(); }, []);
+
+  const handleVerifyAudit = async () => {
+    setAuditVerify(null);
+    try {
+      const result = await verifyChain();
+      setAuditVerify(result);
+      await refreshAudit();
+    } catch (err) {
+      setAuditVerify({ ok: false, error: err.message });
+    }
+  };
 
   const handleNuke = async () => {
     const confirm1 = window.confirm("WARNING: You are about to initiate a scorched-earth protocol. All local records, keys, and hive-mind fragments will be permanently destroyed.");
@@ -314,6 +346,64 @@ export default function Settings() {
               {backupStatus}
             </div>
           )}
+        </div>
+
+        {/* Tamper-Evident Audit Log */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+            <h2 style={{ color: 'var(--bone)', margin: 0, fontFamily: 'var(--font-serif)' }}>Access Audit Log</h2>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={refreshAudit} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
+                Refresh
+              </button>
+              <button onClick={handleVerifyAudit} className="btn-primary" style={{ background: 'var(--gold)', color: 'var(--charcoal)', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
+                Verify Integrity
+              </button>
+            </div>
+          </div>
+
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+            Hash-chained record of every vault access (metadata only — no PHI). Editing or deleting any past entry breaks the chain.
+          </div>
+
+          {auditVerify && (
+            <div style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', padding: '0.75rem', borderRadius: '4px', background: '#020617', color: auditVerify.ok ? '#4ade80' : '#f87171' }}>
+              {auditVerify.error
+                ? `Verification error: ${auditVerify.error}`
+                : auditVerify.ok
+                  ? `✓ Chain intact — ${auditVerify.count} entr${auditVerify.count === 1 ? 'y' : 'ies'} verified.`
+                  : `✗ TAMPERING DETECTED — chain breaks at entry #${auditVerify.brokenAtSeq}.`}
+            </div>
+          )}
+
+          <div style={{ maxHeight: '260px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
+            {auditEntries.length === 0 ? (
+              <div style={{ padding: '1rem', fontSize: '0.8rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+                No audit entries yet.
+              </div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>
+                <thead>
+                  <tr style={{ color: 'var(--text-secondary)', textAlign: 'left', position: 'sticky', top: 0, background: 'var(--charcoal)' }}>
+                    <th style={{ padding: '0.5rem' }}>Time</th>
+                    <th style={{ padding: '0.5rem' }}>Action</th>
+                    <th style={{ padding: '0.5rem' }}>Vault</th>
+                    <th style={{ padding: '0.5rem' }}>Record</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditEntries.map((e) => (
+                    <tr key={e.seq} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', color: 'var(--bone)' }}>
+                      <td style={{ padding: '0.5rem', color: 'var(--text-secondary)' }}>{new Date(e.ts).toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem', color: e.locked ? 'var(--text-tertiary)' : e.action === 'delete' ? 'var(--ember)' : e.action === 'admin' ? '#a78bfa' : e.action === 'write' ? 'var(--gold)' : 'var(--bone)' }}>{e.locked ? '🔒 sealed' : e.action}</td>
+                      <td style={{ padding: '0.5rem' }}>{e.locked ? '—' : (e.vaultTag || '—')}</td>
+                      <td style={{ padding: '0.5rem', wordBreak: 'break-all', color: e.locked ? 'var(--text-tertiary)' : 'inherit' }}>{e.locked ? 'unreadable (locked)' : e.recordId}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
 
         {/* Destructive Actions */}
