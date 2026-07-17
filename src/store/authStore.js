@@ -12,6 +12,7 @@ import {
   vaultHasRecords
 } from '../utils/migrationEngine';
 import { passphraseRejectionReason } from '../utils/passphrasePolicy';
+import { initAuditKey, clearAuditKey } from '../utils/auditLog';
 
 export const useAuthStore = create((set) => ({
   user: null, // Basic demographics (non-sensitive)
@@ -65,6 +66,14 @@ export const useAuthStore = create((set) => ({
         await migrateRecordsToV2(vaultAKey, null);
       } catch (mErr) {
         console.warn('v1->v2 record migration pass did not complete cleanly:', mErr);
+      }
+
+      // Install the RAM-only audit key so vault access is logged confidentially
+      // (sealed under this key, never persisted). Non-fatal if it fails.
+      try {
+        await initAuditKey(passphrase);
+      } catch (aErr) {
+        console.warn('Audit key init failed; access logging will be skipped:', aErr);
       }
 
       // 4. Keep the Vault A key only in active volatile RAM. Vault B stays null.
@@ -168,6 +177,7 @@ export const useAuthStore = create((set) => ({
     // non-extractable CryptoKeys — dereferenced here and GC-eligible, not
     // deterministically zeroized (finding M4; true zeroize is the Rust custody
     // work). Passphrases were never cached.
+    clearAuditKey(); // audit log becomes ciphertext-with-no-key after logout
     set({
       user: null,
       isAuthenticated: false,
