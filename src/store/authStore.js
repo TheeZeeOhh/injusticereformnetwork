@@ -12,7 +12,7 @@ import {
   vaultHasRecords
 } from '../utils/migrationEngine';
 import { passphraseRejectionReason } from '../utils/passphrasePolicy';
-import { initAuditKey, clearAuditKey } from '../utils/auditLog';
+import { initAuditKey, clearAuditKey, appendEntry } from '../utils/auditLog';
 
 export const useAuthStore = create((set) => ({
   user: null, // Basic demographics (non-sensitive)
@@ -131,6 +131,7 @@ export const useAuthStore = create((set) => ({
       }
 
       set({ vaultBKey });
+      appendEntry({ action: 'admin', recordId: 'vaultB_unlock', vaultTag: 'B' });
       return true;
     } catch (err) {
       set({ vaultBError: err.message });
@@ -150,6 +151,7 @@ export const useAuthStore = create((set) => ({
       // Re-key succeeded — open Vault B under the new passphrase.
       const vaultBKey = await deriveVaultBKey(newPassphraseB);
       set({ vaultBKey });
+      appendEntry({ action: 'admin', recordId: 'vaultB_rekey', vaultTag: 'B' });
       return true;
     } catch (err) {
       set({ vaultBError: err.message });
@@ -165,6 +167,9 @@ export const useAuthStore = create((set) => ({
   // the key in Rust (see docs/model2-hardware-vault-b.md, step 2). The passphrase
   // was never cached, so Vault B data is inaccessible until re-entry regardless.
   panicWipeVaultB: () => {
+    // Record the seal event for chain-of-custody ("Vault B sealed at HH:MM").
+    // The audit key stays in RAM (only full logout clears it), so this seals.
+    appendEntry({ action: 'admin', recordId: 'vaultB_panic_close', vaultTag: 'B' });
     set({ vaultBKey: null, vaultBError: null });
   },
 
