@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { nukeStorage } from '../utils/storageEngine';
 import { downloadBackup, restoreBackup } from '../utils/backupEngine';
-import { getEntries, verifyChain } from '../utils/auditLog';
+import { getEntries, verifyChain, appendEntry } from '../utils/auditLog';
 import { useAuthStore } from '../store/authStore';
 import { useSettingsStore } from '../store/settingsStore';
 
@@ -38,6 +38,7 @@ export default function Settings() {
     try {
       const { invoke } = await import('@tauri-apps/api/core');
       const msg = await invoke('arm_deadmans_switch', { vidPid: selectedUsb });
+      appendEntry({ action: 'admin', recordId: 'killswitch_arm', vaultTag: null });
       setUsbStatus(msg);
     } catch (err) {
       setUsbStatus('Arm failed: ' + err);
@@ -49,6 +50,7 @@ export default function Settings() {
     try {
       const { invoke } = await import('@tauri-apps/api/core');
       const msg = await invoke('disarm_deadmans_switch');
+      appendEntry({ action: 'admin', recordId: 'killswitch_disarm', vaultTag: null });
       setUsbStatus(msg);
     } catch (err) {
       setUsbStatus('Disarm failed: ' + err);
@@ -61,6 +63,7 @@ export default function Settings() {
     setBackupStatus('Building signed backup...');
     try {
       await downloadBackup(passphrase);
+      appendEntry({ action: 'admin', recordId: 'backup_export', vaultTag: null });
       setBackupStatus('Signed backup downloaded. Store it somewhere safe.');
     } catch (err) {
       setBackupStatus('Backup failed: ' + err.message);
@@ -80,6 +83,7 @@ export default function Settings() {
       const text = await file.text();
       const backup = JSON.parse(text);
       const { restored } = await restoreBackup(passphrase, backup);
+      appendEntry({ action: 'admin', recordId: `backup_restore:${restored}`, vaultTag: null });
       setBackupStatus(`Signature verified. Restored ${restored} record(s).`);
     } catch (err) {
       setBackupStatus('Restore aborted: ' + err.message);
@@ -391,7 +395,7 @@ export default function Settings() {
                   {auditEntries.map((e) => (
                     <tr key={e.seq} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', color: 'var(--bone)' }}>
                       <td style={{ padding: '0.5rem', color: 'var(--text-secondary)' }}>{new Date(e.ts).toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem', color: e.locked ? 'var(--text-tertiary)' : e.action === 'delete' ? 'var(--ember)' : e.action === 'write' ? 'var(--gold)' : 'var(--bone)' }}>{e.locked ? '🔒 sealed' : e.action}</td>
+                      <td style={{ padding: '0.5rem', color: e.locked ? 'var(--text-tertiary)' : e.action === 'delete' ? 'var(--ember)' : e.action === 'admin' ? '#a78bfa' : e.action === 'write' ? 'var(--gold)' : 'var(--bone)' }}>{e.locked ? '🔒 sealed' : e.action}</td>
                       <td style={{ padding: '0.5rem' }}>{e.locked ? '—' : (e.vaultTag || '—')}</td>
                       <td style={{ padding: '0.5rem', wordBreak: 'break-all', color: e.locked ? 'var(--text-tertiary)' : 'inherit' }}>{e.locked ? 'unreadable (locked)' : e.recordId}</td>
                     </tr>

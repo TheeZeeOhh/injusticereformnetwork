@@ -142,6 +142,24 @@ describe('tamper-evident audit log', () => {
     expect(result.brokenAtSeq).toBe(rows[2].seq);
   });
 
+  it('records admin actions in the same sealed chain', async () => {
+    await appendEntry({ action: 'admin', recordId: 'vaultB_panic_close', vaultTag: 'B' });
+    await appendEntry({ action: 'admin', recordId: 'backup_export', vaultTag: null });
+
+    const entries = await getEntries();
+    expect(entries.map((e) => e.action)).toEqual(['admin', 'admin']);
+    expect(entries[0].recordId).toBe('vaultB_panic_close');
+    expect(entries[1].recordId).toBe('backup_export');
+
+    // Admin events are sealed like everything else: no plaintext on disk.
+    const rows = await rawRows();
+    expect(JSON.stringify(rows)).not.toContain('vaultB_panic_close');
+
+    const result = await verifyChain();
+    expect(result.ok).toBe(true);
+    expect(result.count).toBe(2);
+  });
+
   it('does not fork the chain under concurrent appends', async () => {
     // Fire many appends without awaiting between them: the serialized queue must
     // still produce a single valid chain (no two entries sharing a prevHash).
