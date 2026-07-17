@@ -264,6 +264,94 @@ async fn hosted_assistant_ask(question: String, system_prompt: String) -> Result
     Ok(text)
 }
 
+// ── Outbound SMS reminders (Twilio) ──────────────────────────────────────────
+// Same discipline as hosted_assistant_ask: credentials live ONLY in the process
+// environment (set via ~/.config/labwc/environment), never in the frontend or
+// the encrypted vault. Fails CLOSED on any missing credential so a
+// misconfigured deploy cannot silently drop or misroute messages.
+//
+// Privacy reality: the destination number + message body are sent to Twilio,
+// which logs both. The frontend gates every send behind an explicit per-client
+// consent flag; this command is the backstop that validates shape and refuses
+// oversized or malformed payloads.
+
+/// Minimal E.164 check: leading '+' followed by 7–15 digits. This is a shape
+/// guard against a malformed vault field, not full validation (Twilio does that).
+fn is_e164(number: &str) -> bool {
+    let n = number.trim();
+    let Some(digits) = n.strip_prefix('+') else {
+        return false;
+    };
+    let len = digits.len();
+    (7..=15).contains(&len) && digits.bytes().all(|b| b.is_ascii_digit())
+}
+
+#[tauri::command]
+async fn send_sms_reminder(to: String, body: String) -> Result<String, String> {
+    let account_sid = std::env::var("TWILIO_ACCOUNT_SID")
+        .map_err(|_| "SMS unavailable (no account SID configured)".to_string())?;
+    let auth_token = std::env::var("TWILIO_AUTH_TOKEN")
+        .map_err(|_| "SMS unavailable (no auth token configured)".to_string())?;
+    let from_number = std::env::var("TWILIO_FROM_NUMBER")
+        .map_err(|_| "SMS unavailable (no sender number configured)".to_string())?;
+
+    let to = to.trim().to_string();
+    if to.is_empty() {
+        return Err("refused: empty destination number".to_string());
+    }
+    if !is_e164(&to) {
+        return Err("refused: destination is not a valid E.164 number (e.g. +15551234567)".to_string());
+    }
+    if body.trim().is_empty() {
+        return Err("refused: empty message body".to_string());
+    }
+    // ~4 SMS segments. Reminders should be short; this caps accidental blasts.
+    if body.chars().count() > 640 {
+        return Err("refused: message too long for a reminder".to_string());
+    }
+
+    let url = format!(
+        "https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
+    );
+
+    let form = [
+        ("To", to.as_str()),
+        ("From", from_number.as_str()),
+        ("Body", body.as_str()),
+    ];
+
+    let resp = reqwest::Client::new()
+        .post(&url)
+        .basic_auth(&account_sid, Some(&auth_token))
+        .form(&form)
+        .send()
+        .await
+        .map_err(|e| format!("SMS request failed: {e}"))?;
+
+    let status = resp.status();
+    let data: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("SMS response parse failed: {e}"))?;
+
+    if !status.is_success() {
+        // Twilio returns a human-readable "message" field on error.
+        let detail = data
+            .get("message")
+            .and_then(|m| m.as_str())
+            .unwrap_or("unknown Twilio error");
+        return Err(format!("SMS not sent (HTTP {status}): {detail}"));
+    }
+
+    let sid = data
+        .get("sid")
+        .and_then(|s| s.as_str())
+        .map(|s| s.to_string())
+        .ok_or_else(|| "SMS accepted but response had no message SID".to_string())?;
+
+    Ok(sid)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let usb_state = UsbLockState {
@@ -283,7 +371,8 @@ pub fn run() {
             get_vault_salts,
             set_vault_salts,
             fetch_model_file,
-            hosted_assistant_ask
+            hosted_assistant_ask,
+            send_sms_reminder
         ])
         .setup(move |app| {
             if cfg!(debug_assertions) {

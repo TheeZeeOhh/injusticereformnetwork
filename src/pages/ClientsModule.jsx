@@ -17,9 +17,26 @@ export default function ClientsModule() {
     alias: '',
     phone: '',
     emergency: '',
+    smsConsent: false,
   });
 
   const [isSaving, setIsSaving] = useState(false);
+
+  // Outbound SMS reminder state
+  const DEFAULT_SMS = 'Reminder from IRN: you have an upcoming appointment. Reply STOP to opt out.';
+  const [smsBody, setSmsBody] = useState(DEFAULT_SMS);
+  const [smsSending, setSmsSending] = useState(false);
+  const [smsStatus, setSmsStatus] = useState(null);
+  const [nextAppt, setNextAppt] = useState(null);
+
+  // Build the reminder message, folding in the appointment date when we have one.
+  const reminderFor = (appt) => {
+    if (!appt) return DEFAULT_SMS;
+    const when = new Date(appt.startTime).toLocaleString([], {
+      weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+    });
+    return `Reminder from IRN: you have an appointment on ${when}. Reply STOP to opt out.`;
+  };
 
   // Load directory on mount
   useEffect(() => {
@@ -45,8 +62,29 @@ export default function ClientsModule() {
           setClientData(stored);
         } else {
           // New blank client
-          setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '' });
+          setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false });
         }
+        setSmsStatus(null);
+
+        // Find this client's next upcoming appointment to prefill the reminder.
+        // patientId may be stored as the full id ("client_PT-1234") or bare
+        // ("PT-1234"), so match both since nothing in-app writes appointments yet.
+        let upcoming = null;
+        try {
+          const appts = await loadSecureRecord(vaultAKey, 'appointments', 'A');
+          if (Array.isArray(appts)) {
+            const bareId = activeClientId.replace('client_', '');
+            const now = Date.now();
+            upcoming = appts
+              .filter(a => (a.patientId === activeClientId || a.patientId === bareId))
+              .filter(a => new Date(a.startTime).getTime() >= now)
+              .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))[0] || null;
+          }
+        } catch (err) {
+          console.warn('No appointments vault found; using generic reminder.', err);
+        }
+        setNextAppt(upcoming);
+        setSmsBody(reminderFor(upcoming));
       } catch (err) {
         console.error("Failed to load secure client record", err);
       }
@@ -82,9 +120,36 @@ export default function ClientsModule() {
   const handleCreateNewClient = () => {
     const newId = `client_PT-${Math.floor(Math.random() * 10000)}`;
     setActiveClientId(newId);
-    setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '' });
+    setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false });
+    setSmsStatus(null);
     setActiveTab('profile');
     setViewMode('detail');
+  };
+
+  const handleSendReminder = async () => {
+    if (!clientData.smsConsent) {
+      setSmsStatus({ ok: false, msg: 'Client has not consented to SMS. Enable consent and save first.' });
+      return;
+    }
+    const to = (clientData.phone || '').trim();
+    if (!to) {
+      setSmsStatus({ ok: false, msg: 'No contact number on file for this client.' });
+      return;
+    }
+    if (!smsBody.trim()) {
+      setSmsStatus({ ok: false, msg: 'Message body is empty.' });
+      return;
+    }
+    setSmsSending(true);
+    setSmsStatus(null);
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const sid = await invoke('send_sms_reminder', { to, body: smsBody });
+      setSmsStatus({ ok: true, msg: `Reminder sent (${sid}).` });
+    } catch (err) {
+      setSmsStatus({ ok: false, msg: typeof err === 'string' ? err : (err?.message || 'Send failed.') });
+    }
+    setSmsSending(false);
   };
 
   const openClient = (id) => {
@@ -202,6 +267,54 @@ export default function ClientsModule() {
               <div><label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Chosen Name / Alias</label><input type="text" value={clientData.alias} onChange={e => setClientData({...clientData, alias: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}/></div>
               <div><label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Contact Number</label><input type="text" value={clientData.phone} onChange={e => setClientData({...clientData, phone: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}/></div>
               <div><label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Emergency Contact</label><input type="text" value={clientData.emergency} onChange={e => setClientData({...clientData, emergency: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}/></div>
+            </div>
+
+            {/* SMS Appointment Reminder */}
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <h3 style={{ margin: 0, color: 'var(--gold)', fontFamily: 'var(--font-serif)', fontSize: '1rem' }}>Appointment Reminder (SMS)</h3>
+
+              <div style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: nextAppt ? 'var(--bone)' : 'var(--text-secondary)' }}>
+                {nextAppt
+                  ? `Next appointment: ${new Date(nextAppt.startTime).toLocaleString()}`
+                  : 'No upcoming appointment on file — using a generic reminder.'}
+              </div>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--bone)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={!!clientData.smsConsent}
+                  onChange={e => setClientData({ ...clientData, smsConsent: e.target.checked })}
+                />
+                Client has given consent to receive appointment reminders by text.
+              </label>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Message</label>
+                <textarea
+                  value={smsBody}
+                  onChange={e => setSmsBody(e.target.value)}
+                  rows={3}
+                  maxLength={640}
+                  style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', resize: 'vertical' }}
+                />
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.25rem', fontFamily: 'var(--font-mono)' }}>{smsBody.length}/640 · sent to Twilio, which logs the number and message.</div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button
+                  className="btn-primary"
+                  onClick={handleSendReminder}
+                  disabled={smsSending || !clientData.smsConsent}
+                  style={{ background: clientData.smsConsent ? 'var(--ember)' : 'var(--charcoal)', color: 'white', fontWeight: 'bold', opacity: (smsSending || !clientData.smsConsent) ? 0.6 : 1 }}
+                >
+                  {smsSending ? 'Sending…' : 'Send appointment reminder'}
+                </button>
+                {smsStatus && (
+                  <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: smsStatus.ok ? '#4ade80' : '#f87171' }}>
+                    {smsStatus.msg}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )}
