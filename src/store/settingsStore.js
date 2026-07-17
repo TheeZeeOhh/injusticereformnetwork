@@ -16,10 +16,30 @@ const DEFAULT_TICKER = {
   ],
 };
 
+// Self-hosted Jitsi telehealth. Empty by default ON PURPOSE: there is no public
+// fallback. If no domain is configured, Telehealth refuses to start a call
+// rather than silently routing PHI through meet.jit.si (which is not BAA-covered
+// and runs analytics).
+const DEFAULT_JITSI = { domain: '' };
+
+// Normalize operator input to a bare host (no scheme, path, or trailing slash),
+// so the iframe origin is exactly the configured server and cannot be steered
+// elsewhere. Returns '' for anything that isn't a plausible hostname.
+export function normalizeJitsiDomain(input) {
+  let v = (input || '').trim();
+  if (!v) return '';
+  v = v.replace(/^https?:\/\//i, ''); // drop scheme
+  v = v.split('/')[0]; // drop any path
+  v = v.replace(/\/+$/, ''); // drop trailing slashes
+  // Host chars only: letters, digits, dot, hyphen, optional :port.
+  if (!/^[a-z0-9.-]+(:\d+)?$/i.test(v)) return '';
+  return v.toLowerCase();
+}
+
 function loadPersisted() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ticker: DEFAULT_TICKER };
+    if (!raw) return { ticker: DEFAULT_TICKER, jitsi: DEFAULT_JITSI };
     const parsed = JSON.parse(raw);
     // Merge so newly-added defaults survive an older persisted blob.
     return {
@@ -30,15 +50,19 @@ function loadPersisted() {
           ? parsed.ticker.messages
           : DEFAULT_TICKER.messages,
       },
+      jitsi: {
+        ...DEFAULT_JITSI,
+        domain: normalizeJitsiDomain(parsed.jitsi?.domain),
+      },
     };
   } catch {
-    return { ticker: DEFAULT_TICKER };
+    return { ticker: DEFAULT_TICKER, jitsi: DEFAULT_JITSI };
   }
 }
 
 function persist(state) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ticker: state.ticker }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ticker: state.ticker, jitsi: state.jitsi }));
   } catch (err) {
     console.warn('Failed to persist UI settings:', err);
   }
@@ -66,6 +90,14 @@ export const useSettingsStore = create((set, get) => ({
 
   resetTicker: () => {
     set({ ticker: DEFAULT_TICKER });
+    persist(get());
+  },
+
+  // Set the self-hosted Jitsi domain (normalized to a bare host). Passing an
+  // invalid value clears it, which disables telehealth rather than routing
+  // anywhere unsafe.
+  setJitsiDomain: (domain) => {
+    set((s) => ({ jitsi: { ...s.jitsi, domain: normalizeJitsiDomain(domain) } }));
     persist(get());
   },
 }));
