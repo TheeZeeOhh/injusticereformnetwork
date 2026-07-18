@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Tau personal overrides (not shared)
+.claude/settings.local.json

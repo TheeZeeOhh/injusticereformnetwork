@@ -1,0 +1,27 @@
+#!/bin/sh
+# Sanctuary pre-commit gate — verification-first, made mechanical.
+#
+# Blocks the commit unless the full test suite AND lint both pass.
+# Rationale: crypto/vault behavior is safety-critical (Technical Incapacity
+# Defense). "The agent remembered to run the suite" is a hope; this is a gate.
+#
+# Scaling note: full suite (~160 tests) currently runs in ~6s — fine on every
+# commit. If pre-commit ever crosses ~30s, scope THIS hook to lint + affected
+# tests and move the full suite to .githooks/pre-push. Friction that slows
+# commits gets bypassed with --no-verify, and a bypassed hook that looks like
+# coverage is worse than no hook.
+#
+# Enabled via: git config core.hooksPath .githooks
+
+set -e
+
+# Run from repo root regardless of where git invoked the hook.
+cd "$(git rev-parse --show-toplevel)"
+
+echo "[pre-commit] running test suite (npm test)…"
+npm test
+
+echo "[pre-commit] running lint (npm run lint)…"
+npm run lint
+
+echo "[pre-commit] ✓ tests + lint passed"
