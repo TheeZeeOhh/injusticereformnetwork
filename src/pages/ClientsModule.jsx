@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
+import { loadClientRecord, saveClientRecord } from '../schema';
 import { CanvasBoard } from './VisualCanvas';
 
 // Fixed staff-administered intake (needs assessment). Psychosocial / needs only:
@@ -85,7 +86,7 @@ export default function ClientsModule() {
     async function loadActiveClient() {
       if (!vaultAKey || !activeClientId) return;
       try {
-        const stored = await loadSecureRecord(vaultAKey, activeClientId, 'A');
+        const stored = await loadClientRecord(vaultAKey, activeClientId, 'A');
         if (stored) {
           setClientData(stored);
         } else {
@@ -141,8 +142,8 @@ export default function ClientsModule() {
     if (!vaultAKey || !activeClientId) return;
     setIsSaving(true);
     try {
-      // Save client profile
-      await saveSecureRecord(vaultAKey, activeClientId, clientData, 'A');
+      // Save client profile (schema-validated: rejects a malformed record).
+      await saveClientRecord(vaultAKey, activeClientId, clientData, 'A');
       
       // Update & Save directory
       const updatedDir = [...clientDirectory];
@@ -192,7 +193,7 @@ export default function ClientsModule() {
       const dir = [...clientDirectory];
       for (const s of SAMPLES) {
         if (dir.find(c => c.id === s.id)) continue; // idempotent
-        await saveSecureRecord(vaultAKey, s.id, {
+        await saveClientRecord(vaultAKey, s.id, {
           legalName: s.legalName, alias: s.alias, phone: s.phone,
           emergency: s.emergency, smsConsent: s.smsConsent, photo: s.photo,
         }, 'A');
