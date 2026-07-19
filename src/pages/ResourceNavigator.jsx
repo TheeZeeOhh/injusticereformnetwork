@@ -64,12 +64,13 @@ const CITIES = ['All', ...Array.from(new Set(RESOURCES.map((r) => cityOf(r.addr)
 const CRISIS = RESOURCES.filter((r) => r.cat === 'Crisis');
 
 export default function ResourceNavigator() {
-  const { vaultBKey } = useAuthStore();
+  const { vaultBKey, vaultAKey } = useAuthStore();
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState('All');
   const [city, setCity] = useState('All');
   const [saved, setSaved] = useState([]); // array of resource names
   const [status, setStatus] = useState('');
+  const [clients, setClients] = useState([]); // Vault A client directory (for Amina context)
 
   const vaultBOpen = !!vaultBKey;
 
@@ -85,6 +86,21 @@ export default function ResourceNavigator() {
     }
     loadSaved();
   }, [vaultBKey]);
+
+  // Load the Vault A client directory so Amina can optionally use a client's
+  // saved transcript as (local-only) context.
+  useEffect(() => {
+    async function loadClients() {
+      if (!vaultAKey) { setClients([]); return; }
+      try {
+        const dir = await loadSecureRecord(vaultAKey, 'client_directory', 'A');
+        if (Array.isArray(dir)) setClients(dir);
+      } catch {
+        // No directory yet — Amina's context picker just stays empty.
+      }
+    }
+    loadClients();
+  }, [vaultAKey]);
 
   const toggleSave = async (name) => {
     if (!vaultBKey) { setStatus('Open Vault B to save resources for a client.'); return; }
@@ -140,7 +156,7 @@ export default function ResourceNavigator() {
       </div>
 
       {/* Amina assistant + map */}
-      <AminaPanel resources={RESOURCES} onFocusResource={(r) => { setCat('All'); setQuery(r.name); }} />
+      <AminaPanel resources={RESOURCES} onFocusResource={(r) => { setCat('All'); setQuery(r.name); }} vaultAKey={vaultAKey} clients={clients} />
 
       {/* Controls */}
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>

@@ -67,6 +67,15 @@ export async function askWifey(message, resources, opts = {}) {
   const { checkGuardrails } = await import('./guardrails');
   const { classifyRoute } = await import('./routeEngine');
 
+  // PHI hard gate: if a client transcript/context is attached, this question is
+  // client-specific by definition. Force clientRecordOpen so classifyRoute's
+  // default-closed Gate 0 keeps it LOCAL — the transcript can never reach the
+  // hosted model. This is belt-and-suspenders with never passing clientContext
+  // to the hosted branch below.
+  if (opts.clientContext) {
+    opts = { ...opts, clientRecordOpen: true };
+  }
+
   const guard = checkGuardrails(message);
 
   // Crisis: deterministic, persona-off, never hosted. Surface crisis resources
@@ -191,6 +200,17 @@ export async function askAmina(message, resources, opts = {}) {
     .map((r) => `- ${r.name} [${r.cat}] ${r.phone} \u2014 ${r.note} (${r.addr})`)
     .join('\n');
 
+  // Optional per-client transcript context. This is PHI and stays fully local:
+  // it is only ever placed in the Ollama (localhost) system prompt here, never
+  // in the hosted path. Cap to the most recent ~4000 chars so a long transcript
+  // can't overflow the model context.
+  const MAX_CONTEXT_CHARS = 4000;
+  let clientBlock = '';
+  if (typeof opts.clientContext === 'string' && opts.clientContext.trim()) {
+    const trimmed = opts.clientContext.trim().slice(-MAX_CONTEXT_CHARS);
+    clientBlock = `\n\nClient intake transcript (confidential context — use it to inform your answer, do not repeat it back verbatim):\n${trimmed}`;
+  }
+
   try {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 20000);
@@ -201,7 +221,7 @@ export async function askAmina(message, resources, opts = {}) {
         model,
         stream: false,
         messages: [
-          { role: 'system', content: `${AMINA_SYSTEM}\n\nAvailable resources (only reference these):\n${resourceContext}` },
+          { role: 'system', content: `${AMINA_SYSTEM}\n\nAvailable resources (only reference these):\n${resourceContext}${clientBlock}` },
           { role: 'user', content: message }
         ]
       }),

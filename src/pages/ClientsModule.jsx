@@ -169,6 +169,39 @@ export default function ClientsModule() {
     setViewMode('detail');
   };
 
+  // DEV-ONLY: seed a few fake clients so the app has data to work with (photos,
+  // transcripts, Amina context). Writes through the normal encrypted save path,
+  // so these are real Vault A records. Idempotent: existing ids are skipped.
+  // Gated behind import.meta.env.DEV so it never ships in the packaged app.
+  const [isSeeding, setIsSeeding] = useState(false);
+  const handleSeedSampleClients = async () => {
+    if (!vaultAKey) { alert('Unlock the vault first.'); return; }
+    setIsSeeding(true);
+    const SAMPLES = [
+      { id: 'client_PT-1001', legalName: 'Jordan Ellis', alias: 'Jay', phone: '(410) 555-0142', emergency: 'Sister — (410) 555-0188', smsConsent: true, photo: '' },
+      { id: 'client_PT-1002', legalName: 'Marcus Rivera', alias: 'Mari', phone: '(443) 555-0117', emergency: 'Case worker — (443) 555-0100', smsConsent: false, photo: '' },
+      { id: 'client_PT-1003', legalName: 'Danielle Okafor', alias: 'Dee', phone: '(410) 555-0173', emergency: 'Partner — (410) 555-0190', smsConsent: true, photo: '' },
+      { id: 'client_PT-1004', legalName: 'Sam Whitfield', alias: 'Sammy', phone: '(667) 555-0155', emergency: 'Friend — (667) 555-0166', smsConsent: false, photo: '' },
+    ];
+    try {
+      const dir = [...clientDirectory];
+      for (const s of SAMPLES) {
+        if (dir.find(c => c.id === s.id)) continue; // idempotent
+        await saveSecureRecord(vaultAKey, s.id, {
+          legalName: s.legalName, alias: s.alias, phone: s.phone,
+          emergency: s.emergency, smsConsent: s.smsConsent, photo: s.photo,
+        }, 'A');
+        dir.push({ id: s.id, name: s.legalName, status: 'Active' });
+      }
+      setClientDirectory(dir);
+      await saveSecureRecord(vaultAKey, 'client_directory', dir, 'A');
+      alert(`Sample clients ready (${dir.length} total in directory).`);
+    } catch (err) {
+      alert('Seeding failed: ' + err.message);
+    }
+    setIsSeeding(false);
+  };
+
   // Client photo. Held on the encrypted client record (clientData.photo) and
   // written to the vault by handleSaveToVault like every other client field —
   // it is PHI, so it never touches localStorage or leaves the device. Guard the
@@ -258,9 +291,22 @@ export default function ClientsModule() {
             <h1 style={{ margin: 0, color: 'var(--gold)', fontFamily: 'var(--font-serif)' }}>Client Directory</h1>
             <p style={{ margin: 0, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Secure offline registry</p>
           </div>
-          <button className="btn-primary" onClick={handleCreateNewClient} style={{ background: 'var(--ember)', color: 'white', fontWeight: 'bold' }}>
-            + Add New Client
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {import.meta.env.DEV && (
+              <button
+                className="btn-primary"
+                onClick={handleSeedSampleClients}
+                disabled={isSeeding}
+                title="Dev only: create fake sample clients"
+                style={{ background: 'var(--charcoal)', color: 'var(--bone)', border: '1px dashed var(--border-color)' }}
+              >
+                {isSeeding ? 'Seeding…' : '🧪 Seed sample clients'}
+              </button>
+            )}
+            <button className="btn-primary" onClick={handleCreateNewClient} style={{ background: 'var(--ember)', color: 'white', fontWeight: 'bold' }}>
+              + Add New Client
+            </button>
+          </div>
         </div>
 
         <div className="glass-panel" style={{ flex: 1, padding: '1rem', overflowY: 'auto' }}>
