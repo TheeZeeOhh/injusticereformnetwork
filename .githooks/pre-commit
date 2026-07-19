@@ -18,6 +18,43 @@ set -e
 # Run from repo root regardless of where git invoked the hook.
 cd "$(git rev-parse --show-toplevel)"
 
+# --- Secret scan (fail fast, before the slow test suite) ---------------------
+# The whole point of this project is operational security; committing a secret
+# would undercut that. This gate refuses any staged .env file and scans staged
+# content for common secret shapes. Prefers gitleaks if available, else grep.
+echo "[pre-commit] scanning staged changes for secrets…"
+
+# 1) Never allow a .env file (other than *.env.example) to be committed.
+staged_env=$(git diff --cached --name-only --diff-filter=ACM | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$' || true)
+if [ -n "$staged_env" ]; then
+  echo "[pre-commit] ✗ BLOCKED: attempting to commit an env file:"
+  echo "$staged_env" | sed 's/^/    /'
+  echo "    Env files must never be committed. Remove it: git rm --cached <file>"
+  exit 1
+fi
+
+# 2) Pattern scan on staged content.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --no-banner || {
+    echo "[pre-commit] ✗ BLOCKED: gitleaks found a potential secret in staged changes."
+    exit 1
+  }
+else
+  # Fallback grep: Stripe keys, webhook secrets, private keys, obvious secret vars.
+  # Scans only the staged diff (added lines).
+  hits=$(git diff --cached -U0 --diff-filter=ACM | grep -E '^\+' | grep -E \
+    'sk_(live|test)_[0-9A-Za-z]{16,}|whsec_[0-9A-Za-z]{16,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(JWT_SECRET|SESSION_SECRET|API_SECRET|SECRET_KEY|AWS_SECRET_ACCESS_KEY)\s*=\s*["'"'"']?[^"'"'"'[:space:]]{8,}' \
+    || true)
+  if [ -n "$hits" ]; then
+    echo "[pre-commit] ✗ BLOCKED: staged changes look like they contain a secret:"
+    echo "$hits" | sed -E 's/(.{0,24}).*/    \1…(redacted)/' | sort -u
+    echo "    If this is a false positive, review carefully; only then: git commit --no-verify"
+    echo "    (Tip: install 'gitleaks' for more accurate scanning.)"
+    exit 1
+  fi
+fi
+echo "[pre-commit] ✓ no secrets detected"
+
 echo "[pre-commit] running test suite (npm test)…"
 npm test
 
