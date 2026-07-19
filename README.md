@@ -7,7 +7,7 @@ the operator should be unable to produce readable client PHI under subpoena,
 because it is never stored in plaintext and the keys live only in RAM.
 
 > **Status:** Working prototype. The architecture and core security features are
-> implemented and covered by an automated test suite (~83 tests). An internal
+> implemented and covered by an automated test suite (177 tests). An internal
 > adversarial crypto review has been done and its two CRITICAL findings fixed
 > (see [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md)), but the app has **not** had an
 > **independent** security review or full runtime QA. Do not enter real client
@@ -39,13 +39,26 @@ because it is never stored in plaintext and the keys live only in RAM.
 
 ## Modules
 
-Client records, HRT continuity (Vault B), 42 CFR consent management (Vault B),
-medication management, scheduling, shift swaps, staffing pipeline,
-transportation, vouchers, attorney directory, **FOIA generator** (real PDF
-export), **Evidence Vault** (real SHA-256 chain-of-custody with verify/download),
-**Visual Canvas** (encrypted note board), **Audio Intake** (on-device Whisper
-transcription via WASM, zero-network after first-run model download), and an
-in-app User Manual.
+Client records (photo, pronouns, encrypted per-client intake), HRT continuity
+(Vault B), 42 CFR consent management (Vault B), medication management,
+scheduling, shift swaps, staffing pipeline, transportation, vouchers, attorney
+directory, **FOIA generator** (real PDF export), **Evidence Vault** (real
+SHA-256 chain-of-custody with verify/download), **Visual Canvas** (encrypted
+note board), **Audio Intake** (on-device Whisper transcription via WASM,
+zero-network after first-run model download; transcripts can be saved,
+encrypted, to a client's record), **Resource Navigator** with **Amina** (a
+resource assistant; runs on a local Ollama model or a deterministic guided
+fallback. A default-closed router may send only *generic, person-free*
+bureaucracy questions to a hosted model — never client data. Attaching a
+client's saved transcript as context forces Amina fully local, so PHI can never
+leave the device), and an in-app User Manual.
+
+### Interface
+
+- **Languages:** English, Spanish, French (in-app switcher; homegrown, no
+  network). Framework plus the high-traffic screens (nav, login, settings,
+  profile) are translated; remaining modules are migrating incrementally.
+- **Themes:** dark (default) and light, persisted locally.
 
 ## Getting started
 
@@ -66,8 +79,10 @@ npm run tauri build
 npm test
 ```
 
-The first run of **Audio Intake** downloads the Whisper model (~145 MB) once
-from a public CDN, then runs entirely offline and cached.
+The first run of **Audio Intake** downloads the Whisper model (`whisper-tiny`,
+~75 MB) once from a public CDN, then runs entirely offline and cached. Swap to
+`whisper-base` in `src/workers/whisperWorker.js` for higher accuracy at a larger
+download.
 
 ## Security status
 
