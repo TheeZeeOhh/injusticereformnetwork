@@ -80,6 +80,7 @@ import EvidenceVault from './pages/EvidenceVault';
 import AttorneyDirectory from './pages/AttorneyDirectory';
 import NoteTemplatesLibrary from './pages/NoteTemplatesLibrary';
 import ClinicalAlertsPanel from './pages/ClinicalAlertsPanel';
+import CaseReporting from './pages/CaseReporting';
 
 // Cycle through the theme accent colors so the marquee keeps its multicolor look
 // regardless of how many messages the user configures.
@@ -150,6 +151,7 @@ const NAV_GROUPS = [
     titleKey: 'nav.groupLegal',
     items: [
       { to: '/foia', icon: '⚖️', labelKey: 'nav.foiaGen' },
+      { to: '/case-report', icon: '🗂️', labelKey: 'nav.caseReport' },
       { to: '/attorneys', icon: '⚖️', labelKey: 'nav.attorneys' },
       { to: '/canvas', icon: '🎨', labelKey: 'nav.visualCanvas' }
     ]
@@ -401,6 +403,7 @@ function App() {
               <Route path="/note-templates" element={<NoteTemplatesLibrary />} />
               <Route path="/canvas" element={<VisualCanvas />} />
               <Route path="/foia" element={<FOIAGenerator />} />
+              <Route path="/case-report" element={<CaseReporting />} />
               <Route path="/evidence" element={<EvidenceVault />} />
               <Route path="/attorneys" element={<AttorneyDirectory />} />
               <Route path="/audio" element={<AudioIntake />} />
