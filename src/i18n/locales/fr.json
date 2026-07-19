@@ -1,0 +1,92 @@
+{
+  "lang": {
+    "label": "Langue",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français"
+  },
+  "theme": {
+    "label": "Thème",
+    "dark": "Sombre",
+    "light": "Clair",
+    "help": "Basculer entre l'interface sombre et claire."
+  },
+  "nav": {
+    "groupClientCare": "Soins aux Clients",
+    "groupSensitive": "Sensible · Coffre B (42 CFR)",
+    "groupResources": "Ressources et Documents",
+    "groupLegal": "Juridique et Plaidoyer",
+    "groupOperations": "Opérations et Personnel",
+    "groupSystem": "Système",
+    "dashboard": "Tableau de bord",
+    "clients": "Clients",
+    "medications": "Médicaments",
+    "dischargeGen": "Générateur de Sorties",
+    "telehealth": "Télésanté",
+    "audioIntake": "Admission Audio",
+    "hrtContinuity": "Continuité du THS",
+    "consent": "Consentement",
+    "resourceNavigator": "Navigateur de Ressources",
+    "documentLibrary": "Bibliothèque de Documents",
+    "evidenceVault": "Coffre de Preuves",
+    "voucherProgram": "Programme de Bons",
+    "transportationHub": "Centre de Transport",
+    "foiaGen": "Générateur FOIA",
+    "attorneys": "Avocats",
+    "visualCanvas": "Toile Visuelle",
+    "schedule": "Planning",
+    "shiftSwaps": "Échanges de Postes",
+    "staffingPipeline": "Pipeline du Personnel",
+    "onCallDashboard": "Tableau de Garde",
+    "dispatchLog": "Journal de Répartition",
+    "messages": "Messages",
+    "intelligenceLayer": "Couche de Renseignement",
+    "userManual": "Manuel d'Utilisation",
+    "onboarding": "Intégration",
+    "settings": "Paramètres"
+  },
+  "topbar": {
+    "searchPlaceholder": "Rechercher patients, personnel ou dossiers...",
+    "closeVaultB": "🚨 Fermer le Coffre B",
+    "unlockVaultB": "🔒 Ouvrir le Coffre B",
+    "logout": "Déconnexion",
+    "editProfile": "Modifier le profil"
+  },
+  "login": {
+    "tagline": "DSE Sécurisé et Local-First",
+    "operatorRole": "Rôle de l'Opérateur",
+    "operatorId": "ID de l'Opérateur",
+    "operatorIdPlaceholder": "p. ex. dr_richards",
+    "passphraseLabel": "Phrase de Déchiffrement",
+    "passphrasePlaceholder": "Nécessite la Phrase Maîtresse",
+    "openingVault": "Ouverture du Coffre A...",
+    "setPassphrase": "Définir la Phrase et Créer le Coffre",
+    "decryptAuth": "Déchiffrer et Authentifier",
+    "footerTitle": "Défense d'Incapacité Technique Active",
+    "footerSubtitle": "Architecture à Connaissance Zéro · Clés de coffre uniquement en RAM"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "languageHelp": "Définit la langue de l'interface pour cet appareil.",
+    "save": "Enregistrer",
+    "saved": "Enregistré"
+  },
+  "profile": {
+    "title": "Profil du Navigateur",
+    "subtitle": "Gérez votre identité d'opérateur IRN et vos clés cryptographiques.",
+    "uploadPicture": "Téléverser une photo de profil",
+    "pictureHint": "JPEG ou PNG. Max 5 Mo. Stocké localement.",
+    "identityDetails": "Détails d'Identité",
+    "fullName": "Nom légal / choisi",
+    "officialTitle": "Titre officiel",
+    "secureEmail": "Courriel sécurisé",
+    "burnerPhone": "Téléphone jetable / Signal",
+    "cryptographicKeys": "Clés Cryptographiques",
+    "pgpFingerprint": "Empreinte de clé publique PGP",
+    "pgpHint": "Cette clé vous identifie sur le réseau maillé IRN. Ne la modifiez pas manuellement.",
+    "saveIdentity": "Enregistrer les Paramètres d'Identité",
+    "savedAlert": "Profil enregistré localement sur cet appareil. Rien n'a été envoyé ailleurs.",
+    "tooLargeAlert": "Cette image est trop volumineuse pour un stockage local. Choisissez-en une de moins de 5 Mo."
+  }
+}
