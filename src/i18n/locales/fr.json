@@ -22,6 +22,7 @@
     "clients": "Clients",
     "medications": "Médicaments",
     "dischargeGen": "Générateur de Sorties",
+    "noteTemplates": "Modèles de Notes",
     "telehealth": "Télésanté",
     "audioIntake": "Admission Audio",
     "hrtContinuity": "Continuité du THS",
