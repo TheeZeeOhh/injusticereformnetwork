@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sanctuary Cost-to-Build Valuation</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f7f7f5; color: #181816; }
+    .shell { max-width: 1120px; margin: 0 auto; padding: 32px 24px 56px; }
+    header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid #d9d9d2; padding-bottom: 14px; margin-bottom: 24px; }
+    h1 { font-size: 24px; line-height: 1.2; margin: 0; font-weight: 700; }
+    .meta { color: #66665f; font-size: 13px; }
+    .canvas { background: #ffffff; border: 1px solid #d9d9d2; border-radius: 8px; padding: 24px; overflow: auto; }
+    .canvas.html-canvas { padding: 0; overflow: hidden; }
+    .html-frame { display: block; width: 100%; min-height: 78vh; border: 0; background: #ffffff; }
+    .artifact-pre { white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 13px; line-height: 1.5; margin: 0; }
+    img, video, canvas, svg { max-width: 100%; height: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #d9d9d2; padding: 8px 10px; vertical-align: top; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #181816; color: #f1f1ed; }
+      header, .canvas, th, td { border-color: #3a3a34; }
+      .canvas { background: #20201d; }
+      .meta { color: #aaa99f; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <h1>Sanctuary Cost-to-Build Valuation</h1>
+      <div class="meta">html artifact</div>
+    </header>
+    <section class="canvas html-canvas">
+<iframe class="html-frame" sandbox="allow-scripts allow-forms allow-popups-by-user-activation" referrerpolicy="no-referrer" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Sanctuary — Cost-to-Build Valuation&lt;/title&gt;
+&lt;style&gt;
+  :root { --ink:#1c1a16; --muted:#55503f; --gold:#a9761b; --line:#d8d2c4; --bg:#faf8f3; --accent:#c2410c; }
+  * { box-sizing:border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; color:var(--ink); background:var(--bg); line-height:1.55; margin:0; padding:0; }
+  .page { max-width: 860px; margin: 0 auto; padding: 48px 56px; background:#fff; box-shadow:0 2px 20px rgba(60,50,30,0.08); }
+  h1 { font-size: 26px; margin:0 0 4px; letter-spacing:-0.01em; }
+  h2 { font-size: 17px; margin: 34px 0 10px; border-bottom:2px solid var(--gold); padding-bottom:5px; color:var(--gold); }
+  h3 { font-size: 14px; margin: 18px 0 6px; color:var(--accent); }
+  .sub { color:var(--muted); font-size:13px; margin:0 0 6px; }
+  .meta { font-size:12px; color:var(--muted); margin-top:8px; }
+  p, li { font-size: 14px; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:#f4f1ea; font-family: Arial, sans-serif; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); }
+  td.num, th.num { text-align:right; font-variant-numeric: tabular-nums; white-space:nowrap; }
+  tfoot td { font-weight:bold; border-top:2px solid var(--ink); border-bottom:none; }
+  .callout { background:#f4f1ea; border-left:4px solid var(--gold); padding:12px 16px; margin:14px 0; font-size:13px; }
+  .warn { border-left-color:var(--accent); }
+  .big { font-size:22px; font-weight:bold; color:var(--gold); }
+  .mono { font-family: 'Courier New', monospace; font-size:12px; }
+  .foot { margin-top:36px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--muted); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 28px; }
+  ul { margin:6px 0 6px 18px; padding:0; }
+  @media print { body{background:#fff;} .page{box-shadow:none; padding:24px;} }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;page&quot;&gt;
+
+  &lt;h1&gt;Sanctuary — Cost-to-Build (Replacement) Valuation&lt;/h1&gt;
+  &lt;p class=&quot;sub&quot;&gt;A local-first, client-side-encrypted health &amp;amp; legal records platform for the Injustice Reform Network (IRN)&lt;/p&gt;
+  &lt;p class=&quot;meta&quot;&gt;Prepared: 19 July 2026 &amp;nbsp;·&amp;nbsp; Basis: replacement / cost-to-build (professional engineering hours × market rate) &amp;nbsp;·&amp;nbsp; Prepared for IRN internal &amp;amp; grant use&lt;/p&gt;
+
+  &lt;div class=&quot;callout&quot;&gt;
+    &lt;strong&gt;Headline figure:&lt;/strong&gt; &lt;span class=&quot;big&quot;&gt;≈ $152,000 – $372,000&lt;/span&gt;&lt;br&gt;
+    &lt;strong&gt;Conservative point estimate for grant/record use: ≈ $175,000.&lt;/strong&gt;
+    This values the professional effort required to reproduce the software as it exists today. It is &lt;em&gt;not&lt;/em&gt; a market price and does &lt;em&gt;not&lt;/em&gt; assume the security design has been independently audited (see Risk &amp;amp; Discounts).
+  &lt;/div&gt;
+
+  &lt;h2&gt;1. Method&lt;/h2&gt;
+  &lt;p&gt;
+    The cost-to-build (a.k.a. replacement-cost) approach estimates what it would cost to have a qualified team re-create this system from scratch. It is the most defensible lens for a nonprofit sweat-equity / grant context because every figure ties to observable, delivered work rather than speculative market demand.
+  &lt;/p&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Inputs are measured, not guessed:&lt;/strong&gt; line counts, module counts, and the automated test suite were taken directly from the codebase.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Estimated deliverable:&lt;/strong&gt; hours are assigned per work-domain, reflecting typical professional throughput for that &lt;em&gt;type&lt;/em&gt; of work (security-critical crypto is slower per line than CRUD UI).&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Rate:&lt;/strong&gt; a blended U.S. senior full-stack contractor rate of &lt;strong&gt;$95–$150/hr&lt;/strong&gt;, with a premium tier for the security/cryptography work.&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;h2&gt;2. Measured Scope (verified from the repository)&lt;/h2&gt;
+  &lt;div class=&quot;grid2&quot;&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;~13,760&lt;/strong&gt; lines of source (JS/JSX, Rust, Node)&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;34&lt;/strong&gt; feature modules (React pages)&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;15&lt;/strong&gt; engine/utility libraries&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;233&lt;/strong&gt; passing automated tests (34 test files, ~2,993 LOC)&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Rust (Tauri) shell:&lt;/strong&gt; ~452 LOC (keychain, USB dead-man's switch)&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;144&lt;/strong&gt; commits over ~3 months (Apr–Jul 2026)&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+
+  &lt;h2&gt;3. Itemized Effort &amp;amp; Cost&lt;/h2&gt;
+  &lt;p class=&quot;sub&quot;&gt;Hours are professional-equivalent build hours (design + implement + test), not elapsed calendar time.&lt;/p&gt;
+  &lt;table&gt;
+    &lt;thead&gt;
+      &lt;tr&gt;
+        &lt;th&gt;Work domain&lt;/th&gt;
+        &lt;th class=&quot;num&quot;&gt;LOC&lt;/th&gt;
+        &lt;th class=&quot;num&quot;&gt;Hours&lt;/th&gt;
+        &lt;th class=&quot;num&quot;&gt;Rate&lt;/th&gt;
+        &lt;th class=&quot;num&quot;&gt;Low&lt;/th&gt;
+        &lt;th class=&quot;num&quot;&gt;High&lt;/th&gt;
+      &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;Security &amp;amp; cryptography core&lt;/strong&gt;&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;cryptoEngine, storageEngine, backupEngine, migrationEngine, auditLog, passphrasePolicy&lt;/span&gt;&lt;br&gt;AES-256-GCM + AAD binding, dual-vault separation, HMAC-signed backups, tamper-evident audit chain, KDF policy&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~1,250&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;280–420&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$130–160&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$36,400&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$67,200&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;Tauri / Rust desktop shell&lt;/strong&gt;&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;lib.rs&lt;/span&gt; — OS keychain integration, USB dead-man's switch (rusb), hardened CSP, model-fetch bridge&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~452&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;120–200&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$130–160&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$15,600&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$32,000&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;Client-care clinical modules&lt;/strong&gt;&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;ClientsModule, NoteTemplatesLibrary, CaseReporting, ClinicalAlerts, MedicationManagement, HrtTracking, ConsentManager, AudioIntake, Schedule&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~2,300&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;320–470&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$95–130&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$30,400&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$61,100&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;On-device AI / ML&lt;/strong&gt;&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;whisperWorker, aminaEngine, routeEngine, guardrails&lt;/span&gt; — Whisper (WASM) transcription, local-LLM assistant, default-closed PHI routing&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~700&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;140–220&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$110–150&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$15,400&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$33,000&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;Resources, legal &amp;amp; case-mgmt modules&lt;/strong&gt;&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;ResourceNavigator, FOIAGenerator, EvidenceVault, DocumentLibrary, AttorneyDirectory, ReferralTracker, StipendTracker, VoucherProgram, TransportationHub, VisualCanvas&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~1,900&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;240–360&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$95–125&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$22,800&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$45,000&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;Operations &amp;amp; staff modules&lt;/strong&gt;&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;StaffingKanban, CredentialMonitor, ShiftSwaps, OnCallDashboard, Messages, IntelligenceLayer, DischargeGenerator&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~900&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;120–180&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$95–120&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$11,400&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$21,600&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;Platform: auth, onboarding, settings, i18n, theming, schema&lt;/strong&gt;&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;authStore, settingsStore, Login, Onboarding, Settings, i18n (EN/ES/FR), Zod schema layer, UserProfile&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~1,600&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;200–300&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$95–130&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$19,000&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$39,000&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;Automated test suite&lt;/strong&gt;&lt;br&gt;233 tests across crypto, storage, vault separation, backups, routing, and module logic&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~2,993&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;140–220&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$95–130&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$13,300&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$28,600&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;strong&gt;Architecture, integration, build/packaging, docs&lt;/strong&gt;&lt;br&gt;App routing, Tauri packaging (deb/rpm), CSP hardening, security audit doc, README/grant docs, commit-gate tooling&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;—&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;100–170&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$110–140&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$11,000&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$23,800&lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tbody&gt;
+    &lt;tfoot&gt;
+      &lt;tr&gt;
+        &lt;td&gt;Totals&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;~12,100*&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;1,460–2,540&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$175,300&lt;/td&gt;
+        &lt;td class=&quot;num&quot;&gt;$351,300&lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tfoot&gt;
+  &lt;/table&gt;
+  &lt;p class=&quot;meta&quot;&gt;*Source LOC counted; config/generated files excluded. Subtotals are rounded and may not sum exactly.&lt;/p&gt;
+
+  &lt;div class=&quot;callout&quot;&gt;
+    &lt;strong&gt;Rounded valuation band: $152,000 – $372,000&lt;/strong&gt; (subtotals rounded outward to reflect estimate uncertainty). &lt;strong&gt;Conservative single figure: ~$175,000.&lt;/strong&gt;
+  &lt;/div&gt;
+
+  &lt;h2&gt;4. Why the security work carries a premium&lt;/h2&gt;
+  &lt;p&gt;
+    Roughly a quarter of the value sits in the cryptography, dual-vault, and Rust key-custody layers. This work is priced higher per hour and per line because errors are safety-critical (the platform's entire purpose is a &lt;em&gt;Technical Incapacity Defense&lt;/em&gt; — the operator must be unable to produce readable client PHI under subpoena). Comparable specialized security engineering commonly bills $130–200/hr and proceeds more slowly than feature CRUD.
+  &lt;/p&gt;
+
+  &lt;h2&gt;5. Risk &amp;amp; Discounts (read before citing a number)&lt;/h2&gt;
+  &lt;div class=&quot;callout warn&quot;&gt;
+    This valuation reflects &lt;strong&gt;effort to reproduce&lt;/strong&gt;, not &lt;strong&gt;certified correctness&lt;/strong&gt;. Two material caveats:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;No independent security audit.&lt;/strong&gt; An internal adversarial review was done and its two CRITICAL findings fixed, but no third-party audit has occurred. A prudent buyer/funder would discount until an external review passes. This is also the single highest-leverage investment to &lt;em&gt;raise&lt;/em&gt; every figure here.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Prototype, not production.&lt;/strong&gt; Not yet runtime-QA'd end-to-end; the project's own documentation states real client PHI should not be entered until independently reviewed.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+
+  &lt;h2&gt;6. How to cite this&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Grant / sweat-equity record:&lt;/strong&gt; &quot;Approximately $175,000 of professional-equivalent engineering has been invested to date (replacement-cost basis), supported by an itemized breakdown,&quot; with the audit caveat stated plainly.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Do not&lt;/strong&gt; present the high end ($372K) as a settled value, or omit the un-audited-security caveat — both would weaken credibility under scrutiny.&lt;/li&gt;
+    &lt;li&gt;This is a cost-to-build estimate, not a market/appraised value and not financial advice. For a board, insurance, or legal record, a licensed appraiser should review.&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;div class=&quot;foot&quot;&gt;
+    Injustice Reform Network — 501(c)(3), EIN 83-4207890. Figures derived from direct measurement of the Sanctuary source repository on 19 July 2026 plus standard replacement-cost estimation. Estimate, not a formal appraisal.
+  &lt;/div&gt;
+
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+    </section>
+  </main>
+</body>
+</html>

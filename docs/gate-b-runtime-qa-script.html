@@ -1,0 +1,191 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sanctuary Gate B Runtime QA Script</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f7f7f5; color: #181816; }
+    .shell { max-width: 1120px; margin: 0 auto; padding: 32px 24px 56px; }
+    header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid #d9d9d2; padding-bottom: 14px; margin-bottom: 24px; }
+    h1 { font-size: 24px; line-height: 1.2; margin: 0; font-weight: 700; }
+    .meta { color: #66665f; font-size: 13px; }
+    .canvas { background: #ffffff; border: 1px solid #d9d9d2; border-radius: 8px; padding: 24px; overflow: auto; }
+    .canvas.html-canvas { padding: 0; overflow: hidden; }
+    .html-frame { display: block; width: 100%; min-height: 78vh; border: 0; background: #ffffff; }
+    .artifact-pre { white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 13px; line-height: 1.5; margin: 0; }
+    img, video, canvas, svg { max-width: 100%; height: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #d9d9d2; padding: 8px 10px; vertical-align: top; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #181816; color: #f1f1ed; }
+      header, .canvas, th, td { border-color: #3a3a34; }
+      .canvas { background: #20201d; }
+      .meta { color: #aaa99f; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <h1>Sanctuary Gate B Runtime QA Script</h1>
+      <div class="meta">html artifact</div>
+    </header>
+    <section class="canvas html-canvas">
+<iframe class="html-frame" sandbox="allow-scripts allow-forms allow-popups-by-user-activation" referrerpolicy="no-referrer" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Sanctuary — Gate B Runtime QA Script&lt;/title&gt;
+&lt;style&gt;
+  :root { --ink:#1c1a16; --muted:#55503f; --gold:#a9761b; --line:#d8d2c4; --bg:#faf8f3; --accent:#c2410c; --green:#1f7a4d; }
+  * { box-sizing:border-box; }
+  body { font-family: Georgia,'Times New Roman',serif; color:var(--ink); background:var(--bg); line-height:1.5; margin:0; }
+  .page { max-width:900px; margin:0 auto; padding:44px 52px; background:#fff; box-shadow:0 2px 20px rgba(60,50,30,0.08); }
+  h1 { font-size:25px; margin:0 0 3px; }
+  .sub { color:var(--muted); font-size:13px; margin:0 0 4px; }
+  .meta { font-size:12px; color:var(--muted); margin-top:6px; }
+  h2 { font-size:16px; margin:30px 0 6px; color:var(--gold); border-bottom:2px solid var(--gold); padding-bottom:5px; }
+  h2 .n { display:inline-block; width:24px; height:24px; line-height:24px; text-align:center; background:var(--gold); color:#fff; border-radius:50%; font-family:Arial,sans-serif; font-size:13px; margin-right:8px; }
+  p,li,td { font-size:13.5px; }
+  .callout { background:#f4f1ea; border-left:4px solid var(--gold); padding:11px 15px; margin:14px 0; font-size:13px; }
+  .warn { border-left-color:var(--accent); background:#fdecea; }
+  .mono { font-family:'Courier New',monospace; font-size:12px; background:#f4f1ea; padding:1px 5px; border-radius:3px; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:#f4f1ea; font-family:Arial,sans-serif; font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); }
+  .step { font-family:Arial,sans-serif; font-weight:bold; font-size:12px; color:var(--accent); }
+  .expect { color:var(--green); }
+  .pf { white-space:nowrap; font-family:Arial,sans-serif; font-size:11px; color:var(--muted); }
+  ol.steps { margin:8px 0; padding-left:20px; }
+  ol.steps li { margin:6px 0; }
+  .pill { font-family:Arial,sans-serif; font-size:10px; padding:1px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; }
+  .p-b { background:#fdecea; color:var(--accent); border:1px solid var(--accent); }
+  .foot { margin-top:34px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--muted); }
+  @media print { body{background:#fff;} .page{box-shadow:none;padding:20px;} h2{page-break-after:avoid;} table{page-break-inside:avoid;} }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;page&quot;&gt;
+
+  &lt;h1&gt;Gate B — Runtime QA Script&lt;/h1&gt;
+  &lt;p class=&quot;sub&quot;&gt;Click-by-click verification of the running Sanctuary desktop app. Tests prove logic; this proves the &lt;em&gt;app&lt;/em&gt; behaves.&lt;/p&gt;
+  &lt;p class=&quot;meta&quot;&gt;Prepared 19 July 2026 · Run on the packaged desktop build with SAMPLE data only · Record Pass/Fail + notes for each check&lt;/p&gt;
+
+  &lt;div class=&quot;callout warn&quot;&gt;
+    &lt;strong&gt;Read first — two gotchas:&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;The &lt;span class=&quot;mono&quot;&gt;🧪 Seed sample clients&lt;/span&gt; button is &lt;strong&gt;dev-only&lt;/strong&gt; and does &lt;strong&gt;NOT appear in the packaged desktop app.&lt;/strong&gt; To get test clients in the desktop build, either (a) create them manually via &lt;span class=&quot;mono&quot;&gt;Clients → + Add New Client&lt;/span&gt;, or (b) run the dev server (&lt;span class=&quot;mono&quot;&gt;npm run dev&lt;/span&gt;) once, click Seed, then re-open the desktop app (same vault). This script assumes ~4 sample clients exist.&lt;/li&gt;
+      &lt;li&gt;Use &lt;strong&gt;fake data only.&lt;/strong&gt; This is QA, not live casework.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+
+  &lt;h2&gt;&lt;span class=&quot;n&quot;&gt;0&lt;/span&gt;Setup &amp;amp; login&lt;/h2&gt;
+  &lt;ol class=&quot;steps&quot;&gt;
+    &lt;li&gt;&lt;strong&gt;Launch the packaged app&lt;/strong&gt; from the desktop icon (Sanctuary Enterprise), &lt;em&gt;not&lt;/em&gt; the dev server. &lt;span class=&quot;expect&quot;&gt;→ Login (or first-run Onboarding) appears.&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Log in / enroll a passphrase (min 12 chars). &lt;span class=&quot;expect&quot;&gt;→ Dashboard &quot;Clinical Overview&quot; loads; sidebar shows grouped modules.&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Ensure ~4 sample clients exist (see gotcha above).&lt;/li&gt;
+  &lt;/ol&gt;
+  &lt;table&gt;&lt;tr&gt;&lt;th&gt;Check&lt;/th&gt;&lt;th class=&quot;pf&quot;&gt;P/F&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;App launches from desktop icon and reaches Login&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Login with correct passphrase succeeds; wrong passphrase is rejected&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+
+  &lt;h2&gt;&lt;span class=&quot;n&quot;&gt;1&lt;/span&gt;Vault B gating &lt;span class=&quot;pill p-b&quot;&gt;Security-critical&lt;/span&gt;&lt;/h2&gt;
+  &lt;p&gt;The core of the Technical Incapacity Defense: sensitive (42 CFR / HRT) data must be unreadable until Vault B is explicitly unlocked, and must disappear on panic-close.&lt;/p&gt;
+  &lt;ol class=&quot;steps&quot;&gt;
+    &lt;li&gt;With Vault B &lt;strong&gt;still closed&lt;/strong&gt; (default after login), open &lt;span class=&quot;mono&quot;&gt;Dashboard&lt;/span&gt;. &lt;span class=&quot;expect&quot;&gt;→ Clinical Alerts panel shows the &quot;HRT refills due&quot; section as &lt;strong&gt;🔒 Unlock Vault B to check HRT refills&lt;/strong&gt; — no HRT data.&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Open &lt;span class=&quot;mono&quot;&gt;Case Reporting (🗂️)&lt;/span&gt;, pick a client. &lt;span class=&quot;expect&quot;&gt;→ Preview shows &quot;HRT omitted — Vault B was locked.&quot;&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Open &lt;span class=&quot;mono&quot;&gt;HRT Continuity (🏳️‍⚧️)&lt;/span&gt;. &lt;span class=&quot;expect&quot;&gt;→ Prompts to open Vault B / cannot read HRT records.&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Click &lt;span class=&quot;mono&quot;&gt;🔒 Unlock Vault B&lt;/span&gt; (top-right). Enter the SEPARATE Vault B passphrase (enroll if first time — acknowledge the &quot;unrecoverable by design&quot; warning).&lt;/li&gt;
+    &lt;li&gt;Add an HRT record for a client (regimen + a &lt;strong&gt;refill date within ~5 days&lt;/strong&gt;). Save.&lt;/li&gt;
+    &lt;li&gt;Return to &lt;span class=&quot;mono&quot;&gt;Dashboard&lt;/span&gt;. &lt;span class=&quot;expect&quot;&gt;→ HRT refill now appears in Clinical Alerts.&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Click &lt;span class=&quot;mono&quot;&gt;🚨 Close Vault B&lt;/span&gt; (panic close). &lt;span class=&quot;expect&quot;&gt;→ Dashboard HRT section re-locks; re-opening requires the Vault B passphrase again (not cached).&lt;/span&gt;&lt;/li&gt;
+  &lt;/ol&gt;
+  &lt;table&gt;&lt;tr&gt;&lt;th&gt;Check&lt;/th&gt;&lt;th class=&quot;pf&quot;&gt;P/F&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;HRT data / alerts are hidden while Vault B is closed (every surface above)&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Unlocking Vault B reveals HRT; the refill alert computes correctly&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Panic-close re-locks HRT everywhere and forces passphrase re-entry&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+
+  &lt;h2&gt;&lt;span class=&quot;n&quot;&gt;2&lt;/span&gt;PHI export path — Case Reporting PDF &lt;span class=&quot;pill p-b&quot;&gt;Security-critical&lt;/span&gt;&lt;/h2&gt;
+  &lt;ol class=&quot;steps&quot;&gt;
+    &lt;li&gt;Open &lt;span class=&quot;mono&quot;&gt;Case Reporting&lt;/span&gt;, select a client who has data (profile, an intake, a note).&lt;/li&gt;
+    &lt;li&gt;Read the on-screen preview. &lt;span class=&quot;expect&quot;&gt;→ Only that client's records; no other client's data bleeds in.&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Click &lt;span class=&quot;mono&quot;&gt;Export Case Summary PDF&lt;/span&gt;. &lt;span class=&quot;expect&quot;&gt;→ A ⚠ warning modal appears (&quot;unencrypted PHI leaving the vault&quot;).&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Click &lt;strong&gt;Cancel&lt;/strong&gt;. &lt;span class=&quot;expect&quot;&gt;→ No file created.&lt;/span&gt; Then Export again → &lt;strong&gt;Export anyway&lt;/strong&gt;. &lt;span class=&quot;expect&quot;&gt;→ PDF downloads named &lt;span class=&quot;mono&quot;&gt;case_summary_&amp;lt;id&amp;gt;_&amp;lt;date&amp;gt;.pdf&lt;/span&gt;.&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Open the PDF. &lt;span class=&quot;expect&quot;&gt;→ Contents match the preview; with Vault B locked, HRT shows the &quot;omitted&quot; note (not real HRT).&lt;/span&gt;&lt;/li&gt;
+  &lt;/ol&gt;
+  &lt;table&gt;&lt;tr&gt;&lt;th&gt;Check&lt;/th&gt;&lt;th class=&quot;pf&quot;&gt;P/F&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Warning modal fires before any export; Cancel produces no file&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Exported PDF contains only the intended client's fields&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;HRT respects Vault B state in the export&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+
+  &lt;h2&gt;&lt;span class=&quot;n&quot;&gt;3&lt;/span&gt;Per-client save → reload persistence&lt;/h2&gt;
+  &lt;p&gt;For each module below: add a record for a client, then &lt;strong&gt;navigate away and back&lt;/strong&gt; (and ideally close+reopen the app) and confirm it persisted.&lt;/p&gt;
+  &lt;table&gt;
+    &lt;tr&gt;&lt;th&gt;Module&lt;/th&gt;&lt;th&gt;Action&lt;/th&gt;&lt;th class=&quot;pf&quot;&gt;P/F&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;mono&quot;&gt;Clients (👥)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Edit a client: add a photo, check pronouns + self-describe, save to vault → reopen → intact&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;mono&quot;&gt;Note Templates (📝)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Use a template → pick client → fill → Save Completed Note → reopen → note on file&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;mono&quot;&gt;Audio Intake (🎙️)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Record short session → pick client → Save Transcript → re-save appends (count grows)&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;mono&quot;&gt;Stipends (🎁)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Pick client → add gift card + transit → totals correct → reopen → present&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;mono&quot;&gt;Referrals (🔗)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Add an Active agency → create referral → advance status Sent→Completed → reopen → persists&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;mono&quot;&gt;Schedule (📅)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Add a past-due appt + one ~2h out → check Dashboard alerts reflect them&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;mono&quot;&gt;Credentials (🎓)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Add one expiring in ~20 days → shows &quot;≤30 days&quot; badge + strip count&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+
+  &lt;h2&gt;&lt;span class=&quot;n&quot;&gt;4&lt;/span&gt;On-device AI — zero-network after first load&lt;/h2&gt;
+  &lt;ol class=&quot;steps&quot;&gt;
+    &lt;li&gt;&lt;span class=&quot;mono&quot;&gt;Audio Intake&lt;/span&gt;: first run downloads the Whisper model (~75MB, one time). Confirm transcription then works.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Disconnect the network&lt;/strong&gt;, restart the app, and use Audio Intake again. &lt;span class=&quot;expect&quot;&gt;→ Transcription still works fully offline.&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;span class=&quot;mono&quot;&gt;Resource Navigator → Amina&lt;/span&gt;: attach a client's saved transcript as context. &lt;span class=&quot;expect&quot;&gt;→ Badge shows &quot;🔒 local only · cloud uplink disabled&quot;; the provenance badge on replies is never &quot;hosted&quot;.&lt;/span&gt;&lt;/li&gt;
+  &lt;/ol&gt;
+  &lt;table&gt;&lt;tr&gt;&lt;th&gt;Check&lt;/th&gt;&lt;th class=&quot;pf&quot;&gt;P/F&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Whisper transcribes with network disconnected (after first download)&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Attaching client transcript to Amina forces local-only (never hosted)&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+
+  &lt;h2&gt;&lt;span class=&quot;n&quot;&gt;5&lt;/span&gt;Hardware dead-man's switch &lt;span class=&quot;pill p-b&quot;&gt;Desktop-only&lt;/span&gt;&lt;/h2&gt;
+  &lt;ol class=&quot;steps&quot;&gt;
+    &lt;li&gt;&lt;span class=&quot;mono&quot;&gt;Settings (⚙️)&lt;/span&gt; → scan USB devices → arm the switch on a chosen token.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Physically remove the token.&lt;/strong&gt; &lt;span class=&quot;expect&quot;&gt;→ App logs out; a notice confirms all vault keys were dropped from RAM.&lt;/span&gt;&lt;/li&gt;
+  &lt;/ol&gt;
+  &lt;table&gt;&lt;tr&gt;&lt;th&gt;Check&lt;/th&gt;&lt;th class=&quot;pf&quot;&gt;P/F&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Arming works and lists real USB devices&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Removing the armed token forces logout + key drop&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+
+  &lt;h2&gt;&lt;span class=&quot;n&quot;&gt;6&lt;/span&gt;Interface — languages &amp;amp; theme&lt;/h2&gt;
+  &lt;table&gt;&lt;tr&gt;&lt;th&gt;Check&lt;/th&gt;&lt;th class=&quot;pf&quot;&gt;P/F&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Sidebar switch EN → ES → FR changes nav/topbar; reload keeps the choice&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Dark ↔ Light theme toggles instantly and persists across reload&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+
+  &lt;h2&gt;&lt;span class=&quot;n&quot;&gt;7&lt;/span&gt;Regression sweep — remaining modules&lt;/h2&gt;
+  &lt;p&gt;Open each and confirm it loads without error and basic actions work: &lt;span class=&quot;mono&quot;&gt;Medications, Consent, Document Library, Evidence Vault, Vouchers, Transportation, FOIA Generator, Attorney Directory, Visual Canvas, Shift Swaps, Staffing, On-Call, Messages, Intelligence Layer, Discharge Generator, User Manual, User Profile, Telehealth&lt;/span&gt; (Telehealth needs a self-hosted Jitsi domain configured).&lt;/p&gt;
+  &lt;table&gt;&lt;tr&gt;&lt;th&gt;Check&lt;/th&gt;&lt;th class=&quot;pf&quot;&gt;P/F&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;All remaining modules open without console/runtime errors&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;No module writes unexpected data; nothing crashes the app&lt;/td&gt;&lt;td class=&quot;pf&quot;&gt;☐&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+
+  &lt;div class=&quot;callout&quot;&gt;
+    &lt;strong&gt;Sign-off:&lt;/strong&gt; Gate B is complete only when every Security-critical check (§1, §2, §5) passes on the &lt;em&gt;packaged desktop build&lt;/em&gt; and all persistence checks (§3) hold across an app restart. Record failures with the module, steps to reproduce, and a screenshot; re-test after fixes.
+  &lt;/div&gt;
+  &lt;p style=&quot;font-size:13px;&quot;&gt;Tester: ______________________  Date: __________  Build/commit: ______________  Result: ☐ Pass  ☐ Pass with notes  ☐ Fail&lt;/p&gt;
+
+  &lt;div class=&quot;foot&quot;&gt;
+    Injustice Reform Network — 501(c)(3), EIN 83-4207890. Routes and behaviors verified against the Sanctuary repository on 19 July 2026. Operational QA script; Gate B is one of four gates (A security audit, B runtime QA, C data recovery, D legal) required before real client PHI.
+  &lt;/div&gt;
+
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+    </section>
+  </main>
+</body>
+</html>
