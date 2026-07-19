@@ -21,6 +21,31 @@ because it is never stored in plaintext and the keys live only in RAM.
 > **independent** security review or full runtime QA. Do not enter real client
 > PHI until it has.
 
+## Quickstart
+
+Try it in a browser in under a minute (uses fake/sample data only — see the
+pre-audit notice above):
+
+```bash
+git clone https://github.com/TheeZeeOhh/injusticereformnetwork.git
+cd injusticereformnetwork
+npm install
+npm run dev          # → http://localhost:5173
+```
+
+On first launch you'll create a passphrase (min 12 chars) that derives the vault
+key. Then, in the browser, open the **Clients** module and click
+**🧪 Seed sample clients** (dev-only button) to populate fake data, and explore.
+
+```bash
+npm test             # run the 233-test suite
+npm run lint         # oxlint
+npm run build        # production web build
+```
+
+For the **desktop app** (Tauri) and the operational backend, see
+[Getting started](#getting-started) below.
+
 ## Architecture
 
 - **Frontend:** React + Vite, packaged as a desktop app via **Tauri v2** (Rust shell).
