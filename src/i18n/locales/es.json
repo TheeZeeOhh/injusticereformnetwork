@@ -1,0 +1,92 @@
+{
+  "lang": {
+    "label": "Idioma",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français"
+  },
+  "theme": {
+    "label": "Tema",
+    "dark": "Oscuro",
+    "light": "Claro",
+    "help": "Alterna entre la interfaz oscura y clara."
+  },
+  "nav": {
+    "groupClientCare": "Atención al Cliente",
+    "groupSensitive": "Sensible · Bóveda B (42 CFR)",
+    "groupResources": "Recursos y Documentos",
+    "groupLegal": "Legal y Defensa",
+    "groupOperations": "Operaciones y Personal",
+    "groupSystem": "Sistema",
+    "dashboard": "Panel",
+    "clients": "Clientes",
+    "medications": "Medicamentos",
+    "dischargeGen": "Generador de Altas",
+    "telehealth": "Telesalud",
+    "audioIntake": "Admisión por Audio",
+    "hrtContinuity": "Continuidad de TRH",
+    "consent": "Consentimiento",
+    "resourceNavigator": "Navegador de Recursos",
+    "documentLibrary": "Biblioteca de Documentos",
+    "evidenceVault": "Bóveda de Evidencia",
+    "voucherProgram": "Programa de Vales",
+    "transportationHub": "Centro de Transporte",
+    "foiaGen": "Generador FOIA",
+    "attorneys": "Abogados",
+    "visualCanvas": "Lienzo Visual",
+    "schedule": "Horario",
+    "shiftSwaps": "Cambios de Turno",
+    "staffingPipeline": "Flujo de Personal",
+    "onCallDashboard": "Panel de Guardia",
+    "dispatchLog": "Registro de Despacho",
+    "messages": "Mensajes",
+    "intelligenceLayer": "Capa de Inteligencia",
+    "userManual": "Manual del Usuario",
+    "onboarding": "Incorporación",
+    "settings": "Configuración"
+  },
+  "topbar": {
+    "searchPlaceholder": "Buscar pacientes, personal o registros...",
+    "closeVaultB": "🚨 Cerrar Bóveda B",
+    "unlockVaultB": "🔒 Abrir Bóveda B",
+    "logout": "Cerrar sesión",
+    "editProfile": "Editar perfil"
+  },
+  "login": {
+    "tagline": "EHR Seguro y Local-First",
+    "operatorRole": "Rol del Operador",
+    "operatorId": "ID del Operador",
+    "operatorIdPlaceholder": "p. ej. dr_richards",
+    "passphraseLabel": "Frase de Descifrado",
+    "passphrasePlaceholder": "Requiere Frase Maestra",
+    "openingVault": "Abriendo Bóveda A...",
+    "setPassphrase": "Definir Frase y Crear Bóveda",
+    "decryptAuth": "Descifrar y Autenticar",
+    "footerTitle": "Defensa de Incapacidad Técnica Activa",
+    "footerSubtitle": "Arquitectura de Conocimiento Cero · Claves de bóveda solo en RAM"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "languageHelp": "Establece el idioma de la interfaz para este dispositivo.",
+    "save": "Guardar",
+    "saved": "Guardado"
+  },
+  "profile": {
+    "title": "Perfil del Navegador",
+    "subtitle": "Gestiona tu identidad de operador de IRN y tus claves criptográficas.",
+    "uploadPicture": "Subir foto de perfil",
+    "pictureHint": "JPEG o PNG. Máx. 5MB. Almacenado localmente.",
+    "identityDetails": "Datos de Identidad",
+    "fullName": "Nombre legal / elegido",
+    "officialTitle": "Cargo oficial",
+    "secureEmail": "Correo seguro",
+    "burnerPhone": "Teléfono desechable / Signal",
+    "cryptographicKeys": "Claves Criptográficas",
+    "pgpFingerprint": "Huella de clave pública PGP",
+    "pgpHint": "Esta clave te identifica en la Red Mesh de IRN. No la modifiques manualmente.",
+    "saveIdentity": "Guardar Configuración de Identidad",
+    "savedAlert": "Perfil guardado localmente en este dispositivo. No se envió nada a ningún lugar.",
+    "tooLargeAlert": "Esa imagen es demasiado grande para almacenarla localmente. Elige una de menos de 5MB."
+  }
+}

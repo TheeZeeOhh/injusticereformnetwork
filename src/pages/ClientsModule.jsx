@@ -85,7 +85,7 @@ export default function ClientsModule() {
           setClientData(stored);
         } else {
           // New blank client
-          setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false });
+          setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false, photo: '' });
         }
         setSmsStatus(null);
 
@@ -160,13 +160,34 @@ export default function ClientsModule() {
   const handleCreateNewClient = () => {
     const newId = `client_PT-${Math.floor(Math.random() * 10000)}`;
     setActiveClientId(newId);
-    setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false });
+    setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false, photo: '' });
     setSmsStatus(null);
     setIntakeAnswers({});
     setIntakeMeta(null);
     setIntakeStatus(null);
     setActiveTab('profile');
     setViewMode('detail');
+  };
+
+  // Client photo. Held on the encrypted client record (clientData.photo) and
+  // written to the vault by handleSaveToVault like every other client field —
+  // it is PHI, so it never touches localStorage or leaves the device. Guard the
+  // size so an oversized image can't bloat the encrypted record.
+  const MAX_CLIENT_PHOTO_CHARS = 7 * 1024 * 1024; // ~7MB of base64
+  const handleClientPhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result;
+      if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length > MAX_CLIENT_PHOTO_CHARS) {
+        alert('That image is too large or not a supported format. Use a JPEG or PNG under 5MB.');
+        return;
+      }
+      setClientData(prev => ({ ...prev, photo: dataUrl }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveIntake = async () => {
@@ -286,8 +307,11 @@ export default function ClientsModule() {
           <button onClick={() => setViewMode('list')} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer' }}>
             ← Back
           </button>
-          <div className="avatar" style={{ width: '56px', height: '56px', fontSize: '1.5rem', background: 'var(--color-secondary)' }}>
-            {clientData.legalName ? clientData.legalName.substring(0, 2).toUpperCase() : '??'}
+          <div className="avatar" style={{
+            width: '56px', height: '56px', fontSize: '1.5rem',
+            background: clientData.photo ? `url(${clientData.photo}) center/cover no-repeat` : 'var(--color-secondary)'
+          }}>
+            {!clientData.photo && (clientData.legalName ? clientData.legalName.substring(0, 2).toUpperCase() : '??')}
           </div>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--bone)', fontFamily: 'var(--font-serif)' }}>
@@ -326,6 +350,39 @@ export default function ClientsModule() {
         {activeTab === 'profile' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <h2 style={{ color: 'var(--gold)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Client Profile</h2>
+
+            {/* Client photo — stored on the encrypted client record, saved to
+                the vault via "Save to Vault". PHI: stays on device. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <div style={{
+                width: '96px', height: '96px', borderRadius: '50%', flexShrink: 0,
+                border: '3px solid var(--gold)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: clientData.photo ? '0' : '2rem', color: 'var(--gold)',
+                fontFamily: 'var(--font-serif)',
+                background: clientData.photo ? `url(${clientData.photo}) center/cover no-repeat` : 'var(--charcoal-lighter)'
+              }}>
+                {!clientData.photo && (clientData.legalName ? clientData.legalName.charAt(0).toUpperCase() : '?')}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label className="btn-primary" style={{ cursor: 'pointer', display: 'inline-block', background: 'var(--charcoal)', border: '1px solid var(--border-color)', color: 'var(--bone)', padding: '0.5rem 1rem' }}>
+                  {clientData.photo ? 'Replace Photo' : 'Upload Client Photo'}
+                  <input type="file" accept="image/png, image/jpeg" onChange={handleClientPhotoUpload} style={{ display: 'none' }} />
+                </label>
+                {clientData.photo && (
+                  <button
+                    onClick={() => setClientData(prev => ({ ...prev, photo: '' }))}
+                    style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', padding: '0.4rem 1rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                  >
+                    Remove
+                  </button>
+                )}
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                  JPEG or PNG. Max 5MB. Encrypted in the vault on save.
+                </span>
+              </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div><label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Legal Name</label><input type="text" value={clientData.legalName} onChange={e => setClientData({...clientData, legalName: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}/></div>
               <div><label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Chosen Name / Alias</label><input type="text" value={clientData.alias} onChange={e => setClientData({...clientData, alias: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}/></div>
