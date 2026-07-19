@@ -39,6 +39,8 @@ function DashboardHome() {
         </div>
       </div>
 
+      <ClinicalAlertsPanel />
+
       <div className="data-section">
         <div className="data-panel glass-panel">
           <h2>Recent Patient Activity</h2>
@@ -76,6 +78,8 @@ import VisualCanvas from './pages/VisualCanvas';
 import FOIAGenerator from './pages/FOIAGenerator';
 import EvidenceVault from './pages/EvidenceVault';
 import AttorneyDirectory from './pages/AttorneyDirectory';
+import NoteTemplatesLibrary from './pages/NoteTemplatesLibrary';
+import ClinicalAlertsPanel from './pages/ClinicalAlertsPanel';
 
 // Cycle through the theme accent colors so the marquee keeps its multicolor look
 // regardless of how many messages the user configures.
@@ -120,6 +124,7 @@ const NAV_GROUPS = [
       { to: '/clients', icon: '👥', labelKey: 'nav.clients' },
       { to: '/meds', icon: '💊', labelKey: 'nav.medications' },
       { to: '/discharge', icon: '📋', labelKey: 'nav.dischargeGen' },
+      { to: '/note-templates', icon: '📝', labelKey: 'nav.noteTemplates' },
       { to: '/telehealth', icon: '📹', labelKey: 'nav.telehealth' },
       { to: '/audio', icon: '🎙️', labelKey: 'nav.audioIntake' }
     ]
@@ -393,6 +398,7 @@ function App() {
               <Route path="/" element={<DashboardHome />} />
               <Route path="/clients" element={<ClientsModule />} />
               <Route path="/templates" element={<NoteTemplates />} />
+              <Route path="/note-templates" element={<NoteTemplatesLibrary />} />
               <Route path="/canvas" element={<VisualCanvas />} />
               <Route path="/foia" element={<FOIAGenerator />} />
               <Route path="/evidence" element={<EvidenceVault />} />

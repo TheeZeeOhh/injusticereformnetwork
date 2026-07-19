@@ -22,6 +22,7 @@
     "clients": "Clients",
     "medications": "Medications",
     "dischargeGen": "Discharge Gen",
+    "noteTemplates": "Note Templates",
     "telehealth": "Telehealth",
     "audioIntake": "Audio Intake",
     "hrtContinuity": "HRT Continuity",
