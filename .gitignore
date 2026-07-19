@@ -25,3 +25,19 @@ dist-ssr
 
 # Tau personal overrides (not shared)
 .claude/settings.local.json
+
+# Secrets / environment — never commit
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Rust / Tauri build output (large, machine-specific)
+src-tauri/target/
+
+# Local operational DB (server dev sqlite; may hold data)
+server/dev.db
+server/*.db
+
+# Tau scratch artifacts
+.tau/
