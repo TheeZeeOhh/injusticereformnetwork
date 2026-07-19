@@ -82,6 +82,7 @@ import NoteTemplatesLibrary from './pages/NoteTemplatesLibrary';
 import ClinicalAlertsPanel from './pages/ClinicalAlertsPanel';
 import CaseReporting from './pages/CaseReporting';
 import StipendTracker from './pages/StipendTracker';
+import CredentialMonitor from './pages/CredentialMonitor';
 
 // Cycle through the theme accent colors so the marquee keeps its multicolor look
 // regardless of how many messages the user configures.
@@ -164,6 +165,7 @@ const NAV_GROUPS = [
       { to: '/schedule', icon: '📅', labelKey: 'nav.schedule' },
       { to: '/shifts', icon: '🔄', labelKey: 'nav.shiftSwaps' },
       { to: '/staffing', icon: '📋', labelKey: 'nav.staffingPipeline' },
+      { to: '/credentials', icon: '🎓', labelKey: 'nav.credentials' },
       { to: '/oncall', icon: '🚨', labelKey: 'nav.onCallDashboard' },
       { to: '/templates', icon: '📝', labelKey: 'nav.dispatchLog' },
       { to: '/messages', icon: '💬', labelKey: 'nav.messages' },
@@ -421,6 +423,7 @@ function App() {
               <Route path="/resources" element={<ResourceNavigator />} />
               <Route path="/oncall" element={<OnCallDashboard />} />
               <Route path="/staffing" element={<StaffingKanban />} />
+              <Route path="/credentials" element={<CredentialMonitor />} />
               <Route path="/docs" element={<DocumentLibrary />} />
               <Route path="/transport" element={<TransportationHub />} />
               <Route path="/vouchers" element={<VoucherProgram />} />
