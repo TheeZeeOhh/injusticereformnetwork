@@ -22,6 +22,7 @@
     "clients": "Clientes",
     "medications": "Medicamentos",
     "dischargeGen": "Generador de Altas",
+    "noteTemplates": "Plantillas de Notas",
     "telehealth": "Telesalud",
     "audioIntake": "Admisión por Audio",
     "hrtContinuity": "Continuidad de TRH",
