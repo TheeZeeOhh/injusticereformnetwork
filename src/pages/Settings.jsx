@@ -4,9 +4,13 @@ import { downloadBackup, restoreBackup } from '../utils/backupEngine';
 import { getEntries, verifyChain, appendEntry } from '../utils/auditLog';
 import { useAuthStore } from '../store/authStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export default function Settings() {
   const { logout } = useAuthStore();
+  const { lang, setLang, t } = useLanguage();
+  const theme = useSettingsStore(s => s.theme.mode);
+  const setTheme = useSettingsStore(s => s.setTheme);
   const ticker = useSettingsStore(s => s.ticker);
   const setTickerEnabled = useSettingsStore(s => s.setTickerEnabled);
   const setTickerSpeed = useSettingsStore(s => s.setTickerSpeed);
@@ -167,7 +171,45 @@ export default function Settings() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-        
+
+        {/* Language */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.language')}</h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>{t('settings.languageHelp')}</p>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {['en', 'es', 'fr'].map((c) => (
+              <button
+                key={c}
+                onClick={() => setLang(c)}
+                aria-pressed={lang === c}
+                className="btn-primary"
+                style={{ flex: 1, padding: '0.5rem', background: lang === c ? 'var(--gold)' : 'var(--charcoal-lighter)', color: lang === c ? 'var(--charcoal)' : 'var(--text-secondary)', fontWeight: lang === c ? 'bold' : 'normal' }}
+              >
+                {t(`lang.${c}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Theme */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('theme.label')}</h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>{t('theme.help')}</p>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {['dark', 'light'].map((m) => (
+              <button
+                key={m}
+                onClick={() => setTheme(m)}
+                aria-pressed={theme === m}
+                className="btn-primary"
+                style={{ flex: 1, padding: '0.5rem', background: theme === m ? 'var(--gold)' : 'var(--charcoal-lighter)', color: theme === m ? 'var(--charcoal)' : 'var(--text-secondary)', fontWeight: theme === m ? 'bold' : 'normal' }}
+              >
+                {t(`theme.${m}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Network & Sync */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Hive-Mind Network</h2>

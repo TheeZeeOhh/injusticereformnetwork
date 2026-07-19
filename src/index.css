@@ -54,6 +54,35 @@
   --transition-fast: 0.15s ease-in-out;
 }
 
+/* Light theme. The whole app is driven by the tokens above, so light mode is a
+   remap of the raw palette: the "charcoal" surfaces become light, the "bone"
+   text becomes dark ink, and the gold/ember accents are darkened just enough to
+   stay legible on a light background. No component styles need to change. */
+[data-theme="light"] {
+  --charcoal: #f4f1ea;         /* app background — warm off-white */
+  --charcoal-light: #ffffff;   /* surface / panels */
+  --charcoal-lighter: #e7e2d6; /* inputs / raised chips */
+  --ember: #c2410c;
+  --ember-dim: rgba(194, 65, 12, 0.12);
+  --gold: #a9761b;             /* darkened so gold text is readable on light */
+  --gold-dim: rgba(169, 118, 27, 0.15);
+  --bone: #1c1a16;             /* primary ink */
+  --bone-dim: #55503f;         /* secondary ink */
+
+  --green: #1f7a4d;
+  --red: #b02525;
+  --border: #d8d2c4;
+
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-glass-dark: rgba(244, 241, 234, 0.92);
+
+  --text-tertiary: #8a8471;
+
+  --shadow-glass: 0 8px 32px 0 rgba(60, 50, 30, 0.12);
+  --shadow-md: 0 4px 12px rgba(60, 50, 30, 0.1);
+  --shadow-lg: 0 20px 60px rgba(60, 50, 30, 0.15);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

@@ -3,10 +3,12 @@ import { useAuthStore } from '../store/authStore';
 import { vaultExists } from '../utils/cryptoEngine';
 import { evaluatePassphrase } from '../utils/passphrasePolicy';
 import { OPERATOR_NAME_KEY } from './Onboarding';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const METER_COLORS = ['#e11d48', '#f97316', '#eab308', '#84cc16', '#4ade80'];
 
 export default function Login() {
+  const { t } = useLanguage();
   const { loginWithPassphrase, isDecrypting, error } = useAuthStore();
   // Pre-fill the operator name captured during onboarding, if present.
   const [username, setUsername] = useState(() => localStorage.getItem(OPERATOR_NAME_KEY) || '');
@@ -38,7 +40,7 @@ export default function Login() {
         <div style={{ textAlign: 'center' }}>
           <div className="sidebar-logo-icon" style={{ margin: '0 auto 1rem', width: '48px', height: '48px', boxShadow: '0 0 15px rgba(226, 85, 43, 0.4)' }}></div>
           <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Sanctuary</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>Secure Local-First EHR</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>{t('login.tagline')}</p>
         </div>
 
         {error && (
@@ -49,7 +51,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Operator Role</label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('login.operatorRole')}</label>
             <select 
               value={role}
               onChange={e => setRole(e.target.value)}
@@ -64,24 +66,24 @@ export default function Login() {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Operator ID</label>
-            <input 
-              type="text" 
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('login.operatorId')}</label>
+            <input
+              type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              placeholder="e.g. dr_richards" 
+              placeholder={t('login.operatorIdPlaceholder')}
               style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}
               required
             />
           </div>
           
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Decryption Passphrase</label>
-            <input 
-              type="password" 
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('login.passphraseLabel')}</label>
+            <input
+              type="password"
               value={passphrase}
               onChange={e => setPassphrase(e.target.value)}
-              placeholder="Requires Master Passphrase" 
+              placeholder={t('login.passphrasePlaceholder')}
               style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}
               required
             />
@@ -107,7 +109,7 @@ export default function Login() {
           </div>
 
           <button type="submit" className="btn-primary" disabled={isDecrypting || (isEnrolling && strength && !strength.acceptable)} style={{ marginTop: '0.5rem', background: 'var(--color-accent)', color: 'white', border: 'none', fontWeight: 'bold', letterSpacing: '0.05em', opacity: (isEnrolling && strength && !strength.acceptable) ? 0.5 : 1 }}>
-            {isDecrypting ? 'Opening Vault A...' : (isEnrolling ? 'Set Passphrase & Create Vault' : 'Decrypt & Authenticate')}
+            {isDecrypting ? t('login.openingVault') : (isEnrolling ? t('login.setPassphrase') : t('login.decryptAuth'))}
           </button>
         </form>
 
@@ -119,8 +121,8 @@ export default function Login() {
       </div>
 
       <div style={{ position: 'absolute', bottom: '20px', fontSize: '0.75rem', color: 'var(--text-tertiary)', fontFamily: 'monospace', textAlign: 'center' }}>
-        <strong>Technical Incapacity Defense Active</strong><br/>
-        Zero-Knowledge Architecture · Vault Keys held exclusively in RAM
+        <strong>{t('login.footerTitle')}</strong><br/>
+        {t('login.footerSubtitle')}
       </div>
     </div>
   );
