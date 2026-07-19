@@ -19,6 +19,11 @@ const INTAKE_QUESTIONS = [
   { id: 'safetyNotes', label: 'Safety / other notes', type: 'text' },
 ];
 
+// Common pronoun sets offered as multi-select. A client may use more than one,
+// and the free-text "self-describe" field below covers anything not listed
+// (neopronouns, custom). Affirming-by-design: no one is boxed out.
+const PRONOUN_OPTIONS = ['she/her', 'he/him', 'they/them', 'ze/hir', 'xe/xem', 'name only'];
+
 export default function ClientsModule() {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
   const [activeClientId, setActiveClientId] = useState(null);
@@ -85,7 +90,7 @@ export default function ClientsModule() {
           setClientData(stored);
         } else {
           // New blank client
-          setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false, photo: '' });
+          setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false, photo: '', pronouns: [], pronounsSelfDescribe: '' });
         }
         setSmsStatus(null);
 
@@ -160,7 +165,7 @@ export default function ClientsModule() {
   const handleCreateNewClient = () => {
     const newId = `client_PT-${Math.floor(Math.random() * 10000)}`;
     setActiveClientId(newId);
-    setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false, photo: '' });
+    setClientData({ legalName: 'New Client', alias: '', phone: '', emergency: '', smsConsent: false, photo: '', pronouns: [], pronounsSelfDescribe: '' });
     setSmsStatus(null);
     setIntakeAnswers({});
     setIntakeMeta(null);
@@ -221,6 +226,16 @@ export default function ClientsModule() {
       setClientData(prev => ({ ...prev, photo: dataUrl }));
     };
     reader.readAsDataURL(file);
+  };
+
+  // Toggle a pronoun set on/off in clientData.pronouns (a string array). Persists
+  // to the vault with the rest of the profile on "Save to Vault".
+  const togglePronoun = (p) => {
+    setClientData(prev => {
+      const current = Array.isArray(prev.pronouns) ? prev.pronouns : [];
+      const next = current.includes(p) ? current.filter(x => x !== p) : [...current, p];
+      return { ...prev, pronouns: next };
+    });
   };
 
   const handleSaveIntake = async () => {
@@ -434,6 +449,30 @@ export default function ClientsModule() {
               <div><label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Chosen Name / Alias</label><input type="text" value={clientData.alias} onChange={e => setClientData({...clientData, alias: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}/></div>
               <div><label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Contact Number</label><input type="text" value={clientData.phone} onChange={e => setClientData({...clientData, phone: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}/></div>
               <div><label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Emergency Contact</label><input type="text" value={clientData.emergency} onChange={e => setClientData({...clientData, emergency: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}/></div>
+            </div>
+
+            {/* Pronouns — multi-select (a client may use more than one) plus a
+                free-text self-describe. PHI: saved to Vault A with the profile. */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Pronouns</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                {PRONOUN_OPTIONS.map(p => {
+                  const selected = Array.isArray(clientData.pronouns) && clientData.pronouns.includes(p);
+                  return (
+                    <label key={p} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', padding: '0.4rem 0.7rem', borderRadius: '6px', border: `1px solid ${selected ? 'var(--gold)' : 'var(--border-color)'}`, background: selected ? 'var(--gold-dim)' : 'var(--charcoal-lighter)', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--bone)' }}>
+                      <input type="checkbox" checked={selected} onChange={() => togglePronoun(p)} />
+                      {p}
+                    </label>
+                  );
+                })}
+              </div>
+              <input
+                type="text"
+                value={clientData.pronounsSelfDescribe || ''}
+                onChange={e => setClientData({ ...clientData, pronounsSelfDescribe: e.target.value })}
+                placeholder="Self-describe (neopronouns, notes)…"
+                style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}
+              />
             </div>
 
             {/* SMS Appointment Reminder */}
