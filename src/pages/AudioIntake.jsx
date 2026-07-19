@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuthStore } from '../store/authStore';
+import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 
 // Whisper wants 16 kHz mono Float32 audio. We capture ~5s windows and send each
 // to the off-thread worker for on-device transcription + English translation.
@@ -6,6 +8,7 @@ const SAMPLE_RATE = 16000;
 const CHUNK_SECONDS = 5;
 
 export default function AudioIntake() {
+  const { vaultAKey } = useAuthStore();
   const [hasConsent, setHasConsent] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [micMode, setMicMode] = useState('continuous');
@@ -15,6 +18,13 @@ export default function AudioIntake() {
   const [modelState, setModelState] = useState('idle'); // idle | loading | ready | error
   const [modelProgress, setModelProgress] = useState(0);
   const [statusMsg, setStatusMsg] = useState('');
+
+  // Client association + save state. A transcript is client PHI, so saving it
+  // requires a selected client and routes through the encrypted Vault A.
+  const [clientDirectory, setClientDirectory] = useState([]);
+  const [selectedClientId, setSelectedClientId] = useState('');
+  const [saveStatus, setSaveStatus] = useState(null); // { ok, msg }
+  const [isSavingTranscript, setIsSavingTranscript] = useState(false);
 
   const workerRef = useRef(null);
   const streamRef = useRef(null);
@@ -52,6 +62,51 @@ export default function AudioIntake() {
       workerRef.current = null;
     };
   }, []);
+
+  // Load the encrypted client directory so a transcript can be attached to a
+  // client. Same pattern as ClientsModule; empty/failed load → no clients.
+  useEffect(() => {
+    async function loadDirectory() {
+      if (!vaultAKey) return;
+      try {
+        const dir = await loadSecureRecord(vaultAKey, 'client_directory', 'A');
+        if (Array.isArray(dir)) setClientDirectory(dir);
+      } catch {
+        // No directory yet — leave the picker empty.
+      }
+    }
+    loadDirectory();
+  }, [vaultAKey]);
+
+  // Persist the current transcript to the selected client's encrypted record.
+  // PHI: routes through saveSecureRecord (AES-256-GCM, Vault A) only — never
+  // localStorage/plaintext/network. Appends to a list of dated sessions so
+  // prior transcripts are preserved.
+  const handleSaveTranscript = async () => {
+    setSaveStatus(null);
+    if (!vaultAKey) { setSaveStatus({ ok: false, msg: 'Vault is locked.' }); return; }
+    if (!selectedClientId) { setSaveStatus({ ok: false, msg: 'Select a client before saving.' }); return; }
+    const lines = transcript.filter(Boolean);
+    if (lines.length === 0) { setSaveStatus({ ok: false, msg: 'Nothing to save yet.' }); return; }
+
+    setIsSavingTranscript(true);
+    try {
+      const recordId = `transcript_${selectedClientId}`;
+      let sessions = [];
+      try {
+        const existing = await loadSecureRecord(vaultAKey, recordId, 'A');
+        if (Array.isArray(existing)) sessions = existing;
+      } catch {
+        // No prior transcript record — start a fresh list.
+      }
+      sessions.push({ savedAt: new Date().toISOString(), lines });
+      await saveSecureRecord(vaultAKey, recordId, sessions, 'A');
+      setSaveStatus({ ok: true, msg: `Transcript saved to vault (${sessions.length} session(s) on file).` });
+    } catch (err) {
+      setSaveStatus({ ok: false, msg: err?.message || 'Failed to save transcript.' });
+    }
+    setIsSavingTranscript(false);
+  };
 
   // Send whatever samples we've accumulated to the worker as one chunk.
   const flushChunk = () => {
@@ -150,25 +205,70 @@ export default function AudioIntake() {
             <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', cursor: 'pointer' }}>
               <input type="checkbox" checked={hasConsent} onChange={(e) => setHasConsent(e.target.checked)} style={{ marginTop: '0.2rem' }} />
               <span style={{ fontSize: '0.75rem', color: 'var(--bone)', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
-                Client explicitly consents to on-device audio transcription. Zero audio persistence is enforced.
+                Client explicitly consents to on-device audio transcription. Audio is never stored; the text transcript is only saved to the encrypted vault if you press Save.
               </span>
             </label>
           </div>
 
-          <button 
-            disabled={!hasConsent} 
+          {/* Client association — required before a transcript can be saved. */}
+          <div>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Client</h4>
+            <select
+              value={selectedClientId}
+              onChange={(e) => { setSelectedClientId(e.target.value); setSaveStatus(null); }}
+              style={{ width: '100%', padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
+            >
+              <option value="">— Select a client —</option>
+              {clientDirectory.map((c) => (
+                <option key={c.id} value={c.id}>{c.name || c.id.replace('client_', '')}</option>
+              ))}
+            </select>
+            {clientDirectory.length === 0 && (
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginTop: '0.35rem' }}>
+                No clients found. Add one in the Clients module first.
+              </div>
+            )}
+          </div>
+
+          <button
+            disabled={!hasConsent}
             onClick={toggleRecording}
-            className="btn-primary" 
-            style={{ 
-              background: !hasConsent ? 'var(--charcoal-lighter)' : (isRecording ? 'var(--charcoal)' : 'var(--ember)'), 
-              color: !hasConsent ? 'var(--text-tertiary)' : (isRecording ? 'var(--ember)' : 'white'), 
-              padding: '1rem', 
-              fontSize: '1rem', 
+            className="btn-primary"
+            style={{
+              background: !hasConsent ? 'var(--charcoal-lighter)' : (isRecording ? 'var(--charcoal)' : 'var(--ember)'),
+              color: !hasConsent ? 'var(--text-tertiary)' : (isRecording ? 'var(--ember)' : 'white'),
+              padding: '1rem',
+              fontSize: '1rem',
               fontWeight: 'bold',
               border: isRecording ? '2px solid var(--ember)' : 'none'
             }}>
             {isRecording ? '⏹ STOP SESSION' : '⏺ START SESSION'}
           </button>
+
+          {/* Explicit save — encrypted Vault A, only with a client + content. */}
+          <div>
+            <button
+              disabled={isSavingTranscript || !selectedClientId || transcript.length === 0}
+              onClick={handleSaveTranscript}
+              className="btn-primary"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                fontWeight: 'bold',
+                background: (!selectedClientId || transcript.length === 0) ? 'var(--charcoal-lighter)' : 'var(--gold)',
+                color: (!selectedClientId || transcript.length === 0) ? 'var(--text-tertiary)' : 'var(--charcoal)',
+                border: 'none',
+                cursor: (isSavingTranscript || !selectedClientId || transcript.length === 0) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isSavingTranscript ? 'Encrypting…' : '💾 Save Transcript to Vault'}
+            </button>
+            {saveStatus && (
+              <div style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: saveStatus.ok ? '#4ade80' : '#fda4af', marginTop: '0.4rem', lineHeight: 1.4 }}>
+                {saveStatus.msg}
+              </div>
+            )}
+          </div>
 
           {(statusMsg || modelState === 'loading') && (
             <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: modelState === 'error' ? '#fda4af' : 'var(--text-secondary)', background: '#020617', padding: '0.6rem', borderRadius: '4px', lineHeight: 1.4 }}>

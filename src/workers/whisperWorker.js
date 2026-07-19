@@ -57,9 +57,11 @@ env.fetch = async (urlOrPath, options) => {
   return nativeFetch(urlOrPath, options);
 };
 
-// whisper-base is a good accuracy/size tradeoff (~145MB) for field speech.
-// whisper-tiny (~40MB) is the faster fallback.
-const MODEL_ID = 'Xenova/whisper-base';
+// whisper-tiny (fp32 ~75MB) is the default: far smaller/faster first-run
+// download than whisper-base (fp32 ~290MB), at some cost to accuracy on noisy
+// field speech. Swap to 'Xenova/whisper-base' if transcription quality matters
+// more than download size. (We stay on fp32 regardless — see dtype note below.)
+const MODEL_ID = 'Xenova/whisper-tiny';
 
 let transcriber = null;
 
