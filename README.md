@@ -7,7 +7,7 @@ the operator should be unable to produce readable client PHI under subpoena,
 because it is never stored in plaintext and the keys live only in RAM.
 
 > **Status:** Working prototype. The architecture and core security features are
-> implemented and covered by an automated test suite (177 tests). An internal
+> implemented and covered by an automated test suite (233 tests). An internal
 > adversarial crypto review has been done and its two CRITICAL findings fixed
 > (see [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md)), but the app has **not** had an
 > **independent** security review or full runtime QA. Do not enter real client
@@ -52,6 +52,22 @@ fallback. A default-closed router may send only *generic, person-free*
 bureaucracy questions to a hosted model — never client data. Attaching a
 client's saved transcript as context forces Amina fully local, so PHI can never
 leave the device), and an in-app User Manual.
+
+Also: **Clinical Note Templates** (8 built-in templates — assessment, SOAP/DAP,
+discharge, crisis, psych eval, treatment plan, case management — with placeholder
+variables; fill for a client and save the completed note encrypted per client),
+**Automated Case Reporting** (compile a client's records into a case-summary PDF,
+gated behind an explicit "unencrypted PHI" confirm; HRT included only when Vault
+B is unlocked), **Stipend & Incentive Tracker** (per-client incentive history),
+**Inter-Agency Referral** (partner-agency network + per-client referral lifecycle),
+and a dashboard **Clinical Alerts** panel (missed / upcoming-24h appointments from
+Vault A; HRT refill-due only when Vault B is unlocked). Operational (non-PHI):
+**Credential Monitoring** (staff credential expiry tracking).
+
+Client-record shape is validated at the vault boundary by a small **Zod schema
+layer** (`src/schema/`) — a defined, evolvable record shape without changing the
+encryption path (fail-closed on write, fail-open on read so a schema change never
+orphans data).
 
 ### Interface
 
