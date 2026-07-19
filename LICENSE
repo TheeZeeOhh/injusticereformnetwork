@@ -1,0 +1,279 @@
+🛡
+
+SANCTUARY
+
+Sovereign Health Infrastructure  ·  v5.0
+
+COMMUNITY SOURCE LICENSE
+
+Version 1.0
+
+Effective Date: [DATE]
+
+Copyright Holder
+
+Aziza Okoro
+
+ThriveBMore / Radiant Threshold
+
+Software
+
+Sanctuary v5.0
+
+Sovereign Health Infrastructure
+
+Jurisdiction
+
+State of Maryland
+
+United States of America
+
+This license governs all use, reproduction, modification, and distribution of the Sanctuary software platform and all associated documentation, source code, and derivative works. By using, copying, modifying, or distributing Sanctuary, you agree to be bound by the terms of this license.
+
+Preamble
+
+Sanctuary is a sovereign health infrastructure platform created by and for Trans, gender-expansive, and LGBTQ+ communities in Baltimore, Maryland. It was built in direct response to the documented threat that commercial cloud-based electronic health record systems pose to community members whose gender identity, transition history, and health records can be weaponized against them by hostile legal actors, government agencies, and institutions operating in bad faith.
+
+The purpose of this license is to ensure that Sanctuary remains free, community-controlled, and structurally incapable of being turned against the communities it was built to protect. It does this by combining the access and collaboration principles of copyleft open source licensing with explicit, enforceable ethical use restrictions that reflect the specific threat model of Trans and LGBTQ+ communities in the current political environment.
+
+This license is grounded in the belief that software infrastructure is not neutral. A platform designed to protect Trans health records can only fulfill that purpose if its legal terms prohibit uses that would undermine that protection. Freedom to use and modify Sanctuary is therefore conditioned on a commitment not to weaponize it — not against the communities it serves, not in service of surveillance, discrimination, or state-sponsored harm, and not for private profit extracted from community need.
+
+The copyright holder, Aziza Okoro of ThriveBMore / Radiant Threshold Staffing Solutions, grants the rights described in this license in service of that purpose. Recipients of this license are invited to build on Sanctuary, improve it, deploy it, and share it — within a framework that keeps it permanently in community hands.
+
+  Section 1
+
+  Definitions
+
+For the purposes of this License, the following terms have the meanings set forth below.
+
+"Software"  The Sanctuary sovereign health infrastructure platform, version 5.0, including all source code, compiled code, configuration files, documentation, templates, training materials, and associated files distributed under this License.
+
+"Licensor"  Aziza Okoro, operating as ThriveBMore and/or Radiant Threshold Staffing Solutions, Baltimore, Maryland — the original copyright holder of the Software.
+
+"Licensee"  Any individual, organization, or entity that receives, uses, copies, modifies, or distributes the Software under the terms of this License.
+
+"Derivative Work"  Any work that incorporates, is based upon, is derived from, or substantially modifies the Software or any portion thereof, whether in source code, compiled, or any other form.
+
+"Community Organization"  A nonprofit organization, mutual aid collective, fiscal-sponsored project, community health center, peer support program, harm reduction program, housing advocacy organization, legal aid organization, or similar entity whose primary mission is the direct service of Trans, gender-expansive, LGBTQ+, or other marginalized communities.
+
+"Commercial Use"  Any use of the Software or a Derivative Work in which a person or entity charges money, collects fees, accepts payment, generates revenue, or derives financial benefit directly from the Software or its capabilities — including but not limited to subscription services, software-as-a-service deployments, consulting arrangements where the Software is a deliverable, and any sale or licensing of the Software or Derivative Works.
+
+"Protected Communities"  Trans people, gender-expansive people, nonbinary people, intersex people, lesbian, gay, bisexual, and queer people, people living with HIV, people with substance use disorders, people experiencing housing instability, immigrants, people of color, and any other communities that have been historically targeted by discriminatory legal, law enforcement, governmental, or institutional action.
+
+"Weaponization"  Any use of the Software or a Derivative Work to collect, store, transmit, analyze, report, or otherwise process information in ways that expose, surveil, discriminate against, cause legal jeopardy for, or otherwise harm members of Protected Communities or the organizations that serve them.
+
+"Source Code"  The human-readable form of the Software, including all HTML, CSS, JavaScript, configuration files, and documentation in their original editable form.
+
+"Network Deployment"  Operating the Software or a Derivative Work as a service accessible to users over a network, including the internet or any private network, regardless of whether end users can access the underlying Source Code.
+
+  Section 2
+
+  Grant of Rights
+
+Subject to the terms and conditions of this License, the Licensor hereby grants to each Licensee a worldwide, royalty-free, non-exclusive, perpetual license to exercise the following rights:
+
+2.1.  Right to Use. To use the Software for any lawful purpose consistent with the terms of this License, including deployment at any number of Community Organizations at no cost.
+
+2.2.  Right to Copy. To reproduce and distribute verbatim copies of the Software, in any medium, provided that the complete text of this License is included with every copy and the copyright notice in Section 8 is preserved.
+
+2.3.  Right to Modify. To modify the Software and create Derivative Works, provided that all modifications are clearly marked as changes from the original, the Source Code of the Derivative Work is made available under this same License, and the Derivative Work is not used in any manner prohibited by Section 4 of this License.
+
+2.4.  Right to Distribute Derivative Works. To distribute Derivative Works under the terms of this License, provided that recipients receive a copy of this License, the Derivative Work's Source Code is made publicly available, and the Derivative Work includes a prominent notice identifying ThriveBMore / Aziza Okoro as the original creator of the Software from which the Derivative Work was derived.
+
+2.5.  Right to Network Deployment. To operate the Software or a Derivative Work as a Network Deployment for the benefit of Community Organizations, provided that the complete Source Code of the deployed version is made available to all users of that deployment upon request, under the terms of this License.
+
+The rights granted in this Section are conditioned entirely on compliance with Sections 3, 4, and 5 of this License. Any violation of those sections automatically and immediately terminates all rights granted here, without notice or action required from the Licensor.
+
+  Section 3
+
+  Conditions of Use
+
+The exercise of any right granted in Section 2 is conditioned on the following requirements, which apply to all Licensees.
+
+3.1  Copyleft — Share Alike
+
+Any Derivative Work distributed or deployed must be made available under the terms of this License and no other. You may not apply additional restrictions, different license terms, or proprietary terms to a Derivative Work. The freedom to use, study, modify, and share Sanctuary must be preserved in every downstream version of the Software.
+
+If you operate a Derivative Work as a Network Deployment — that is, if you run a modified version of Sanctuary as a service that other people or organizations access — you must make the complete Source Code of your deployed version available to all users of that service upon request, at no charge. This requirement applies even if you have not formally distributed the Derivative Work. Running a modified version for others to use is itself a form of distribution under this License.
+
+3.2  Attribution
+
+All copies, Derivative Works, and Network Deployments must include the following attribution in a location that is reasonably prominent and accessible to users:
+
+Based on Sanctuary, created by Aziza Okoro / ThriveBMore / Radiant Threshold Staffing Solutions, Baltimore, Maryland. Licensed under the Sanctuary Community Source License v1.0.
+
+You may not remove, obscure, or modify any existing copyright notices, license notices, or attribution statements present in the Software. You may add your own attribution notices for your modifications, provided they do not conflict with or undermine the original attribution required above.
+
+3.3  License Transmission
+
+Every time you distribute the Software or a Derivative Work, the recipient automatically receives a license from the Licensor to use, copy, modify, and distribute the Software under the terms of this License. You may not impose any additional restrictions on the recipients' exercise of those rights. You are not responsible for enforcing compliance by third parties, but you may not facilitate or enable violations of this License.
+
+3.4  Integrity of the Source Code
+
+You may distribute the Software in modified form only if you also distribute the Source Code under this License, and only if the modified version bears a clear notice stating that it is a modification of the original Sanctuary Software, the date of modification, and the identity of the modifying party. Modifications must not misrepresent the origin of the Software or imply endorsement by the Licensor of the modified version.
+
+  Section 4
+
+  Prohibited Uses
+
+This Section contains absolute prohibitions. There are no exceptions to the restrictions in Section 4, regardless of purpose, context, or any other license terms. These restrictions apply to all Licensees, including Community Organizations, governments, researchers, and individuals.
+
+4.1  Prohibition on Weaponization
+
+No Licensee may use the Software, any Derivative Work, or any component thereof in any manner that constitutes Weaponization as defined in Section 1. This prohibition includes but is not limited to:
+
+(a)  Using the Software to collect, aggregate, store, or transmit data about members of Protected Communities in ways that expose them to legal jeopardy, immigration enforcement, law enforcement action, or discrimination.
+
+(b)  Using the Software to generate, compile, or transmit reports, lists, or records of individuals based on gender identity, sexual orientation, HIV status, substance use history, or other Protected Community characteristics, for use by law enforcement, government agencies, or hostile third parties.
+
+(c)  Using the Software to build or operate any surveillance system targeting members of Protected Communities or the organizations that serve them.
+
+(d)  Modifying the Software to remove, disable, or circumvent any privacy protection, encryption function, data sovereignty feature, or security control.
+
+(e)  Using the Software in any manner that would, directly or indirectly, assist in prosecuting, persecuting, harming, exposing, or discriminating against members of Protected Communities in connection with gender-affirming care, sexual orientation, or gender identity.
+
+4.2  Prohibition on Commercial Use
+
+No Licensee may engage in Commercial Use of the Software or any Derivative Work without a separate, written Commercial License Agreement executed by the Licensor. Commercial Use without such an agreement is a material breach of this License and immediately terminates all rights granted herein.
+
+For the avoidance of doubt, the following are not considered Commercial Use under this License:
+
+(a)  A Community Organization deploying Sanctuary to manage client records in service of its mission, even if that organization receives grant funding, government contracts, or Medicaid reimbursement for services.
+
+(b)  A staff member or contractor being paid by a Community Organization to maintain, configure, or deploy Sanctuary as part of their employment duties, where the Software itself is not the product being sold.
+
+(c)  An organization receiving a fee for training services related to Sanctuary deployment, provided the Software itself is provided free of charge.
+
+4.3  Prohibition on Use by Hostile Actors
+
+The Software may not be used by, on behalf of, or in service of any of the following:
+
+(a)  Any government agency, law enforcement body, immigration enforcement agency, or intelligence agency whose activities include the targeting, surveillance, prosecution, or deportation of members of Protected Communities based on gender identity, sexual orientation, HIV status, or substance use history.
+
+(b)  Any organization that has, within the five years preceding use, advocated for, funded, lobbied for, or implemented policies that restrict access to gender-affirming care, criminalize LGBTQ+ identity, or remove legal protections from Trans or LGBTQ+ individuals.
+
+(c)  Any organization or individual that is actively engaged in litigation against Trans or LGBTQ+ individuals or organizations on the basis of gender identity or sexual orientation.
+
+(d)  Any political party, campaign, political action committee, or advocacy organization whose stated or demonstrated platform includes opposition to Trans rights, LGBTQ+ nondiscrimination protections, or gender-affirming care.
+
+4.4  Prohibition on Proprietary Enclosure
+
+No Licensee may use patent claims, digital rights management, contractual restrictions, technical measures, or any other mechanism to prevent recipients of the Software or Derivative Works from exercising the rights granted to them under this License. You may not use the Software as a component in a proprietary system in a manner that effectively denies recipients access to the Source Code or restricts their rights under this License.
+
+  Section 5
+
+  Commercial Licensing
+
+Organizations or individuals seeking to engage in Commercial Use of Sanctuary must obtain a separate written Commercial License Agreement from the Licensor. The Licensor retains sole discretion over whether to grant commercial licenses, to whom, and on what terms.
+
+Any Commercial License granted by the Licensor must, at minimum, require the commercial Licensee to:
+
+(a)  Maintain all prohibitions in Section 4 of this License in the commercial deployment.
+
+(b)  Contribute a portion of revenue derived from the Software to a fund supporting free deployment of Sanctuary at Community Organizations, at a rate and structure negotiated with the Licensor.
+
+(c)  Provide a mechanism for Community Organizations to access equivalent functionality at no cost.
+
+(d)  Submit to periodic review by the Licensor to confirm ongoing compliance with the terms of the Commercial License.
+
+Inquiries regarding commercial licensing should be directed to the Licensor at: aziza@sanctuary-health.org. The Licensor is under no obligation to respond to or grant commercial license requests.
+
+  Section 6
+
+  Enforcement and Termination
+
+6.1.  Automatic Termination. Any violation of Section 3 (Conditions of Use), Section 4 (Prohibited Uses), or Section 5 (Commercial Licensing) automatically and immediately terminates all rights granted under this License to the violating Licensee, without notice or action required from the Licensor. Termination of rights under this License does not affect the rights of any other Licensee who has received the Software and remains in compliance.
+
+6.2.  Cure Period for Technical Violations. For violations of Section 3 only (Conditions of Use), a Licensee whose rights have been automatically terminated may have those rights reinstated if the violation is cured within thirty (30) days of the Licensee first becoming aware of it. No cure period applies to violations of Section 4 (Prohibited Uses). Weaponization, commercial use without a license, and use by prohibited actors cannot be cured retroactively.
+
+6.3.  Right to Enforce. The Licensor reserves the right to seek all available legal remedies for violations of this License, including injunctive relief, damages, and attorney's fees, to the fullest extent permitted by applicable law.
+
+6.4.  Community Reporting. Any person or organization that becomes aware of a use of Sanctuary that may violate Section 4 is encouraged to report it to the Licensor at aziza@sanctuary-health.org. The Licensor will investigate reported violations and may take enforcement action at its discretion.
+
+6.5.  Survival. Sections 1, 4, 6, 7, 8, and 9 of this License survive any termination.
+
+  Section 7
+
+  Disclaimer of Warranty and Limitation of Liability
+
+7.1.  No Warranty. THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. THE LICENSOR DOES NOT WARRANT THAT THE SOFTWARE WILL BE ERROR-FREE, THAT DEFECTS WILL BE CORRECTED, OR THAT THE SOFTWARE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.
+
+7.2.  Security Disclaimer. While Sanctuary is designed with strong privacy and security protections, the Licensor makes no guarantee that the Software will provide absolute protection against all legal demands, data breaches, or security threats. Licensees are responsible for their own security practices, device management, staff training, and legal compliance.
+
+7.3.  Limitation of Liability. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSOR SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR RELATED TO USE OF THE SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THE LICENSOR'S TOTAL LIABILITY FOR ANY CLAIM ARISING UNDER THIS LICENSE SHALL NOT EXCEED ONE HUNDRED DOLLARS ($100.00).
+
+Nothing in this Section limits the application of the prohibitions in Section 4. The disclaimer of warranty and limitation of liability in this Section are not a limitation on the Licensor's right to enforce the License terms, including against Weaponization and prohibited commercial use.
+
+  Section 8
+
+  Copyright Notice and Attribution Requirements
+
+The following copyright notice must be preserved in all copies of the Software and all Derivative Works, in the source code and in any documentation or user-facing materials:
+
+Sanctuary — Sovereign Health Infrastructure
+
+Copyright (c) 2024-2026 Aziza Okoro
+
+ThriveBMore / Radiant Threshold Staffing Solutions
+
+Baltimore, Maryland, United States
+
+Licensed under the Sanctuary Community Source License v1.0
+
+This copyright notice must appear in the About section of any deployed instance of the Software, in the header of all source code files, and in any documentation distributed with the Software.
+
+  Section 9
+
+  General Provisions
+
+9.1.  Entire Agreement. This License constitutes the entire agreement between the Licensor and each Licensee with respect to use of the Software. It supersedes all prior understandings, representations, or agreements relating to the subject matter hereof.
+
+9.2.  Governing Law. This License shall be governed by and construed in accordance with the laws of the State of Maryland, United States, without regard to its conflict of law provisions.
+
+9.3.  Severability. If any provision of this License is found to be unenforceable or invalid by a court of competent jurisdiction, that provision shall be modified to the minimum extent necessary to make it enforceable, and all remaining provisions shall remain in full force and effect.
+
+9.4.  No Waiver. The Licensor's failure to enforce any provision of this License shall not constitute a waiver of the Licensor's right to enforce that provision in the future or to enforce any other provision.
+
+9.5.  License Versions. The Licensor reserves the right to publish revised versions of this License. Each version will be given a distinguishing version number. Once a version of the Software has been distributed under a particular version of this License, recipients of that version may always use it under that version's terms. The Licensor may also offer additional permissions or impose additional restrictions in future versions, but may not retroactively remove the copyleft or anti-weaponization provisions from previously released versions.
+
+9.6.  No Sublicensing. Licensees may not sublicense the Software. Every recipient receives their license directly from the Licensor under the terms of this License.
+
+9.7.  Ethical Use Intent. This License is intended to function as an enforceable legal instrument and as a statement of values. The Licensor encourages all Licensees to read the Preamble and to hold themselves to its spirit, not merely its letter. The communities this Software was built to protect deserve both.
+
+  IMPORTANT — LEGAL REVIEW REQUIRED
+
+  This document has been drafted as a complete, legally-structured software license. It should be reviewed by a licensed attorney before it is considered final and binding. FreeState Justice may be able to facilitate a referral to a technology or intellectual property attorney for pro bono review. Do not publish or distribute this license without that review.
+
+License Adoption Record
+
+This section documents the formal adoption of the Sanctuary Community Source License v1.0 by the Licensor. It should be signed and dated when the license is finalized and before it is published with any distribution of the Software.
+
+LICENSOR
+
+Signature
+
+Aziza Okoro
+
+Printed Name
+
+Founder, ThriveBMore / Radiant Threshold Staffing Solutions
+
+Title
+
+[DATE]
+
+Date
+
+LEGAL COUNSEL (if applicable)
+
+Authorized Representative Signature
+
+Printed Name
+
+Title
+
+Date
+
+SANCTUARY  ·  Community Source License  ·  Version 1.0  ·  ThriveBMore / Radiant Threshold Staffing Solutions  ·  Baltimore, Maryland
+
+"We are not a software company. We are a community that built its own infrastructure because the infrastructure that existed was not built for us."
