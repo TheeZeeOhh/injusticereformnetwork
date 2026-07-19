@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sanctuary Pilot Readiness Checklist</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f7f7f5; color: #181816; }
+    .shell { max-width: 1120px; margin: 0 auto; padding: 32px 24px 56px; }
+    header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid #d9d9d2; padding-bottom: 14px; margin-bottom: 24px; }
+    h1 { font-size: 24px; line-height: 1.2; margin: 0; font-weight: 700; }
+    .meta { color: #66665f; font-size: 13px; }
+    .canvas { background: #ffffff; border: 1px solid #d9d9d2; border-radius: 8px; padding: 24px; overflow: auto; }
+    .canvas.html-canvas { padding: 0; overflow: hidden; }
+    .html-frame { display: block; width: 100%; min-height: 78vh; border: 0; background: #ffffff; }
+    .artifact-pre { white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 13px; line-height: 1.5; margin: 0; }
+    img, video, canvas, svg { max-width: 100%; height: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #d9d9d2; padding: 8px 10px; vertical-align: top; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #181816; color: #f1f1ed; }
+      header, .canvas, th, td { border-color: #3a3a34; }
+      .canvas { background: #20201d; }
+      .meta { color: #aaa99f; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <h1>Sanctuary Pilot Readiness Checklist</h1>
+      <div class="meta">html artifact</div>
+    </header>
+    <section class="canvas html-canvas">
+<iframe class="html-frame" sandbox="allow-scripts allow-forms allow-popups-by-user-activation" referrerpolicy="no-referrer" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Sanctuary — Pilot Readiness Checklist&lt;/title&gt;
+&lt;style&gt;
+  :root { --ink:#1c1a16; --muted:#55503f; --gold:#a9761b; --line:#d8d2c4; --bg:#faf8f3; --accent:#c2410c; --green:#1f7a4d; }
+  * { box-sizing:border-box; }
+  body { font-family: Georgia,'Times New Roman',serif; color:var(--ink); background:var(--bg); line-height:1.5; margin:0; }
+  .page { max-width:860px; margin:0 auto; padding:44px 54px; background:#fff; box-shadow:0 2px 20px rgba(60,50,30,0.08); }
+  h1 { font-size:25px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:13px; margin:0 0 4px; }
+  .meta { font-size:12px; color:var(--muted); margin-top:6px; }
+  h2 { font-size:16px; margin:30px 0 4px; color:var(--gold); border-bottom:2px solid var(--gold); padding-bottom:5px; }
+  .gate { font-family:Arial,sans-serif; font-size:11px; letter-spacing:0.05em; text-transform:uppercase; padding:2px 9px; border-radius:10px; font-weight:bold; vertical-align:middle; margin-left:8px; }
+  .g-block { background:#fdecea; color:var(--accent); border:1px solid var(--accent); }
+  .g-do { background:#eaf4ee; color:var(--green); border:1px solid var(--green); }
+  ul.check { list-style:none; margin:10px 0; padding:0; }
+  ul.check li { position:relative; padding:7px 0 7px 30px; border-bottom:1px solid var(--line); font-size:14px; }
+  ul.check li::before { content:&quot;\2610&quot;; position:absolute; left:2px; top:6px; font-size:18px; color:var(--muted); }
+  ul.check li.done::before { content:&quot;\2611&quot;; color:var(--green); }
+  .tag { font-family:Arial,sans-serif; font-size:10px; padding:1px 6px; border-radius:4px; margin-left:6px; vertical-align:middle; }
+  .t-done { background:#eaf4ee; color:var(--green); }
+  .t-partial { background:#fef3e2; color:var(--accent); }
+  .callout { background:#f4f1ea; border-left:4px solid var(--gold); padding:12px 16px; margin:14px 0; font-size:13px; }
+  .warn { border-left-color:var(--accent); background:#fdecea; }
+  p,li { font-size:14px; }
+  .foot { margin-top:34px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--muted); }
+  .note { font-size:12px; color:var(--muted); margin:2px 0 0 30px; }
+  @media print { body{background:#fff;} .page{box-shadow:none;padding:22px;} }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;page&quot;&gt;
+
+  &lt;h1&gt;Sanctuary — Pilot Readiness Checklist&lt;/h1&gt;
+  &lt;p class=&quot;sub&quot;&gt;Concrete steps between &quot;works on my machine&quot; and safe use with real client PHI&lt;/p&gt;
+  &lt;p class=&quot;meta&quot;&gt;Prepared 19 July 2026 · Injustice Reform Network · Living document — update as items close&lt;/p&gt;
+
+  &lt;div class=&quot;callout warn&quot;&gt;
+    &lt;strong&gt;The hard line:&lt;/strong&gt; No item below is optional before &lt;em&gt;real client PHI&lt;/em&gt; is entered. Until Gate&amp;nbsp;A (independent audit) and Gate&amp;nbsp;B (runtime QA) are complete, use the app for &lt;strong&gt;demos, training, and dry-runs with fake/sample data only&lt;/strong&gt;. This mirrors the app's own stated posture.
+  &lt;/div&gt;
+
+  &lt;h2&gt;Gate A — Security assurance &lt;span class=&quot;gate g-block&quot;&gt;Blocks real PHI&lt;/span&gt;&lt;/h2&gt;
+  &lt;p class=&quot;sub&quot;&gt;The single highest-leverage gate. Converts the security &lt;em&gt;design&lt;/em&gt; into an external &lt;em&gt;guarantee&lt;/em&gt;.&lt;/p&gt;
+  &lt;ul class=&quot;check&quot;&gt;
+    &lt;li&gt;Commission an &lt;strong&gt;independent, third-party security audit&lt;/strong&gt; (crypto + app + threat-model review by someone outside IRN)&lt;/li&gt;
+    &lt;li&gt;Resolve or formally accept every finding; document decisions&lt;/li&gt;
+    &lt;li&gt;Confirm the two internal CRITICAL fixes hold up under external review &lt;span class=&quot;tag t-partial&quot;&gt;internal review done&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Re-parameterize deferred items the audit will likely raise: Argon2id KDF, device-origin backup signing, hardware-bound Vault B&lt;/li&gt;
+    &lt;li&gt;Obtain a written audit summary you can show funders / legal&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;p class=&quot;note&quot;&gt;Status today: internal adversarial review complete (see SECURITY-AUDIT.md); &lt;strong&gt;no independent audit yet.&lt;/strong&gt;&lt;/p&gt;
+
+  &lt;h2&gt;Gate B — End-to-end runtime QA &lt;span class=&quot;gate g-block&quot;&gt;Blocks real PHI&lt;/span&gt;&lt;/h2&gt;
+  &lt;p class=&quot;sub&quot;&gt;Tests prove logic; a human must prove the running app behaves. Do this on the real desktop build with sample data.&lt;/p&gt;
+  &lt;ul class=&quot;check&quot;&gt;
+    &lt;li&gt;Click through &lt;strong&gt;every module&lt;/strong&gt; on the packaged desktop app, not just the dev server&lt;/li&gt;
+    &lt;li&gt;Verify &lt;strong&gt;Vault B gating&lt;/strong&gt; live: HRT / 42 CFR data and HRT-refill alerts appear only when Vault B is unlocked; nothing leaks when closed&lt;/li&gt;
+    &lt;li&gt;Verify &lt;strong&gt;PHI export paths&lt;/strong&gt; (Case Reporting PDF): warning fires, only intended fields export, file lands where expected&lt;/li&gt;
+    &lt;li&gt;Verify &lt;strong&gt;panic close&lt;/strong&gt; drops the Vault B key and re-entry is required &lt;span class=&quot;tag t-done&quot;&gt;code + tests present&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Verify &lt;strong&gt;USB dead-man's switch&lt;/strong&gt; on real hardware (arm token, remove it, confirm keys drop) &lt;span class=&quot;tag t-partial&quot;&gt;Tauri-only, needs live test&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Confirm the per-client save→reload cycle for each PHI module (clients, notes, transcripts, stipends, referrals) persists correctly&lt;/li&gt;
+    &lt;li&gt;Confirm on-device Whisper + Amina run with &lt;strong&gt;no network&lt;/strong&gt; after first model download&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;h2&gt;Gate C — Data safety &amp;amp; recovery &lt;span class=&quot;gate g-block&quot;&gt;Blocks real PHI&lt;/span&gt;&lt;/h2&gt;
+  &lt;ul class=&quot;check&quot;&gt;
+    &lt;li&gt;Run a &lt;strong&gt;real backup → wipe → restore drill&lt;/strong&gt; and confirm zero data loss &lt;span class=&quot;tag t-partial&quot;&gt;no dedicated backup test file found — verify manually&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Document the &lt;strong&gt;Vault B unrecoverability&lt;/strong&gt; reality for staff: forgotten Vault B passphrase = permanent loss, by design&lt;/li&gt;
+    &lt;li&gt;Define where encrypted backups are stored and who holds passphrases&lt;/li&gt;
+    &lt;li&gt;Confirm keychain round-trip works on each operator's actual machine&lt;/li&gt;
+    &lt;li&gt;Write a simple &lt;strong&gt;incident plan&lt;/strong&gt;: lost/stolen device, forgotten passphrase, suspected compromise&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;h2&gt;Gate D — Operational &amp;amp; legal readiness &lt;span class=&quot;gate g-block&quot;&gt;Blocks real PHI&lt;/span&gt;&lt;/h2&gt;
+  &lt;ul class=&quot;check&quot;&gt;
+    &lt;li&gt;Confirm &lt;strong&gt;42 CFR Part 2 / HIPAA&lt;/strong&gt; obligations are met for the pilot's data and consent flows (legal sign-off)&lt;/li&gt;
+    &lt;li&gt;Finalize &lt;strong&gt;client consent language&lt;/strong&gt; for on-device transcription and record-keeping&lt;/li&gt;
+    &lt;li&gt;Written &lt;strong&gt;data-handling policy&lt;/strong&gt;: who unlocks which vault, when PDFs may be exported, device custody&lt;/li&gt;
+    &lt;li&gt;Train navigators on the workflow with &lt;strong&gt;sample data&lt;/strong&gt; before any real client&lt;/li&gt;
+    &lt;li&gt;Verify self-hosted Jitsi is configured if Telehealth is in scope (no public fallback by design)&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;h2&gt;Safe to do &lt;em&gt;now&lt;/em&gt; (no gate needed) &lt;span class=&quot;gate g-do&quot;&gt;Green light&lt;/span&gt;&lt;/h2&gt;
+  &lt;ul class=&quot;check&quot;&gt;
+    &lt;li&gt;Demo to funders / board / partners using seeded sample clients&lt;/li&gt;
+    &lt;li&gt;Navigator training and workflow dry-runs with fake data&lt;/li&gt;
+    &lt;li&gt;Internal evaluation and feedback gathering&lt;/li&gt;
+    &lt;li&gt;Continue feature work under the existing test + lint commit gate &lt;span class=&quot;tag t-done&quot;&gt;active&lt;/span&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;div class=&quot;callout&quot;&gt;
+    &lt;strong&gt;Recommended sequence:&lt;/strong&gt; Gate B (runtime QA — you can start today) &amp;nbsp;→&amp;nbsp; Gate C (backup drill + incident plan) &amp;nbsp;→&amp;nbsp; Gate A (independent audit — the big external step) &amp;nbsp;→&amp;nbsp; Gate D (legal + consent) &amp;nbsp;→&amp;nbsp; limited live pilot with a small number of consenting clients &amp;nbsp;→&amp;nbsp; broader rollout.
+  &lt;/div&gt;
+
+  &lt;div class=&quot;foot&quot;&gt;
+    Injustice Reform Network — 501(c)(3), EIN 83-4207890. Statuses reflect direct inspection of the Sanctuary repository on 19 July 2026. This is an operational checklist, not legal advice; Gate D requires qualified legal review.
+  &lt;/div&gt;
+
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+    </section>
+  </main>
+</body>
+</html>

@@ -9,6 +9,7 @@ import { useAuthStore } from './store/authStore';
 import { useSettingsStore } from './store/settingsStore';
 import { vaultExists, vaultBEnrolled } from './utils/cryptoEngine';
 import { needsVaultBRekey } from './utils/migrationEngine';
+import { useLanguage } from './i18n/LanguageContext';
 import './index.css';
 
 function DashboardHome() {
@@ -37,6 +38,8 @@ function DashboardHome() {
           <span className="stat-change positive">Optimal coverage</span>
         </div>
       </div>
+
+      <ClinicalAlertsPanel />
 
       <div className="data-section">
         <div className="data-panel glass-panel">
@@ -75,6 +78,12 @@ import VisualCanvas from './pages/VisualCanvas';
 import FOIAGenerator from './pages/FOIAGenerator';
 import EvidenceVault from './pages/EvidenceVault';
 import AttorneyDirectory from './pages/AttorneyDirectory';
+import NoteTemplatesLibrary from './pages/NoteTemplatesLibrary';
+import ClinicalAlertsPanel from './pages/ClinicalAlertsPanel';
+import CaseReporting from './pages/CaseReporting';
+import StipendTracker from './pages/StipendTracker';
+import CredentialMonitor from './pages/CredentialMonitor';
+import ReferralTracker from './pages/ReferralTracker';
 
 // Cycle through the theme accent colors so the marquee keeps its multicolor look
 // regardless of how many messages the user configures.
@@ -109,69 +118,138 @@ const GlobalTicker = () => {
 
 // Grouped sidebar navigation. Sections make ~25 modules findable, and pull the
 // sensitive (Vault B / 42 CFR Part 2) modules into their own clearly-labelled
-// group so the security boundary is visible in the UI.
+// group so the security boundary is visible in the UI. Labels are i18n KEYS
+// (resolved via t() at render time), not literal strings.
 const NAV_GROUPS = [
   {
-    title: 'Client Care',
+    titleKey: 'nav.groupClientCare',
     items: [
-      { to: '/', icon: '📊', label: 'Dashboard' },
-      { to: '/clients', icon: '👥', label: 'Clients' },
-      { to: '/meds', icon: '💊', label: 'Medications' },
-      { to: '/discharge', icon: '📋', label: 'Discharge Gen' },
-      { to: '/telehealth', icon: '📹', label: 'Telehealth' },
-      { to: '/audio', icon: '🎙️', label: 'Audio Intake' }
+      { to: '/', icon: '📊', labelKey: 'nav.dashboard' },
+      { to: '/clients', icon: '👥', labelKey: 'nav.clients' },
+      { to: '/meds', icon: '💊', labelKey: 'nav.medications' },
+      { to: '/discharge', icon: '📋', labelKey: 'nav.dischargeGen' },
+      { to: '/note-templates', icon: '📝', labelKey: 'nav.noteTemplates' },
+      { to: '/telehealth', icon: '📹', labelKey: 'nav.telehealth' },
+      { to: '/audio', icon: '🎙️', labelKey: 'nav.audioIntake' }
     ]
   },
   {
-    title: 'Sensitive · Vault B (42 CFR)',
+    titleKey: 'nav.groupSensitive',
     items: [
-      { to: '/hrt', icon: '🏳️‍⚧️', label: 'HRT Continuity' },
-      { to: '/consent', icon: '📜', label: 'Consent' }
+      { to: '/hrt', icon: '🏳️‍⚧️', labelKey: 'nav.hrtContinuity' },
+      { to: '/consent', icon: '📜', labelKey: 'nav.consent' }
     ]
   },
   {
-    title: 'Resources & Docs',
+    titleKey: 'nav.groupResources',
     items: [
-      { to: '/resources', icon: '🏳️‍🌈', label: 'Resource Navigator' },
-      { to: '/docs', icon: '📁', label: 'Document Library' },
-      { to: '/evidence', icon: '🔐', label: 'Evidence Vault' },
-      { to: '/vouchers', icon: '🎫', label: 'Voucher Program' },
-      { to: '/transport', icon: '🚗', label: 'Transportation Hub' }
+      { to: '/resources', icon: '🏳️‍🌈', labelKey: 'nav.resourceNavigator' },
+      { to: '/docs', icon: '📁', labelKey: 'nav.documentLibrary' },
+      { to: '/evidence', icon: '🔐', labelKey: 'nav.evidenceVault' },
+      { to: '/vouchers', icon: '🎫', labelKey: 'nav.voucherProgram' },
+      { to: '/stipends', icon: '🎁', labelKey: 'nav.stipends' },
+      { to: '/referrals', icon: '🔗', labelKey: 'nav.referrals' },
+      { to: '/transport', icon: '🚗', labelKey: 'nav.transportationHub' }
     ]
   },
   {
-    title: 'Legal & Advocacy',
+    titleKey: 'nav.groupLegal',
     items: [
-      { to: '/foia', icon: '⚖️', label: 'FOIA Gen' },
-      { to: '/attorneys', icon: '⚖️', label: 'Attorneys' },
-      { to: '/canvas', icon: '🎨', label: 'Visual Canvas' }
+      { to: '/foia', icon: '⚖️', labelKey: 'nav.foiaGen' },
+      { to: '/case-report', icon: '🗂️', labelKey: 'nav.caseReport' },
+      { to: '/attorneys', icon: '⚖️', labelKey: 'nav.attorneys' },
+      { to: '/canvas', icon: '🎨', labelKey: 'nav.visualCanvas' }
     ]
   },
   {
-    title: 'Operations & Staff',
+    titleKey: 'nav.groupOperations',
     items: [
-      { to: '/schedule', icon: '📅', label: 'Schedule' },
-      { to: '/shifts', icon: '🔄', label: 'Shift Swaps' },
-      { to: '/staffing', icon: '📋', label: 'Staffing Pipeline' },
-      { to: '/oncall', icon: '🚨', label: 'On-Call Dashboard' },
-      { to: '/templates', icon: '📝', label: 'Dispatch Log' },
-      { to: '/messages', icon: '💬', label: 'Messages' },
-      { to: '/intelligence', icon: '🧠', label: 'Intelligence Layer' }
+      { to: '/schedule', icon: '📅', labelKey: 'nav.schedule' },
+      { to: '/shifts', icon: '🔄', labelKey: 'nav.shiftSwaps' },
+      { to: '/staffing', icon: '📋', labelKey: 'nav.staffingPipeline' },
+      { to: '/credentials', icon: '🎓', labelKey: 'nav.credentials' },
+      { to: '/oncall', icon: '🚨', labelKey: 'nav.onCallDashboard' },
+      { to: '/templates', icon: '📝', labelKey: 'nav.dispatchLog' },
+      { to: '/messages', icon: '💬', labelKey: 'nav.messages' },
+      { to: '/intelligence', icon: '🧠', labelKey: 'nav.intelligenceLayer' }
     ]
   },
   {
-    title: 'System',
+    titleKey: 'nav.groupSystem',
     items: [
-      { to: '/manual', icon: '📘', label: 'User Manual' },
-      { to: '/onboarding', icon: '🚀', label: 'Onboarding' },
-      { to: '/settings', icon: '⚙️', label: 'Settings' }
+      { to: '/manual', icon: '📘', labelKey: 'nav.userManual' },
+      { to: '/onboarding', icon: '🚀', labelKey: 'nav.onboarding' },
+      { to: '/settings', icon: '⚙️', labelKey: 'nav.settings' }
     ]
   }
 ];
 
+// Compact preferences footer for the sidebar: language (EN/ES/FR) + theme.
+function LanguageSwitcher() {
+  const { lang, setLang, t } = useLanguage();
+  const theme = useSettingsStore((s) => s.theme.mode);
+  const setTheme = useSettingsStore((s) => s.setTheme);
+  const codes = ['en', 'es', 'fr'];
+  const pillBase = {
+    flex: 1,
+    padding: '0.35rem 0',
+    fontSize: '0.7rem',
+    fontFamily: 'var(--font-mono)',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+    borderRadius: '6px',
+    border: '1px solid var(--border-color)',
+  };
+  const pill = (active) => ({
+    ...pillBase,
+    background: active ? 'var(--gold)' : 'transparent',
+    color: active ? 'var(--charcoal)' : 'var(--text-secondary)',
+    fontWeight: active ? 'bold' : 'normal',
+  });
+  return (
+    <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div>
+        <div style={{ fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginBottom: '0.5rem' }}>
+          {t('lang.label')}
+        </div>
+        <div style={{ display: 'flex', gap: '0.4rem' }}>
+          {codes.map((c) => (
+            <button key={c} onClick={() => setLang(c)} aria-pressed={lang === c} style={pill(lang === c)}>
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div style={{ fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginBottom: '0.5rem' }}>
+          {t('theme.label')}
+        </div>
+        <div style={{ display: 'flex', gap: '0.4rem' }}>
+          <button onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'} style={pill(theme === 'dark')}>
+            {t('theme.dark')}
+          </button>
+          <button onClick={() => setTheme('light')} aria-pressed={theme === 'light'} style={pill(theme === 'light')}>
+            {t('theme.light')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const location = useLocation();
+  const { t } = useLanguage();
+  const themeMode = useSettingsStore((s) => s.theme.mode);
   const { isAuthenticated, isOnboarded, user, logout, vaultBKey, panicWipeVaultB, unlockVaultB, rekeyVaultB } = useAuthStore();
+
+  // Reflect the chosen theme onto <html data-theme>. Light mode is a CSS token
+  // remap keyed off this attribute; dark is the default so we clear it.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (themeMode === 'light') root.setAttribute('data-theme', 'light');
+    else root.removeAttribute('data-theme');
+  }, [themeMode]);
 
   // Explicit Vault B unlock (finding C1). Vault B is closed after login and
   // requires its OWN separate passphrase. Three cases:
@@ -268,20 +346,22 @@ function App() {
           
           <ul className="nav-links">
             {NAV_GROUPS.map((group) => (
-              <React.Fragment key={group.title}>
+              <React.Fragment key={group.titleKey}>
                 <li style={{ listStyle: 'none', padding: '0.9rem 1rem 0.3rem', fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', pointerEvents: 'none' }}>
-                  {group.title}
+                  {t(group.titleKey)}
                 </li>
                 {group.items.map((item) => (
                   <Link key={item.to} to={item.to} style={{ textDecoration: 'none' }}>
                     <li className={`nav-item ${location.pathname === item.to ? 'active' : ''}`}>
-                      <span>{item.icon}</span> {item.label}
+                      <span>{item.icon}</span> {t(item.labelKey)}
                     </li>
                   </Link>
                 ))}
               </React.Fragment>
             ))}
           </ul>
+
+          <LanguageSwitcher />
         </aside>
 
         {/* Main Content Area */}
@@ -289,7 +369,7 @@ function App() {
           <header className="topbar glass-panel-dark">
             <div className="search-bar">
               <span>🔍</span>
-              <input type="text" placeholder="Search patients, staff, or records..." />
+              <input type="text" placeholder={t('topbar.searchPlaceholder')} />
             </div>
             <div className="user-profile">
               <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{user?.role}</span>
@@ -300,7 +380,7 @@ function App() {
                   title="BridgeVault closure: drop the Vault B key from memory"
                   style={{ background: '#e11d48', color: 'white', fontWeight: 'bold' }}
                 >
-                  🚨 Close Vault B
+                  {t('topbar.closeVaultB')}
                 </button>
               ) : (
                 <button
@@ -309,12 +389,12 @@ function App() {
                   title="Open Vault B with its separate passphrase"
                   style={{ background: 'var(--charcoal)', color: 'white', fontWeight: 'bold' }}
                 >
-                  🔒 Unlock Vault B
+                  {t('topbar.unlockVaultB')}
                 </button>
               )}
-              <button className="btn-primary" onClick={logout} style={{ background: 'var(--charcoal)' }}>Logout</button>
+              <button className="btn-primary" onClick={logout} style={{ background: 'var(--charcoal)' }}>{t('topbar.logout')}</button>
               <Link to="/profile" style={{ textDecoration: 'none' }}>
-                <div className="avatar" style={{ cursor: 'pointer' }} title="Edit Profile">
+                <div className="avatar" style={{ cursor: 'pointer' }} title={t('topbar.editProfile')}>
                   {user?.username.substring(0, 2).toUpperCase()}
                 </div>
               </Link>
@@ -326,8 +406,10 @@ function App() {
               <Route path="/" element={<DashboardHome />} />
               <Route path="/clients" element={<ClientsModule />} />
               <Route path="/templates" element={<NoteTemplates />} />
+              <Route path="/note-templates" element={<NoteTemplatesLibrary />} />
               <Route path="/canvas" element={<VisualCanvas />} />
               <Route path="/foia" element={<FOIAGenerator />} />
+              <Route path="/case-report" element={<CaseReporting />} />
               <Route path="/evidence" element={<EvidenceVault />} />
               <Route path="/attorneys" element={<AttorneyDirectory />} />
               <Route path="/audio" element={<AudioIntake />} />
@@ -343,9 +425,12 @@ function App() {
               <Route path="/resources" element={<ResourceNavigator />} />
               <Route path="/oncall" element={<OnCallDashboard />} />
               <Route path="/staffing" element={<StaffingKanban />} />
+              <Route path="/credentials" element={<CredentialMonitor />} />
               <Route path="/docs" element={<DocumentLibrary />} />
               <Route path="/transport" element={<TransportationHub />} />
               <Route path="/vouchers" element={<VoucherProgram />} />
+              <Route path="/stipends" element={<StipendTracker />} />
+              <Route path="/referrals" element={<ReferralTracker />} />
               <Route path="/manual" element={<UserManual />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/onboarding" element={<Onboarding />} />

@@ -1,5 +1,13 @@
 # Sanctuary
 
+> ## ⚠️ Pre-audit prototype — not for real client data
+> Sanctuary is a **working prototype whose security has NOT been independently
+> audited.** It has had an internal adversarial crypto review only. **Do not
+> enter real client PHI** until an independent security audit and full runtime QA
+> are complete. Treat this repository as a reference/evaluation artifact, not a
+> production system. See [`docs/pilot-readiness-checklist.html`](docs/pilot-readiness-checklist.html)
+> for the gates required before real use.
+
 A local-first, encrypted health & legal records platform for the Injustice
 Reform Network (IRN). Built for Navigators working with highly vulnerable
 populations, where the core requirement is a **Technical Incapacity Defense**:
@@ -7,11 +15,36 @@ the operator should be unable to produce readable client PHI under subpoena,
 because it is never stored in plaintext and the keys live only in RAM.
 
 > **Status:** Working prototype. The architecture and core security features are
-> implemented and covered by an automated test suite (~83 tests). An internal
+> implemented and covered by an automated test suite (233 tests). An internal
 > adversarial crypto review has been done and its two CRITICAL findings fixed
 > (see [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md)), but the app has **not** had an
 > **independent** security review or full runtime QA. Do not enter real client
 > PHI until it has.
+
+## Quickstart
+
+Try it in a browser in under a minute (uses fake/sample data only — see the
+pre-audit notice above):
+
+```bash
+git clone https://github.com/TheeZeeOhh/injusticereformnetwork.git
+cd injusticereformnetwork
+npm install
+npm run dev          # → http://localhost:5173
+```
+
+On first launch you'll create a passphrase (min 12 chars) that derives the vault
+key. Then, in the browser, open the **Clients** module and click
+**🧪 Seed sample clients** (dev-only button) to populate fake data, and explore.
+
+```bash
+npm test             # run the 233-test suite
+npm run lint         # oxlint
+npm run build        # production web build
+```
+
+For the **desktop app** (Tauri) and the operational backend, see
+[Getting started](#getting-started) below.
 
 ## Architecture
 
@@ -39,13 +72,42 @@ because it is never stored in plaintext and the keys live only in RAM.
 
 ## Modules
 
-Client records, HRT continuity (Vault B), 42 CFR consent management (Vault B),
-medication management, scheduling, shift swaps, staffing pipeline,
-transportation, vouchers, attorney directory, **FOIA generator** (real PDF
-export), **Evidence Vault** (real SHA-256 chain-of-custody with verify/download),
-**Visual Canvas** (encrypted note board), **Audio Intake** (on-device Whisper
-transcription via WASM, zero-network after first-run model download), and an
-in-app User Manual.
+Client records (photo, pronouns, encrypted per-client intake), HRT continuity
+(Vault B), 42 CFR consent management (Vault B), medication management,
+scheduling, shift swaps, staffing pipeline, transportation, vouchers, attorney
+directory, **FOIA generator** (real PDF export), **Evidence Vault** (real
+SHA-256 chain-of-custody with verify/download), **Visual Canvas** (encrypted
+note board), **Audio Intake** (on-device Whisper transcription via WASM,
+zero-network after first-run model download; transcripts can be saved,
+encrypted, to a client's record), **Resource Navigator** with **Amina** (a
+resource assistant; runs on a local Ollama model or a deterministic guided
+fallback. A default-closed router may send only *generic, person-free*
+bureaucracy questions to a hosted model — never client data. Attaching a
+client's saved transcript as context forces Amina fully local, so PHI can never
+leave the device), and an in-app User Manual.
+
+Also: **Clinical Note Templates** (8 built-in templates — assessment, SOAP/DAP,
+discharge, crisis, psych eval, treatment plan, case management — with placeholder
+variables; fill for a client and save the completed note encrypted per client),
+**Automated Case Reporting** (compile a client's records into a case-summary PDF,
+gated behind an explicit "unencrypted PHI" confirm; HRT included only when Vault
+B is unlocked), **Stipend & Incentive Tracker** (per-client incentive history),
+**Inter-Agency Referral** (partner-agency network + per-client referral lifecycle),
+and a dashboard **Clinical Alerts** panel (missed / upcoming-24h appointments from
+Vault A; HRT refill-due only when Vault B is unlocked). Operational (non-PHI):
+**Credential Monitoring** (staff credential expiry tracking).
+
+Client-record shape is validated at the vault boundary by a small **Zod schema
+layer** (`src/schema/`) — a defined, evolvable record shape without changing the
+encryption path (fail-closed on write, fail-open on read so a schema change never
+orphans data).
+
+### Interface
+
+- **Languages:** English, Spanish, French (in-app switcher; homegrown, no
+  network). Framework plus the high-traffic screens (nav, login, settings,
+  profile) are translated; remaining modules are migrating incrementally.
+- **Themes:** dark (default) and light, persisted locally.
 
 ## Getting started
 
@@ -66,8 +128,10 @@ npm run tauri build
 npm test
 ```
 
-The first run of **Audio Intake** downloads the Whisper model (~145 MB) once
-from a public CDN, then runs entirely offline and cached.
+The first run of **Audio Intake** downloads the Whisper model (`whisper-tiny`,
+~75 MB) once from a public CDN, then runs entirely offline and cached. Swap to
+`whisper-base` in `src/workers/whisperWorker.js` for higher accuracy at a larger
+download.
 
 ## Security status
 
@@ -104,5 +168,10 @@ An **independent** security review is still required before real PHI.
 
 ## License
 
-See repository. Sanctuary is developed for the Injustice Reform Network
+Sanctuary Community Source License v1.0 — see [`LICENSE`](LICENSE). Copyright ©
+2024–2026 Aziza Okoro (ThriveBMore / Radiant Threshold), Baltimore, Maryland. A
+copyleft + anti-weaponization license: free for community organizations serving
+Trans/LGBTQ+ and other protected communities; commercial use requires a separate
+agreement. Note: the license text itself states it should have final attorney
+review before distribution. Developed for the Injustice Reform Network
 (501(c)(3), EIN 83-4207890).
