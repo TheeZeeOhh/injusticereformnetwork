@@ -1,5 +1,13 @@
 # Sanctuary
 
+> ## ⚠️ Pre-audit prototype — not for real client data
+> Sanctuary is a **working prototype whose security has NOT been independently
+> audited.** It has had an internal adversarial crypto review only. **Do not
+> enter real client PHI** until an independent security audit and full runtime QA
+> are complete. Treat this repository as a reference/evaluation artifact, not a
+> production system. See [`docs/pilot-readiness-checklist.html`](docs/pilot-readiness-checklist.html)
+> for the gates required before real use.
+
 A local-first, encrypted health & legal records platform for the Injustice
 Reform Network (IRN). Built for Navigators working with highly vulnerable
 populations, where the core requirement is a **Technical Incapacity Defense**:
@@ -135,5 +143,10 @@ An **independent** security review is still required before real PHI.
 
 ## License
 
-See repository. Sanctuary is developed for the Injustice Reform Network
+Sanctuary Community Source License v1.0 — see [`LICENSE`](LICENSE). Copyright ©
+2024–2026 Aziza Okoro (ThriveBMore / Radiant Threshold), Baltimore, Maryland. A
+copyleft + anti-weaponization license: free for community organizations serving
+Trans/LGBTQ+ and other protected communities; commercial use requires a separate
+agreement. Note: the license text itself states it should have final attorney
+review before distribution. Developed for the Injustice Reform Network
 (501(c)(3), EIN 83-4207890).
