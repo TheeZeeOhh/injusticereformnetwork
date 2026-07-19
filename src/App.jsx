@@ -83,6 +83,7 @@ import ClinicalAlertsPanel from './pages/ClinicalAlertsPanel';
 import CaseReporting from './pages/CaseReporting';
 import StipendTracker from './pages/StipendTracker';
 import CredentialMonitor from './pages/CredentialMonitor';
+import ReferralTracker from './pages/ReferralTracker';
 
 // Cycle through the theme accent colors so the marquee keeps its multicolor look
 // regardless of how many messages the user configures.
@@ -147,6 +148,7 @@ const NAV_GROUPS = [
       { to: '/evidence', icon: '🔐', labelKey: 'nav.evidenceVault' },
       { to: '/vouchers', icon: '🎫', labelKey: 'nav.voucherProgram' },
       { to: '/stipends', icon: '🎁', labelKey: 'nav.stipends' },
+      { to: '/referrals', icon: '🔗', labelKey: 'nav.referrals' },
       { to: '/transport', icon: '🚗', labelKey: 'nav.transportationHub' }
     ]
   },
@@ -428,6 +430,7 @@ function App() {
               <Route path="/transport" element={<TransportationHub />} />
               <Route path="/vouchers" element={<VoucherProgram />} />
               <Route path="/stipends" element={<StipendTracker />} />
+              <Route path="/referrals" element={<ReferralTracker />} />
               <Route path="/manual" element={<UserManual />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/onboarding" element={<Onboarding />} />
