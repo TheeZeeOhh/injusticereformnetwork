@@ -103,3 +103,68 @@ export function suppressSmallCells(rows, countKey = 'n') {
   if (!Array.isArray(rows)) return [];
   return rows.filter((row) => cellEmittable(row?.[countKey]));
 }
+
+// --- Enforced aggregation gate (quasi-identifier combination k-anonymity) -----
+//
+// The single path any rollup/dashboard/grant statistic must use. It counts
+// person-level rows grouped by the COMBINATION of quasi-identifiers (e.g.
+// jurisdiction + demographic + timeframe), not a single column, and suppresses
+// any combination below MIN_CELL_SIZE. This makes "n<k emits nothing" a property
+// of the code path, not of whoever writes the query that week.
+//
+// Rationale (k-anonymity / ARX-style): a count of 1 for a quasi-identifier
+// combination re-identifies that person even if no explicit identity column is
+// present. The floor applies to the cross-tab, so we group on the tuple of QI
+// values and drop under-threshold groups entirely (suppression, not rounding).
+
+/**
+ * Read the quasi-identifier tuple for a row as a stable string key.
+ * Missing QI values are normalized so absent-vs-empty can't split a cell.
+ * @param {Record<string, unknown>} row
+ * @param {string[]} quasiIdentifiers
+ * @returns {string}
+ */
+function qiKey(row, quasiIdentifiers) {
+  return quasiIdentifiers
+    .map((k) => {
+      const v = row == null ? undefined : row[k];
+      return `${k}=${v == null || v === '' ? '\u0000' : String(v)}`;
+    })
+    .join('|');
+}
+
+/**
+ * Aggregate person-level rows into privacy-safe counts.
+ *
+ * Groups rows by the COMBINATION of `quasiIdentifiers`, counts each group, and
+ * emits ONLY groups whose count >= MIN_CELL_SIZE. Under-threshold combinations
+ * are suppressed entirely (uncertainty -> silence), so quasi-identifier linkage
+ * cannot re-identify an individual.
+ *
+ * @param {Array<Record<string, unknown>>} rows      person-level input rows
+ * @param {string[]} quasiIdentifiers                 columns forming the QI tuple
+ * @returns {{ cells: Array<Record<string, unknown> & { n: number }>, suppressed: number, total: number }}
+ *   cells: emittable aggregates (each carries its QI values + `n`);
+ *   suppressed: number of groups dropped for being below the floor;
+ *   total: number of input rows considered.
+ */
+export function aggregateWithPrivacy(rows, quasiIdentifiers) {
+  if (!Array.isArray(rows) || !Array.isArray(quasiIdentifiers) || quasiIdentifiers.length === 0) {
+    return { cells: [], suppressed: 0, total: 0 };
+  }
+  const groups = new Map();
+  for (const row of rows) {
+    if (row == null || typeof row !== 'object') continue;
+    const key = qiKey(row, quasiIdentifiers);
+    let g = groups.get(key);
+    if (!g) {
+      g = { n: 0 };
+      for (const k of quasiIdentifiers) g[k] = row[k] ?? null;
+      groups.set(key, g);
+    }
+    g.n += 1;
+  }
+  const all = [...groups.values()];
+  const cells = all.filter((g) => cellEmittable(g.n));
+  return { cells, suppressed: all.length - cells.length, total: rows.length };
+}

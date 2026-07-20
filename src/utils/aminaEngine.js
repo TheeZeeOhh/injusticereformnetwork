@@ -208,7 +208,20 @@ export async function askAmina(message, resources, opts = {}) {
   let clientBlock = '';
   if (typeof opts.clientContext === 'string' && opts.clientContext.trim()) {
     const trimmed = opts.clientContext.trim().slice(-MAX_CONTEXT_CHARS);
-    clientBlock = `\n\nClient intake transcript (confidential context — use it to inform your answer, do not repeat it back verbatim):\n${trimmed}`;
+    // Dual-LLM defense-in-depth (OWASP LLM01). The transcript is on-device audio,
+    // not an adversarial document, so normally it passes through as narrative
+    // context. But if it contains instruction-like text (dictated "ignore
+    // previous instructions", or a future OCR/paste path feeding here), we
+    // QUARANTINE it: the raw text is withheld and only structured, injection-free
+    // fields reach the prompt. Detection is deterministic (regex), so this screen
+    // cannot itself be prompt-injected.
+    const { detectInjection, quarantine } = await import('./quarantine');
+    if (detectInjection(trimmed).flagged) {
+      const { promptBlock } = quarantine(trimmed);
+      clientBlock = `\n\nClient intake context (source text quarantined — instruction-like content detected; only extracted fields shown):\n${promptBlock}`;
+    } else {
+      clientBlock = `\n\nClient intake transcript (confidential context — use it to inform your answer, do not repeat it back verbatim):\n${trimmed}`;
+    }
   }
 
   try {
