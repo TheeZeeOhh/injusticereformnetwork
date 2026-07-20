@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Services — Injustice Reform Network</title>
+  <meta name="description" content="Direct legal, educational, and community services from the Injustice Reform Network: record relief, court navigation, disability advocacy, policy and systems change, and environmental and economic justice." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ── SERVICES PAGE ─────────────────────────────── */
+    .svc-hero {
+      padding: 140px 0 60px;
+      text-align: center;
+      position: relative;
+    }
+    .svc-hero .hero-badge { margin: 0 auto 24px; }
+    .svc-pillar { margin-top: 72px; }
+    .svc-pillar-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-glass);
+    }
+    .svc-pillar-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--accent-1);
+      min-width: 44px;
+    }
+    .svc-pillar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+    .svc-pillar-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .svc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .svc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+    .svc-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(201,168,76,0.3);
+      transform: translateY(-2px);
+    }
+    .svc-card-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(201,168,76,0.12);
+      color: var(--accent-1);
+      font-size: 1rem;
+    }
+    .svc-card h3 {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .svc-card p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .svc-cta-row {
+      margin-top: 64px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.07), rgba(192,90,62,0.07));
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      text-align: center;
+    }
+    .svc-cta-row h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+    .svc-cta-row p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin: 0 auto 24px;
+      line-height: 1.6;
+    }
+    .svc-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .svc-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ NAV ═══════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Injustice Reform Network" style="height:36px;width:auto;" />
+    </a>
+    <div class="nav-links">
+      <a href="explore.html" class="nav-link">Learn</a>
+      <a href="workspace.html" class="nav-link">Investigate</a>
+      <a href="services.html" class="nav-link">Services</a>
+      <a href="resources.html" class="nav-link">Resources</a>
+      <a href="subpoena-tracker.html" class="nav-link">Subpoenas</a><a href="map.html" class="nav-link">Map</a>
+      <a href="instructor.html" class="nav-link">Instructors</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+    </div>
+    <div class="nav-actions">
+      <a href="workspace.html" class="btn btn-secondary btn-sm"><i class="fas fa-magnifying-glass"></i> Investigate</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Take Action</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu"><i class="fas fa-bars"></i></button>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+    <a href="explore.html" class="nav-link">Learn</a>
+    <a href="workspace.html" class="nav-link">Investigate</a>
+    <a href="services.html" class="nav-link">Services</a>
+    <a href="resources.html" class="nav-link">Resources</a>
+    <a href="subpoena-tracker.html" class="nav-link">Subpoenas</a><a href="map.html" class="nav-link">Map</a>
+    <a href="instructor.html" class="nav-link">Instructors</a>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <a href="dashboard.html" class="btn btn-primary" style="margin-top:8px;justify-content:center;">Take Action</a>
+</div>
+
+<!-- ═══════════════════════════════════════════ HERO ═══════════════════════════════════════════ -->
+<section class="svc-hero">
+  <div class="container">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Support & Navigation — Legal, Educational & Community
+    </div>
+    <h1 class="playfair" style="font-size:2.6rem;">Support That <span class="gradient-text">Builds Power</span></h1>
+    <p class="hero-subtitle" style="max-width:640px; margin:20px auto 0;">
+      Beyond investigation and training, IRN helps you navigate the legal system, connects you with licensed counsel and trusted partners, and stands with you through court, advocacy, and community organizing. Support is offered on a sliding, no-barrier basis — access is a right, not a privilege.
+    </p>
+    <p style="max-width:680px; margin:24px auto 0; padding:16px 20px; background:rgba(192,90,62,0.10); border:1px solid rgba(192,90,62,0.28); border-radius:12px; font-size:0.86rem; color:var(--text-secondary); line-height:1.6;">
+      <strong>IRN is not a law firm and does not provide legal advice or legal representation.</strong> We provide information, navigation, and advocacy support, and we connect you with licensed attorneys where legal advice or representation is needed. No attorney–client relationship is formed through this website or by using our services.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ PILLARS ═══════════════════════════════════════════ -->
+<section class="section">
+  <div class="container">
+
+    <!-- PILLAR 1 -->
+    <div class="svc-pillar">
+      <div class="svc-pillar-head">
+        <span class="svc-pillar-num">01</span>
+        <div>
+          <div class="svc-pillar-title">Record &amp; Case Relief</div>
+          <div class="svc-pillar-sub">Clearing records, reducing burdens, and reopening closed doors</div>
+        </div>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-eraser"></i></div>
+          <h3>Expungement Navigation</h3>
+          <p>Understand whether your arrests, charges, or convictions may be eligible for expungement, and get connected with licensed counsel and partners who can help you pursue it — so old records are less likely to block housing, employment, or opportunity.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-folder-minus"></i></div>
+          <h3>Record Sealing Navigation</h3>
+          <p>Learn about sealing records from public view where full expungement isn't available, and connect with legal help to file — limiting who can access your history.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-scale-balanced"></i></div>
+          <h3>Post-Conviction Support</h3>
+          <p>Understand possible options after a conviction — appeals, sentence modifications, and other remedies — and get connected with licensed attorneys who can evaluate and pursue them.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-hand-holding-dollar"></i></div>
+          <h3>Garnishment Support</h3>
+          <p>Understand your rights around wage and bank garnishments and connect with legal help to challenge collection that may be unlawful or excessive.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-people-carry-box"></i></div>
+          <h3>Community Service Coordination</h3>
+          <p>Placement and documentation support for court-ordered community service, tracked and verified through IRN partners.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-money-bill-transfer"></i></div>
+          <h3>Service In Lieu of Fines &amp; Costs</h3>
+          <p>Learn about options to convert court fines, fees, and costs into community service hours when payment creates hardship, and get connected with legal help to request it.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PILLAR 2 -->
+    <div class="svc-pillar">
+      <div class="svc-pillar-head">
+        <span class="svc-pillar-num">02</span>
+        <div>
+          <div class="svc-pillar-title">Court &amp; Case Navigation</div>
+          <div class="svc-pillar-sub">Standing with you through every court system</div>
+        </div>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-gavel"></i></div>
+          <h3>Criminal Court Navigation</h3>
+          <p>Plain-language information about the criminal process — arraignment, hearings, and trial — and connection to licensed counsel for advice on your specific case and decisions.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-file-contract"></i></div>
+          <h3>Civil Court Navigation</h3>
+          <p>Information and organizing support for civil matters — housing, debt, family, and small claims — including understanding deadlines and preparing, with referrals to legal help.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-building-columns"></i></div>
+          <h3>Administrative Hearing Navigation</h3>
+          <p>Preparation and referral support for agency and administrative hearings — from benefits appeals to licensing and regulatory actions — connecting you with counsel or authorized advocates where representation is needed.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-folder-plus"></i></div>
+          <h3>Case Preparation Support</h3>
+          <p>Help organizing your facts, evidence, and documents so you're ready to work with an attorney — and connection to legal help to evaluate and file your claim.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PILLAR 3 -->
+    <div class="svc-pillar">
+      <div class="svc-pillar-head">
+        <span class="svc-pillar-num">03</span>
+        <div>
+          <div class="svc-pillar-title">Education &amp; Disability Advocacy</div>
+          <div class="svc-pillar-sub">Protecting the right to learn and be supported</div>
+        </div>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-graduation-cap"></i></div>
+          <h3>Educational Planning &amp; Advocacy</h3>
+          <p>Advocacy for students facing discipline, denial of services, or barriers to enrollment — building a plan that protects their future.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-universal-access"></i></div>
+          <h3>IDEA Accompaniment</h3>
+          <p>Lay-advocate accompaniment and support through IEP and 504 meetings under the Individuals with Disabilities Education Act, helping you understand the process and the school's obligations.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PILLAR 4 -->
+    <div class="svc-pillar">
+      <div class="svc-pillar-head">
+        <span class="svc-pillar-num">04</span>
+        <div>
+          <div class="svc-pillar-title">Policy &amp; Systems Change</div>
+          <div class="svc-pillar-sub">Fixing the systems, not just the symptoms</div>
+        </div>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-landmark-dome"></i></div>
+          <h3>Policy Work</h3>
+          <p>Research, drafting, and advocacy for legislation and local ordinances that advance justice and accountability.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-diagram-project"></i></div>
+          <h3>Systems Change Work</h3>
+          <p>Long-term campaigns targeting the root structures — courts, agencies, and institutions — that produce recurring harm.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-users-line"></i></div>
+          <h3>Civic Engagement Education</h3>
+          <p>Community education on rights, voting, public process, and how to hold power accountable between elections.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PILLAR 5 -->
+    <div class="svc-pillar">
+      <div class="svc-pillar-head">
+        <span class="svc-pillar-num">05</span>
+        <div>
+          <div class="svc-pillar-title">Environmental &amp; Economic Justice</div>
+          <div class="svc-pillar-sub">Justice you can breathe, eat, and live in</div>
+        </div>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-seedling"></i></div>
+          <h3>Food Desert Reduction</h3>
+          <p>Methodologies and partnerships that expand food access in underserved neighborhoods — gardens, co-ops, and distribution networks.</p>
+        </div>
+        <div class="svc-card">
+          <div class="svc-card-icon"><i class="fas fa-leaf"></i></div>
+          <h3>Environmental Advocacy</h3>
+          <p>Fighting environmental harms — air, water, and industrial violations — through complaints, monitoring, and community testimony.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="svc-cta-row">
+      <h2 class="playfair">Need support?</h2>
+      <p>Start by opening a case in the War Room, or apply directly. We work to keep cost from being a barrier — scholarship and sliding-scale support is available for most services.</p>
+      <div class="svc-cta-btns">
+        <a href="workspace.html" class="btn btn-primary btn-lg"><i class="fas fa-folder-plus"></i> Open a Case</a>
+        <a href="apply.html" class="btn btn-secondary btn-lg">Apply for Support</a>
+      </div>
+      <p class="svc-note">IRN is not a law firm and does not provide legal advice or representation. Nothing on this page is legal advice, and using this site or these services does not create an attorney–client relationship. We provide information, navigation, and advocacy support and connect you with licensed counsel where legal advice or representation is needed.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ FOOTER ═══════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html">
+          <img src="logo.png" alt="Injustice Reform Network" style="height:48px;width:auto;" />
+        </a>
+        <p>Injustice Reform Network — civic intelligence platform for accountability, organizing, and justice. Radiant Threshold is our training arm.</p>
+        <div class="social-links">
+          <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+          <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-link" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-link" aria-label="Discord"><i class="fab fa-discord"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Investigate</h4>
+        <ul>
+          <li><a href="workspace.html">War Room</a></li>
+          <li><a href="workspace.html#officials">Track Officials</a></li>
+          <li><a href="workspace.html#evidence">Submit Evidence</a></li>
+          <li><a href="resources.html#foia">FOIA Templates</a></li>
+          <li><a href="workspace.html#campaigns">Active Campaigns</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="services.html">Record &amp; Case Relief</a></li>
+          <li><a href="services.html">Court Navigation</a></li>
+          <li><a href="services.html">Disability Advocacy</a></li>
+          <li><a href="services.html">Policy &amp; Systems Change</a></li>
+          <li><a href="services.html">Environmental Justice</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>IRN</h4>
+        <ul>
+          <li><a href="https://injusticereformnetwork.org" target="_blank" rel="noopener">About IRN</a></li>
+          <li><a href="map.html">Local Chapters</a></li>
+          <li><a href="apply.html">Apply to Teach</a></li>
+          <li><a href="irn-dispatch-vol01.html">Newsletter</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="mailto:IRNVP@pm.me">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top:20px; font-size:0.8rem; opacity:0.8; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; text-align:center;">
+      <p>Injustice Reform Network is a registered 501(c)(3) tax-exempt nonprofit organization. EIN: 83-4207890. Mailing Address: PO Box 2982, Chester, VA 23831. Official website: <a href="https://injusticereformnetwork.org" target="_blank" rel="noopener" style="color:var(--accent-1); text-decoration:underline;">injusticereformnetwork.org</a></p>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Radiant Threshold · Injustice Reform Network. All rights reserved.</p>
+      <p>Made with <span style="color:var(--accent-2);">♥</span> for organizers everywhere.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js?v=3"></script>
+</body>
+</html>

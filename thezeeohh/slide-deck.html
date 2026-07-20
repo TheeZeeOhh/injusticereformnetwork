@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Organizer's Playbook — Slide Deck</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0a; color: #f0e6d6; }
+  .slide { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 60px 80px; border-bottom: 1px solid #1a1a1a; }
+  .slide.hero { background: linear-gradient(135deg, #8B0000 0%, #2d1b0e 50%, #0a0a0a 100%); }
+  .slide.dark { background: #0a0a0a; }
+  .slide.warm { background: linear-gradient(135deg, #2d1b0e 0%, #0a0a0a 100%); }
+  .slide h1 { font-size: 3.6em; color: #fff; text-shadow: 3px 3px 0 #8B0000; line-height: 1.15; max-width: 900px; }
+  .slide h2 { font-size: 2em; color: #fff; margin-bottom: 20px; }
+  .slide h3 { font-size: 1.3em; color: #d4b896; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .slide p, .slide li { font-size: 1.3em; line-height: 1.6; color: #ccc; }
+  .tagline { font-size: 1.4em; color: #d4b896; margin-top: 24px; font-style: italic; }
+  .stats { display: flex; gap: 50px; margin-top: 50px; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 4em; font-weight: 900; color: #d4b896; display: block; }
+  .stat-label { font-size: 1.1em; color: #888; text-transform: uppercase; letter-spacing: 0.1em; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+  ul { list-style: none; }
+  ul li { padding: 12px 0; border-bottom: 1px solid #2a2a2a; position: relative; padding-left: 30px; }
+  ul li::before { content: '▸'; color: #8B0000; font-size: 1.4em; position: absolute; left: 0; top: 10px; }
+  .section-card { background: #1a1a1a; border-left: 4px solid #8B0000; padding: 28px 32px; margin: 20px 0; border-radius: 6px; }
+  .section-card strong { color: #fff; font-size: 1.15em; }
+  .section-card span { color: #888; font-size: 0.9em; margin-left: 12px; }
+  footer { text-align: center; padding: 20px; color: #555; font-size: 0.85em; }
+</style>
+</head>
+<body>
+
+  <!-- Slide 1: Title -->
+  <div class="slide hero">
+    <div style="max-width: 900px;">
+      <h3 style="color: #d4b896; margin-bottom: 20px;">✊ Community Organizing Training</h3>
+      <h1>The Organizer's Playbook<br><span style="font-size:0.65em; color:#d4b896; text-shadow:none;">Building Power from the Ground Up</span></h1>
+      <p class="tagline">"20+ years of hard-won wisdom from the streets of Baltimore — transformed into actionable, replicable tactics for organizers everywhere."</p>
+      <div style="margin-top: 40px; color: #888;">
+        <p>Sponsored by the Injustice Reform Network · Taught by Aziza "Zee" Okoro</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 2: Stats -->
+  <div class="slide dark">
+    <div style="text-align:center;">
+      <h2 style="text-align:center; margin-bottom: 10px;">By the Numbers</h2>
+      <div class="stats">
+        <div class="stat"><span class="stat-num">8,420</span><span class="stat-label">Organizers Enrolled</span></div>
+        <div class="stat"><span class="stat-num">4.9★</span><span class="stat-label">Avg. Rating</span></div>
+        <div class="stat"><span class="stat-num">30+</span><span class="stat-label">Winning Campaigns</span></div>
+        <div class="stat"><span class="stat-num">16+</span><span class="stat-label">Hours of Training</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Who This Is For -->
+  <div class="slide warm">
+    <div class="two-col">
+      <div>
+        <h3>Who This Course Is For</h3>
+        <ul>
+          <li><strong>New organizers</strong> entering the movement and wanting proven frameworks, not theory</li>
+          <li><strong>Veteran organizers</strong> looking for new coalition and escalation tactics</li>
+          <li><strong>Chapter leaders</strong> who need to train their own base</li>
+          <li><strong>Community members</strong> tired of service models, hungry for power</li>
+          <li>Anyone who has ever shown up to a meeting and thought: <em>"We should be leading this."</em></li>
+        </ul>
+      </div>
+      <div>
+        <h3>What You Won't Find</h3>
+        <ul>
+          <li>Empty theory disconnected from the ground</li>
+          <li>Corporate-speak or "best practices" ivory-tower frameworks</li>
+          <li>One-size-fits-all templates that don't transfer to your city</li>
+          <li>Performative allyship — this is by and for organizers who do the work</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: Curriculum Overview -->
+  <div class="slide dark">
+    <h3>5 Sections · 18 Lessons · Campaign Templates Included</h3>
+    <div class="section-card">
+      <strong>Foundations of People Power</strong><span>4 lessons · 3h 20m</span>
+      <p style="color:#888; margin-top:6px;">What organizing is — and isn't. Power vs. Service. Base building one-on-one.</p>
+    </div>
+    <div class="section-card">
+      <strong>Coalition Building & Alliances</strong><span>4 lessons · 3h 45m</span>
+      <p style="color:#888; margin-top:6px;">Natural vs. strange bedfellows. Managing tension without breaking solidarity.</p>
+    </div>
+    <div class="section-card">
+      <strong>Campaign Strategy & Tactics</strong><span>4 lessons · 4h 10m</span>
+      <p style="color:#888; margin-top:6px;">Target identification. Escalation ladder. Direct action: safety & logistics.</p>
+    </div>
+    <div class="section-card">
+      <strong>Media & Narrative</strong><span>3 lessons · 2h 40m</span>
+      <p style="color:#888; margin-top:6px;">Earned media. Message framing. Rapid response under fire.</p>
+    </div>
+    <div class="section-card">
+      <strong>Winning & What Comes After</strong><span>3 lessons · 2h 10m</span>
+      <p style="color:#888; margin-top:6px;">Declaring victory. Sustaining momentum. Final Assessment & Movement Credential.</p>
+    </div>
+  </div>
+
+  <!-- Slide 5: Price + CTA -->
+  <div class="slide hero">
+    <div style="max-width: 800px; text-align: center;">
+      <h3 style="color:#d4b896; margin-bottom: 20px;">Enrollment Options</h3>
+      <h2 style="font-size: 2.8em; color: #fff; text-shadow: none;">$97 Self-Paced<br><span style="font-size:0.6em; color:#d4b896;">$197 Accelerated Cohort · $497 Organizing Director</span></h2>
+      <p class="tagline" style="margin-top: 30px;">🤝 Scholarship available — money is never a barrier.<br>30-Day Money-Back Guarantee, No Questions Asked.</p>
+      <div style="margin-top: 40px; font-size: 1.4em; color: #fff; font-weight: 700;">theezeeohh.github.io/injusticereformnetwork/thezeeohh/course.html</div>
+    </div>
+  </div>
+
+  <footer>Organizer's Playbook © Radiant Threshold · Injustice Reform Network</footer>
+</body>
+</html>

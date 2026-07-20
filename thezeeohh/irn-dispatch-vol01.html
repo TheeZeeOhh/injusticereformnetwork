@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE DISPATCH — The People's Intelligence Brief · IRN · Vol. 01 · June 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --charcoal:#16130f; --char-2:#201c16; --ember:#e2552b; --gold:#d9a441;
+    --bone:#ece4d4; --bone-dim:#b7ad99; --hairline:rgba(217,164,65,.22);
+    --alert:rgba(226,85,43,.5);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+  body{background:var(--charcoal);color:var(--bone);font-family:'Playfair Display',Georgia,serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 28px}
+  img{max-width:100%;display:block}
+
+  header{border-bottom:1px solid var(--hairline);padding:56px 0 40px;position:relative;overflow:hidden}
+  .ember-line{position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--ember) 0%,var(--gold) 45%,transparent 100%)}
+  .mast-top{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:34px}
+  .issue-tag{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+  .logo-block{display:flex;align-items:center;gap:20px}
+  .crest{width:96px;height:auto;flex-shrink:0;filter:drop-shadow(0 0 18px rgba(217,164,65,.25))}
+  .org-name{font-size:.78rem;letter-spacing:.3em;text-transform:uppercase;color:var(--bone-dim);font-family:'DM Mono',monospace}
+  .motto{font-style:italic;color:var(--gold);font-size:.92rem;margin-top:6px}
+  h1.masthead{font-size:clamp(3rem,9vw,5.4rem);font-weight:900;letter-spacing:-.015em;line-height:.95;color:var(--bone)}
+  h1.masthead em{font-style:italic;color:var(--ember);font-weight:700}
+  .subtitle{font-family:'DM Mono',monospace;font-size:.82rem;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--gold);margin-top:14px}
+  .deck{margin-top:14px;max-width:600px;color:var(--bone-dim);font-size:1.05rem;font-style:italic}
+  .deck b{color:var(--ember);font-style:normal}
+  .mast-meta{margin-top:30px;display:flex;flex-wrap:wrap;border-top:1px solid var(--hairline)}
+  .mast-meta span{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--bone-dim);padding:10px 22px 0 0;margin-right:22px}
+  .mast-meta span b{color:var(--gold);font-weight:500}
+
+  section{padding:54px 0;border-bottom:1px solid var(--hairline)}
+  .eyebrow{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.26em;text-transform:uppercase;
+    color:var(--ember);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+  .eyebrow::after{content:"";height:1px;flex:1;background:var(--hairline)}
+  .bureau{font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--gold);border:1px solid var(--hairline);display:inline-block;padding:5px 14px;margin-bottom:16px}
+  h2{font-size:clamp(1.7rem,4.5vw,2.5rem);font-weight:700;line-height:1.12;margin-bottom:18px;color:var(--bone)}
+  h2 .accent{color:var(--gold);font-style:italic}
+  h3{color:var(--bone)}
+  p{margin-bottom:16px;color:var(--bone);font-size:1.02rem}
+  p.dim{color:var(--bone-dim)}
+  .byline{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.12em;color:var(--bone-dim);
+    text-transform:uppercase;margin-bottom:22px}
+  .figure{margin:8px 0 24px;border:1px solid var(--hairline)}
+  .figure figcaption{font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--bone-dim);padding:10px 14px;border-top:1px solid var(--hairline);background:var(--char-2)}
+
+  .split{display:grid;grid-template-columns:300px 1fr;gap:34px;align-items:start}
+  .split.rev{grid-template-columns:1fr 300px}
+  .pullquote{border-left:3px solid var(--ember);padding:6px 0 6px 22px;margin:26px 0;
+    font-size:1.3rem;font-style:italic;line-height:1.45;color:var(--gold)}
+  .pullquote cite{display:block;margin-top:10px;font-style:normal;font-family:'DM Mono',monospace;
+    font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--bone-dim)}
+
+  /* metrics dashboard */
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hairline);
+    border:1px solid var(--hairline);margin-top:8px}
+  .metric{background:var(--char-2);padding:28px 22px;text-align:left}
+  .metric .num{font-size:clamp(2.2rem,6vw,3.2rem);font-weight:900;color:var(--ember);line-height:1;letter-spacing:-.02em}
+  .metric .lbl{font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--bone-dim);margin-top:12px;line-height:1.7}
+
+  /* red alert */
+  .redalert{border:1px solid var(--alert);background:linear-gradient(135deg,rgba(226,85,43,.12),rgba(226,85,43,.03));
+    padding:36px 32px;margin-top:8px;position:relative}
+  .redalert::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--ember)}
+  .redalert .stamp{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--ember);display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .pulse{width:9px;height:9px;border-radius:50%;background:var(--ember);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(226,85,43,.5)}50%{opacity:.6;box-shadow:0 0 0 7px rgba(226,85,43,0)}}
+  .creed{font-size:1.25rem;font-style:italic;color:var(--bone);line-height:1.7;margin:18px 0 0}
+  .creed b{color:var(--gold);font-style:normal}
+
+  /* case file */
+  .casefile{border:1px solid var(--hairline);background:var(--char-2);padding:34px 32px;margin-top:8px}
+  .case-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;
+    border-bottom:1px solid var(--hairline);padding-bottom:16px;margin-bottom:22px}
+  .case-id{font-family:'DM Mono',monospace;font-size:.85rem;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
+  .pill{font-family:'DM Mono',monospace;font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;
+    padding:5px 14px;border:1px solid var(--alert);color:var(--ember)}
+  .pill.gold{border-color:var(--hairline);color:var(--gold)}
+  .ctl{margin:20px 0 26px}
+  .ctl-row{display:grid;grid-template-columns:90px 1fr;gap:18px;padding:11px 0;border-bottom:1px dashed var(--hairline);align-items:baseline}
+  .ctl-row .day{font-family:'DM Mono',monospace;font-size:.74rem;letter-spacing:.12em;color:var(--ember)}
+  .ctl-row .what{font-size:.96rem;color:var(--bone)}
+  .cost-list{list-style:none;margin:12px 0 4px}
+  .cost-list li{padding:8px 0 8px 26px;position:relative;color:var(--bone-dim);font-size:.96rem}
+  .cost-list li::before{content:"—";position:absolute;left:0;color:var(--ember)}
+
+  /* watchlist */
+  .watch{border-top:1px solid var(--hairline);margin-top:8px}
+  .watch-row{display:grid;grid-template-columns:1fr auto;gap:18px;padding:16px 0;
+    border-bottom:1px solid var(--hairline);align-items:center}
+  .watch-row .inst{font-size:1.05rem;color:var(--bone)}
+  .watch-row .pill{justify-self:end}
+
+  /* quotes wall */
+  .qwall{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:8px}
+  .q{background:var(--char-2);border:1px solid var(--hairline);border-left:3px solid var(--gold);
+    padding:24px 24px;font-style:italic;font-size:1.08rem;line-height:1.6;color:var(--bone)}
+  .q small{display:block;margin-top:12px;font-style:normal;font-family:'DM Mono',monospace;
+    font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--bone-dim)}
+
+  .ledger{border-top:1px solid var(--hairline);margin-top:8px}
+  .ledger-row{display:grid;grid-template-columns:140px 1fr;gap:18px;padding:16px 0;border-bottom:1px solid var(--hairline)}
+  .ledger-row .key{font-family:'DM Mono',monospace;font-size:.74rem;letter-spacing:.1em;color:var(--gold);
+    text-transform:uppercase;padding-top:3px}
+  .ledger-row .val{color:var(--bone);font-size:.98rem}
+  .ledger-row .val small{display:block;color:var(--bone-dim);font-size:.86rem;margin-top:2px}
+
+  .checklist{list-style:none;margin:18px 0 8px}
+  .checklist li{padding:12px 0 12px 34px;border-bottom:1px solid var(--hairline);position:relative;
+    font-size:.98rem;color:var(--bone)}
+  .checklist li::before{content:"✓";position:absolute;left:4px;top:11px;color:var(--ember);
+    font-family:'DM Mono',monospace;font-weight:500}
+  .checklist li b{color:var(--gold);font-weight:600}
+
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:8px}
+  .card{background:var(--char-2);border:1px solid var(--hairline);padding:28px 26px}
+  .card h3{font-size:1.25rem;font-weight:700;margin-bottom:10px}
+  .card .stamp{font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ember);margin-bottom:12px;display:block}
+  .card p{font-size:.95rem;color:var(--bone-dim);margin-bottom:0}
+  .card ul{list-style:none}
+  .card ul li{padding:9px 0 9px 28px;position:relative;font-size:.95rem;color:var(--bone);
+    border-bottom:1px dashed var(--hairline)}
+  .card ul li:last-child{border-bottom:none}
+  .card ul li::before{content:"✓";position:absolute;left:2px;color:var(--gold);font-family:'DM Mono',monospace}
+
+  .timeline{margin-top:6px}
+  .tl-item{display:grid;grid-template-columns:120px 1fr;gap:20px;padding:18px 0;border-bottom:1px solid var(--hairline)}
+  .tl-date{font-family:'DM Mono',monospace;font-size:.74rem;letter-spacing:.1em;color:var(--gold);padding-top:4px}
+  .tl-body h3{font-size:1.15rem;font-weight:700;margin-bottom:4px}
+  .tl-body p{font-size:.94rem;color:var(--bone-dim);margin-bottom:0}
+
+  .notice{background:linear-gradient(135deg,rgba(226,85,43,.08),rgba(217,164,65,.05));
+    border:1px solid rgba(226,85,43,.35);padding:30px 28px;margin-top:8px}
+  .notice .stamp{font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--ember);display:block;margin-bottom:14px}
+  .notice p{font-size:.98rem}
+
+  .bignum{font-size:clamp(3.4rem,10vw,5.6rem);font-weight:900;color:var(--ember);line-height:1;letter-spacing:-.02em}
+  .bignum-label{font-family:'DM Mono',monospace;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--bone-dim);margin-top:10px;max-width:300px;line-height:1.7}
+  .numgrid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:10px}
+  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:10px}
+
+  /* manifesto + action */
+  .manifesto{text-align:center;padding:20px 0 6px}
+  .manifesto p{font-size:clamp(1.3rem,3.5vw,1.9rem);font-style:italic;color:var(--bone);line-height:1.6;
+    max-width:640px;margin:0 auto 14px}
+  .manifesto p b{color:var(--gold);font-style:normal}
+  .manifesto .last{color:var(--ember);font-weight:700;font-style:normal}
+  .action-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;margin-top:8px}
+  .finalword{font-size:clamp(1.2rem,3vw,1.6rem);font-style:italic;line-height:1.7;color:var(--bone);max-width:620px}
+  .finalword b{color:var(--gold);font-style:normal}
+
+  footer{padding:54px 0 70px}
+  .vow{font-style:italic;font-size:1.15rem;color:var(--gold);max-width:520px;margin-bottom:34px;line-height:1.6}
+  .foot-meta{font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--bone-dim);line-height:2.1}
+  .foot-meta b{color:var(--bone);font-weight:500}
+  .ember-dot{color:var(--ember)}
+
+  a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--hairline)}
+  a:focus-visible{outline:2px solid var(--ember);outline-offset:3px}
+
+  @media(max-width:680px){
+    .duo,.numgrid,.gallery,.qwall{grid-template-columns:1fr}
+    .metrics{grid-template-columns:1fr 1fr}
+    .action-grid{grid-template-columns:1fr}
+    .split,.split.rev{grid-template-columns:1fr}
+    .ledger-row{grid-template-columns:1fr;gap:4px}
+    .tl-item{grid-template-columns:1fr;gap:6px}
+    header{padding:42px 0 32px}
+    section{padding:42px 0}
+    .crest{width:72px}
+  }
+
+  /* donate + connect */
+  .btn{display:inline-block;font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.22em;
+    text-transform:uppercase;padding:15px 34px;border:1px solid var(--ember);color:var(--bone);
+    background:linear-gradient(135deg,rgba(226,85,43,.25),rgba(226,85,43,.08));
+    text-decoration:none;transition:background .25s,color .25s;cursor:pointer}
+  .btn:hover{background:var(--ember);color:var(--charcoal)}
+  .btn.ghost{border-color:var(--gold);background:transparent;color:var(--gold)}
+  .btn.ghost:hover{background:var(--gold);color:var(--charcoal)}
+  .btn-sm{padding:10px 22px;font-size:.68rem}
+  .connect{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center;
+    border:1px solid var(--hairline);background:var(--char-2);padding:34px 32px;margin-top:34px}
+  .qr-frame{border:1px solid var(--hairline);padding:12px;background:var(--charcoal)}
+  .qr-frame img{width:170px;height:170px;image-rendering:pixelated}
+  @media(max-width:680px){.connect{grid-template-columns:1fr;justify-items:center;text-align:center}}
+  @media print{
+    body{background:#fff;color:#1a1a1a}
+    :root{--bone:#1a1a1a;--bone-dim:#555;--charcoal:#fff;--char-2:#f6f2ea}
+    .pulse{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div style="background: #0a0a0a; border-bottom: 1px solid rgba(217,164,65,.22); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;">
+  <a href="index.html" style="font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: #d9a441; text-decoration: none; border-bottom: none; display: flex; align-items: center; gap: 8px;">
+    <span style="font-size: 1.1rem; line-height: 1;">←</span> Return to Main Platform
+  </a>
+  <a href="blog.html" style="font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: #b7ad99; text-decoration: none; border-bottom: none;">
+    Archive
+  </a>
+</div>
+
+<header>
+  <div class="ember-line" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="mast-top">
+      <div class="logo-block">
+        <img class="crest" src="images/irn-crest.jpg" alt="Injustice Reform Network crest: gold shield with IRN monogram, crown, laurel wreath, and crossed swords">
+        <div>
+          <div class="org-name">Injustice Reform Network</div>
+          <div class="org-name" style="color:var(--ember);letter-spacing:.18em;margin-top:4px">HQ · Newport News — Hampton Roads, Virginia</div>
+          <div class="motto">Aequitas et justitia erit nobis victoriam!</div>
+        </div>
+      </div>
+      <div class="issue-tag">Vol. 01 · No. 01 — June 2026</div>
+    </div>
+
+    <h1 class="masthead">THE <em>DISPATCH</em></h1>
+    <div class="subtitle">The People's Intelligence Brief</div>
+    <p class="deck">Published by the Injustice Reform Network. <b>Because power hates witnesses.</b></p>
+
+    <div style="margin-top:26px;display:flex;gap:16px;flex-wrap:wrap">
+      <a class="btn" href="https://www.facebook.com/share/1DvPux1eVV/" target="_blank" rel="noopener">⬤ Donate to the Network</a>
+      <a class="btn ghost btn-sm" href="https://www.facebook.com/share/1DvPux1eVV/" target="_blank" rel="noopener" style="align-self:center">Follow IRN on Facebook</a>
+    </div>
+    <div class="mast-meta">
+      <span>Headquarters: <b>Hampton Roads, VA</b></span>
+      <span>Bureau: <b>Baltimore, MD</b></span>
+      <span>Reach: <b>TGEPOC · Re-entry · Families</b></span>
+      <span>Status: <b class="ember-dot">Active &amp; Unbothered</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- METRICS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">This Month in Accountability</div>
+    <h2>The Numbers Don't Flinch</h2>
+    <div class="metrics">
+      <div class="metric"><div class="num" data-count="893">0</div><div class="lbl">Community Reports Filed</div></div>
+      <div class="metric"><div class="num" data-count="127">0</div><div class="lbl">Open Civil Rights Cases</div></div>
+      <div class="metric"><div class="num" data-count="11">0</div><div class="lbl">Agencies Under Review</div></div>
+      <div class="metric"><div class="num" data-count="42">0</div><div class="lbl">Families Connected to Resources</div></div>
+      <div class="metric"><div class="num" data-count="31">0</div><div class="lbl">FOIA Requests Submitted</div></div>
+      <div class="metric"><div class="num" data-count="68">0</div><div class="lbl">Active Volunteers</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- RED ALERT -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Priority Briefing</div>
+    <div class="redalert">
+      <div class="stamp"><span class="pulse" aria-hidden="true"></span> Red Alert</div>
+      <h2 style="margin-bottom:14px">Systems Are Failing Faster Than Communities Can Recover</h2>
+      <p>Across Hampton Roads and beyond, residents continue reporting barriers to housing, healthcare, public safety, and legal support. The issue is no longer isolated incidents. <b style="color:var(--gold)">The issue is infrastructure.</b></p>
+      <p class="creed">When systems break, people do not disappear.<br>They improvise. They organize. <b>They survive.</b></p>
+      <p style="margin-top:18px;margin-bottom:0" class="dim">The question is whether institutions will catch up before communities are forced to build entirely new ones.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CASE FILE 001 -->
+<section>
+  <div class="wrap">
+    <div class="bureau">⬤ Virginia HQ · Field Intelligence</div>
+    <div class="eyebrow">Case File · Documentation Desk</div>
+    <div class="casefile">
+      <div class="case-head">
+        <span class="case-id">Case File 001 · Newport News</span>
+        <span class="pill">Status: Open</span>
+      </div>
+      <p>A resident reports repeated failures navigating overlapping social service agencies while attempting to secure emergency assistance.</p>
+      <div class="ctl">
+        <div class="ctl-row"><span class="day">Day 1</span><span class="what">Application submitted.</span></div>
+        <div class="ctl-row"><span class="day">Day 14</span><span class="what">No response.</span></div>
+        <div class="ctl-row"><span class="day">Day 27</span><span class="what">Referral issued.</span></div>
+        <div class="ctl-row"><span class="day">Day 41</span><span class="what">Referral rejected.</span></div>
+        <div class="ctl-row"><span class="day">Day 55</span><span class="what">Resident restarts process.</span></div>
+      </div>
+      <h3 style="font-size:1.15rem;margin-bottom:8px">Why It Matters</h3>
+      <p class="dim" style="margin-bottom:6px">Every delay becomes:</p>
+      <ul class="cost-list">
+        <li>lost wages</li>
+        <li>housing instability</li>
+        <li>transportation barriers</li>
+        <li>increased crisis risk</li>
+      </ul>
+      <div class="pullquote" style="margin-bottom:0">
+        This is not merely bureaucracy. This is policy experienced as exhaustion.
+        <cite>— The Documentation Desk</cite>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WATCHLIST -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The Watchlist · Community Accountability Monitor</div>
+    <h2>Eyes On: <span class="accent">Eleven Agencies and Counting</span></h2>
+    <div class="watch">
+      <div class="watch-row"><span class="inst">Police Oversight</span><span class="pill">Monitoring</span></div>
+      <div class="watch-row"><span class="inst">Housing Services</span><span class="pill">Reviewing Complaints</span></div>
+      <div class="watch-row"><span class="inst">Public Benefits Access</span><span class="pill">Tracking Delays</span></div>
+      <div class="watch-row"><span class="inst">Jail Medical Care</span><span class="pill">Under Observation</span></div>
+      <div class="watch-row"><span class="inst">School Climate Reports</span><span class="pill gold">Active Collection</span></div>
+    </div>
+    <p class="dim" style="margin-top:24px;margin-bottom:0">If a system failed you — or worked for you — submit a community report. The truth belongs in the record.</p>
+  </div>
+</section>
+
+<!-- COMMUNITY VOICES -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What the Community Is Saying</div>
+    <h2>Testimony, <span class="accent">On the Record</span></h2>
+    <div class="qwall">
+      <div class="q">"Nobody knew where to send me."<small>Community Report · Hampton Roads</small></div>
+      <div class="q">"I got five different answers from five different offices."<small>Community Report · Hampton Roads</small></div>
+      <div class="q">"I wasn't looking for special treatment. I just needed someone to explain the process."<small>Community Report · Hampton Roads</small></div>
+      <div class="q">"The paperwork wasn't hard. The silence was."<small>Community Report · Hampton Roads</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRESIDENT'S DESK / BEKURA -->
+<section>
+  <div class="wrap">
+    <div class="bureau">⬤ President's Desk · BeKura Waliah Shabazz · Virginia HQ</div>
+    <div class="eyebrow">Lead Feature · New Release &amp; The Policy Front</div>
+    <h2>Founder &amp; President BeKura Shabazz: <span class="accent">The Illusion of Power</span> &amp; the Hampton Roads Fight</h2>
+    <p class="byline">Voting, AI, and the Systems That Still Control Black America</p>
+    <div class="split">
+      <figure class="figure">
+        <img src="images/book-cover-1.jpg" alt="Book cover: The Illusion of Power by BeKura Shabazz — portrait of the author against a black background with gold title type">
+        <figcaption>Cover · The Illusion of Power</figcaption>
+      </figure>
+      <div>
+        <p>From the network's Virginia headquarters, IRN Founder &amp; President BeKura Waliah Shabazz has put the whole conversation between two covers. <em>The Illusion of Power</em> takes on the machinery most folks are told to trust — the ballot box, the algorithm, the institution — and asks who actually holds the levers, and who is being handed a replica.</p>
+        <p>From voting systems to artificial intelligence, the book maps how control gets laundered through process — and what it takes to build power that doesn't evaporate the day after the election. Analysis, receipts, and a field manual for anyone done mistaking access for ownership.</p>
+        <p class="dim">Availability and launch events will be announced through the Member Platform; Vol. 02 carries an author Q&amp;A.</p>
+      </div>
+    </div>
+
+    <div class="notice">
+      <span class="stamp">⬤ Accountability Watch — Active Campaign, Virginia State Conference</span>
+      <p>The formal accountability campaign concerning the Petersburg/Newport News NAACP branch leadership remains active, filed with the Virginia State Conference on behalf of IRN Founder &amp; President BeKura Waliah Shabazz. A formal accountability brief has been submitted, and the network is monitoring the Conference's response.</p>
+      <p style="margin-bottom:0">Accountability isn't a vibe — it's a process with a paper trail. We hex systems, not people. Updates will run in the next Dispatch.</p>
+    </div>
+
+    <h3 style="font-size:1.4rem;font-weight:700;margin:40px 0 14px">The Hampton Roads Footprint</h3>
+    <p>IRN's Virginia operation is scaling across the Seven Cities — Newport News, Hampton, Norfolk, Portsmouth, Virginia Beach, Chesapeake, and Suffolk — bringing the full toolkit to the region: rapid response, post-conviction education, family advocacy, and community-authored policy.</p>
+    <div class="ledger">
+      <div class="ledger-row">
+        <div class="key">Policy</div>
+        <div class="val">Newport News Community Safety &amp; Equity Act <small>Council-ready adaptation of the Baltimore draft, formatted for the Newport News City Council floor.</small></div>
+      </div>
+      <div class="ledger-row">
+        <div class="key">Organizing</div>
+        <div class="val">Hampton Roads rapid response network <small>CJRRP intake and attorney referral extending across the Seven Cities.</small></div>
+      </div>
+      <div class="ledger-row">
+        <div class="key">Education</div>
+        <div class="val">Post-conviction workshop circuit <small>Anti-fraud family education sessions serving Tidewater families (see below).</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VP DESK / TGIT -->
+<section>
+  <div class="wrap">
+    <div class="bureau">⬤ Vice President's Desk · Aziza "Zee" Okoro</div>
+    <div class="eyebrow">New Release · From the Vice President</div>
+    <h2><span class="accent">Thank God I Transitioned</span> — A Testimony in Book Form</h2>
+    <p class="byline">From IRN Vice President Aziza "Zee" Okoro · Founder, Radiant Threshold</p>
+    <div class="split">
+      <figure class="figure">
+        <img src="images/book-cover-2.jpg" alt="Book cover: Thank God I Transitioned — a Black woman with arms raised against a golden sun, draped in flowing trans-flag and Afrocentric patterned wings">
+        <figcaption>Cover · Thank God I Transitioned</figcaption>
+      </figure>
+      <div>
+        <p><em>Thank God I Transitioned</em> arrives not as apology but as praise song. Where the world demands trans people narrate their survival as tragedy, this release flips the register entirely — transition as blessing, as homecoming, as the answered prayer. The cover says it before page one does: arms open, sun at the back, wings made of every color the ancestors handed down.</p>
+        <p>It joins two decades of work insisting that TGEPOC lives are not a problem to be managed but a future to be resourced — and it lands alongside the <em>TRANSPOWER</em> visual series now in circulation across the network.</p>
+        <div class="pullquote">
+          I do not ask for permission to exist. I remember my name before the world renamed me.
+          <cite>— From the network's founding vows</cite>
+        </div>
+        <p class="dim">Release details, readings, and ordering info will run through the Member Platform and the next Dispatch.</p>
+      </div>
+    </div>
+    <div class="gallery">
+      <figure class="figure" style="margin:0">
+        <img src="images/transpower-mural.jpg" alt="TRANSPOWER artwork: a confident group of trans and gender-expansive people of many presentations standing together before trans flag colors">
+        <figcaption>TRANSPOWER · visual series, 2026</figcaption>
+      </figure>
+      <figure class="figure" style="margin:0">
+        <img src="images/transpower-mural.jpg" alt="Raised resistance fist rendered in the blue, pink, and white stripes of the trans pride flag">
+        <figcaption>The fist stays up · trans liberation is Black liberation</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- THE BUILD / IRN OS + RTSS -->
+<section>
+  <div class="wrap">
+    <div class="bureau">⬤ Vice President's Desk · Aziza "Zee" Okoro</div>
+    <div class="eyebrow">The Build</div>
+    <h2>IRN OS v2 Is Live: Eleven Tools, One File, <span class="accent">Zero Permission Asked</span></h2>
+    <div class="split rev">
+      <div>
+        <p>The sovereign command center is no longer a concept deck — it's running. IRN OS v2 ships as a single-file application housing eleven-plus fully functional tools: the CJRRP intake wizard, Case Tracker, Attorney Network, Evidence Vault, FOIA Generator, Motion Builder, Petition Builder, and more. Every tool is local-first by design, which means the data lives with the people it belongs to — not on a server waiting to be subpoenaed.</p>
+        <p>The next phase is confirmed: migration to a Next.js + Supabase + Clerk architecture, scaling the OS into networked infrastructure without compromising the Technical Incapacity standard that anchors everything the network builds.</p>
+        <div class="pullquote">
+          We cannot hand over what we do not possess. That's not a loophole — that's the architecture.
+          <cite>— IRN Design Principle No. 1</cite>
+        </div>
+      </div>
+      <figure class="figure">
+        <img src="images/aziza-okoro-dispatch.jpg" alt="Aziza 'Zee' Okoro, IRN Vice President and Radiant Threshold instructor, analyzing a map. She wears a black hoodie, oversized glasses, braids, ankh pendant">
+        <figcaption>Aziza "Zee" Okoro · Vice President, IRN · Founder, Radiant Threshold · Founder, Radiant Threshold</figcaption>
+      </figure>
+    </div>
+    <div class="split" style="margin-top:34px;align-items:center">
+      <figure class="figure" style="margin:0;background:#fff;padding:26px">
+        <img src="images/radiant-threshold-banner.jpg" alt="Radiant Threshold logo: rising orange sun above serif wordmark">
+      </figure>
+      <div>
+        <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:10px">Affiliate Spotlight: <span class="accent" style="font-style:italic">Radiant Threshold</span></h3>
+        <p style="margin-bottom:0">Founded and led by IRN Vice President Aziza "Zee" Okoro, Radiant Threshold Staffing Solutions continues its mandate: workforce development as a doorway, not a gate. Job placement, peer-support credentialing, and re-entry employment pipelines for the people every other staffing agency screens out. The sun on the logo isn't decoration — it's the job description.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KNOW YOUR RIGHTS + TOOLKIT -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Rights Education · Community Defense</div>
+    <h2>Know Your Rights. <span class="accent">Use Your Toolkit.</span></h2>
+    <div class="duo">
+      <div class="card">
+        <span class="stamp">Know Your Rights · Police Encounters</span>
+        <h3>During Police Encounters</h3>
+        <ul>
+          <li>Ask if you are free to leave</li>
+          <li>Remain silent if you choose</li>
+          <li>Request legal counsel</li>
+          <li>Document interactions when lawful</li>
+          <li>Never consent to searches you do not wish to allow</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="stamp">Community Defense Toolkit · Available Right Now</span>
+        <h3>What the Network Offers</h3>
+        <ul>
+          <li>Resource Navigation</li>
+          <li>Mutual Aid Referrals</li>
+          <li>Documentation Support</li>
+          <li>Public Records Assistance</li>
+          <li>Community Advocacy</li>
+          <li>Rights Education</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POST-CONVICTION SERIES -->
+<section>
+  <div class="wrap">
+    <div class="bureau">⬤ Network-Wide · VA &amp; MD</div>
+    <div class="eyebrow">Community Education · Post-Conviction Series</div>
+    <h2>Protect Your Investment: <span class="accent">The Anti-Fraud Workshop Series Continues</span></h2>
+    <div class="split">
+      <figure class="figure">
+        <!-- removed broken img -->
+        <figcaption>Anti-Fraud Workshop Series · VA &amp; MD</figcaption>
+      </figure>
+      <div>
+        <p>The post-conviction landscape is rife with predatory services targeting families navigating re-entry, appeals, and record clearance. The Anti-Fraud Workshop Series — running across Virginia and Maryland — trains community members to identify scams, file complaints, and connect loved ones with legitimate resources.</p>
+        <ul class="checklist">
+          <li><b>Session 1:</b> Identifying predatory attorney services</li>
+          <li><b>Session 2:</b> Record clearance and expungement scams</li>
+          <li><b>Session 3:</b> Housing application fraud targeting returning citizens</li>
+          <li><b>Session 4:</b> Benefits fraud and identity theft in re-entry</li>
+        </ul>
+        <p class="dim">Sessions are free and open to all. Contact IRN to register or bring the series to your community.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section>
+  <div class="wrap manifesto">
+    <div class="eyebrow">The Foundation</div>
+    <h2>What We Are Building</h2>
+    <p>We are building <b>infrastructure for people who were never meant to survive the system.</b></p>
+    <p>Every FOIA request filed, every case tracked, every workshop held, every family connected — it is all the same act: <b>refusing to disappear.</b></p>
+    <p class="last">The Dispatch is the record. The network is the movement. The work continues.</p>
+  </div>
+</section>
+
+<!-- CONNECT -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Connect &amp; Support</div>
+    <h2>Join the Network</h2>
+    <div class="connect">
+      <div class="qr-frame">
+        <img src="images/irn-qr-code.jpg" alt="QR code linking to IRN Facebook page" width="170" height="170">
+      </div>
+      <div>
+        <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:12px">Follow · Share · Support</h3>
+        <p>The Injustice Reform Network operates on community power. Follow us on Facebook, share the Dispatch with your network, and support the work.</p>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:22px">
+          <a class="btn" href="https://www.facebook.com/share/1DvPux1eVV/" target="_blank" rel="noopener">⬤ Donate to IRN</a>
+          <a class="btn ghost" href="https://www.facebook.com/share/1DvPux1eVV/" target="_blank" rel="noopener">Follow on Facebook</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="vow">"I build what they said couldn't exist. I heal what they tried to kill. I rise."</p>
+    <p class="foot-meta">
+      <b>Injustice Reform Network</b> <span class="ember-dot">·</span>
+      Hampton Roads, Virginia <span class="ember-dot">·</span>
+      IRNVP@pm.me <span class="ember-dot">·</span>
+      Vol. 01 · June 2026<br>
+      The Dispatch is published free of charge and may be shared freely.<br>
+      © 2026 Injustice Reform Network. All rights reserved.
+    </p>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.num[data-count]').forEach(el => {
+  const target = parseInt(el.dataset.count);
+  let current = 0;
+  const step = Math.ceil(target / 60);
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = current;
+    if (current >= target) clearInterval(timer);
+  }, 25);
+});
+</script>
+
+</body>
+</html>
