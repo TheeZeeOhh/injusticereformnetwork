@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { guidedReply, askAmina, askWifey, isAminaLlmAvailable, AMINA_SYSTEM } from './aminaEngine';
+import { guidedReply, askAmina, askWifey, isAminaLlmAvailable, isLocalOllamaModel, AMINA_SYSTEM } from './aminaEngine';
 
 const RES = [
   { name: 'Chase Brexton Health Care', cat: 'Healthcare', phone: '410-837-2050', note: 'Gender-affirming', addr: '1001 Cathedral St' },
@@ -166,5 +166,44 @@ describe('client transcript context is LOCAL ONLY (PHI gate)', () => {
     vi.stubGlobal('fetch', fetchMock);
     await askAmina('hormones?', RES);
     expect(String(fetchMock.mock.calls[0][1].body)).not.toContain('intake transcript');
+  });
+});
+
+describe('cloud-model egress guard (no PHI to ollama.com)', () => {
+  it('isLocalOllamaModel rejects :cloud suffixes, accepts local names', () => {
+    expect(isLocalOllamaModel('llama3.2')).toBe(true);
+    expect(isLocalOllamaModel('mistral:7b-instruct-v0.3-q4_K_M')).toBe(true);
+    expect(isLocalOllamaModel('deepseek-v3.2:cloud')).toBe(false);
+    expect(isLocalOllamaModel('gemini-3-flash-preview:cloud')).toBe(false);
+    expect(isLocalOllamaModel('')).toBe(false);
+    expect(isLocalOllamaModel(undefined)).toBe(false);
+  });
+
+  it('askAmina REFUSES a caller-supplied :cloud model and uses the local default', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ message: { content: 'ok' } })
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    // A malicious/misconfigured caller tries to route PHI through a cloud model.
+    await askAmina('housing help?', RES, {
+      model: 'deepseek-v3.2:cloud',
+      clientContext: 'Client transcript with sensitive detail.'
+    });
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    // the cloud model must NOT be what gets sent...
+    expect(body.model).not.toMatch(/:cloud/);
+    // ...it falls back to the known-local default.
+    expect(body.model).toBe('llama3.2');
+  });
+
+  it('askAmina honors a legitimate local model override', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ message: { content: 'ok' } })
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await askAmina('housing help?', RES, { model: 'mistral:7b-instruct-v0.3-q4_K_M' });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).model).toBe('mistral:7b-instruct-v0.3-q4_K_M');
   });
 });

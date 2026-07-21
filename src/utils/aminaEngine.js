@@ -194,8 +194,19 @@ export function guidedReply(message, resources) {
 
 // Tier 2: ask the local Ollama LLM. `resources` are injected so the model can
 // only reference real orgs. Falls back to guidedReply on any failure.
+// Ollama exposes cloud-proxied models with a ":cloud" suffix (they relay to
+// ollama.com). Amina's local tier is PHI-bearing (client transcript context), so
+// a cloud model here would silently exfiltrate PHI off-device. Reject any cloud
+// model and fall back to the local default — the no-PHI-egress invariant becomes
+// a code property, not a caller's discretion.
+export function isLocalOllamaModel(model) {
+  return typeof model === 'string' && model.length > 0 && !/:cloud\b/i.test(model);
+}
+
 export async function askAmina(message, resources, opts = {}) {
-  const model = opts.model || 'llama3.2';
+  // Default to a known-local model; refuse any caller-supplied :cloud model.
+  const requested = opts.model || 'llama3.2';
+  const model = isLocalOllamaModel(requested) ? requested : 'llama3.2';
   const resourceContext = resources
     .map((r) => `- ${r.name} [${r.cat}] ${r.phone} \u2014 ${r.note} (${r.addr})`)
     .join('\n');
