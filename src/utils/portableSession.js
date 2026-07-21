@@ -25,12 +25,21 @@
 
 /**
  * Wipe policies for host cleanup on eject.
- * - 'records_and_salts': nuke local records AND clear keychain salts (default;
- *   strongest Technical-Incapacity posture, best for shared/library terminals).
- * - 'records_only': nuke records, leave (non-secret) salts in the host keychain.
- * - 'none': no automatic wipe (operator triggers cleanup manually elsewhere).
+ * - 'records': nuke local records from the host (default). The portable session's
+ *   keys derive from the BUNDLE's own salts held in RAM, which vanish when the
+ *   app closes — so there is nothing session-specific left in the keychain to
+ *   clear, and the wipe leaves no readable host artifact.
+ * - 'none': no automatic wipe (write bundle to USB only).
+ *
+ * FIX 3: the old 'records_and_salts' policy was REMOVED. It cleared the ONE
+ * global resident-keychain salt slot (org.injusticereformnetwork.sanctuary /
+ * vault_salts_v1), which is NOT namespaced per session — so a portable eject
+ * would orphan the machine's RESIDENT vault (records intact, salts gone,
+ * undecryptable). A portable session must never touch the resident keychain.
+ * The clear_vault_salts command still exists for a genuine "reset this machine"
+ * flow, but the portable flow no longer calls it.
  */
-export const WIPE_POLICIES = ['records_and_salts', 'records_only', 'none'];
+export const WIPE_POLICIES = ['records', 'none'];
 
 /**
  * @typedef {Object} PortableIO
@@ -87,9 +96,19 @@ export async function beginPortableSession(passphrase, io, deps) {
  */
 export async function endPortableSession(passphrase, io, deps, opts = {}) {
   if (!passphrase) throw new Error('portable session requires a passphrase');
-  const wipePolicy = opts.wipePolicy || 'records_and_salts';
+  const wipePolicy = opts.wipePolicy || 'records';
   if (!WIPE_POLICIES.includes(wipePolicy)) {
     throw new Error(`invalid wipePolicy '${wipePolicy}'`);
+  }
+
+  // FIX 1 — confirmation gate. The 'records' policy destroys host state and
+  // requires an explicit opts.confirmed flag, so a wipe never happens without the
+  // operator affirmatively acknowledging it. 'none' (write-only) needs none.
+  const destructive = wipePolicy !== 'none';
+  if (destructive && opts.confirmed !== true) {
+    throw new Error(
+      `wipePolicy '${wipePolicy}' is destructive and requires explicit confirmation (opts.confirmed=true).`
+    );
   }
 
   // 1. Build the new signed portable bundle from current records.
@@ -106,21 +125,29 @@ export async function endPortableSession(passphrase, io, deps, opts = {}) {
     if (!back || !isSameBundle(back, bundle)) {
       throw new Error('USB write could not be confirmed; host NOT wiped to avoid data loss.');
     }
+
+    // FIX 2 — restore-verify-before-wipe. "Bytes written + read back" is NOT the
+    // same as "bundle actually restores". Before destroying the host copy, prove
+    // the on-USB bundle VERIFIES (HMAC + own salts) with this passphrase, using a
+    // non-destructive check that writes nothing. A truncated, corrupt, or
+    // wrong-passphrase bundle therefore can never lead to a destructive wipe.
+    if (destructive && typeof deps.verifyBackup === 'function') {
+      const restorable = await deps.verifyBackup(passphrase, back);
+      if (!restorable) {
+        throw new Error('USB bundle failed restore verification; host NOT wiped to avoid data loss.');
+      }
+    }
   }
 
-  // 4. Host wipe, per policy — only reached once the USB copy is durable.
+  // 4. Host wipe, per policy — only reached once the USB copy is durable+verified.
   if (wipePolicy === 'none') {
     return { ejected: true, wiped: 'none' };
   }
+  // 'records': wipe local records only. FIX 3 — the portable flow NEVER clears the
+  // resident keychain salts (that would orphan the machine's own vault). The
+  // session's keys came from the bundle's salts in RAM and simply vanish on close.
   await deps.nukeStorage();
-  if (wipePolicy === 'records_and_salts') {
-    if (typeof io.clearSalts !== 'function') {
-      throw new Error("wipePolicy 'records_and_salts' requires io.clearSalts");
-    }
-    await io.clearSalts();
-    return { ejected: true, wiped: 'records_and_salts' };
-  }
-  return { ejected: true, wiped: 'records_only' };
+  return { ejected: true, wiped: 'records' };
 }
 
 // Cheap structural equality for the durability confirm. Compares the signature

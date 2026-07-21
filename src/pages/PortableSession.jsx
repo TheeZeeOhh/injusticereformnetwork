@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { pickUsbDirectory, makeUsbIO } from '../utils/usbIO';
 import { beginPortableSession, endPortableSession, WIPE_POLICIES } from '../utils/portableSession';
-import { restoreBackup, createBackup } from '../utils/backupEngine';
+import { restoreBackup, createBackup, verifyBackup } from '../utils/backupEngine';
 import { nukeStorage } from '../utils/storageEngine';
 
 // "Sanctuary-to-Go": run a portable session off a USB stick. Restore-on-unlock,
@@ -17,12 +17,14 @@ import { nukeStorage } from '../utils/storageEngine';
 export default function PortableSession() {
   const [passphrase, setPassphrase] = useState('');
   const [usbDir, setUsbDir] = useState('');
-  const [wipePolicy, setWipePolicy] = useState('records_and_salts');
+  const [wipePolicy, setWipePolicy] = useState('records'); // wipe records; never touches resident keychain (Fix 3)
   const [status, setStatus] = useState(null); // { ok, msg }
   const [busy, setBusy] = useState(false);
   const [active, setActive] = useState(false); // a session is currently open
+  const [confirmWipe, setConfirmWipe] = useState(false); // FIX 1: explicit destructive-wipe consent
 
-  const deps = { restoreBackup, createBackup, nukeStorage };
+  // verifyBackup wires FIX 2 (restore-verify before wipe) into the eject path.
+  const deps = { restoreBackup, createBackup, nukeStorage, verifyBackup };
 
   const choose = async () => {
     setStatus(null);
@@ -55,11 +57,18 @@ export default function PortableSession() {
 
   const end = async () => {
     if (!usbDir || !passphrase) { setStatus({ ok: false, msg: 'No active session.' }); return; }
+    const destructive = wipePolicy !== 'none';
+    // FIX 1: block a destructive eject unless the operator checked the consent box.
+    if (destructive && !confirmWipe) {
+      setStatus({ ok: false, msg: `This will WIPE local data (${wipePolicy}). Check the confirmation box first.` });
+      return;
+    }
     setBusy(true); setStatus(null);
     try {
       const io = makeUsbIO(usbDir);
-      const r = await endPortableSession(passphrase, io, deps, { wipePolicy });
+      const r = await endPortableSession(passphrase, io, deps, { wipePolicy, confirmed: destructive ? true : undefined });
       setActive(false);
+      setConfirmWipe(false);
       setStatus({ ok: true, msg: `Ejected. Bundle written to USB; host wiped (${r.wiped}). Safe to remove the drive.` });
     } catch (e) {
       // The orchestrator refuses to wipe if the USB write can't be confirmed, so
@@ -102,9 +111,22 @@ export default function PortableSession() {
         </select>
       </label>
 
+      {wipePolicy !== 'none' && (
+        <label style={{ display: 'block', margin: '12px 0', color: 'var(--danger, crimson)', fontSize: '0.85rem' }}>
+          <input
+            type="checkbox"
+            checked={confirmWipe}
+            onChange={(e) => setConfirmWipe(e.target.checked)}
+            disabled={busy}
+            style={{ marginRight: 8 }}
+          />
+          I understand ejecting will WIPE local data ({wipePolicy}) after the bundle is written &amp; verified on the USB.
+        </label>
+      )}
+
       <div style={{ display: 'flex', gap: 12, margin: '20px 0' }}>
         <button onClick={begin} disabled={busy || active || !usbDir}>Begin session</button>
-        <button onClick={end} disabled={busy || !active}>Eject &amp; wipe host</button>
+        <button onClick={end} disabled={busy || !active || (wipePolicy !== 'none' && !confirmWipe)}>Eject &amp; wipe host</button>
       </div>
 
       {status && (

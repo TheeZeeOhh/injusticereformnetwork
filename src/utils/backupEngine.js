@@ -145,6 +145,23 @@ export async function downloadBackup(passphrase) {
  * Throws if the signature does not verify (tamper detected) — nothing is
  * written to storage in that case.
  */
+// Non-destructive verification: is this bundle restorable with this passphrase?
+// Runs the SAME HMAC check restoreBackup does (against the bundle's own salts),
+// but writes NOTHING to storage. Used by the portable-USB eject to prove the
+// just-written USB bundle actually restores BEFORE the host is wiped — so a
+// truncated/corrupt/wrong-passphrase bundle can never lead to a destructive wipe.
+// Returns true if the signature verifies, false otherwise (never throws for a
+// bad signature; only for a malformed object).
+export async function verifyBackup(passphrase, backup) {
+  if (!backup || !backup.records || !backup.hmac) {
+    throw new Error('Malformed backup file.');
+  }
+  const backupSaltA = backup.salts ? saltAFromStoreJson(backup.salts) : null;
+  const hmacKey = await deriveHmacKey(passphrase, backupSaltA);
+  const okV2 = await verifyData(hmacKey, signedView(backup), backup.hmac);
+  return okV2 || (await verifyData(hmacKey, legacyCanonical(backup), backup.hmac));
+}
+
 export async function restoreBackup(passphrase, backup) {
   if (!backup || !backup.records || !backup.hmac) {
     throw new Error('Malformed backup file.');
@@ -153,14 +170,7 @@ export async function restoreBackup(passphrase, backup) {
   // Verify against the backup's OWN salts, WITHOUT persisting them to this
   // device. A failed verification therefore never mutates local state — this
   // is what makes cross-device restore both portable and safe.
-  const backupSaltA = backup.salts ? saltAFromStoreJson(backup.salts) : null;
-  const hmacKey = await deriveHmacKey(passphrase, backupSaltA);
-
-  // Accept the current deterministic canonical form (v2, finding L3) OR the
-  // legacy insertion-order JSON form, so backups made before the fix still
-  // restore. Either valid signature is sufficient.
-  const okV2 = await verifyData(hmacKey, signedView(backup), backup.hmac);
-  const ok = okV2 || (await verifyData(hmacKey, legacyCanonical(backup), backup.hmac));
+  const ok = await verifyBackup(passphrase, backup);
   if (!ok) {
     throw new Error(
       'Backup signature verification FAILED. The file was tampered with or the passphrase is wrong. Restore aborted.'

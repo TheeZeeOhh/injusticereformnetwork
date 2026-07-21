@@ -4,14 +4,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // commands with the right args, without a running Tauri runtime.
 const invokeMock = vi.fn();
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...a) => invokeMock(...a) }));
-// clearSalts is exercised elsewhere; stub it here to assert it's wired.
-const clearSaltsMock = vi.fn();
-vi.mock('./cryptoEngine', () => ({ clearSalts: (...a) => clearSaltsMock(...a) }));
 
 import { makeUsbIO } from './usbIO';
 
 describe('makeUsbIO adapter -> Rust commands', () => {
-  beforeEach(() => { invokeMock.mockReset(); clearSaltsMock.mockReset(); });
+  beforeEach(() => { invokeMock.mockReset(); });
 
   it('requires a directory path', () => {
     expect(() => makeUsbIO('')).toThrow(/USB directory/);
@@ -52,10 +49,9 @@ describe('makeUsbIO adapter -> Rust commands', () => {
     expect(invokeMock).toHaveBeenCalledWith('read_usb_bundle', { dir: '/mnt/usb' });
   });
 
-  it('clearSalts delegates to cryptoEngine.clearSalts', async () => {
+  it('FIX 3: the adapter does NOT expose clearSalts (portable eject never clears the keychain)', () => {
     const io = makeUsbIO('/mnt/usb');
-    await io.clearSalts();
-    expect(clearSaltsMock).toHaveBeenCalledOnce();
+    expect(io.clearSalts).toBeUndefined();
   });
 
   it('write then read-back round-trips the same bundle object', async () => {
