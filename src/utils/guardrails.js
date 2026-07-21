@@ -76,6 +76,49 @@ export function blocksHosted(message) {
   return checkGuardrails(message).kind !== null;
 }
 
+// --- Outbound SMS PHI guard ---------------------------------------------------
+// send_sms_reminder relays the message body to Twilio (a third party). Reminders
+// must be generic ("you have an upcoming appointment"); they must NOT carry PHI —
+// a client name, case/docket number, DOB, health detail, or a personal referent.
+// This is a deterministic content gate, ENFORCED IN CODE, so a caseworker can't
+// accidentally disclose PHI to Twilio (which requires a BAA and is out of scope
+// for PHI regardless). Default-closed on ambiguity: if it looks like PHI, block.
+const SMS_PHI_PATTERNS = [
+  // case / docket numbers, e.g. 2:26-cv-00104 or 24-CR-1234
+  { rule: /\b(?:[0-9]{1,4}:)?[0-9]{2,4}-[a-z]{2,3}-[0-9]{3,6}\b/i, why: 'case/docket number' },
+  { rule: /\b(?:case|docket)\s*#?\s*[a-z0-9-]+/i, why: 'case reference' },
+  // dates of birth / DOB
+  { rule: /\bdob\b|\bdate of birth\b|\bborn\b/i, why: 'date of birth' },
+  // SSN-shaped
+  { rule: /\b\d{3}-\d{2}-\d{4}\b/, why: 'SSN-shaped number' },
+  // personal referents (a real person is attached)
+  { rule: /\b(my|the|your) (client|patient|case)\b/i, why: 'personal referent' },
+  // health / sensitive terms (42 CFR Part 2 / HRT / diagnosis)
+  { rule: /\bhrt\b|\bhormone|\bestrogen|\btestosterone|\bdiagnos|\bmedication|\bprescription|\bhiv\b|\bmental health\b|\bsubstance\b/i, why: 'health/sensitive detail' },
+  // a name-like "First Last" (weak, but PHI-cautious for a reminder)
+  { rule: /\b[A-Z][a-z]+ [A-Z][a-z]+\b/, why: 'possible client name' },
+];
+
+/**
+ * Evaluate an outbound SMS body for PHI before it can leave the device via Twilio.
+ * @param {string} body
+ * @returns {{ blocked: boolean, why: string|null }}
+ */
+export function smsPhiCheck(body) {
+  const text = String(body || '');
+  const hit = SMS_PHI_PATTERNS.find((p) => p.rule.test(text));
+  return hit ? { blocked: true, why: hit.why } : { blocked: false, why: null };
+}
+
+/**
+ * True if this SMS body must be blocked from the outbound (Twilio) path.
+ * @param {string} body
+ * @returns {boolean}
+ */
+export function smsBlocksPhi(body) {
+  return smsPhiCheck(body).blocked;
+}
+
 // --- Aggregate suppression (n < k) -------------------------------------------
 // Any rollup/dashboard emission must suppress small cells, including
 // quasi-identifier combinations (jurisdiction + demographic + timeframe).

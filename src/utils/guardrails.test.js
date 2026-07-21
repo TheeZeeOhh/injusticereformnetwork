@@ -5,6 +5,8 @@ import {
   cellEmittable,
   suppressSmallCells,
   aggregateWithPrivacy,
+  smsPhiCheck,
+  smsBlocksPhi,
   MIN_CELL_SIZE
 } from './guardrails';
 
@@ -134,5 +136,42 @@ describe('aggregateWithPrivacy — quasi-identifier combination k-anonymity', ()
     const { cells } = aggregateWithPrivacy(mixed, ['j', 'd']);
     expect(cells).toHaveLength(1);
     expect(cells[0].n).toBe(6);
+  });
+});
+
+describe('smsPhiCheck — outbound SMS PHI guard (Twilio egress)', () => {
+  it('ALLOWS the generic default reminder', () => {
+    const generic = 'Reminder from IRN: you have an upcoming appointment. Reply STOP to opt out.';
+    expect(smsBlocksPhi(generic)).toBe(false);
+    expect(smsPhiCheck(generic)).toEqual({ blocked: false, why: null });
+  });
+  it('ALLOWS other generic reminders', () => {
+    expect(smsBlocksPhi('Your appointment is tomorrow at 2pm. Reply STOP to opt out.')).toBe(false);
+    expect(smsBlocksPhi('Please call our office to confirm your visit.')).toBe(false);
+  });
+
+  it('BLOCKS a client name', () => {
+    const r = smsPhiCheck('Hi John Smith, your court date is soon.');
+    expect(r.blocked).toBe(true);
+    expect(r.why).toBe('possible client name');
+  });
+  it('BLOCKS a case/docket number', () => {
+    expect(smsBlocksPhi('Reminder for case 2:26-cv-00104 hearing.')).toBe(true);
+    expect(smsBlocksPhi('Your docket #24-CR-1234 is set.')).toBe(true);
+  });
+  it('BLOCKS a personal referent', () => {
+    expect(smsPhiCheck('Reminder about your client meeting.').why).toBe('personal referent');
+  });
+  it('BLOCKS DOB / SSN-shaped data', () => {
+    expect(smsBlocksPhi('DOB 01/01/1990 on file.')).toBe(true);
+    expect(smsBlocksPhi('SSN 123-45-6789')).toBe(true);
+  });
+  it('BLOCKS health/sensitive detail', () => {
+    expect(smsPhiCheck('Reminder to pick up your hormone prescription.').blocked).toBe(true);
+    expect(smsPhiCheck('Your HIV test results are ready.').blocked).toBe(true);
+  });
+  it('handles empty/nullish safely (not blocked)', () => {
+    expect(smsBlocksPhi('')).toBe(false);
+    expect(smsBlocksPhi(null)).toBe(false);
   });
 });

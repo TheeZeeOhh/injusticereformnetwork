@@ -258,6 +258,15 @@ export default function ClientsModule() {
       setSmsStatus({ ok: false, msg: 'Message body is empty.' });
       return;
     }
+    // PHI egress guard: the SMS body goes to Twilio (a third party). Block any
+    // message that looks like it contains PHI — a name, case/docket number, DOB,
+    // or health detail. Reminders must stay generic. Deterministic, enforced here.
+    const { smsPhiCheck } = await import('../utils/guardrails');
+    const phi = smsPhiCheck(smsBody);
+    if (phi.blocked) {
+      setSmsStatus({ ok: false, msg: `Blocked: message appears to contain PHI (${phi.why}). Keep reminders generic — no names, case numbers, or health details.` });
+      return;
+    }
     setSmsSending(true);
     setSmsStatus(null);
     try {
