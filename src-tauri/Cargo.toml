@@ -23,6 +23,11 @@ serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
 tauri = { version = "2.0.0-rc.17", features = [] }
 tauri-plugin-log = "2.0.0-rc"
+# Native folder picker for the portable-USB flow: lets the operator select the
+# USB mount directory. Only the dialog is granted — the webview gets NO general
+# filesystem access; all USB file I/O runs through the narrow write_usb_bundle /
+# read_usb_bundle Rust commands.
+tauri-plugin-dialog = "2.0.0-rc"
 # OS credential store (Secret Service / libsecret on Linux) for per-install
 # vault salts. Salts are non-secret but must live outside webview-accessible
 # storage; the keychain is the correct home for them under Design A.

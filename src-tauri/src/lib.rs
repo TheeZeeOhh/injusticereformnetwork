@@ -166,6 +166,52 @@ fn clear_vault_salts() -> Result<(), String> {
     }
 }
 
+// --- Portable USB bundle I/O ("Sanctuary-to-Go") -----------------------------
+//
+// The webview is NOT given filesystem access (no fs plugin). Instead these narrow
+// Rust commands read/write ONE fixed file — the signed, encrypted backup bundle —
+// in an operator-chosen directory (the USB mount, picked via the native dialog).
+// The bundle is already client-side-encrypted + HMAC-signed by the frontend
+// before it ever reaches `write_usb_bundle`, so Rust only moves opaque bytes; it
+// never sees plaintext PHI or keys. Same discipline as fetch_model_file: a single
+// purpose-built command, not a general capability.
+const USB_BUNDLE_FILENAME: &str = "sanctuary.backup";
+
+fn usb_bundle_path(dir: &str) -> Result<std::path::PathBuf, String> {
+    let d = std::path::Path::new(dir);
+    if !d.is_dir() {
+        return Err(format!("not a directory: {dir}"));
+    }
+    Ok(d.join(USB_BUNDLE_FILENAME))
+}
+
+/// Writes the signed bundle JSON to `<dir>/sanctuary.backup` atomically
+/// (temp file + rename), so a yanked drive mid-write cannot leave a half-written
+/// bundle that would fail its own HMAC on restore.
+#[tauri::command]
+fn write_usb_bundle(dir: String, bundle_json: String) -> Result<(), String> {
+    let final_path = usb_bundle_path(&dir)?;
+    let tmp_path = final_path.with_extension("backup.tmp");
+    std::fs::write(&tmp_path, bundle_json.as_bytes())
+        .map_err(|e| format!("USB write failed: {e}"))?;
+    std::fs::rename(&tmp_path, &final_path)
+        .map_err(|e| format!("USB finalize (rename) failed: {e}"))?;
+    Ok(())
+}
+
+/// Reads `<dir>/sanctuary.backup` and returns its JSON string, or None if no
+/// bundle exists there (a fresh stick). HMAC verification happens frontend-side
+/// in restoreBackup — this command only returns bytes.
+#[tauri::command]
+fn read_usb_bundle(dir: String) -> Result<Option<String>, String> {
+    let path = usb_bundle_path(&dir)?;
+    match std::fs::read_to_string(&path) {
+        Ok(s) => Ok(Some(s)),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(format!("USB read failed: {e}")),
+    }
+}
+
 // --- Backend model fetch (Audio Intake / Whisper) ---
 //
 // The webview runs from `tauri://localhost`; HuggingFace serves model files via a
@@ -380,6 +426,7 @@ pub fn run() {
     let watched_clone = usb_state.watched.clone();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(usb_state)
         .invoke_handler(tauri::generate_handler![
             arm_deadmans_switch,
@@ -388,6 +435,8 @@ pub fn run() {
             get_vault_salts,
             set_vault_salts,
             clear_vault_salts,
+            write_usb_bundle,
+            read_usb_bundle,
             fetch_model_file,
             hosted_assistant_ask,
             send_sms_reminder
