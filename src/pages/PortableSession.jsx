@@ -97,7 +97,7 @@ export default function PortableSession() {
 
       <label style={{ display: 'block', margin: '12px 0' }}>
         Wipe policy on eject:{' '}
-        <select value={wipePolicy} onChange={(e) => setWipePolicy(e.target.value)} disabled={busy || active}>
+        <select value={wipePolicy} onChange={(e) => setWipePolicy(e.target.value)} disabled={busy}>
           {WIPE_POLICIES.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
       </label>
