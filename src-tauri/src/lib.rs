@@ -149,6 +149,23 @@ fn set_vault_salts(salts_json: String) -> Result<(), String> {
         .map_err(|e| format!("keychain write error: {e}"))
 }
 
+/// Deletes the per-install salts from the OS keychain. Used by the portable-USB
+/// ("Sanctuary-to-Go") eject flow: after the signed bundle (which carries its own
+/// copy of the salts) is confirmed written to the USB, the host keychain salts are
+/// cleared so no vault-derivation artifact is left behind on a shared/borrowed
+/// machine. Idempotent: an already-absent entry is treated as success, so a wipe
+/// on an already-clean host never errors.
+#[tauri::command]
+fn clear_vault_salts() -> Result<(), String> {
+    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_SALT_ACCOUNT)
+        .map_err(|e| format!("keychain entry error: {e}"))?;
+    match entry.delete_credential() {
+        Ok(()) => Ok(()),
+        Err(keyring::Error::NoEntry) => Ok(()), // already clear — nothing to do
+        Err(e) => Err(format!("keychain delete error: {e}")),
+    }
+}
+
 // --- Backend model fetch (Audio Intake / Whisper) ---
 //
 // The webview runs from `tauri://localhost`; HuggingFace serves model files via a
@@ -370,6 +387,7 @@ pub fn run() {
             list_usb_devices,
             get_vault_salts,
             set_vault_salts,
+            clear_vault_salts,
             fetch_model_file,
             hosted_assistant_ask,
             send_sms_reminder

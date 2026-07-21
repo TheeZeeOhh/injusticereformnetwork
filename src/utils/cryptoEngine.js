@@ -55,6 +55,15 @@ async function writeSaltStore(json) {
   localStorage.setItem(SALT_STORAGE_KEY, json);
 }
 
+async function clearSaltStore() {
+  if (isTauri()) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('clear_vault_salts'); // idempotent: no-op if already absent
+    return;
+  }
+  localStorage.removeItem(SALT_STORAGE_KEY);
+}
+
 // Parses saltA (Uint8Array) out of a salt-store JSON string, for restore-time
 // verification against a backup's own salts without persisting them.
 export function saltAFromStoreJson(json) {
@@ -85,6 +94,14 @@ export async function exportSaltStore() {
 // device matches the origin device. Called during restore BEFORE deriving keys.
 export async function importSaltStore(json) {
   if (json) await writeSaltStore(json);
+}
+
+// Removes the per-install salts from this device (OS keychain under Tauri, else
+// localStorage in dev). Used by the portable-USB eject flow AFTER the signed
+// bundle — which carries its own copy of the salts — is confirmed written to the
+// USB, so no vault-derivation artifact remains on a shared/borrowed host.
+export async function clearSalts() {
+  await clearSaltStore();
 }
 
 // Returns { saltA, saltB } as Uint8Array, generating and persisting them on
