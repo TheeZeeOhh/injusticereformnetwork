@@ -328,5 +328,18 @@
       "warn": "Aviso",
       "skip": "N/D"
     }
+  },
+  "ninjabot": {
+    "_note": "REVIEW RECOMMENDED — es UI chrome is a good-faith draft; security FINDINGS themselves stay in English pending bilingual security review. A bilingual reviewer should confirm.",
+    "heading": "Ninjabot — Vigilancia defensiva",
+    "subtitle": "Vigilancia de anomalías solo de lectura, en el dispositivo, sobre la cadena de auditoría. Sin red, sin objetivos externos, solo consultiva.",
+    "run": "Ejecutar vigilancia",
+    "running": "Analizando…",
+    "footnote": "Los hallazgos son consultivos. Ninjabot nunca actúa automáticamente: usted decide la respuesta.",
+    "status": {
+      "info": "✓ No se detectaron anomalías.",
+      "warn": "! Anomalías que merecen su revisión.",
+      "critical": "⚠ Señal crítica: investigue ahora."
+    }
   }
 }

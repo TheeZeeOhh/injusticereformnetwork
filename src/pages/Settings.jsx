@@ -101,8 +101,7 @@ export default function Settings() {
   const [settings, setSettings] = useState({
     meshSync: true,
     audioRetention: false,
-    highContrast: false,
-    jitsiBaa: true
+    highContrast: false
   });
 
   const toggle = (key) => setSettings({ ...settings, [key]: !settings[key] });
@@ -122,6 +121,22 @@ export default function Settings() {
   const { vaultAKey, vaultBKey, isAuthenticated } = useAuthStore();
   const [selfTestReport, setSelfTestReport] = useState(null);
   const [selfTestRunning, setSelfTestRunning] = useState(false);
+
+  // Ninjabot — defensive watch over the audit chain + integrity signals.
+  const [ninjaReport, setNinjaReport] = useState(null);
+  const [ninjaRunning, setNinjaRunning] = useState(false);
+
+  const handleNinjabot = async () => {
+    setNinjaRunning(true);
+    setNinjaReport(null);
+    try {
+      const { runNinjabot } = await import('../utils/ninjabot');
+      setNinjaReport(await runNinjabot());
+    } catch (err) {
+      setNinjaReport({ status: 'critical', findings: [{ id: 'error', severity: 'critical', title: 'Ninjabot error', detail: String(err && err.message ? err.message : err) }] });
+    }
+    setNinjaRunning(false);
+  };
 
   // "Prove It" — run the read-only security self-test over live app state.
   const handleSelfTest = async () => {
@@ -261,14 +276,14 @@ export default function Settings() {
             </button>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Jitsi BAA Enforcement</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Require HIPAA-compliant server for Telehealth.</div>
+          <div>
+            <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>Jitsi BAA Enforcement</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, background: '#020617', borderLeft: '3px solid var(--gold)', padding: '0.75rem', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+              BAA enforcement is <strong style={{ color: 'var(--bone)' }}>always on</strong> and cannot be toggled off. Telehealth calls
+              route <strong style={{ color: 'var(--bone)' }}>only</strong> to a self-hosted Jitsi server you configure below — never the
+              public meet.jit.si. Each call also requires an explicit BAA acknowledgement
+              on the Telehealth screen. These guarantees are non-optional by design.
             </div>
-            <button onClick={() => toggle('jitsiBaa')} className="btn-primary" style={{ background: settings.jitsiBaa ? '#4ade80' : 'var(--charcoal-lighter)', color: settings.jitsiBaa ? '#0f172a' : 'var(--text-secondary)', padding: '0.4rem 1rem' }}>
-              {settings.jitsiBaa ? 'ENFORCED' : 'BYPASSED'}
-            </button>
           </div>
         </div>
 
@@ -432,6 +447,41 @@ export default function Settings() {
           {backupStatus && (
             <div style={{ fontSize: '0.8rem', color: '#4ade80', fontFamily: 'var(--font-mono)', background: '#020617', padding: '0.75rem', borderRadius: '4px', wordBreak: 'break-word' }}>
               {backupStatus}
+            </div>
+          )}
+        </div>
+
+        {/* Ninjabot — defensive watch (read-only, on-device, advisory) */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+            <div>
+              <h2 style={{ color: 'var(--bone)', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('ninjabot.heading')}</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>{t('ninjabot.subtitle')}</p>
+            </div>
+            <button onClick={handleNinjabot} disabled={ninjaRunning} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
+              {ninjaRunning ? t('ninjabot.running') : t('ninjabot.run')}
+            </button>
+          </div>
+
+          {ninjaReport && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-mono)', fontWeight: 'bold', color: ninjaReport.status === 'critical' ? '#f87171' : ninjaReport.status === 'warn' ? '#fbbf24' : '#4ade80' }}>
+                {t('ninjabot.status.' + ninjaReport.status)}
+              </div>
+              {ninjaReport.findings.map((f, i) => {
+                const color = f.severity === 'critical' ? '#f87171' : f.severity === 'warn' ? '#fbbf24' : '#4ade80';
+                const icon = f.severity === 'critical' ? '⚠' : f.severity === 'warn' ? '!' : '✓';
+                return (
+                  <div key={f.id + i} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', fontSize: '0.82rem', fontFamily: 'var(--font-mono)', padding: '0.6rem 0.75rem', borderRadius: '4px', background: '#020617', borderLeft: `3px solid ${color}` }}>
+                    <span style={{ color, fontWeight: 'bold', fontSize: '1rem', lineHeight: 1.2 }}>{icon}</span>
+                    <span style={{ flex: 1 }}>
+                      <span style={{ color: 'var(--bone)' }}>{f.title}</span>
+                      <span style={{ display: 'block', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>{f.detail}</span>
+                    </span>
+                  </div>
+                );
+              })}
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.72rem', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0', opacity: 0.7 }}>{t('ninjabot.footnote')}</p>
             </div>
           )}
         </div>

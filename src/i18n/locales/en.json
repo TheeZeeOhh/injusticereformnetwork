@@ -326,5 +326,17 @@
       "warn": "Warn",
       "skip": "N/A"
     }
+  },
+  "ninjabot": {
+    "heading": "Ninjabot — Defensive Watch",
+    "subtitle": "Read-only, on-device anomaly watch over the audit chain. No network, no external targeting, advisory only.",
+    "run": "Run watch",
+    "running": "Scanning…",
+    "footnote": "Findings are advisory. Ninjabot never acts automatically — you decide the response.",
+    "status": {
+      "info": "✓ No anomalies detected.",
+      "warn": "! Anomalies worth your review.",
+      "critical": "⚠ Critical signal — investigate now."
+    }
   }
 }

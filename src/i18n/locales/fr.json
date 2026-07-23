@@ -328,5 +328,18 @@
       "warn": "Alerte",
       "skip": "N/D"
     }
+  },
+  "ninjabot": {
+    "_note": "REVIEW RECOMMENDED — fr UI chrome is a good-faith draft; security FINDINGS themselves stay in English pending bilingual security review. A bilingual reviewer should confirm.",
+    "heading": "Ninjabot — Veille défensive",
+    "subtitle": "Veille d'anomalies en lecture seule, sur l'appareil, sur la chaîne d'audit. Sans réseau, sans ciblage externe, à titre consultatif uniquement.",
+    "run": "Lancer la veille",
+    "running": "Analyse…",
+    "footnote": "Les constats sont consultatifs. Ninjabot n'agit jamais automatiquement : vous décidez de la réponse.",
+    "status": {
+      "info": "✓ Aucune anomalie détectée.",
+      "warn": "! Anomalies à examiner.",
+      "critical": "⚠ Signal critique — enquêtez immédiatement."
+    }
   }
 }
