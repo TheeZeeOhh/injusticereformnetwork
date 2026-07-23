@@ -185,5 +185,30 @@
     "subtitle": "Bóveda B · Ley Escudo Trans de Maryland · Local, cifrado por separado",
     "vaultClosedBanner": "🔒 La Bóveda B está actualmente CERRADA (bloqueo de pánico BridgeVault activo). Los registros sensibles de TRH no se pueden leer ni escribir hasta que se vuelva a autenticar.",
     "saved": "Registro de TRH cifrado y guardado en la Bóveda B."
+  },
+  "resourceNav": {
+    "title": "Navegador de Recursos",
+    "subtitle": "Recursos de afirmación trans y de género expansivo · Baltimore, MD. El directorio es una referencia pública; los recursos guardados se cifran por cliente en la Bóveda B.",
+    "crisisLabel": "Crisis",
+    "searchPlaceholder": "Buscar recursos...",
+    "allCities": "Todas las ciudades",
+    "vaultClosedNote": "🔒 Bóveda B cerrada — puede explorar el directorio, pero guardar recursos para un cliente requiere abrir la Bóveda B.",
+    "saveForClient": "Guardar para el cliente",
+    "unlockToSave": "Abra la Bóveda B para guardar",
+    "verifyTooltip": "Detalles no verificados contra una fuente en vivo — confirme antes de derivar a un cliente",
+    "verifyBadge": "⚠ VERIFICAR ANTES DE DERIVAR",
+    "noMatch": "No hay recursos que coincidan.",
+    "cat": {
+      "All": "Todos",
+      "Healthcare": "Salud",
+      "Housing": "Vivienda",
+      "Legal": "Legal",
+      "Crisis": "Crisis",
+      "Harm Reduction": "Reducción de Daños",
+      "Financial": "Financiero",
+      "Food": "Alimentos",
+      "Recovery": "Recuperación"
+    },
+    "filterByCity": "Filtrar por ciudad"
   }
 }

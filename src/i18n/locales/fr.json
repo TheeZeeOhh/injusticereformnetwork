@@ -185,5 +185,30 @@
     "subtitle": "Coffre B · Loi Bouclier Trans du Maryland · Local, chiffré séparément",
     "vaultClosedBanner": "🔒 Le Coffre B est actuellement FERMÉ (verrouillage de panique BridgeVault actif). Les enregistrements THS sensibles ne peuvent être ni lus ni écrits avant une nouvelle authentification.",
     "saved": "Enregistrement THS chiffré et sauvegardé dans le Coffre B."
+  },
+  "resourceNav": {
+    "title": "Navigateur de Ressources",
+    "subtitle": "Ressources affirmant les personnes trans et de genre expansif · Baltimore, MD. Le répertoire est une référence publique ; les ressources sauvegardées sont chiffrées par client dans le Coffre B.",
+    "crisisLabel": "Crise",
+    "searchPlaceholder": "Rechercher des ressources...",
+    "allCities": "Toutes les villes",
+    "vaultClosedNote": "🔒 Coffre B fermé — vous pouvez parcourir le répertoire, mais sauvegarder des ressources pour un client nécessite d'ouvrir le Coffre B.",
+    "saveForClient": "Sauvegarder pour le client",
+    "unlockToSave": "Ouvrez le Coffre B pour sauvegarder",
+    "verifyTooltip": "Détails non vérifiés auprès d'une source en direct — confirmez avant d'orienter un client",
+    "verifyBadge": "⚠ VÉRIFIER AVANT ORIENTATION",
+    "noMatch": "Aucune ressource correspondante.",
+    "cat": {
+      "All": "Tous",
+      "Healthcare": "Santé",
+      "Housing": "Logement",
+      "Legal": "Juridique",
+      "Crisis": "Crise",
+      "Harm Reduction": "Réduction des Risques",
+      "Financial": "Financier",
+      "Food": "Alimentation",
+      "Recovery": "Rétablissement"
+    },
+    "filterByCity": "Filtrer par ville"
   }
 }

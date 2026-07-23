@@ -185,5 +185,30 @@
     "subtitle": "Vault B · Maryland Trans Shield Act · Local-first, separately encrypted",
     "vaultClosedBanner": "🔒 Vault B is currently CLOSED (BridgeVault panic-lock active). Sensitive HRT records cannot be read or written until you re-authenticate.",
     "saved": "HRT record encrypted and saved to Vault B."
+  },
+  "resourceNav": {
+    "title": "Resource Navigator",
+    "subtitle": "Trans & gender-expansive affirming resources · Baltimore, MD. Directory is public reference; saved resources are encrypted per client in Vault B.",
+    "crisisLabel": "Crisis",
+    "searchPlaceholder": "Search resources...",
+    "allCities": "All cities",
+    "vaultClosedNote": "🔒 Vault B closed — you can browse the directory, but saving resources for a client requires unlocking Vault B.",
+    "saveForClient": "Save for client",
+    "unlockToSave": "Unlock Vault B to save",
+    "verifyTooltip": "Details not verified against a live source — confirm before referring a client",
+    "verifyBadge": "⚠ VERIFY BEFORE REFERRAL",
+    "noMatch": "No resources match.",
+    "cat": {
+      "All": "All",
+      "Healthcare": "Healthcare",
+      "Housing": "Housing",
+      "Legal": "Legal",
+      "Crisis": "Crisis",
+      "Harm Reduction": "Harm Reduction",
+      "Financial": "Financial",
+      "Food": "Food",
+      "Recovery": "Recovery"
+    },
+    "filterByCity": "Filter by city"
   }
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 import AminaPanel from './AminaPanel';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // Resource Navigator — recovered from the original Sanctuary
 // (Baltimore's Safe Haven & Data Sovereignty Platform). A curated directory of
@@ -64,6 +65,7 @@ const CITIES = ['All', ...Array.from(new Set(RESOURCES.map((r) => cityOf(r.addr)
 const CRISIS = RESOURCES.filter((r) => r.cat === 'Crisis');
 
 export default function ResourceNavigator() {
+  const { t } = useLanguage();
   const { vaultBKey, vaultAKey } = useAuthStore();
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState('All');
@@ -137,15 +139,15 @@ export default function ResourceNavigator() {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div>
-        <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Resource Navigator</h1>
+        <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('resourceNav.title')}</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
-          Trans &amp; gender-expansive affirming resources · Baltimore, MD. Directory is public reference; saved resources are encrypted per client in Vault B.
+          {t('resourceNav.subtitle')}
         </p>
       </div>
 
       {/* Crisis lines — always visible */}
       <div className="glass-panel" style={{ padding: '1rem 1.25rem', borderLeft: '4px solid #e11d48', background: 'rgba(225,29,72,0.08)' }}>
-        <div style={{ color: '#fda4af', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>🆘 Crisis</div>
+        <div style={{ color: '#fda4af', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>🆘 {t('resourceNav.crisisLabel')}</div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           {CRISIS.map((r) => (
             <div key={r.name} style={{ fontSize: '0.85rem', color: 'var(--bone)' }}>
@@ -164,16 +166,16 @@ export default function ResourceNavigator() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search resources..."
+          placeholder={t('resourceNav.searchPlaceholder')}
           style={{ flex: 1, minWidth: '220px', padding: '0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}
         />
-        <select value={city} onChange={(e) => setCity(e.target.value)} title="Filter by city" style={{ padding: '0.4rem 0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-          {CITIES.map((c) => <option key={c} value={c}>{c === 'All' ? 'All cities' : c}</option>)}
+        <select value={city} onChange={(e) => setCity(e.target.value)} title={t('resourceNav.filterByCity')} style={{ padding: '0.4rem 0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+          {CITIES.map((c) => <option key={c} value={c}>{c === 'All' ? t('resourceNav.allCities') : c}</option>)}
         </select>
         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
           {CATEGORIES.map((c) => (
             <button key={c} onClick={() => setCat(c)} style={{ background: cat === c ? 'var(--gold)' : 'transparent', color: cat === c ? 'var(--charcoal)' : 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '0.35rem 0.7rem', borderRadius: '4px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
-              {c}
+              {t('resourceNav.cat.' + c)}
             </button>
           ))}
         </div>
@@ -181,7 +183,7 @@ export default function ResourceNavigator() {
 
       {!vaultBOpen && (
         <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-          🔒 Vault B closed — you can browse the directory, but saving resources for a client requires unlocking Vault B.
+          {t('resourceNav.vaultClosedNote')}
         </div>
       )}
 
@@ -193,14 +195,14 @@ export default function ResourceNavigator() {
             <div key={r.name} style={{ border: '1px solid var(--border-color)', borderRadius: '6px', padding: '1rem', background: 'var(--charcoal-lighter)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                 <div style={{ color: 'var(--bone)', fontWeight: 'bold', fontSize: '0.9rem' }}>{r.name}</div>
-                <button onClick={() => toggleSave(r.name)} disabled={!vaultBOpen} title={vaultBOpen ? 'Save for client' : 'Unlock Vault B to save'} style={{ background: 'transparent', border: 'none', cursor: vaultBOpen ? 'pointer' : 'not-allowed', fontSize: '1.1rem', opacity: vaultBOpen ? 1 : 0.4 }}>
+                <button onClick={() => toggleSave(r.name)} disabled={!vaultBOpen} title={vaultBOpen ? t('resourceNav.saveForClient') : t('resourceNav.unlockToSave')} style={{ background: 'transparent', border: 'none', cursor: vaultBOpen ? 'pointer' : 'not-allowed', fontSize: '1.1rem', opacity: vaultBOpen ? 1 : 0.4 }}>
                   {isSaved ? '★' : '☆'}
                 </button>
               </div>
-              <div style={{ color: 'var(--gold)', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', margin: '0.25rem 0' }}>{r.cat}</div>
+              <div style={{ color: 'var(--gold)', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', margin: '0.25rem 0' }}>{t('resourceNav.cat.' + r.cat)}</div>
               {r.unverified && (
-                <div title="Details not verified against a live source — confirm before referring a client" style={{ display: 'inline-block', fontSize: '0.62rem', fontFamily: 'var(--font-mono)', color: '#fbbf24', border: '1px solid #b45309', background: 'rgba(251,191,36,0.08)', borderRadius: '4px', padding: '1px 6px', marginBottom: '0.35rem' }}>
-                  ⚠ VERIFY BEFORE REFERRAL
+                <div title={t('resourceNav.verifyTooltip')} style={{ display: 'inline-block', fontSize: '0.62rem', fontFamily: 'var(--font-mono)', color: '#fbbf24', border: '1px solid #b45309', background: 'rgba(251,191,36,0.08)', borderRadius: '4px', padding: '1px 6px', marginBottom: '0.35rem' }}>
+                  {t('resourceNav.verifyBadge')}
                 </div>
               )}
               <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '0.4rem' }}>{r.note}</div>
@@ -210,7 +212,7 @@ export default function ResourceNavigator() {
           );
         })}
         {visible.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)' }}>No resources match.</div>
+          <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)' }}>{t('resourceNav.noMatch')}</div>
         )}
       </div>
 
