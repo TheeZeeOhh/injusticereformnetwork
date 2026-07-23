@@ -290,5 +290,43 @@
     "noRequests": "No hay solicitudes de transporte hoy.",
     "toggleAdd": "+ Solicitar Transporte",
     "submitRequest": "Solicitar Viaje"
+  },
+  "foia": {
+    "_note": "REVIEW RECOMMENDED — es strings are a good-faith draft. The generated FOIA letter is intentionally NOT translated (it is filed in English with U.S. agencies). A bilingual reviewer should confirm the UI copy before relying on it.",
+    "title": "Generador de FOIA",
+    "subtitle": "Genera automáticamente solicitudes de la Ley de Libertad de Información con formato legal.",
+    "targetAgency": "Agencia destinataria",
+    "clientName": "Nombre del cliente",
+    "clientNamePlaceholder": "Nombre legal completo",
+    "incidentDate": "Fecha del incidente",
+    "badgeNumber": "Número de placa (opcional)",
+    "badgePlaceholder": "p. ej. 12345",
+    "errNeedFields": "Proporcione el nombre del cliente y la fecha del incidente antes de generar la solicitud.",
+    "generate": "Generar documento de solicitud",
+    "previewHeading": "Vista previa del documento",
+    "previewNote": "La carta de solicitud se redacta en inglés porque se presenta ante un oficial de FOIA del gobierno de EE. UU.; solo se traduce esta interfaz."
+  },
+  "selftest": {
+    "_note": "REVIEW RECOMMENDED — es strings are a good-faith draft; a bilingual reviewer should confirm before relying on them.",
+    "heading": "Demuéstralo — Autocomprobación de seguridad",
+    "subtitle": "Verificación en vivo, de solo lectura, de la Defensa de Incapacidad Técnica. No se descifra ningún PHI.",
+    "run": "Ejecutar autocomprobación",
+    "running": "Ejecutando…",
+    "allPass": "✓ Todas las comprobaciones pasaron: los datos se guardan cifrados y las claves solo en RAM.",
+    "someFail": "✗ Una o más comprobaciones requieren atención.",
+    "check": {
+      "secrets_at_rest": "No hay claves ni contraseñas guardadas en disco",
+      "records_ciphertext": "Los registros del cliente se almacenan solo como texto cifrado",
+      "vault_separation": "La Bóveda B permanece sellada hasta desbloquearla explícitamente",
+      "backup_integrity": "Las copias de seguridad cifradas son a prueba de manipulaciones",
+      "idle_lock": "El bloqueo automático por inactividad está activado",
+      "error": "Error de autocomprobación"
+    },
+    "status": {
+      "pass": "Correcto",
+      "fail": "Fallo",
+      "warn": "Aviso",
+      "skip": "N/D"
+    }
   }
 }

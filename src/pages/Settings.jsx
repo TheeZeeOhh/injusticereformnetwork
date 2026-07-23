@@ -119,6 +119,23 @@ export default function Settings() {
   // Tamper-evident audit log viewer.
   const [auditEntries, setAuditEntries] = useState([]);
   const [auditVerify, setAuditVerify] = useState(null);
+  const { vaultAKey, vaultBKey, isAuthenticated } = useAuthStore();
+  const [selfTestReport, setSelfTestReport] = useState(null);
+  const [selfTestRunning, setSelfTestRunning] = useState(false);
+
+  // "Prove It" — run the read-only security self-test over live app state.
+  const handleSelfTest = async () => {
+    setSelfTestRunning(true);
+    setSelfTestReport(null);
+    try {
+      const { runSelfTest } = await import('../utils/selfTest');
+      const report = await runSelfTest({ vaultAKey, vaultBKey, isAuthenticated });
+      setSelfTestReport(report);
+    } catch (err) {
+      setSelfTestReport({ ok: false, checks: [{ id: 'error', label: 'Self-test', status: 'fail', detail: String(err && err.message ? err.message : err) }] });
+    }
+    setSelfTestRunning(false);
+  };
 
   const refreshAudit = async () => {
     try {
@@ -415,6 +432,41 @@ export default function Settings() {
           {backupStatus && (
             <div style={{ fontSize: '0.8rem', color: '#4ade80', fontFamily: 'var(--font-mono)', background: '#020617', padding: '0.75rem', borderRadius: '4px', wordBreak: 'break-word' }}>
               {backupStatus}
+            </div>
+          )}
+        </div>
+
+        {/* "Prove It" — live security self-test (Technical Incapacity Defense) */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+            <div>
+              <h2 style={{ color: 'var(--bone)', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('selftest.heading')}</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', margin: '0.25rem 0 0' }}>{t('selftest.subtitle')}</p>
+            </div>
+            <button onClick={handleSelfTest} disabled={selfTestRunning} className="btn-primary" style={{ background: 'var(--gold)', color: 'var(--charcoal)', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
+              {selfTestRunning ? t('selftest.running') : t('selftest.run')}
+            </button>
+          </div>
+
+          {selfTestReport && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-mono)', fontWeight: 'bold', color: selfTestReport.ok ? '#4ade80' : '#f87171' }}>
+                {selfTestReport.ok ? t('selftest.allPass') : t('selftest.someFail')}
+              </div>
+              {selfTestReport.checks.map((c) => {
+                const color = c.status === 'pass' ? '#4ade80' : c.status === 'fail' ? '#f87171' : c.status === 'warn' ? '#fbbf24' : 'var(--text-secondary)';
+                const icon = c.status === 'pass' ? '✓' : c.status === 'fail' ? '✗' : c.status === 'warn' ? '!' : '–';
+                return (
+                  <div key={c.id} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', fontSize: '0.82rem', fontFamily: 'var(--font-mono)', padding: '0.6rem 0.75rem', borderRadius: '4px', background: '#020617' }}>
+                    <span style={{ color, fontWeight: 'bold', fontSize: '1rem', lineHeight: 1.2 }}>{icon}</span>
+                    <span style={{ flex: 1 }}>
+                      <span style={{ color: 'var(--bone)' }}>{t('selftest.check.' + c.id)}</span>
+                      <span style={{ display: 'block', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>{c.detail}</span>
+                    </span>
+                    <span style={{ color, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.05em' }}>{t('selftest.status.' + c.status)}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

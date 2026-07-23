@@ -290,5 +290,41 @@
     "noRequests": "No transport requests today.",
     "toggleAdd": "+ Request Transport",
     "submitRequest": "Request Ride"
+  },
+  "foia": {
+    "title": "FOIA Generator",
+    "subtitle": "Auto-generate legally formatted Freedom of Information Act requests.",
+    "targetAgency": "Target Agency",
+    "clientName": "Client Name",
+    "clientNamePlaceholder": "Full legal name",
+    "incidentDate": "Incident Date",
+    "badgeNumber": "Badge / Shield Number (Optional)",
+    "badgePlaceholder": "e.g. 12345",
+    "errNeedFields": "Please provide both a Client Name and an Incident Date before generating the request.",
+    "generate": "Generate Request Document",
+    "previewHeading": "Document Preview",
+    "previewNote": "The request letter itself is written in English because it is filed with a U.S. government FOIA officer; only this interface is translated."
+  },
+  "selftest": {
+    "heading": "Prove It — Security Self-Test",
+    "subtitle": "Read-only live check of the Technical Incapacity Defense. No PHI is decrypted.",
+    "run": "Run self-test",
+    "running": "Running…",
+    "allPass": "✓ All checks passed — data is held as ciphertext with keys in RAM only.",
+    "someFail": "✗ One or more checks need attention.",
+    "check": {
+      "secrets_at_rest": "No keys or passphrases persisted to disk",
+      "records_ciphertext": "Client records stored only as ciphertext",
+      "vault_separation": "Vault B sealed until explicitly unlocked",
+      "backup_integrity": "Encrypted backups are tamper-evident",
+      "idle_lock": "Idle auto-lock is armed",
+      "error": "Self-test error"
+    },
+    "status": {
+      "pass": "Pass",
+      "fail": "Fail",
+      "warn": "Warn",
+      "skip": "N/A"
+    }
   }
 }

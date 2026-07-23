@@ -290,5 +290,43 @@
     "noRequests": "Aucune demande de transport aujourd'hui.",
     "toggleAdd": "+ Demander un Transport",
     "submitRequest": "Demander un Trajet"
+  },
+  "foia": {
+    "_note": "REVIEW RECOMMENDED — fr strings are a good-faith draft. The generated FOIA letter is intentionally NOT translated (it is filed in English with U.S. agencies). A bilingual reviewer should confirm the UI copy before relying on it.",
+    "title": "Générateur de FOIA",
+    "subtitle": "Générez automatiquement des demandes d'accès à l'information au format juridique.",
+    "targetAgency": "Agence destinataire",
+    "clientName": "Nom du client",
+    "clientNamePlaceholder": "Nom légal complet",
+    "incidentDate": "Date de l'incident",
+    "badgeNumber": "Numéro de matricule (facultatif)",
+    "badgePlaceholder": "p. ex. 12345",
+    "errNeedFields": "Veuillez indiquer le nom du client et la date de l'incident avant de générer la demande.",
+    "generate": "Générer le document de demande",
+    "previewHeading": "Aperçu du document",
+    "previewNote": "La lettre de demande est rédigée en anglais car elle est déposée auprès d'un agent FOIA du gouvernement américain ; seule cette interface est traduite."
+  },
+  "selftest": {
+    "_note": "REVIEW RECOMMENDED — fr strings are a good-faith draft; a bilingual reviewer should confirm before relying on them.",
+    "heading": "Prouvez-le — Autotest de sécurité",
+    "subtitle": "Vérification en direct, en lecture seule, de la Défense d'Incapacité Technique. Aucun PHI n'est déchiffré.",
+    "run": "Lancer l'autotest",
+    "running": "En cours…",
+    "allPass": "✓ Toutes les vérifications ont réussi : les données sont chiffrées et les clés uniquement en RAM.",
+    "someFail": "✗ Une ou plusieurs vérifications nécessitent votre attention.",
+    "check": {
+      "secrets_at_rest": "Aucune clé ni phrase secrète enregistrée sur le disque",
+      "records_ciphertext": "Les dossiers clients sont stockés uniquement sous forme chiffrée",
+      "vault_separation": "Le Coffre B reste scellé jusqu'à déverrouillage explicite",
+      "backup_integrity": "Les sauvegardes chiffrées sont infalsifiables",
+      "idle_lock": "Le verrouillage automatique par inactivité est activé",
+      "error": "Erreur d'autotest"
+    },
+    "status": {
+      "pass": "Réussi",
+      "fail": "Échec",
+      "warn": "Alerte",
+      "skip": "N/D"
+    }
   }
 }
