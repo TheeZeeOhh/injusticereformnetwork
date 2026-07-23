@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sanctuary · Pheromone Protocol</title>
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────────────────── */
+:root {
+  --obsidian:   #0D0D0D;
+  --ash:        #1A1A2E;
+  --ash-mid:    #222244;
+  --ember:      #C9374A;
+  --ember-dim:  #8B2533;
+  --gold:       #D4A94A;
+  --gold-dim:   #7A5F1E;
+  --teal:       #1A7A6E;
+  --teal-bright:#22A89A;
+  --teal-dim:   #0E4A44;
+  --sage:       #2E5B50;
+  --ivory:      #F5F1E8;
+  --mist:       #E8E4DC;
+  --violet:     #6B4E8A;
+  --violet-dim: #3D2B55;
+  --mid-gray:   #888888;
+  --light-gray: #BBBBBB;
+  --warn-bg:    #2A2000;
+  --warn-border:#D4A94A;
+  --ok-bg:      #001A16;
+  --ok-border:  #1A7A6E;
+  --err-bg:     #2A0008;
+  --err-border: #C9374A;
+  --info-bg:    #0A0A1E;
+  --info-border:#6B4E8A;
+  --font-mono:  'Courier New', monospace;
+  --font-ui:    system-ui, -apple-system, sans-serif;
+  --radius:     6px;
+  --transition: 0.18s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--ash);
+  color: var(--ivory);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+/* ── LAYOUT ─────────────────────────────────────────────────────────────── */
+.app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+header.top-bar {
+  background: var(--obsidian);
+  border-bottom: 2px solid var(--teal);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo-group { display: flex; align-items: center; gap: 12px; }
+.logo-glyph {
+  width: 32px; height: 32px;
+  background: radial-gradient(circle at center, var(--teal-dim) 0%, var(--obsidian) 70%);
+  border: 1px solid var(--teal);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--gold); font-weight: bold;
+  flex-shrink: 0;
+}
+.logo-text { font-size: 13px; }
+.logo-text .sanctuary { color: var(--teal-bright); font-weight: 700; letter-spacing: 2px; font-size: 11px; }
+.logo-text .module    { color: var(--gold); font-weight: 600; font-size: 13px; }
+
+.vault-status {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--mid-gray);
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ember); flex-shrink: 0;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+.status-dot.sealed  { background: var(--ember); }
+.status-dot.locked  { background: var(--mid-gray); }
+.status-dot.unlocked{ background: var(--teal-bright); box-shadow: 0 0 8px var(--teal); }
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 300px;
+  min-height: calc(100vh - 54px);
+}
+
+/* ── SIDEBAR ────────────────────────────────────────────────────────────── */
+.sidebar {
+  background: var(--obsidian);
+  border-right: 1px solid #222;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+.nav-section { margin-bottom: 4px; }
+.nav-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 2px;
+  color: var(--mid-gray); text-transform: uppercase;
+  padding: 10px 18px 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all var(--transition);
+  font-size: 13px; color: var(--light-gray);
+  user-select: none;
+}
+.nav-item:hover       { background: #111122; color: var(--ivory); border-left-color: var(--gold-dim); }
+.nav-item.active      { background: #0E1A18; color: var(--teal-bright); border-left-color: var(--teal); }
+.nav-item.active .ni  { color: var(--teal-bright); }
+.ni { font-size: 14px; width: 18px; text-align: center; }
+
+/* ── MAIN CONTENT ───────────────────────────────────────────────────────── */
+.main-content {
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--ash);
+}
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── LOCK SCREEN ────────────────────────────────────────────────────────── */
+.lock-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: calc(100vh - 54px);
+  grid-column: 1 / -1;
+}
+.lock-card {
+  background: var(--obsidian);
+  border: 1px solid var(--teal-dim);
+  border-radius: 12px;
+  padding: 40px;
+  width: 380px;
+  text-align: center;
+}
+.lock-glyph {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: radial-gradient(circle, var(--teal-dim), var(--obsidian));
+  border: 1.5px solid var(--teal);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; margin: 0 auto 20px;
+  box-shadow: 0 0 24px rgba(26,122,110,0.2);
+}
+.lock-title { font-size: 18px; font-weight: 700; color: var(--teal-bright); margin-bottom: 4px; }
+.lock-sub   { font-size: 12px; color: var(--mid-gray); margin-bottom: 24px; }
+
+/* ── TYPOGRAPHY ─────────────────────────────────────────────────────────── */
+.page-title {
+  font-size: 22px; font-weight: 700; color: var(--teal-bright);
+  margin-bottom: 4px; letter-spacing: 0.5px;
+}
+.page-sub {
+  font-size: 12px; color: var(--mid-gray); margin-bottom: 24px;
+}
+.section-title {
+  font-size: 13px; font-weight: 700; color: var(--gold);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 12px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--gold-dim);
+}
+
+/* ── CARDS ──────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--obsidian);
+  border: 1px solid #2A2A3E;
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.card.teal-border  { border-color: var(--teal-dim); }
+.card.gold-border  { border-color: var(--gold-dim); }
+.card.ember-border { border-color: var(--ember-dim); }
+.card.violet-border{ border-color: var(--violet-dim); }
+
+.callout {
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 12px; line-height: 1.5;
+}
+.callout.warn   { background: var(--warn-bg);  border: 1px solid var(--warn-border);  color: var(--gold); }
+.callout.ok     { background: var(--ok-bg);    border: 1px solid var(--ok-border);    color: var(--teal-bright); }
+.callout.err    { background: var(--err-bg);   border: 1px solid var(--err-border);   color: #FF8888; }
+.callout.info   { background: var(--info-bg);  border: 1px solid var(--info-border);  color: #CC99FF; }
+.callout strong { font-weight: 700; }
+
+/* ── FORMS ──────────────────────────────────────────────────────────────── */
+.form-row { margin-bottom: 14px; }
+.form-label {
+  display: block; font-size: 11px; font-weight: 600;
+  color: var(--mid-gray); text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%; background: var(--ash-mid);
+  border: 1px solid #3A3A5E; border-radius: var(--radius);
+  color: var(--ivory); font-family: var(--font-ui);
+  padding: 9px 12px; font-size: 13px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--teal); box-shadow: 0 0 0 3px rgba(26,122,110,0.15);
+}
+.form-select { appearance: none; cursor: pointer; }
+.form-textarea { resize: vertical; min-height: 80px; font-family: var(--font-mono); font-size: 12px; }
+.form-row .hint { font-size: 11px; color: var(--mid-gray); margin-top: 4px; }
+
+.checkbox-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 10px; font-size: 12px; cursor: pointer;
+}
+.checkbox-row input[type="checkbox"] { margin-top: 2px; accent-color: var(--teal); flex-shrink: 0; }
+
+/* ── BUTTONS ────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: var(--radius);
+  font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: all var(--transition);
+  letter-spacing: 0.3px; user-select: none;
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary  { background: var(--teal);        color: var(--ivory); }
+.btn-primary:hover:not(:disabled)  { background: var(--teal-bright); }
+.btn-ember    { background: var(--ember);       color: var(--ivory); }
+.btn-ember:hover:not(:disabled)    { background: #E04560; }
+.btn-gold     { background: var(--gold-dim);    color: var(--ivory); }
+.btn-gold:hover:not(:disabled)     { background: var(--gold); color: var(--obsidian); }
+.btn-ghost    { background: transparent; color: var(--teal-bright); border: 1px solid var(--teal-dim); }
+.btn-ghost:hover:not(:disabled)    { background: var(--teal-dim); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+/* ── TABLES ─────────────────────────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th {
+  background: var(--obsidian); color: var(--gold);
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--gold-dim);
+}
+.data-table td {
+  padding: 9px 10px; border-bottom: 1px solid #222233;
+  color: var(--ivory); vertical-align: top;
+}
+.data-table tr:nth-child(even) td { background: rgba(0,0,0,0.15); }
+.data-table tr:hover td { background: rgba(26,122,110,0.07); }
+.tag {
+  display: inline-block; padding: 2px 7px; border-radius: 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+}
+.tag-teal   { background: var(--teal-dim);   color: var(--teal-bright); }
+.tag-ember  { background: var(--ember-dim);  color: #FF9999; }
+.tag-gold   { background: var(--gold-dim);   color: var(--gold); }
+.tag-violet { background: var(--violet-dim); color: #CC99FF; }
+.tag-gray   { background: #2A2A3E;           color: var(--light-gray); }
+
+/* ── STAT CARDS ─────────────────────────────────────────────────────────── */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--obsidian); border-radius: var(--radius);
+  padding: 14px; border: 1px solid #2A2A3E;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--mid-gray); }
+.stat-value { font-size: 26px; font-weight: 700; color: var(--teal-bright); font-variant-numeric: tabular-nums; }
+.stat-sub   { font-size: 10px; color: var(--mid-gray); }
+.stat-card.ember .stat-value { color: var(--ember); }
+.stat-card.gold  .stat-value { color: var(--gold); }
+.stat-card.violet .stat-value { color: #CC99FF; }
+
+/* ── BRIDGE INDICATOR ───────────────────────────────────────────────────── */
+.bridge-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: var(--radius);
+  margin-bottom: 16px; font-size: 12px; font-weight: 600;
+  transition: all var(--transition);
+}
+.bridge-banner.sealed {
+  background: var(--err-bg); border: 1px solid var(--ember-dim);
+  color: var(--ember);
+}
+.bridge-banner.open {
+  background: var(--ok-bg); border: 1px solid var(--ok-border);
+  color: var(--teal-bright);
+}
+.bridge-icon { font-size: 18px; }
+
+/* ── CONSENT MODAL ──────────────────────────────────────────────────────── */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-backdrop.visible { display: flex; }
+.modal {
+  background: var(--obsidian); border: 1px solid var(--teal);
+  border-radius: 10px; padding: 28px; width: 520px; max-width: 95vw;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-title { font-size: 16px; font-weight: 700; color: var(--teal-bright); margin-bottom: 4px; }
+.modal-sub   { font-size: 12px; color: var(--mid-gray); margin-bottom: 18px; }
+.modal-close {
+  float: right; background: none; border: none;
+  color: var(--mid-gray); font-size: 20px; cursor: pointer; line-height: 1;
+}
+.modal-close:hover { color: var(--ember); }
+
+/* ── AUDIT LOG ──────────────────────────────────────────────────────────── */
+.audit-stream {
+  background: var(--obsidian); border: 1px solid #2A2A3E;
+  border-radius: var(--radius); padding: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+  max-height: 320px; overflow-y: auto;
+  line-height: 1.6;
+}
+.audit-line { margin-bottom: 2px; }
+.audit-line .ts  { color: var(--mid-gray); margin-right: 8px; }
+.audit-line .ev  { font-weight: 700; margin-right: 8px; }
+.audit-line.PHEROMONE_CREATED .ev  { color: var(--teal-bright); }
+.audit-line.CONSENT_INITIATED .ev  { color: var(--gold); }
+.audit-line.CONSENT_TOKEN_ISSUED .ev { color: var(--gold); }
+.audit-line.BRIDGE_OPENED .ev      { color: #22EE99; }
+.audit-line.BRIDGE_SEALED .ev      { color: var(--ember); }
+.audit-line.EXPORT_COMPLETED .ev   { color: #CC99FF; }
+.audit-line.ANOMALY_DETECTED .ev   { color: var(--ember); font-weight: 900; }
+.audit-line.PART2_CONSENT .ev      { color: var(--violet); }
+.audit-line .meta { color: var(--light-gray); }
+
+/* ── PROGRESS ───────────────────────────────────────────────────────────── */
+.progress-bar-wrap { background: #111122; border-radius: 3px; height: 4px; margin: 8px 0; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--teal); border-radius: 3px; transition: width 0.3s ease; }
+
+/* ── DP PREVIEW ─────────────────────────────────────────────────────────── */
+.dp-canvas-wrap { background: var(--obsidian); border-radius: var(--radius); padding: 12px; margin: 10px 0; }
+canvas.dp-chart { width: 100%; height: 120px; }
+
+/* ── RIGHT PANEL ─────────────────────────────────────────────────────────── */
+.right-panel {
+  background: var(--obsidian);
+  border-left: 1px solid #222;
+  padding: 16px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+.rp-section { margin-bottom: 20px; }
+.rp-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--teal-bright); margin-bottom: 10px;
+  padding-bottom: 5px; border-bottom: 1px solid var(--teal-dim);
+}
+.token-display {
+  background: var(--ash); border: 1px solid #3A3A5E;
+  border-radius: var(--radius); padding: 8px;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--gold); word-break: break-all; line-height: 1.6;
+}
+.compliance-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0; border-bottom: 1px solid #1A1A2E;
+  font-size: 11px; color: var(--light-gray);
+}
+.compliance-item:last-child { border-bottom: none; }
+.comp-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.comp-dot.pass  { background: var(--teal-bright); }
+.comp-dot.warn  { background: var(--gold); }
+.comp-dot.fail  { background: var(--ember); }
+
+/* ── EXPORT BUNDLE ───────────────────────────────────────────────────────── */
+.export-preview {
+  background: var(--ash); border: 1px solid var(--teal-dim);
+  border-radius: var(--radius); padding: 10px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--ivory); max-height: 200px; overflow-y: auto; line-height: 1.5;
+}
+.key-val { display: flex; gap: 6px; }
+.key-val .k { color: var(--gold); flex-shrink: 0; }
+.key-val .v { color: var(--teal-bright); word-break: break-all; }
+
+/* ── SCROLLBARS ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--obsidian); }
+::-webkit-scrollbar-thumb { background: #3A3A5E; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--teal-dim); }
+
+/* ── SPINNER ─────────────────────────────────────────────────────────────── */
+.spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid transparent; border-top-color: currentColor;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ───────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--obsidian); border: 1px solid var(--teal);
+  color: var(--ivory); border-radius: var(--radius);
+  padding: 10px 16px; font-size: 13px;
+  z-index: 999; opacity: 0; transform: translateY(10px);
+  transition: all 0.25s ease; pointer-events: none; max-width: 320px;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.err  { border-color: var(--ember); }
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .main-layout { grid-template-columns: 1fr; }
+  .sidebar, .right-panel { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="app">
+
+<!-- ── TOP BAR ── -->
+<header class="top-bar">
+  <div class="logo-group">
+    <div class="logo-glyph">φ</div>
+    <div class="logo-text">
+      <div class="sanctuary">SANCTUARY DVUA</div>
+      <div class="module">Pheromone Protocol</div>
+    </div>
+  </div>
+  <div class="vault-status">
+    <div class="status-dot" id="bridgeDot"></div>
+    <span id="bridgeStatusText">Bridge: Sealed</span>
+    &nbsp;·&nbsp;
+    <div class="status-dot" id="vaultDot"></div>
+    <span id="vaultStatusText">Vault: Locked</span>
+  </div>
+</header>
+
+<!-- ── LOCK SCREEN ── -->
+<div id="lockScreen" class="lock-screen">
+  <div class="lock-card">
+    <div class="lock-glyph">🔒</div>
+    <div class="lock-title">Activity Vault</div>
+    <div class="lock-sub">Enter passphrase to derive vault key.<br/>Key never stored — derived at runtime.</div>
+    <div class="form-row">
+      <label class="form-label">Vault Passphrase</label>
+      <input type="password" class="form-input" id="passphraseInput"
+             placeholder="Enter vault passphrase" autocomplete="off"/>
+      <div class="hint" style="margin-top:6px;">PBKDF2-SHA256 · 600,000 iterations · AES-256-GCM</div>
+    </div>
+    <div class="progress-bar-wrap" id="kdfProgress" style="display:none">
+      <div class="progress-bar-fill" id="kdfBar" style="width:0%"></div>
+    </div>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn btn-primary" id="unlockBtn" onclick="unlockVault()">
+        <span>Unlock Vault</span>
+      </button>
+    </div>
+    <div style="margin-top:14px; font-size:11px; color:var(--mid-gray); text-align:center">
+      First use? Passphrase creates a new vault.<br/>
+      This tool implements the Sanctuary DVUA Pheromone Protocol.
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN LAYOUT (hidden until unlocked) ── -->
+<div class="main-layout" id="mainLayout" style="display:none">
+
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Activity Vault</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')">
+        <span class="ni">⬡</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPanel('record')">
+        <span class="ni">＋</span> Record Event
+      </div>
+      <div class="nav-item" onclick="showPanel('vault')">
+        <span class="ni">🗄</span> Vault Browser
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Bridge Protocol</div>
+      <div class="nav-item" onclick="showPanel('bridge')">
+        <span class="ni">⇌</span> Bridge Gate
+      </div>
+      <div class="nav-item" onclick="showPanel('consent')">
+        <span class="ni">✍</span> Consent Manager
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Clean Data</div>
+      <div class="nav-item" onclick="showPanel('export')">
+        <span class="ni">↗</span> Export / DP
+      </div>
+      <div class="nav-item" onclick="showPanel('soul')">
+        <span class="ni">◈</span> $OUL Ledger
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">System</div>
+      <div class="nav-item" onclick="showPanel('audit')">
+        <span class="ni">📋</span> Audit Log
+      </div>
+      <div class="nav-item" onclick="showPanel('compliance')">
+        <span class="ni">✓</span> Compliance
+      </div>
+      <div class="nav-item" onclick="lockVault()" style="margin-top:20px; color:var(--ember)">
+        <span class="ni">🔒</span> Lock Vault
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <main class="main-content">
+
+    <!-- DASHBOARD -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="page-title">Pheromone Activity Vault</div>
+      <div class="page-sub">Dual-Vault Unlinkable Architecture · Activity Layer · v1.0</div>
+
+      <div id="dashBridge" class="bridge-banner sealed">
+        <span class="bridge-icon">🔴</span>
+        <div>
+          <strong>BridgeVault: Sealed</strong><br/>
+          <span style="font-weight:400; color:var(--mid-gray)">No cryptographic link exists between identity and activity. Default state.</span>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card teal">
+          <div class="stat-label">Pheromones</div>
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-sub">encrypted records</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-label">Service Types</div>
+          <div class="stat-value" id="statTypes">0</div>
+          <div class="stat-sub">distinct categories</div>
+        </div>
+        <div class="stat-card ember">
+          <div class="stat-label">SUD-Flagged</div>
+          <div class="stat-value" id="statSUD">0</div>
+          <div class="stat-sub">42 CFR Part 2 isolated</div>
+        </div>
+        <div class="stat-card violet">
+          <div class="stat-label">Consent-Opted</div>
+          <div class="stat-value" id="statConsented">0</div>
+          <div class="stat-sub">data economy eligible</div>
+        </div>
+      </div>
+
+      <div class="card teal-border">
+        <div class="section-title">Recent Pheromones</div>
+        <table class="data-table" id="recentTable">
+          <thead><tr>
+            <th>ID (truncated)</th><th>Service Type</th>
+            <th>Date Bucket</th><th>Location Cluster</th>
+            <th>Flags</th><th>Vault HMAC</th>
+          </tr></thead>
+          <tbody id="recentBody">
+            <tr><td colspan="6" style="text-align:center; color:var(--mid-gray); padding:20px">
+              No pheromones recorded yet. Record a service event to begin.
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECORD EVENT -->
+    <div id="panel-record" class="panel">
+      <div class="page-title">Record Service Event</div>
+      <div class="page-sub">Creates a Pheromone — de-identified, encrypted, stored in Activity Vault.</div>
+
+      <div class="callout warn">
+        <strong>Schema Enforcement:</strong> This form is structurally incapable of accepting PII.
+        All fields are coded, bucketed, or clustered. Free-text fields are not available.
+        De-identification occurs at the point of data creation.
+      </div>
+
+      <div class="card teal-border">
+        <div class="section-title">Event Classification</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px">
+          <div class="form-row">
+            <label class="form-label">Service Type *</label>
+            <select class="form-select" id="svcType">
+              <option value="">— Select —</option>
+              <optgroup label="Health">
+                <option value="HLT-01">HLT-01 · Primary Care Visit</option>
+                <option value="HLT-02">HLT-02 · Gender-Affirming Care</option>
+                <option value="HLT-03">HLT-03 · HIV/STI Testing</option>
+                <option value="HLT-04">HLT-04 · Mental Health Session</option>
+                <option value="HLT-05">HLT-05 · Telehealth Consult</option>
+              </optgroup>
+              <optgroup label="Harm Reduction">
+                <option value="HRM-01">HRM-01 · Syringe Service</option>
+                <option value="HRM-02">HRM-02 · Naloxone Distribution</option>
+                <option value="HRM-03">HRM-03 · SUD Counseling</option>
+                <option value="HRM-04">HRM-04 · Fentanyl Test Strip Distribution</option>
+              </optgroup>
+              <optgroup label="Housing & Reentry">
+                <option value="HSG-01">HSG-01 · Emergency Housing</option>
+                <option value="HSG-02">HSG-02 · Reentry Navigation</option>
+                <option value="HSG-03">HSG-03 · Benefits Enrollment</option>
+              </optgroup>
+              <optgroup label="Mutual Aid">
+                <option value="MUT-01">MUT-01 · Food Distribution</option>
+                <option value="MUT-02">MUT-02 · Hygiene Supply</option>
+                <option value="MUT-03">MUT-03 · Transportation Assistance</option>
+                <option value="MUT-04">MUT-04 · Emergency Fund Disbursement</option>
+              </optgroup>
+              <optgroup label="Peer Support">
+                <option value="PSP-01">PSP-01 · Peer Support Session</option>
+                <option value="PSP-02">PSP-02 · Navigation/Referral</option>
+                <option value="PSP-03">PSP-03 · Community Group</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Date Bucket *</label>
+            <select class="form-select" id="dateBucket">
+              <option value="">— Select —</option>
+            </select>
+            <div class="hint">Week or month only — not exact date (HIPAA §164.514(b)(2)(ii))</div>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Location Cluster *</label>
+            <select class="form-select" id="locationCluster">
+              <option value="">— Select —</option>
+              <option value="BMORE-ED">Edgecomb / Reservoir Hill</option>
+              <option value="BMORE-UP">Upton / Sandtown-Winchester</option>
+              <option value="BMORE-PN">Penn-North / Druid Heights</option>
+              <option value="BMORE-OV">Oliver / Johnston Square</option>
+              <option value="BMORE-SO">South Baltimore / Cherry Hill</option>
+              <option value="BMORE-NE">Northeast Baltimore</option>
+              <option value="BMORE-NW">Northwest Baltimore</option>
+              <option value="BMORE-DT">Downtown / Inner Harbor</option>
+              <option value="MSA-OB">Baltimore Metro (Other)</option>
+            </select>
+            <div class="hint">Census tract cluster · min. population ≥ 20,000</div>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Service Count *</label>
+            <input type="number" class="form-input" id="svcCount" min="1" max="999" value="1"/>
+            <div class="hint">Number of service units delivered</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card gold-border">
+        <div class="section-title">Co-occurring Need Flags</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px">
+          <label class="checkbox-row"><input type="checkbox" value="1" class="needFlag"> Housing instability</label>
+          <label class="checkbox-row"><input type="checkbox" value="2" class="needFlag"> Food insecurity</label>
+          <label class="checkbox-row"><input type="checkbox" value="4" class="needFlag"> Mental health need</label>
+          <label class="checkbox-row"><input type="checkbox" value="8" class="needFlag" id="sudFlag"> Substance use disorder</label>
+          <label class="checkbox-row"><input type="checkbox" value="16" class="needFlag"> Reentry / justice involvement</label>
+          <label class="checkbox-row"><input type="checkbox" value="32" class="needFlag"> Gender-affirming care need</label>
+          <label class="checkbox-row"><input type="checkbox" value="64" class="needFlag"> Immigration status concern</label>
+          <label class="checkbox-row"><input type="checkbox" value="128" class="needFlag"> Domestic violence / safety</label>
+        </div>
+        <div id="sud42Warn" class="callout warn" style="margin-top:12px; display:none">
+          <strong>42 CFR Part 2 Flag:</strong> SUD flag detected. This Pheromone will be stored in the
+          isolated SUD key domain with separate key derivation. Export requires dual consent.
+        </div>
+      </div>
+
+      <div class="card violet-border">
+        <div class="section-title">Data Economy Consent</div>
+        <label class="checkbox-row" id="consentCheck">
+          <input type="checkbox" id="dataEconomyConsent">
+          <span>Subject has explicitly consented to de-identified data sharing for research purposes.
+          Consent is documented and logged. Subject is eligible for $OUL token allocation upon export.</span>
+        </label>
+        <div class="hint" style="margin-left:26px">No consent = Pheromone recorded but excluded from export. Consent can be added later via Consent Manager.</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="recordPheromone()">
+          ⬡ Record Pheromone
+        </button>
+        <button class="btn btn-ghost" onclick="clearRecordForm()">Clear</button>
+      </div>
+
+      <div id="recordResult" style="margin-top:14px"></div>
+    </div>
+
+    <!-- VAULT BROWSER -->
+    <div id="panel-vault" class="panel">
+      <div class="page-title">Vault Browser</div>
+      <div class="page-sub">Encrypted Pheromone records · All data shown is decrypted in-memory only.</div>
+      <div class="callout info">
+        <strong>In-memory display only.</strong> These records are AES-256-GCM encrypted at rest.
+        Vault key is derived from passphrase and never stored. Closing/locking destroys the key.
+      </div>
+      <div class="card">
+        <table class="data-table" id="vaultTable">
+          <thead><tr>
+            <th>Pheromone ID</th><th>Service</th><th>Date Bucket</th>
+            <th>Cluster</th><th>Count</th><th>Need Flags</th><th>SUD</th><th>Consented</th>
+          </tr></thead>
+          <tbody id="vaultBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BRIDGE GATE -->
+    <div id="panel-bridge" class="panel">
+      <div class="page-title">BridgeVault Gate</div>
+      <div class="page-sub">Re-linkage of Pheromone records to subject identity · Requires explicit subject consent.</div>
+
+      <div id="bridgeStatus" class="bridge-banner sealed">
+        <span class="bridge-icon">🔴</span>
+        <div id="bridgeStatusMsg">
+          <strong>Bridge: Sealed</strong><br/>
+          <span style="font-weight:400; color:var(--mid-gray)">
+            No cryptographic link between identity and activity records.
+            Re-linkage requires subject-initiated consent.
+          </span>
+        </div>
+      </div>
+
+      <div class="card gold-border" id="bridgeOpenForm">
+        <div class="section-title">Initiate Consent-Gated Re-linkage</div>
+        <div class="callout warn">
+          <strong>This opens the BridgeVault.</strong> An HMAC-signed consent token will be generated
+          with a 15-minute expiry. The bridge is opened in volatile memory only — never persisted to disk.
+          All bridge events are logged to the immutable audit chain.
+        </div>
+        <div class="form-row">
+          <label class="form-label">Subject Reference (non-identifying code)</label>
+          <input class="form-input" id="bridgeSubjectRef" placeholder="e.g. TCB-2026-0042"/>
+          <div class="hint">Internal reference only — not stored in Activity Vault</div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Re-linkage Scope</label>
+          <select class="form-select" id="bridgeScope">
+            <option value="read_own">Subject reads own records</option>
+            <option value="correction">Subject-requested correction</option>
+            <option value="export_consent">Research export with consent</option>
+            <option value="legal_review">Legal review (requires counsel)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Biometric Confirmation</label>
+          <select class="form-select" id="biometricMethod">
+            <option value="device_biometric">Device biometric (fingerprint/face)</option>
+            <option value="pin_confirm">PIN confirmation (fallback)</option>
+            <option value="verbal_confirm">Verbal confirmation (documented)</option>
+          </select>
+        </div>
+        <div id="part2BridgeWarn" class="callout warn" style="display:none">
+          <strong>42 CFR Part 2 Records Detected:</strong>
+          This vault contains SUD-flagged records. A separate written consent document
+          is required before the bridge may include Part 2 records. Check box to confirm
+          written consent is obtained.<br/>
+          <label class="checkbox-row" style="margin-top:8px">
+            <input type="checkbox" id="part2Confirm">
+            I confirm written 42 CFR Part 2 consent has been obtained and documented.
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="openBridge()">⇌ Open Bridge (Generate Consent Token)</button>
+        </div>
+      </div>
+
+      <div class="card teal-border" id="bridgeOpenInfo" style="display:none">
+        <div class="section-title">Active Consent Token</div>
+        <div class="callout ok" id="bridgeTokenDisplay"></div>
+        <div class="btn-row">
+          <button class="btn btn-ember btn-sm" onclick="sealBridge()">🔒 Seal Bridge Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONSENT MANAGER -->
+    <div id="panel-consent" class="panel">
+      <div class="page-title">Consent Manager</div>
+      <div class="page-sub">Update data economy consent for recorded Pheromones.</div>
+      <div class="callout info">
+        Consent can be added or revoked at any time. Revocation takes effect immediately —
+        revoked records are excluded from all subsequent exports. Changes are logged to the audit chain.
+      </div>
+      <div class="card">
+        <table class="data-table" id="consentTable">
+          <thead><tr>
+            <th>Pheromone ID</th><th>Service</th><th>Date Bucket</th>
+            <th>Current Consent</th><th>SUD (Part 2)</th><th>Action</th>
+          </tr></thead>
+          <tbody id="consentBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EXPORT / DP -->
+    <div id="panel-export" class="panel">
+      <div class="page-title">Clean Data Export</div>
+      <div class="page-sub">Differentially private aggregate export · Pheromone Marketplace</div>
+
+      <div class="callout info">
+        <strong>Differential Privacy:</strong> Laplace noise is injected into all numeric aggregates
+        before export. The ε parameter controls the privacy-utility tradeoff.
+        Lower ε = stronger privacy, more noise. Exports are HMAC-signed for integrity verification.
+      </div>
+
+      <div class="card gold-border">
+        <div class="section-title">Export Configuration</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px">
+          <div class="form-row">
+            <label class="form-label">Privacy Budget (ε)</label>
+            <input type="range" id="epsilonSlider" min="0.1" max="2.0" step="0.05" value="1.0"
+                   oninput="updateEpsilonDisplay(this.value)"
+                   style="width:100%; accent-color:var(--teal)"/>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--mid-gray)">
+              <span>Strong Privacy (0.1)</span>
+              <span id="epsilonVal" style="color:var(--gold); font-weight:700">ε = 1.0</span>
+              <span>High Utility (2.0)</span>
+            </div>
+            <div class="hint" id="epsilonDesc">Moderate privacy · Recommended for research partners</div>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Export Scope</label>
+            <select class="form-select" id="exportScope">
+              <option value="all_consented">All consented (exclude SUD)</option>
+              <option value="all_consented_with_sud">All consented (include SUD w/ Part 2 consent)</option>
+              <option value="service_counts">Service counts only</option>
+              <option value="geographic_density">Geographic density only</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Research Partner Reference</label>
+            <input class="form-input" id="partnerRef" placeholder="e.g. JHU-BSPH-2026-003"/>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Trust Approval Reference</label>
+            <input class="form-input" id="trustRef" placeholder="e.g. CDT-APR-2026-007"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Differential Privacy Preview</div>
+        <div class="dp-canvas-wrap">
+          <canvas id="dpChart" class="dp-chart" height="120"></canvas>
+        </div>
+        <div style="font-size:11px; color:var(--mid-gray); text-align:center">
+          Blue: raw counts · Red: with ε noise applied · Preview updates on slider change
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="generateExport()">↗ Generate Export Bundle</button>
+        <button class="btn btn-ghost" onclick="updateDPPreview()">↻ Preview Noise</button>
+      </div>
+      <div id="exportResult" style="margin-top:14px"></div>
+    </div>
+
+    <!-- $OUL LEDGER -->
+    <div id="panel-soul" class="panel">
+      <div class="page-title">$OUL Ledger</div>
+      <div class="page-sub">Community value-capture · Non-transferable · Non-speculative</div>
+      <div class="callout warn">
+        <strong>Legal Classification:</strong> $OUL tokens are non-transferable governance and
+        service-redemption instruments. No cash value. Not tradeable. Not a security under the Howey test.
+        Consult legal counsel before implementation.
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card teal">
+          <div class="stat-label">Total Allocated</div>
+          <div class="stat-value" id="soulTotal">0</div>
+          <div class="stat-sub">$OUL tokens</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-label">Export Events</div>
+          <div class="stat-value" id="soulExports">0</div>
+          <div class="stat-sub">data contributions</div>
+        </div>
+        <div class="stat-card ember">
+          <div class="stat-label">Redeemed</div>
+          <div class="stat-value" id="soulRedeemed">0</div>
+          <div class="stat-sub">$OUL tokens</div>
+        </div>
+        <div class="stat-card violet">
+          <div class="stat-label">Reinvestment Fund</div>
+          <div class="stat-value" id="soulFund">$0</div>
+          <div class="stat-sub">est. USD equivalent</div>
+        </div>
+      </div>
+      <div class="card teal-border">
+        <div class="section-title">Allocation Ledger</div>
+        <table class="data-table" id="soulTable">
+          <thead><tr>
+            <th>Event</th><th>Timestamp</th><th>Records</th><th>ε Used</th>
+            <th>$OUL Allocated</th><th>Partner</th>
+          </tr></thead>
+          <tbody id="soulBody">
+            <tr><td colspan="6" style="text-align:center; color:var(--mid-gray); padding:20px">
+              No export events yet.
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div id="panel-audit" class="panel">
+      <div class="page-title">Immutable Audit Log</div>
+      <div class="page-sub">SHA-256 chained · Append-only · Tamper-evident</div>
+      <div class="callout info" id="auditIntegrityBanner">
+        <strong>Chain not yet verified.</strong> Click “Verify Chain” to recompute every
+        SHA-256 link from genesis and confirm the log has not been altered.
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+        <span style="font-size:11px; color:var(--mid-gray)">
+          <span id="auditCount">0</span> entries
+        </span>
+        <div style="display:flex; gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="verifyAuditChain()">↻ Verify Chain</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--ember); border-color:var(--ember-dim)" onclick="tamperAuditLogForDemo()">⚠ Tamper Log (Demo)</button>
+        </div>
+      </div>
+      <div class="audit-stream" id="auditStream">
+        <div style="color:var(--mid-gray)">No audit events yet.</div>
+      </div>
+    </div>
+
+    <!-- COMPLIANCE -->
+    <div id="panel-compliance" class="panel">
+      <div class="page-title">Compliance Posture</div>
+      <div class="page-sub">Architectural compliance status · Pheromone Protocol v1.0</div>
+      <div class="card teal-border">
+        <div class="section-title">HIPAA Safe Harbor — §164.514(b)(2)</div>
+        <p style="font-size:12px; color:var(--mid-gray); margin-bottom:14px">
+          All 18 Safe Harbor identifier categories assessed against Pheromone schema:
+        </p>
+        <table class="data-table" id="hipaaTable">
+          <thead><tr><th>#</th><th>Identifier Category</th><th>Pheromone Response</th><th>Status</th></tr></thead>
+          <tbody id="hipaaBody"></tbody>
+        </table>
+      </div>
+      <div class="card gold-border" style="margin-top:16px">
+        <div class="section-title">Regulatory Framework Status</div>
+        <table class="data-table">
+          <thead><tr><th>Regulation</th><th>Requirement</th><th>Sanctuary Response</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>HIPAA/HITECH</td><td>PHI protection, audit controls, BAA</td><td>AES-256-GCM, chained audit log, BAA gate</td><td><span class="tag tag-teal">ARCHITECTURAL</span></td></tr>
+            <tr><td>MD MODPA (HB1)</td><td>Consent-first, data minimization</td><td>No PII in Activity Vault by schema</td><td><span class="tag tag-teal">ARCHITECTURAL</span></td></tr>
+            <tr><td>42 CFR Part 2</td><td>SUD record confidentiality</td><td>Isolated key domain, dual consent gate</td><td><span class="tag tag-teal">ARCHITECTURAL</span></td></tr>
+            <tr><td>MD Trans Shield Act</td><td>Technical Incapacity Defense</td><td>Local-only, no cloud sync, no PII in vault</td><td><span class="tag tag-teal">ARCHITECTURAL</span></td></tr>
+            <tr><td>HIPAA Expert Determination</td><td>Biostatistician sign-off on re-id risk</td><td>Schema designed to support; certification pending</td><td><span class="tag tag-gold">PENDING</span></td></tr>
+            <tr><td>WCAG 2.1 AAA</td><td>7:1+ contrast, screen reader</td><td>Contrast ratios enforced, semantic HTML</td><td><span class="tag tag-teal">COMPLIANT</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── RIGHT PANEL ── -->
+  <aside class="right-panel">
+    <div class="rp-section">
+      <div class="rp-title">Vault Key Status</div>
+      <div class="compliance-item">
+        <div class="comp-dot pass"></div>
+        <span>Activity Vault key derived</span>
+      </div>
+      <div class="compliance-item">
+        <div class="comp-dot pass"></div>
+        <span>SUD key domain derived</span>
+      </div>
+      <div class="compliance-item" id="bridgeKeyStatus">
+        <div class="comp-dot fail"></div>
+        <span>BridgeVault: sealed</span>
+      </div>
+      <div class="compliance-item">
+        <div class="comp-dot pass"></div>
+        <span>PBKDF2 600k iterations</span>
+      </div>
+      <div class="compliance-item">
+        <div class="comp-dot pass"></div>
+        <span>Keys never persisted</span>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-title">Active Consent Token</div>
+      <div class="token-display" id="tokenDisplay">NO ACTIVE TOKEN<br/>Bridge is sealed.</div>
+      <div id="tokenExpiry" style="font-size:10px; color:var(--mid-gray); margin-top:6px; text-align:center"></div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-title">Compliance Checks</div>
+      <div class="compliance-item">
+        <div class="comp-dot pass"></div><span>AES-256-GCM encryption</span>
+      </div>
+      <div class="compliance-item">
+        <div class="comp-dot pass"></div><span>Separate key derivation trees</span>
+      </div>
+      <div class="compliance-item">
+        <div class="comp-dot pass"></div><span>No PII in Activity Vault</span>
+      </div>
+      <div class="compliance-item">
+        <div class="comp-dot warn" id="hmacIntegrityComp"></div><span>HMAC signing (client-side only)</span>
+      </div>
+      <div class="compliance-item">
+        <div class="comp-dot warn" id="expertDetComp"></div>
+        <span>Expert Determination (pending)</span>
+      </div>
+      <div class="compliance-item">
+        <div class="comp-dot pass"></div><span>Differential privacy (Laplace)</span>
+      </div>
+      <div class="compliance-item" id="part2Comp">
+        <div class="comp-dot pass"></div><span>42 CFR Part 2 isolation</span>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-title">Last Audit Event</div>
+      <div class="token-display" id="lastAuditEvent" style="color:var(--teal-bright)">—</div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-title">Attribution</div>
+      <div style="font-size:10px; color:var(--mid-gray); line-height:1.6">
+        Sanctuary DVUA<br/>
+        Pheromone Protocol v1.0<br/>
+        Radiant Threshold Staffing Solutions<br/>
+        Baltimore, MD · 2026<br/>
+        <span style="color:var(--teal-bright)">github.com/TheeZeeOhh/sanctuary</span><br/>
+        EIN: 41-4321283
+      </div>
+    </div>
+  </aside>
+</div>
+</div><!-- /app-shell -->
+
+<!-- CONSENT MODAL -->
+<div class="modal-backdrop" id="consentModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('consentModal')">×</button>
+    <div class="modal-title">Biometric Consent Gate</div>
+    <div class="modal-sub">Subject-initiated re-linkage consent · BridgeVault activation</div>
+    <div class="callout warn">
+      <strong>Simulated biometric confirmation.</strong> In production, this triggers
+      the device biometric API (WebAuthn/FIDO2). This simulation logs the consent event
+      to the audit chain as if biometric confirmation occurred.
+    </div>
+    <div id="modalContent"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="modalConfirmBtn" onclick="confirmConsent()">
+        ✓ Confirm Biometric Consent
+      </button>
+      <button class="btn btn-ghost" onclick="closeModal('consentModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ── CRYPTO UTILITIES ──────────────────────────────────────────────────────────
+const crypto = window.crypto;
+const subtle = crypto.subtle;
+
+async function pbkdf2DeriveKey(passphrase, salt, iterations = 600000) {
+  const enc = new TextEncoder();
+  const keyMaterial = await subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+  return subtle.deriveKey(
+    { name: 'PBKDF2', salt: enc.encode(salt), iterations, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
+}
+
+async function hkdfDerive(masterKey, info, salt = '') {
+  const enc = new TextEncoder();
+  // Export master key to raw, re-import as HKDF key material
+  const rawKey = await subtle.exportKey('raw', masterKey);
+  const hkdfKey = await subtle.importKey('raw', rawKey, 'HKDF', false, ['deriveKey']);
+  return subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: enc.encode(salt || 'sanctuary-salt-v1'), info: enc.encode(info) },
+    hkdfKey,
+    { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
+}
+
+async function aesGcmEncrypt(key, data) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder();
+  const ct = await subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(data)));
+  return { iv: buf2hex(iv), ct: buf2hex(ct) };
+}
+
+async function aesGcmDecrypt(key, encObj) {
+  const iv = hex2buf(encObj.iv);
+  const ct = hex2buf(encObj.ct);
+  const plain = await subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+async function hmacSign(data) {
+  const enc = new TextEncoder();
+  const k = await subtle.importKey('raw', enc.encode('sanctuary-hmac-v1'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await subtle.sign('HMAC', k, enc.encode(JSON.stringify(data)));
+  return buf2hex(sig).slice(0, 32);
+}
+
+async function sha256(str) {
+  const enc = new TextEncoder();
+  const h = await subtle.digest('SHA-256', enc.encode(str));
+  return buf2hex(h);
+}
+
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+}
+
+function buf2hex(b) { return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join(''); }
+function hex2buf(h) { return new Uint8Array(h.match(/.{2}/g).map(b => parseInt(b, 16))).buffer; }
+function laplace(epsilon, sensitivity = 1) {
+  const u = Math.random() - 0.5;
+  return -sensitivity / epsilon * Math.sign(u) * Math.log(1 - 2 * Math.abs(u));
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const STATE = {
+  unlocked: false,
+  vaultKey: null,      // AES-GCM key for activity vault
+  sudKey: null,        // AES-GCM key for SUD isolation
+  pheromones: [],      // decrypted in-memory
+  auditLog: [],
+  auditChainHash: '0'.repeat(64),
+  bridgeOpen: false,
+  bridgeToken: null,
+  bridgeExpiry: null,
+  bridgeTimer: null,
+  soulLedger: [],
+  consentTokens: {},
+};
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  populateDateBuckets();
+  buildHipaaTable();
+  document.getElementById('sudFlag').addEventListener('change', e => {
+    document.getElementById('sud42Warn').style.display = e.target.checked ? 'block' : 'none';
+  });
+  updateDPPreview();
+  detectSUDInVault();
+});
+
+function populateDateBuckets() {
+  const sel = document.getElementById('dateBucket');
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const opt = document.createElement('option');
+    opt.value = `${d.getFullYear()}-M${String(d.getMonth()+1).padStart(2,'0')}`;
+    opt.textContent = `Month: ${d.toLocaleString('default',{month:'long',year:'numeric'})}`;
+    sel.appendChild(opt);
+  }
+  for (let i = 0; i < 8; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i * 7);
+    const week = getWeekNum(d);
+    const opt = document.createElement('option');
+    opt.value = `${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
+    opt.textContent = `Week: ${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
+    if (i === 0) opt.selected = true;
+    sel.insertBefore(opt, sel.options[1]);
+  }
+}
+function getWeekNum(d) {
+  const start = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7);
+}
+
+// ── VAULT UNLOCK ──────────────────────────────────────────────────────────────
+async function unlockVault() {
+  const pass = document.getElementById('passphraseInput').value.trim();
+  if (!pass) { showToast('Enter a passphrase', true); return; }
+
+  const btn = document.getElementById('unlockBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Deriving key (600k iterations)…';
+
+  document.getElementById('kdfProgress').style.display = 'block';
+  let p = 0;
+  const ticker = setInterval(() => {
+    p = Math.min(p + 3, 90);
+    document.getElementById('kdfBar').style.width = p + '%';
+  }, 120);
+
+  try {
+    const masterKey = await pbkdf2DeriveKey(pass, 'sanctuary-activity-vault-salt-v1');
+    STATE.vaultKey = await hkdfDerive(masterKey, 'sanctuary-activity-vault-v1');
+    STATE.sudKey   = await hkdfDerive(masterKey, 'sanctuary-activity-vault-sud-v1');
+    STATE.unlocked = true;
+
+    clearInterval(ticker);
+    document.getElementById('kdfBar').style.width = '100%';
+
+    // Load persisted pheromones
+    await loadVaultFromStorage();
+    await loadAuditFromStorage();
+    loadSoulFromStorage();
+
+    setTimeout(() => {
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('mainLayout').style.display = 'grid';
+      updateVaultStatus(true);
+      renderDashboard();
+      renderVaultBrowser();
+      renderConsentTable();
+      renderAuditLog();
+      renderSoul();
+      detectSUDInVault();
+      addAuditEvent('VAULT_UNLOCKED', { method: 'PBKDF2_600K' });
+      showToast('Activity Vault unlocked');
+    }, 300);
+  } catch (e) {
+    clearInterval(ticker);
+    btn.disabled = false;
+    btn.innerHTML = '<span>Unlock Vault</span>';
+    showToast('Key derivation failed: ' + e.message, true);
+  }
+}
+
+function lockVault() {
+  STATE.vaultKey = null; STATE.sudKey = null;
+  STATE.unlocked = false; STATE.pheromones = [];
+  STATE.auditLog = []; STATE.bridgeOpen = false;
+  STATE.bridgeToken = null;
+  if (STATE.bridgeTimer) clearInterval(STATE.bridgeTimer);
+  document.getElementById('lockScreen').style.display = 'flex';
+  document.getElementById('mainLayout').style.display = 'none';
+  document.getElementById('passphraseInput').value = '';
+  document.getElementById('kdfProgress').style.display = 'none';
+  document.getElementById('kdfBar').style.width = '0%';
+  document.getElementById('unlockBtn').disabled = false;
+  document.getElementById('unlockBtn').innerHTML = '<span>Unlock Vault</span>';
+  updateVaultStatus(false);
+}
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+async function persistPheromone(record) {
+  const key = record.sud ? STATE.sudKey : STATE.vaultKey;
+  const enc = await aesGcmEncrypt(key, record);
+  const stored = JSON.parse(localStorage.getItem('sanctuary_pheromones') || '[]');
+  stored.push({ id: record.pheromone_id, sud: record.sud, enc });
+  localStorage.setItem('sanctuary_pheromones', JSON.stringify(stored));
+}
+
+async function loadVaultFromStorage() {
+  const stored = JSON.parse(localStorage.getItem('sanctuary_pheromones') || '[]');
+  STATE.pheromones = [];
+  for (const item of stored) {
+    try {
+      const key = item.sud ? STATE.sudKey : STATE.vaultKey;
+      const rec = await aesGcmDecrypt(key, item.enc);
+      STATE.pheromones.push(rec);
+    } catch { /* skip records that fail decryption */ }
+  }
+}
+
+async function addAuditEvent(type, meta = {}) {
+  const ts = new Date().toISOString();
+  const entry = { type, ts, meta };
+  const hash = await sha256(STATE.auditChainHash + JSON.stringify(entry));
+  entry.hash = hash;
+  entry.prev = STATE.auditChainHash.slice(0, 12) + '…';
+  STATE.auditChainHash = hash;
+  STATE.auditLog.unshift(entry);
+  persistAudit();
+  renderAuditLog();
+  document.getElementById('lastAuditEvent').textContent = `${type}\n${ts.slice(11,19)} UTC`;
+}
+
+function persistAudit() {
+  localStorage.setItem('sanctuary_audit', JSON.stringify(STATE.auditLog.slice(0, 500)));
+  localStorage.setItem('sanctuary_audit_chain', STATE.auditChainHash);
+}
+
+async function loadAuditFromStorage() {
+  STATE.auditLog = JSON.parse(localStorage.getItem('sanctuary_audit') || '[]');
+  STATE.auditChainHash = localStorage.getItem('sanctuary_audit_chain') || '0'.repeat(64);
+}
+
+function loadSoulFromStorage() {
+  STATE.soulLedger = JSON.parse(localStorage.getItem('sanctuary_soul') || '[]');
+}
+
+function persistSoul() {
+  localStorage.setItem('sanctuary_soul', JSON.stringify(STATE.soulLedger));
+}
+
+async function updateConsentInStorage(id, val) {
+  const stored = JSON.parse(localStorage.getItem('sanctuary_pheromones') || '[]');
+  const rec = STATE.pheromones.find(p => p.pheromone_id === id);
+  if (!rec) return;
+  rec.data_economy_consent = val;
+  const key = rec.sud ? STATE.sudKey : STATE.vaultKey;
+  const enc = await aesGcmEncrypt(key, rec);
+  const idx = stored.findIndex(s => s.id === id);
+  if (idx >= 0) { stored[idx].enc = enc; localStorage.setItem('sanctuary_pheromones', JSON.stringify(stored)); }
+}
+
+// ── RECORD PHEROMONE ──────────────────────────────────────────────────────────
+async function recordPheromone() {
+  const svcType   = document.getElementById('svcType').value;
+  const dateBucket= document.getElementById('dateBucket').value;
+  const cluster   = document.getElementById('locationCluster').value;
+  const count     = parseInt(document.getElementById('svcCount').value);
+
+  if (!svcType || !dateBucket || !cluster || !count) {
+    showToast('Complete all required fields', true); return;
+  }
+
+  let needsBitmask = 0;
+  document.querySelectorAll('.needFlag:checked').forEach(cb => { needsBitmask |= parseInt(cb.value); });
+  const isSUD = !!(needsBitmask & 8);
+  const consented = document.getElementById('dataEconomyConsent').checked;
+
+  const record = {
+    pheromone_id: uuidv4(),
+    service_type: svcType,
+    date_bucket: dateBucket,
+    location_cluster: cluster,
+    service_count: count,
+    needs_flags: needsBitmask,
+    data_economy_consent: consented,
+    sud: isSUD,
+    consent_epoch: Math.floor(Date.now() / 1000),
+    vault_hmac: await hmacSign({ svcType, dateBucket, cluster, count, needsBitmask }),
+    created_at: new Date().toISOString(),
+  };
+
+  STATE.pheromones.unshift(record);
+  await persistPheromone(record);
+  await addAuditEvent('PHEROMONE_CREATED', {
+    pheromone_id: record.pheromone_id.slice(0,8) + '…',
+    service_type: svcType,
+    date_bucket: dateBucket,
+    location_cluster: cluster,
+    sud: isSUD,
+    consented,
+  });
+
+  if (isSUD) await addAuditEvent('PART2_ISOLATION', {
+    pheromone_id: record.pheromone_id.slice(0,8) + '…',
+    key_domain: 'sanctuary-activity-vault-sud-v1',
+  });
+
+  renderDashboard();
+  renderVaultBrowser();
+  renderConsentTable();
+  detectSUDInVault();
+
+  const resultDiv = document.getElementById('recordResult');
+  resultDiv.innerHTML = `<div class="callout ok">
+    <strong>Pheromone recorded.</strong><br/>
+    ID: <code>${record.pheromone_id}</code><br/>
+    HMAC: <code>${record.vault_hmac.slice(0,20)}…</code><br/>
+    ${isSUD ? '<strong style="color:var(--ember)">⚠ Stored in SUD isolated key domain (42 CFR Part 2)</strong><br/>' : ''}
+    ${consented ? '✓ Data economy consent logged' : '○ No consent — excluded from exports'}
+  </div>`;
+
+  showToast('Pheromone recorded & encrypted');
+}
+
+function clearRecordForm() {
+  document.getElementById('svcType').value = '';
+  document.getElementById('locationCluster').value = '';
+  document.getElementById('svcCount').value = 1;
+  document.getElementById('dataEconomyConsent').checked = false;
+  document.querySelectorAll('.needFlag').forEach(cb => cb.checked = false);
+  document.getElementById('sud42Warn').style.display = 'none';
+  document.getElementById('recordResult').innerHTML = '';
+}
+
+// ── BRIDGE PROTOCOL ───────────────────────────────────────────────────────────
+async function openBridge() {
+  const ref   = document.getElementById('bridgeSubjectRef').value.trim();
+  const scope = document.getElementById('bridgeScope').value;
+  const bio   = document.getElementById('biometricMethod').value;
+  if (!ref) { showToast('Enter a subject reference', true); return; }
+
+  const sudExists = STATE.pheromones.some(p => p.sud);
+  if (sudExists && !document.getElementById('part2Confirm')?.checked) {
+    showToast('42 CFR Part 2 written consent required', true); return;
+  }
+
+  // Show biometric modal
+  document.getElementById('modalContent').innerHTML = `
+    <div class="callout info" style="margin-bottom:14px">
+      <strong>Subject Reference:</strong> ${esc(ref)}<br/>
+      <strong>Scope:</strong> ${scope}<br/>
+      <strong>Biometric Method:</strong> ${bio}<br/>
+      <strong>Expiry:</strong> 15 minutes from confirmation
+    </div>
+    <p style="font-size:12px; color:var(--mid-gray)">
+      In production, this invokes the device biometric API.
+      Confirming simulates biometric authentication and generates a time-limited
+      HMAC-signed consent token. All events are logged to the audit chain.
+    </p>`;
+
+  document.getElementById('consentModal').classList.add('visible');
+  window._pendingBridgeData = { ref, scope, bio };
+}
+
+async function confirmConsent() {
+  closeModal('consentModal');
+  const { ref, scope, bio } = window._pendingBridgeData;
+  const token = {
+    sub: await sha256(ref),
+    scope,
+    issued: Date.now(),
+    expiry: Date.now() + 15 * 60 * 1000,
+    bio_method: bio,
+  };
+  token.sig = await hmacSign(token);
+
+  STATE.bridgeOpen = true;
+  STATE.bridgeToken = token;
+  STATE.bridgeExpiry = token.expiry;
+
+  await addAuditEvent('CONSENT_INITIATED', { subject_ref_hash: token.sub.slice(0,12)+'…', bio, scope });
+  await addAuditEvent('CONSENT_TOKEN_ISSUED', { token_sig: token.sig, scope, expiry: new Date(token.expiry).toISOString() });
+  await addAuditEvent('BRIDGE_OPENED', { scope, expiry: new Date(token.expiry).toISOString() });
+
+  updateBridgeUI();
+
+  // Auto-seal on expiry
+  if (STATE.bridgeTimer) clearInterval(STATE.bridgeTimer);
+  STATE.bridgeTimer = setInterval(() => {
+    if (Date.now() >= STATE.bridgeExpiry) { sealBridge('TOKEN_EXPIRED'); }
+    else {
+      const rem = Math.ceil((STATE.bridgeExpiry - Date.now()) / 1000);
+      document.getElementById('tokenExpiry').textContent = `Expires in ${rem}s`;
+    }
+  }, 1000);
+
+  showToast('Bridge opened · Consent token active (15 min)');
+}
+
+async function sealBridge(reason = 'MANUAL_REVOCATION') {
+  STATE.bridgeOpen = false;
+  STATE.bridgeToken = null;
+  if (STATE.bridgeTimer) { clearInterval(STATE.bridgeTimer); STATE.bridgeTimer = null; }
+  await addAuditEvent('BRIDGE_SEALED', { reason });
+  updateBridgeUI();
+  showToast('BridgeVault sealed');
+}
+
+function updateBridgeUI() {
+  const open = STATE.bridgeOpen;
+  const banners = ['dashBridge', 'bridgeStatus'];
+  banners.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'bridge-banner ' + (open ? 'open' : 'sealed');
+  });
+  document.getElementById('bridgeStatusMsg').innerHTML = open
+    ? `<strong>Bridge: Open</strong><br/><span style="color:var(--mid-gray)">Scope: ${STATE.bridgeToken?.scope} · Token active</span>`
+    : `<strong>Bridge: Sealed</strong><br/><span style="color:var(--mid-gray)">No cryptographic link between identity and activity records.</span>`;
+  document.getElementById('dashBridge').innerHTML = open
+    ? `<span class="bridge-icon">🟢</span><div><strong>BridgeVault: Open</strong><br/><span style="font-weight:400;color:var(--mid-gray)">Scope: ${STATE.bridgeToken?.scope} · Consent token active · ${Math.ceil((STATE.bridgeExpiry - Date.now())/60000)} min remaining</span></div>`
+    : `<span class="bridge-icon">🔴</span><div><strong>BridgeVault: Sealed</strong><br/><span style="font-weight:400;color:var(--mid-gray)">No cryptographic link between identity and activity. Default state.</span></div>`;
+
+  document.getElementById('bridgeDot').className = 'status-dot ' + (open ? 'unlocked' : 'sealed');
+  document.getElementById('bridgeStatusText').textContent = 'Bridge: ' + (open ? 'Open' : 'Sealed');
+  document.getElementById('bridgeOpenForm').style.display = open ? 'none' : 'block';
+  document.getElementById('bridgeOpenInfo').style.display = open ? 'block' : 'none';
+
+  const tokenEl = document.getElementById('tokenDisplay');
+  if (open && STATE.bridgeToken) {
+    const t = STATE.bridgeToken;
+    tokenEl.innerHTML = `HMAC-SHA256 Token<br/>Sig: ${t.sig}<br/>Scope: ${t.scope}<br/>Expires: ${new Date(t.expiry).toLocaleTimeString()}`;
+  } else {
+    tokenEl.innerHTML = 'NO ACTIVE TOKEN\nBridge is sealed.';
+    document.getElementById('tokenExpiry').textContent = '';
+  }
+
+  const bks = document.getElementById('bridgeKeyStatus');
+  bks.querySelector('.comp-dot').className = 'comp-dot ' + (open ? 'pass' : 'fail');
+  bks.querySelector('span').textContent = 'BridgeVault: ' + (open ? 'open' : 'sealed');
+}
+
+// ── EXPORT / DP ───────────────────────────────────────────────────────────────
+function updateEpsilonDisplay(val) {
+  document.getElementById('epsilonVal').textContent = `ε = ${parseFloat(val).toFixed(2)}`;
+  const descs = {
+    l: 'Very strong privacy · Suitable for public publication',
+    m: 'Moderate privacy · Recommended for research partners',
+    h: 'Lower privacy · Higher data utility · Requires Trust approval',
+  };
+  const v = parseFloat(val);
+  document.getElementById('epsilonDesc').textContent =
+    v <= 0.5 ? descs.l : v <= 1.2 ? descs.m : descs.h;
+  updateDPPreview();
+}
+
+function updateDPPreview() {
+  const canvas = document.getElementById('dpChart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio || 600;
+  canvas.height = 120 * window.devicePixelRatio || 120;
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  const w = canvas.offsetWidth || 600, h = 120;
+  ctx.clearRect(0, 0, w, h);
+
+  const eps = parseFloat(document.getElementById('epsilonSlider')?.value || 1.0);
+  const n = 8;
+  const raw = Array.from({length: n}, () => Math.floor(Math.random() * 40 + 5));
+  const noisy = raw.map(v => Math.max(0, Math.round(v + laplace(eps))));
+
+  const max = Math.max(...raw, ...noisy, 1);
+  const barW = Math.floor((w - 40) / (n * 2 + n + 1));
+  const gap = Math.floor(barW * 0.5);
+  ctx.fillStyle = '#1A1A2E';
+  ctx.fillRect(0, 0, w, h);
+
+  for (let i = 0; i < n; i++) {
+    const x = 20 + i * (barW * 2 + gap);
+    const rh = Math.floor((raw[i] / max) * (h - 20));
+    const nh = Math.floor((noisy[i] / max) * (h - 20));
+    ctx.fillStyle = '#1A6B6B'; ctx.fillRect(x, h - 10 - rh, barW, rh);
+    ctx.fillStyle = '#C9374A'; ctx.fillRect(x + barW + 2, h - 10 - nh, barW, nh);
+  }
+  ctx.fillStyle = '#888'; ctx.font = '9px sans-serif';
+  ctx.fillText('Blue: raw  Red: ε-noised', 8, 12);
+}
+
+async function generateExport() {
+  const eps     = parseFloat(document.getElementById('epsilonSlider').value);
+  const scope   = document.getElementById('exportScope').value;
+  const partner = document.getElementById('partnerRef').value || 'UNSPECIFIED';
+  const trust   = document.getElementById('trustRef').value || 'UNSPECIFIED';
+
+  const eligible = STATE.pheromones.filter(p => {
+    if (!p.data_economy_consent) return false;
+    if (scope === 'all_consented' && p.sud) return false;
+    return true;
+  });
+
+  if (eligible.length === 0) {
+    showToast('No eligible consented records for export', true); return;
+  }
+
+  // Build aggregate (no individual records — counts only)
+  const byType = {};
+  const byCluster = {};
+  eligible.forEach(p => {
+    byType[p.service_type] = (byType[p.service_type] || 0) + p.service_count;
+    byCluster[p.location_cluster] = (byCluster[p.location_cluster] || 0) + 1;
+  });
+
+  // Apply Laplace noise
+  const noisedTypes = {};
+  Object.entries(byType).forEach(([k, v]) => {
+    noisedTypes[k] = Math.max(0, Math.round(v + laplace(eps)));
+  });
+  const noisedClusters = {};
+  Object.entries(byCluster).forEach(([k, v]) => {
+    noisedClusters[k] = Math.max(0, Math.round(v + laplace(eps)));
+  });
+
+  const bundle = {
+    export_id: uuidv4(),
+    generated: new Date().toISOString(),
+    epsilon: eps,
+    scope,
+    partner_ref: partner,
+    trust_approval_ref: trust,
+    record_count_est: eligible.length + Math.round(laplace(eps)),
+    service_type_counts: noisedTypes,
+    geographic_density: noisedClusters,
+    dp_mechanism: 'Laplace',
+    sensitivity: 1,
+    hipaa_status: 'Safe Harbor — field-level compliant; Expert Determination pending',
+    attribution: 'Sanctuary DVUA · RTSS · Baltimore MD · EIN: 41-4321283',
+  };
+  bundle.bundle_hmac = await hmacSign(bundle);
+
+  await addAuditEvent('EXPORT_REQUESTED', {
+    export_id: bundle.export_id.slice(0,8)+'…', partner, trust, eps, record_count: eligible.length,
+  });
+  await addAuditEvent('EXPORT_COMPLETED', {
+    export_id: bundle.export_id.slice(0,8)+'…', bundle_hmac: bundle.bundle_hmac,
+  });
+
+  // $OUL allocation
+  const soulAlloc = Math.round(eligible.length * (1 / eps) * 2);
+  STATE.soulLedger.unshift({
+    event_id: bundle.export_id.slice(0,8),
+    ts: bundle.generated,
+    records: eligible.length,
+    epsilon: eps,
+    soul_allocated: soulAlloc,
+    partner,
+  });
+  persistSoul();
+  renderSoul();
+
+  const resultDiv = document.getElementById('exportResult');
+  resultDiv.innerHTML = `<div class="callout ok">
+    <strong>Export bundle generated.</strong><br/>
+    Export ID: <code>${bundle.export_id}</code><br/>
+    Bundle HMAC: <code>${bundle.bundle_hmac}</code><br/>
+    Records included: ${eligible.length} · ε = ${eps}<br/>
+    $OUL allocated: ${soulAlloc} tokens (non-transferable)
+  </div>
+  <div class="export-preview">
+    ${Object.entries(bundle).map(([k,v]) =>
+      `<div class="key-val"><span class="k">${k}:</span><span class="v">${typeof v === 'object' ? JSON.stringify(v) : esc(String(v))}</span></div>`
+    ).join('')}
+  </div>`;
+
+  showToast(`Export bundle ready · ${eligible.length} records · HMAC-signed`);
+
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `pheromone_export_${bundle.export_id.slice(0,8)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const all = STATE.pheromones;
+  document.getElementById('statTotal').textContent = all.length;
+  document.getElementById('statTypes').textContent = new Set(all.map(p=>p.service_type)).size;
+  document.getElementById('statSUD').textContent = all.filter(p=>p.sud).length;
+  document.getElementById('statConsented').textContent = all.filter(p=>p.data_economy_consent).length;
+
+  const tbody = document.getElementById('recentBody');
+  if (!all.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--mid-gray);padding:20px">No pheromones recorded yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = all.slice(0,8).map(p => `
+    <tr>
+      <td><code>${p.pheromone_id.slice(0,12)}…</code></td>
+      <td>${esc(p.service_type)}</td>
+      <td>${esc(p.date_bucket)}</td>
+      <td>${esc(p.location_cluster)}</td>
+      <td>
+        ${p.sud ? '<span class="tag tag-ember">SUD</span> ' : ''}
+        ${p.data_economy_consent ? '<span class="tag tag-violet">OPT-IN</span>' : '<span class="tag tag-gray">NO CONSENT</span>'}
+      </td>
+      <td><code>${p.vault_hmac.slice(0,14)}…</code></td>
+    </tr>`).join('');
+}
+
+function renderVaultBrowser() {
+  const tbody = document.getElementById('vaultBody');
+  if (!STATE.pheromones.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--mid-gray);padding:20px">No records in vault.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = STATE.pheromones.map(p => `
+    <tr>
+      <td><code>${p.pheromone_id.slice(0,16)}…</code></td>
+      <td>${esc(p.service_type)}</td>
+      <td>${esc(p.date_bucket)}</td>
+      <td>${esc(p.location_cluster)}</td>
+      <td>${p.service_count}</td>
+      <td>${p.needs_flags}</td>
+      <td>${p.sud ? '<span class="tag tag-ember">YES</span>' : '—'}</td>
+      <td>${p.data_economy_consent ? '<span class="tag tag-teal">YES</span>' : '<span class="tag tag-gray">NO</span>'}</td>
+    </tr>`).join('');
+}
+
+function renderConsentTable() {
+  const tbody = document.getElementById('consentBody');
+  if (!STATE.pheromones.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--mid-gray);padding:20px">No records.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = STATE.pheromones.map(p => `
+    <tr>
+      <td><code>${p.pheromone_id.slice(0,12)}…</code></td>
+      <td>${esc(p.service_type)}</td>
+      <td>${esc(p.date_bucket)}</td>
+      <td>${p.data_economy_consent ? '<span class="tag tag-teal">OPTED IN</span>' : '<span class="tag tag-gray">NOT CONSENTED</span>'}</td>
+      <td>${p.sud ? '<span class="tag tag-ember">PART 2</span>' : '—'}</td>
+      <td>
+        ${p.data_economy_consent
+          ? `<button class="btn btn-ember btn-sm" onclick="toggleConsent('${p.pheromone_id}', false)">Revoke</button>`
+          : `<button class="btn btn-primary btn-sm" onclick="toggleConsent('${p.pheromone_id}', true)">Add Consent</button>`}
+      </td>
+    </tr>`).join('');
+}
+
+async function toggleConsent(id, val) {
+  const rec = STATE.pheromones.find(p => p.pheromone_id === id);
+  if (!rec) return;
+  rec.data_economy_consent = val;
+  await updateConsentInStorage(id, val);
+  await addAuditEvent(val ? 'CONSENT_ADDED' : 'CONSENT_REVOKED', { pheromone_id: id.slice(0,8)+'…' });
+  renderConsentTable();
+  renderDashboard();
+  showToast(val ? 'Consent added' : 'Consent revoked');
+}
+
+function renderAuditLog() {
+  const stream = document.getElementById('auditStream');
+  document.getElementById('auditCount').textContent = STATE.auditLog.length;
+  if (!STATE.auditLog.length) {
+    stream.innerHTML = '<div style="color:var(--mid-gray)">No audit events yet.</div>'; return;
+  }
+  stream.innerHTML = STATE.auditLog.map(e => `
+    <div class="audit-line ${e.type}">
+      <span class="ts">${e.ts.slice(11,19)}</span>
+      <span class="ev">${e.type}</span>
+      <span class="meta">${Object.entries(e.meta||{}).map(([k,v])=>`${k}=${v}`).join(' ')}</span>
+    </div>`).join('');
+}
+
+// Recompute the SHA-256 hash chain from genesis and report the first break, if
+// any. This is the REAL verification: it reconstructs each entry's pre-hash
+// object exactly as addAuditEvent() built it ({type, ts, meta}) and confirms
+// hash === sha256(prevHash + JSON.stringify(preHashEntry)), walking oldest→newest
+// (the log is stored newest-first, so we reverse a shallow copy). Returns
+// { ok, count, brokenAtIndex, expected, found }.
+async function verifyAuditChainState() {
+  const GENESIS = '0'.repeat(64);
+  // STATE.auditLog is newest-first (unshift); verify in chronological order.
+  const chrono = STATE.auditLog.slice().reverse();
+  let prevHash = GENESIS;
+  for (let i = 0; i < chrono.length; i++) {
+    const e = chrono[i];
+    // Reconstruct the exact object that was hashed at append time — BEFORE
+    // hash/prev were attached. Any edit to type, ts, or meta changes this.
+    const preHash = { type: e.type, ts: e.ts, meta: e.meta };
+    const expected = await sha256(prevHash + JSON.stringify(preHash));
+    if (expected !== e.hash) {
+      return { ok: false, count: chrono.length, brokenAtIndex: i, expected, found: e.hash };
+    }
+    prevHash = e.hash;
+  }
+  // Also confirm the running head matches the last computed hash (or genesis
+  // when empty), so a truncated/extended log is caught too.
+  const head = chrono.length ? prevHash : GENESIS;
+  const okHead = head === (STATE.auditChainHash || GENESIS);
+  return { ok: okHead, count: chrono.length, brokenAtIndex: okHead ? null : chrono.length, expected: head, found: STATE.auditChainHash };
+}
+
+async function verifyAuditChain() {
+  const banner = document.getElementById('auditIntegrityBanner');
+  const res = await verifyAuditChainState();
+  if (res.ok) {
+    banner.className = 'callout ok';
+    banner.innerHTML = `<strong>Chain integrity verified.</strong> Recomputed all ${res.count} SHA-256 link(s) from genesis — no tampering detected.`;
+    showToast(`Chain verified · ${res.count} entries intact`);
+  } else {
+    banner.className = 'callout err';
+    if (res.brokenAtIndex !== null && res.brokenAtIndex < res.count) {
+      banner.innerHTML = `<strong>⚠ Chain BROKEN at entry #${res.brokenAtIndex + 1}.</strong> `
+        + `Expected hash <code>${String(res.expected).slice(0,16)}…</code> but stored hash is `
+        + `<code>${String(res.found).slice(0,16)}…</code>. A log entry was altered or removed.`;
+    } else {
+      banner.innerHTML = `<strong>⚠ Chain head mismatch.</strong> `
+        + `The running chain hash does not match the recomputed head — the log may have been truncated or extended out of band.`;
+    }
+    showToast('Chain verification FAILED — see Audit Log', true);
+    await addAuditEvent('ANOMALY_DETECTED', { check: 'audit_chain', broken_at: res.brokenAtIndex });
+  }
+}
+
+function tamperAuditLogForDemo() {
+  if (STATE.auditLog.length === 0) {
+    showToast('Audit log is empty, please perform some actions first', true);
+    return;
+  }
+  const targetIdx = Math.floor(STATE.auditLog.length / 2);
+  const originalType = STATE.auditLog[targetIdx].type;
+  STATE.auditLog[targetIdx].type = 'TAMPERED_EVENT';
+  renderAuditLog();
+  showToast(`Tampered entry #${STATE.auditLog.length - targetIdx} (type changed from ${originalType})`);
+}
+
+function renderSoul() {
+  document.getElementById('soulTotal').textContent = STATE.soulLedger.reduce((a,s)=>a+s.soul_allocated,0);
+  document.getElementById('soulExports').textContent = STATE.soulLedger.length;
+  document.getElementById('soulRedeemed').textContent = 0;
+  document.getElementById('soulFund').textContent = '$' + STATE.soulLedger.length * 12;
+  const tbody = document.getElementById('soulBody');
+  if (!STATE.soulLedger.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--mid-gray);padding:20px">No export events yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = STATE.soulLedger.map(s => `
+    <tr>
+      <td>${s.event_id}</td>
+      <td>${s.ts.slice(0,10)}</td>
+      <td>${s.records}</td>
+      <td>ε=${s.epsilon}</td>
+      <td><span class="tag tag-violet">${s.soul_allocated} $OUL</span></td>
+      <td>${esc(s.partner)}</td>
+    </tr>`).join('');
+}
+
+// ── COMPLIANCE TABLE ──────────────────────────────────────────────────────────
+function buildHipaaTable() {
+  const items = [
+    ["(i)", "Names", "Not collected — excluded by schema"],
+    ["(ii)", "Geographic subdivisions < state (except ZIP3)", "Location cluster only; min. pop ≥ 20,000"],
+    ["(iii)", "Dates (except year) related to individual", "Date bucket (week/month only)"],
+    ["(iv)", "Phone numbers", "Not collected"],
+    ["(v)", "Fax numbers", "Not collected"],
+    ["(vi)", "Email addresses", "Not collected"],
+    ["(vii)", "Social security numbers", "Not collected"],
+    ["(viii)", "Medical record numbers", "pheromone_id is random UUID v4 — not MRN"],
+    ["(ix)", "Health plan beneficiary numbers", "Not collected"],
+    ["(x)", "Account numbers", "Not collected"],
+    ["(xi)", "Certificate/license numbers", "Not collected"],
+    ["(xii)", "Vehicle identifiers", "Not collected"],
+    ["(xiii)", "Device identifiers", "Not collected"],
+    ["(xiv)", "URLs / IP addresses", "Not collected"],
+    ["(xv)", "Biometric identifiers", "Not collected"],
+    ["(xvi)", "Full-face photographs", "Not collected"],
+    ["(xvii)", "Any unique identifying number/code", "pheromone_id is random; reviewed"],
+    ["(xviii)", "Residual re-identification risk", "Schema designed for compliance; biostatistician sign-off pending"],
+  ];
+  const tbody = document.getElementById('hipaaBody');
+  tbody.innerHTML = items.map(([n, cat, resp], i) => `
+    <tr>
+      <td>${n}</td>
+      <td>${esc(cat)}</td>
+      <td>${esc(resp)}</td>
+      <td>${i < 17 ? '<span class="tag tag-teal">COMPLIANT</span>' : '<span class="tag tag-gold">PENDING</span>'}</td>
+    </tr>`).join('');
+}
+
+// ── SUD DETECTION ─────────────────────────────────────────────────────────────
+function detectSUDInVault() {
+  const hasSUD = STATE.pheromones.some(p => p.sud);
+  const warn = document.getElementById('part2BridgeWarn');
+  if (warn) warn.style.display = hasSUD ? 'block' : 'none';
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────────────────────
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  event?.currentTarget?.classList.add('active');
+  if (id === 'export') updateDPPreview();
+}
+
+function updateVaultStatus(unlocked) {
+  const dot = document.getElementById('vaultDot');
+  const txt = document.getElementById('vaultStatusText');
+  if (dot) dot.className = 'status-dot ' + (unlocked ? 'unlocked' : 'locked');
+  if (txt) txt.textContent = 'Vault: ' + (unlocked ? 'Unlocked' : 'Locked');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('visible');
+}
+
+let toastTimer;
+function showToast(msg, isErr=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 3200);
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Expose the pure verifier for external/automated testing (headless harness).
+if (typeof window !== 'undefined') { window.__sanctuaryVerifyChain = verifyAuditChainState; }
+</script>
+</body>
+</html>
