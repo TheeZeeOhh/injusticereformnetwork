@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { encryptRecord, decryptRecord } from './cryptoEngine';
+import { encryptRecord, decryptRecord, hasV2Magic } from './cryptoEngine';
 
 // Task #1 — versioned record envelope.
 //
@@ -114,4 +114,58 @@ describe('record envelope', () => {
       ).rejects.toThrow();
     });
   });
+
+  it('proves cross-format confusion attack is impossible for a v1 blob with V2_MAGIC IV prefix', async () => {
+    // 1. Hand-craft the exact adversarial byte sequence:
+    // a v1 legacy blob whose first 4 bytes of IV are exactly V2_MAGIC.
+    const iv = new Uint8Array(12);
+    iv.set(V2_MAGIC, 0); // first 4 bytes are V2_MAGIC
+    for (let i = 4; i < 12; i++) {
+      iv[i] = i;
+    }
+
+    const data = { secret: 'v1-valuable-payload' };
+    const encoded = enc.encode(JSON.stringify(data));
+    
+    // Encrypt exactly like legacy v1 (IV || ct, no magic, no AAD)
+    const ct = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      encoded
+    );
+    
+    const v1Blob = new Uint8Array(iv.length + ct.byteLength);
+    v1Blob.set(iv, 0);
+    v1Blob.set(new Uint8Array(ct), iv.length);
+
+    // 2. Show that the envelope detector misdetects this as a v2 record
+    // using the imported real hasV2Magic function.
+    expect(hasV2Magic(v1Blob)).toBe(true);
+
+    // 3. Prove that attempting to decrypt this legacy v1 blob (misparsed as v2)
+    // fails to decrypt in all cases due to AES-GCM tag mismatch from the byte shift.
+    // Pin it specifically to Web Crypto's OperationError DOMException.
+    
+    // (a) Without AAD:
+    let errorNoAad;
+    try {
+      await decryptRecord(key, v1Blob);
+    } catch (e) {
+      errorNoAad = e;
+    }
+    expect(errorNoAad).toBeInstanceOf(DOMException);
+    expect(errorNoAad.name).toBe('OperationError');
+
+    // (b) With any AAD binding (proving it cannot bypass or smuggle AAD):
+    const testAad = enc.encode('test-aad-binding');
+    let errorWithAad;
+    try {
+      await decryptRecord(key, v1Blob, testAad);
+    } catch (e) {
+      errorWithAad = e;
+    }
+    expect(errorWithAad).toBeInstanceOf(DOMException);
+    expect(errorWithAad.name).toBe('OperationError');
+  });
 });
+

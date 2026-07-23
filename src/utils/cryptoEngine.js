@@ -402,7 +402,7 @@ const decodeText = (buffer) => new TextDecoder().decode(buffer);
 // cannot be stripped or downgraded without failing the GCM auth tag.
 const V2_MAGIC = new Uint8Array([0x53, 0x41, 0x02, 0x00]);
 
-function hasV2Magic(payload) {
+export function hasV2Magic(payload) {
   if (payload.length < V2_MAGIC.length) return false;
   for (let i = 0; i < V2_MAGIC.length; i++) {
     if (payload[i] !== V2_MAGIC[i]) return false;
