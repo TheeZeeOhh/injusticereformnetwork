@@ -160,5 +160,30 @@
     "saveIdentity": "Save Identity Settings",
     "savedAlert": "Profile saved locally on this device. Nothing was sent anywhere.",
     "tooLargeAlert": "That image is too large to store locally. Please choose one under 5MB."
+  },
+  "hrt": {
+    "_note": "REVIEW RECOMMENDED — gender-affirming-care / clinical terminology; a bilingual reviewer should confirm es/fr before clinical use",
+    "title": "HRT Continuity Tracker",
+    "clientRefId": "Client Reference ID",
+    "clientRefPlaceholder": "e.g. PT-8942",
+    "genderSection": "Gender Marker & Chosen Name",
+    "aliasLabel": "Chosen Name / Alias",
+    "genderHistory": "Gender Marker History / Notes",
+    "regimenSection": "Regimen & Continuity",
+    "currentRegimen": "Current Regimen / Dosage",
+    "regimenPlaceholder": "e.g. Estradiol 4mg daily",
+    "refillWindow": "Refill Window Date",
+    "prescriber": "Prescriber",
+    "pharmacyContact": "Pharmacy Contact",
+    "encrypting": "Encrypting…",
+    "encryptSave": "Encrypt & Save to Vault B",
+    "loaded": "Existing Vault B record loaded.",
+    "errDecrypt": "Could not decrypt record with the current Vault B key.",
+    "errVaultClosed": "Vault B is closed. Cannot save sensitive records.",
+    "errNeedRef": "Enter a client reference ID first.",
+    "errSave": "Save failed: ",
+    "subtitle": "Vault B · Maryland Trans Shield Act · Local-first, separately encrypted",
+    "vaultClosedBanner": "🔒 Vault B is currently CLOSED (BridgeVault panic-lock active). Sensitive HRT records cannot be read or written until you re-authenticate.",
+    "saved": "HRT record encrypted and saved to Vault B."
   }
 }

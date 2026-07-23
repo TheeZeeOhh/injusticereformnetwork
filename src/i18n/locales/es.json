@@ -160,5 +160,30 @@
     "saveIdentity": "Guardar Configuración de Identidad",
     "savedAlert": "Perfil guardado localmente en este dispositivo. No se envió nada a ningún lugar.",
     "tooLargeAlert": "Esa imagen es demasiado grande para almacenarla localmente. Elige una de menos de 5MB."
+  },
+  "hrt": {
+    "_note": "BORRADOR — REVISIÓN REQUERIDA: terminología clínica / de atención de afirmación de género; un revisor bilingüe debe confirmar antes de uso clínico",
+    "title": "Rastreador de Continuidad de TRH",
+    "clientRefId": "ID de Referencia del Cliente",
+    "clientRefPlaceholder": "ej. PT-8942",
+    "genderSection": "Marcador de Género y Nombre Elegido",
+    "aliasLabel": "Nombre Elegido / Alias",
+    "genderHistory": "Historial de Marcador de Género / Notas",
+    "regimenSection": "Régimen y Continuidad",
+    "currentRegimen": "Régimen Actual / Dosis",
+    "regimenPlaceholder": "ej. Estradiol 4mg al día",
+    "refillWindow": "Fecha de Ventana de Reabastecimiento",
+    "prescriber": "Prescriptor",
+    "pharmacyContact": "Contacto de Farmacia",
+    "encrypting": "Cifrando…",
+    "encryptSave": "Cifrar y Guardar en la Bóveda B",
+    "loaded": "Registro existente de la Bóveda B cargado.",
+    "errDecrypt": "No se pudo descifrar el registro con la clave actual de la Bóveda B.",
+    "errVaultClosed": "La Bóveda B está cerrada. No se pueden guardar registros sensibles.",
+    "errNeedRef": "Ingrese primero un ID de referencia del cliente.",
+    "errSave": "Error al guardar: ",
+    "subtitle": "Bóveda B · Ley Escudo Trans de Maryland · Local, cifrado por separado",
+    "vaultClosedBanner": "🔒 La Bóveda B está actualmente CERRADA (bloqueo de pánico BridgeVault activo). Los registros sensibles de TRH no se pueden leer ni escribir hasta que se vuelva a autenticar.",
+    "saved": "Registro de TRH cifrado y guardado en la Bóveda B."
   }
 }

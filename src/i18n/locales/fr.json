@@ -160,5 +160,30 @@
     "saveIdentity": "Enregistrer les Paramètres d'Identité",
     "savedAlert": "Profil enregistré localement sur cet appareil. Rien n'a été envoyé ailleurs.",
     "tooLargeAlert": "Cette image est trop volumineuse pour un stockage local. Choisissez-en une de moins de 5 Mo."
+  },
+  "hrt": {
+    "_note": "BROUILLON — RÉVISION REQUISE : terminologie clinique / de soins d'affirmation de genre ; un réviseur bilingue doit confirmer avant usage clinique",
+    "title": "Suivi de Continuité du THS",
+    "clientRefId": "ID de Référence du Client",
+    "clientRefPlaceholder": "ex. PT-8942",
+    "genderSection": "Marqueur de Genre et Nom Choisi",
+    "aliasLabel": "Nom Choisi / Alias",
+    "genderHistory": "Historique du Marqueur de Genre / Notes",
+    "regimenSection": "Régime et Continuité",
+    "currentRegimen": "Régime Actuel / Posologie",
+    "regimenPlaceholder": "ex. Estradiol 4mg par jour",
+    "refillWindow": "Date de Renouvellement",
+    "prescriber": "Prescripteur",
+    "pharmacyContact": "Contact de la Pharmacie",
+    "encrypting": "Chiffrement…",
+    "encryptSave": "Chiffrer et Enregistrer dans le Coffre B",
+    "loaded": "Enregistrement existant du Coffre B chargé.",
+    "errDecrypt": "Impossible de déchiffrer l'enregistrement avec la clé actuelle du Coffre B.",
+    "errVaultClosed": "Le Coffre B est fermé. Impossible d'enregistrer des données sensibles.",
+    "errNeedRef": "Saisissez d'abord un ID de référence du client.",
+    "errSave": "Échec de l'enregistrement : ",
+    "subtitle": "Coffre B · Loi Bouclier Trans du Maryland · Local, chiffré séparément",
+    "vaultClosedBanner": "🔒 Le Coffre B est actuellement FERMÉ (verrouillage de panique BridgeVault actif). Les enregistrements THS sensibles ne peuvent être ni lus ni écrits avant une nouvelle authentification.",
+    "saved": "Enregistrement THS chiffré et sauvegardé dans le Coffre B."
   }
 }
