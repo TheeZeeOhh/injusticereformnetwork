@@ -62,13 +62,91 @@ export class TrieNode {
   }
 }
 
+// --- Admission gate (subpoena litmus + n>=k source floor) --------------------
+//
+// The hive-mind is a replicated CRDT store: once a record syncs it lives on every
+// node, forever, unrecallable. So NOTHING person-identifying may enter it — a
+// hostile subpoena of a random node must yield nothing it couldn't already get
+// from a FOIA request or a public website. This gate ENFORCES that in code; it is
+// NOT left to caller discipline. Default-closed: uncertainty resolves to REJECT.
+//
+// See invariant_hive_mind_admission + decision_hive_mind_taxonomy.
+
+// Minimum distinct independent sources before an entity/pattern entry may exist,
+// so no single reporter is recoverable (provenance k-anonymity).
+export const HIVE_MIN_SOURCES = 5;
+
+// Person-identifying / casework signals — any hit REJECTS the candidate.
+// NOTE on names: a naive "two capitalized words" test over-rejects legitimate
+// bureaucratic ground truth (court names, jurisdictions, form titles are all
+// capitalized). We do NOT use that heuristic. The robust person-signals below
+// (client/casework referents, pronouns, individual dates/scheduling, DOB/SSN,
+// health detail, case/docket refs) catch actual personal content; a bare name in
+// otherwise-public ground truth ("Norfolk Circuit Court") is not itself PHI.
+// Callers must still not put a person's name in — enforced by these signals plus
+// the requirement that content be public, durable ground truth.
+const HIVE_REJECT_PATTERNS = [
+  /\bmy client\b|\bthe client\b|\bclient('s|s)?\b/i,
+  /\b(my|the|a) (patient|resident|navigator note|case note)\b/i,
+  /\b(he|she|him|her|his|hers|theirs)\b/i,                    // singular personal pronouns => an individual
+  /\bcourt date\b|\bhearing (on|is|date)\b|\bappointment (on|is)\b/i, // individual scheduling
+  /\bDOB\b|\bdate of birth\b|\bSSN\b|\b\d{3}-\d{2}-\d{4}\b/i,
+  /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/,                            // a specific date = individual event
+  /\bhrt\b|\bhormone|\bestrogen|\btestosterone|\bdiagnos|\bmedication|\bhiv\b/i, // health detail
+  /\bcase\s*#?\s*[a-z0-9-]{3,}|\bdocket\b/i,                 // case/docket reference
+];
+
+// Authorship must be a role/region token, never a person/device identity.
+const HIVE_ROLE_REGION = /^[a-z0-9 ]+(navigator|intake|clerk|region|office|chapter|desk)\b|^\d{3}\b/i;
+
+/**
+ * Decide whether a candidate may enter the hive-mind.
+ * @param {{ sourceText?: string, sourceCount?: number, lastVerifiedBy?: string, isPattern?: boolean }} candidate
+ * @returns {{ ok: boolean, reason: string|null }}
+ */
+export function admissionGate(candidate = {}) {
+  const text = String(candidate.sourceText || '');
+  if (!text.trim()) return { ok: false, reason: 'empty candidate' };
+
+  // 1. Subpoena litmus: reject anything person-identifying.
+  for (const re of HIVE_REJECT_PATTERNS) {
+    if (re.test(text)) return { ok: false, reason: 'person-identifying content' };
+  }
+
+  // 2. n>=k source floor for pattern/entity entries.
+  if (candidate.isPattern) {
+    const n = Number(candidate.sourceCount);
+    if (!Number.isFinite(n) || n < HIVE_MIN_SOURCES) {
+      return { ok: false, reason: `below source floor (need >= ${HIVE_MIN_SOURCES} distinct sources)` };
+    }
+  }
+
+  // 3. Authorship must be a role/region token, never an identity.
+  if (candidate.lastVerifiedBy != null) {
+    if (!HIVE_ROLE_REGION.test(String(candidate.lastVerifiedBy))) {
+      return { ok: false, reason: 'authorship is not a role/region token' };
+    }
+  }
+
+  return { ok: true, reason: null };
+}
+
 export class HiveMindEngine {
   constructor() {
     this.root = null;
   }
 
-  // Insert or Update with LWW-CRDT rules
-  async insert(key, vector, timestamp) {
+  // Insert or Update with LWW-CRDT rules.
+  // ENFORCED admission gate: a candidate MUST pass admissionGate before it can
+  // become replicated ground truth. `candidate` carries the source text + metadata
+  // the gate needs; passing it is required. Rejection throws — the gate cannot be
+  // bypassed by callers.
+  async insert(key, vector, timestamp, candidate) {
+    const verdict = admissionGate(candidate);
+    if (!verdict.ok) {
+      throw new Error(`hive-mind admission REJECTED: ${verdict.reason}`);
+    }
+
     if (!this.root) {
       this.root = new TrieNode(key, vector, timestamp);
       await this.root.updateHash();
