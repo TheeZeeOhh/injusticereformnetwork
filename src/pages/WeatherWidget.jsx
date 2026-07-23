@@ -104,15 +104,15 @@ export default function WeatherWidget() {
   return (
     <div style={{
       position: 'fixed', right: 16, bottom: 16, zIndex: 900,
-      background: 'var(--bg-card, #1a1a2e)', color: 'var(--text-primary, #eee)',
-      border: '1px solid var(--border-glass, rgba(255,255,255,0.12))',
+      background: 'var(--bg-color-surface)', color: 'var(--text-primary)',
+      border: '1px solid var(--border-color)',
       borderRadius: 14, padding: '12px 14px', minWidth: 190, maxWidth: 260,
       fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem',
-      boxShadow: '0 8px 24px rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)',
+      boxShadow: 'var(--shadow-md)', backdropFilter: 'blur(6px)',
     }}>
       {/* Digital clock — always shown, purely local (no network) */}
       <div style={{ textAlign: 'center', marginBottom: 10, paddingBottom: 8,
-        borderBottom: '1px solid var(--border-glass, rgba(255,255,255,0.1))' }}>
+        borderBottom: '1px solid var(--border-color)' }}>
         <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: '1.55rem',
           fontWeight: 700, letterSpacing: '1px', lineHeight: 1.1 }}>
           {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -126,7 +126,7 @@ export default function WeatherWidget() {
 
       {status === 'error' && (
         <div>
-          <div style={{ color: 'var(--danger, crimson)', marginBottom: 6 }}>⚠ {error}</div>
+          <div style={{ color: 'var(--red)', marginBottom: 6 }}>⚠ {error}</div>
           <button onClick={() => setOpen(true)} style={btn}>Set city</button>
         </div>
       )}
@@ -172,8 +172,8 @@ export default function WeatherWidget() {
           <input
             autoFocus value={input} onChange={(e) => setInput(e.target.value)}
             placeholder="e.g. Baltimore"
-            style={{ width: '100%', padding: '6px 8px', borderRadius: 8, border: '1px solid var(--border-glass, #333)',
-              background: 'var(--bg-color-main, #111)', color: 'inherit', fontSize: '0.85rem' }}
+            style={{ width: '100%', padding: '6px 8px', borderRadius: 8, border: '1px solid var(--border-color)',
+              background: 'var(--charcoal-lighter)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
           />
           <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
             <button type="submit" style={{ ...btn, flex: 1 }}>Get weather</button>
@@ -186,8 +186,8 @@ export default function WeatherWidget() {
 }
 
 const btn = {
-  padding: '5px 10px', borderRadius: 8, border: '1px solid var(--border-glass, #333)',
-  background: 'var(--accent-1, #c05a3e)', color: '#fff', cursor: 'pointer', fontSize: '0.8rem',
+  padding: '5px 10px', borderRadius: 8, border: '1px solid var(--border-color)',
+  background: 'var(--ember)', color: '#fff', cursor: 'pointer', fontSize: '0.8rem',
 };
 const iconBtn = {
   padding: '2px 6px', marginLeft: 4, borderRadius: 6, border: 'none',
