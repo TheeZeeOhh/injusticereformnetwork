@@ -84,6 +84,8 @@ import CaseReporting from './pages/CaseReporting';
 import StipendTracker from './pages/StipendTracker';
 import CredentialMonitor from './pages/CredentialMonitor';
 import ReferralTracker from './pages/ReferralTracker';
+import PortableSession from './pages/PortableSession';
+import WeatherWidget from './pages/WeatherWidget';
 
 // Cycle through the theme accent colors so the marquee keeps its multicolor look
 // regardless of how many messages the user configures.
@@ -179,6 +181,7 @@ const NAV_GROUPS = [
     items: [
       { to: '/manual', icon: '📘', labelKey: 'nav.userManual' },
       { to: '/onboarding', icon: '🚀', labelKey: 'nav.onboarding' },
+      { to: '/portable', icon: '🔌', labelKey: 'nav.portable' },
       { to: '/settings', icon: '⚙️', labelKey: 'nav.settings' }
     ]
   }
@@ -250,6 +253,33 @@ function App() {
     if (themeMode === 'light') root.setAttribute('data-theme', 'light');
     else root.removeAttribute('data-theme');
   }, [themeMode]);
+
+  // Idle auto-lock (HIPAA §164.312(a)(2)(iii)). While authenticated, an inactivity
+  // timer locks the vault (logout drops keys from RAM) after DEFAULT_IDLE_MS with
+  // no operator activity. Complements the USB dead-man's switch with an always-on
+  // software fallback so an unattended unlocked machine does not expose PHI.
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    let timer;
+    let bump;
+    let cancelled = false;
+    (async () => {
+      const { createIdleTimer } = await import('./utils/idleLock');
+      if (cancelled) return;
+      timer = createIdleTimer(() => logout());
+      bump = () => timer.bump();
+      const events = ['mousedown', 'keydown', 'touchstart', 'mousemove', 'wheel'];
+      for (const ev of events) window.addEventListener(ev, bump, { passive: true });
+      timer._events = events;
+    })();
+    return () => {
+      cancelled = true;
+      if (timer) timer.stop();
+      if (bump && timer && timer._events) {
+        for (const ev of timer._events) window.removeEventListener(ev, bump);
+      }
+    };
+  }, [isAuthenticated, logout]);
 
   // Explicit Vault B unlock (finding C1). Vault B is closed after login and
   // requires its OWN separate passphrase. Three cases:
@@ -434,6 +464,7 @@ function App() {
               <Route path="/manual" element={<UserManual />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/portable" element={<PortableSession />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </div>
@@ -448,6 +479,7 @@ function App() {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         {renderContent()}
       </div>
+      {isAuthenticated && <WeatherWidget />}
     </div>
   );
 }
