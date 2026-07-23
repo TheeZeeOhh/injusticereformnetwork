@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // Medication Management — medication tracking & reconciliation (NOT prescribing).
 //
@@ -33,6 +34,7 @@ const EMPTY = {
 };
 
 export default function MedicationManagement() {
+  const { t } = useLanguage();
   const { vaultAKey, vaultBKey } = useAuthStore();
   const [aList, setAList] = useState([]);
   const [bList, setBList] = useState([]);
@@ -52,7 +54,7 @@ export default function MedicationManagement() {
         const idx = await loadSecureRecord(vaultAKey, INDEX_A, 'A');
         if (idx) setAList(idx);
       } catch {
-        setStatus('Could not decrypt medication index (Vault A).');
+        setStatus(t('meds.errDecryptA'));
       }
     }
     load();
@@ -66,7 +68,7 @@ export default function MedicationManagement() {
         const idx = await loadSecureRecord(vaultBKey, INDEX_B, 'B');
         if (idx) setBList(idx);
       } catch {
-        setStatus('Could not decrypt sensitive medication index (Vault B).');
+        setStatus(t('meds.errDecryptB'));
       }
     }
     load();
@@ -82,12 +84,12 @@ export default function MedicationManagement() {
 
   const handleAdd = async () => {
     if (!form.clientRef.trim() || !form.medication.trim()) {
-      setStatus('Client reference and medication are required.');
+      setStatus(t('meds.errRequired'));
       return;
     }
     const toB = form.sensitive;
     if (toB && !vaultBKey) {
-      setStatus('This medication is marked sensitive but Vault B is closed. Unlock Vault B first.');
+      setStatus(t('meds.errVaultBClosed'));
       return;
     }
     if (!toB && !vaultAKey) return;
@@ -106,7 +108,7 @@ export default function MedicationManagement() {
       setShowForm(false);
       setStatus(`Saved ${entry.medication} to Vault ${tag}.`);
     } catch (err) {
-      setStatus('Save failed: ' + err.message);
+      setStatus(t('meds.errSave') + err.message);
     }
   };
 
@@ -123,7 +125,7 @@ export default function MedicationManagement() {
       if (toB) setBList(updated); else setAList(updated);
       setStatus(`Marked ${item.medication} discontinued.`);
     } catch (err) {
-      setStatus('Update failed: ' + err.message);
+      setStatus(t('meds.errUpdate') + err.message);
     }
   };
 
@@ -137,7 +139,7 @@ export default function MedicationManagement() {
 
   return (
     <div className="data-panel glass-panel">
-      <h2>Medication Management</h2>
+      <h2>{t('meds.title')}</h2>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
         Medication tracking &amp; reconciliation. Records what a client is already
         prescribed by their provider — this is a record, not a prescription.
@@ -151,22 +153,22 @@ export default function MedicationManagement() {
       )}
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-        <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by client or medication..." style={{ flex: 1, padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
+        <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('meds.searchPlaceholder')} style={{ flex: 1, padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
         <button className="btn-primary" onClick={() => setShowForm((v) => !v)} disabled={!vaultAOpen}>
-          {showForm ? 'Cancel' : '+ Add Medication'}
+          {showForm ? t('meds.cancel') : '+ Add Medication'}
         </button>
       </div>
 
       {showForm && (
         <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-          <input placeholder="Client ref *" value={form.clientRef} onChange={(e) => update('clientRef', e.target.value)} style={inp} />
-          <input placeholder="Medication *" value={form.medication} onChange={(e) => update('medication', e.target.value)} style={inp} />
-          <input placeholder="Dose" value={form.dose} onChange={(e) => update('dose', e.target.value)} style={inp} />
-          <input placeholder="Frequency" value={form.frequency} onChange={(e) => update('frequency', e.target.value)} style={inp} />
-          <input placeholder="Prescriber" value={form.prescriber} onChange={(e) => update('prescriber', e.target.value)} style={inp} />
-          <input placeholder="Pharmacy" value={form.pharmacy} onChange={(e) => update('pharmacy', e.target.value)} style={inp} />
-          <input placeholder="Program / clinic (MAT)" value={form.program} onChange={(e) => update('program', e.target.value)} style={inp} />
-          <input type="date" title="Next refill" value={form.refillDate} onChange={(e) => update('refillDate', e.target.value)} style={inp} />
+          <input placeholder={t('meds.clientRefPlaceholder')} value={form.clientRef} onChange={(e) => update('clientRef', e.target.value)} style={inp} />
+          <input placeholder={t('meds.medPlaceholder')} value={form.medication} onChange={(e) => update('medication', e.target.value)} style={inp} />
+          <input placeholder={t('meds.dosePlaceholder')} value={form.dose} onChange={(e) => update('dose', e.target.value)} style={inp} />
+          <input placeholder={t('meds.freqPlaceholder')} value={form.frequency} onChange={(e) => update('frequency', e.target.value)} style={inp} />
+          <input placeholder={t('meds.prescriberPlaceholder')} value={form.prescriber} onChange={(e) => update('prescriber', e.target.value)} style={inp} />
+          <input placeholder={t('meds.pharmacyPlaceholder')} value={form.pharmacy} onChange={(e) => update('pharmacy', e.target.value)} style={inp} />
+          <input placeholder={t('meds.programPlaceholder')} value={form.program} onChange={(e) => update('program', e.target.value)} style={inp} />
+          <input type="date" title={t('meds.nextRefillTitle')} value={form.refillDate} onChange={(e) => update('refillDate', e.target.value)} style={inp} />
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--bone)' }}>
             <input type="checkbox" checked={form.sensitive} onChange={(e) => update('sensitive', e.target.checked)} />
             Sensitive (HRT / MAT → Vault B)
@@ -176,7 +178,7 @@ export default function MedicationManagement() {
               MAT medication detected — this record is 42 CFR Part 2 and will be stored in Vault B.
             </div>
           )}
-          <button className="btn-primary" onClick={handleAdd} style={{ gridColumn: '1 / -1' }}>Save Medication</button>
+          <button className="btn-primary" onClick={handleAdd} style={{ gridColumn: '1 / -1' }}>{t('meds.saveMed')}</button>
         </div>
       )}
 
@@ -184,13 +186,13 @@ export default function MedicationManagement() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '2px solid var(--border-color)' }}>
-              <th style={th}>Client</th>
-              <th style={th}>Medication</th>
-              <th style={th}>Dose / Freq</th>
-              <th style={th}>Next Refill</th>
-              <th style={th}>Vault</th>
-              <th style={th}>Status</th>
-              <th style={th}>Actions</th>
+              <th style={th}>{t('meds.colClient')}</th>
+              <th style={th}>{t('meds.colMed')}</th>
+              <th style={th}>{t('meds.colDoseFreq')}</th>
+              <th style={th}>{t('meds.colNextRefill')}</th>
+              <th style={th}>{t('meds.colVault')}</th>
+              <th style={th}>{t('meds.colStatus')}</th>
+              <th style={th}>{t('meds.colActions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -212,13 +214,13 @@ export default function MedicationManagement() {
                 </td>
                 <td style={{ padding: '1rem' }}>
                   {med.status === 'Active' && (
-                    <button onClick={() => discontinue(med)} style={{ background: 'transparent', border: '1px solid var(--border-color)', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}>Discontinue</button>
+                    <button onClick={() => discontinue(med)} style={{ background: 'transparent', border: '1px solid var(--border-color)', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}>{t('meds.discontinue')}</button>
                   )}
                 </td>
               </tr>
             ))}
             {visible.length === 0 && (
-              <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No medications on file.</td></tr>
+              <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('meds.noMeds')}</td></tr>
             )}
           </tbody>
         </table>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../i18n/LanguageContext';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 
 export default function TransportationHub() {
+  const { t } = useLanguage();
   const { vaultAKey } = useAuthStore();
   const [rides, setRides] = useState([]);
 
@@ -63,28 +65,28 @@ export default function TransportationHub() {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Transportation Hub</h1>
+          <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('transport.title')}</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
             Coordinate mutual aid drivers and manage emergency transit vouchers.
           </p>
         </div>
         <button onClick={() => setIsAdding(!isAdding)} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', fontWeight: 'bold' }}>
-          {isAdding ? 'Cancel' : '+ Request Transport'}
+          {isAdding ? t('transport.cancel') : t('transport.toggleAdd')}
         </button>
       </div>
 
       {isAdding && (
         <form onSubmit={handleAddRide} className="glass-panel" style={{ padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', background: 'var(--charcoal)' }}>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>Client Name</label>
-            <input autoFocus type="text" value={newClient} onChange={e => setNewClient(e.target.value)} placeholder="e.g. David Kim" style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>{t('transport.clientName')}</label>
+            <input autoFocus type="text" value={newClient} onChange={e => setNewClient(e.target.value)} placeholder={t('transport.clientPlaceholder')} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>Destination</label>
-            <input type="text" value={newDestination} onChange={e => setNewDestination(e.target.value)} placeholder="e.g. Health Clinic" style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>{t('transport.destination')}</label>
+            <input type="text" value={newDestination} onChange={e => setNewDestination(e.target.value)} placeholder={t('transport.destPlaceholder')} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
           </div>
           <div style={{ width: '150px' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>Time</label>
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>{t('transport.time')}</label>
             <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
           </div>
           <button type="submit" className="btn-primary" style={{ padding: '0.75rem 2rem', background: 'var(--gold)', color: 'var(--charcoal)', fontWeight: 'bold' }}>
@@ -97,12 +99,12 @@ export default function TransportationHub() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', textAlign: 'left' }}>
-              <th style={{ padding: '1rem' }}>Time</th>
-              <th style={{ padding: '1rem' }}>Client</th>
-              <th style={{ padding: '1rem' }}>Destination</th>
-              <th style={{ padding: '1rem' }}>Driver / Resource</th>
-              <th style={{ padding: '1rem' }}>Status</th>
-              <th style={{ padding: '1rem' }}>Action</th>
+              <th style={{ padding: '1rem' }}>{t('transport.colTime')}</th>
+              <th style={{ padding: '1rem' }}>{t('transport.colClient')}</th>
+              <th style={{ padding: '1rem' }}>{t('transport.colDestination')}</th>
+              <th style={{ padding: '1rem' }}>{t('transport.colDriver')}</th>
+              <th style={{ padding: '1rem' }}>{t('transport.colStatus')}</th>
+              <th style={{ padding: '1rem' }}>{t('transport.colAction')}</th>
             </tr>
           </thead>
           <tbody>
@@ -132,7 +134,7 @@ export default function TransportationHub() {
             ))}
           </tbody>
         </table>
-        {rides.length === 0 && <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>No transport requests today.</div>}
+        {rides.length === 0 && <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{t('transport.noRequests')}</div>}
       </div>
     </div>
   );

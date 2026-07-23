@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
+import { useLanguage } from '../i18n/LanguageContext';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 
 export default function VoucherProgram() {
+  const { t } = useLanguage();
   const { vaultAKey } = useAuthStore();
   const [budget, setBudget] = useState(5000);
   const [vouchers, setVouchers] = useState([]);
@@ -82,41 +84,41 @@ export default function VoucherProgram() {
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Voucher Program</h1>
+          <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('voucher.title')}</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
-            Issue and track mutual aid stipends, transit credits, and housing vouchers.
+            {t('voucher.subtitle')}
           </p>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>Available Budget</div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>{t('voucher.availableBudget')}</div>
           <div style={{ color: 'var(--ember)', fontSize: '1.5rem', fontWeight: 'bold' }}>${budget.toFixed(2)}</div>
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
          <button onClick={() => setIsIssuing(!isIssuing)} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', border: '1px solid var(--gold)', color: 'var(--gold)', fontWeight: 'bold' }}>
-          {isIssuing ? 'Cancel' : '+ Issue New Voucher'}
+          {isIssuing ? t('voucher.cancel') : t('voucher.toggleIssue')}
         </button>
       </div>
 
       {isIssuing && (
         <form onSubmit={handleIssueVoucher} className="glass-panel" style={{ padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', background: 'var(--charcoal)', border: '1px solid var(--ember)' }}>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>Recipient Name</label>
-            <input autoFocus type="text" value={newRecipient} onChange={e => setNewRecipient(e.target.value)} placeholder="e.g. David Kim" style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>{t('voucher.recipientName')}</label>
+            <input autoFocus type="text" value={newRecipient} onChange={e => setNewRecipient(e.target.value)} placeholder={t('voucher.recipientPlaceholder')} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>Voucher Type</label>
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>{t('voucher.voucherType')}</label>
             <select value={newType} onChange={e => setNewType(e.target.value)} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
-              <option>Transit</option>
-              <option>Emergency Housing</option>
-              <option>Groceries / Mutual Aid</option>
-              <option>Legal Defense</option>
+              <option>{t('voucher.typeTransit')}</option>
+              <option>{t('voucher.typeHousing')}</option>
+              <option>{t('voucher.typeGroceries')}</option>
+              <option>{t('voucher.typeLegal')}</option>
             </select>
           </div>
           <div style={{ width: '150px' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>Amount ($)</label>
-            <input type="number" step="0.01" value={newAmount} onChange={e => setNewAmount(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>{t('voucher.amount')}</label>
+            <input type="number" step="0.01" value={newAmount} onChange={e => setNewAmount(e.target.value)} placeholder={t('voucher.amountPlaceholder')} style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }} />
           </div>
           <button type="submit" className="btn-primary" style={{ padding: '0.75rem 2rem', background: 'var(--ember)', color: 'white', fontWeight: 'bold' }}>
             Authorize
@@ -128,13 +130,13 @@ export default function VoucherProgram() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', textAlign: 'left' }}>
-              <th style={{ padding: '1rem' }}>Voucher ID</th>
-              <th style={{ padding: '1rem' }}>Date Issued</th>
-              <th style={{ padding: '1rem' }}>Recipient</th>
-              <th style={{ padding: '1rem' }}>Type</th>
-              <th style={{ padding: '1rem' }}>Amount</th>
-              <th style={{ padding: '1rem' }}>Status</th>
-              <th style={{ padding: '1rem' }}>Action</th>
+              <th style={{ padding: '1rem' }}>{t('voucher.colId')}</th>
+              <th style={{ padding: '1rem' }}>{t('voucher.colDate')}</th>
+              <th style={{ padding: '1rem' }}>{t('voucher.colRecipient')}</th>
+              <th style={{ padding: '1rem' }}>{t('voucher.colType')}</th>
+              <th style={{ padding: '1rem' }}>{t('voucher.colAmount')}</th>
+              <th style={{ padding: '1rem' }}>{t('voucher.colStatus')}</th>
+              <th style={{ padding: '1rem' }}>{t('voucher.colAction')}</th>
             </tr>
           </thead>
           <tbody>
@@ -165,7 +167,7 @@ export default function VoucherProgram() {
             ))}
           </tbody>
         </table>
-        {vouchers.length === 0 && <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>No vouchers issued.</div>}
+        {vouchers.length === 0 && <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{t('voucher.noVouchers')}</div>}
       </div>
     </div>
   );
