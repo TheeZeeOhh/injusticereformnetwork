@@ -4,12 +4,8 @@ import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 
 export default function StaffingKanban() {
   const { vaultAKey } = useAuthStore();
-  const [prospects, setProspects] = useState([
-    { id: 1, name: 'Dr. Avery Davis', role: 'Psychiatrist', status: 'Applicants', note: 'Applied 2d ago' },
-    { id: 2, name: 'Jordan Lee, RN', role: 'Psychiatric Nurse', status: 'Applicants', note: 'Applied 4d ago' },
-    { id: 3, name: 'Dr. Elena Rostova', role: 'Clinical Psychologist', status: 'Interviewing', note: 'Round 2' },
-    { id: 4, name: 'Samuel Jackson, MSW', role: 'Social Worker', status: 'Credentialing', note: 'Waiting on Background Check' }
-  ]);
+  // Empty until loaded from Vault A (no mock prospects).
+  const [prospects, setProspects] = useState([]);
 
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
@@ -23,9 +19,9 @@ export default function StaffingKanban() {
       if (!vaultAKey) return;
       try {
         const stored = await loadSecureRecord(vaultAKey, 'staffing_board', 'A');
-        if (stored) setProspects(stored);
-      } catch (err) {
-        console.warn("No staffing board found, using defaults.");
+        if (Array.isArray(stored)) setProspects(stored);
+      } catch {
+        // No board yet — stays empty until the first prospect is added.
       }
     }
     loadBoard();

@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import NoteTemplates from './pages/NoteTemplates';
 import DischargeGenerator from './pages/DischargeGenerator';
 import Schedule from './pages/Schedule';
 import Messages from './pages/Messages';
@@ -505,7 +504,7 @@ function App() {
             <Routes>
               <Route path="/" element={<DashboardHome />} />
               <Route path="/clients" element={<ClientsModule />} />
-              <Route path="/templates" element={<NoteTemplates />} />
+              <Route path="/templates" element={<NoteTemplatesLibrary />} />
               <Route path="/note-templates" element={<NoteTemplatesLibrary />} />
               <Route path="/canvas" element={<VisualCanvas />} />
               <Route path="/foia" element={<FOIAGenerator />} />
