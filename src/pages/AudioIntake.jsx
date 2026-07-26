@@ -20,24 +20,14 @@ export default function AudioIntake() {
   const [statusMsg, setStatusMsg] = useState('');
 
   // Microphone selection. The webview auto-grants mic permission and grabs the
-  // default device, so with multiple mics you couldn't choose. Enumerate inputs
-  // and let the operator pick which one to record from.
+  // default device, so with multiple mics you couldn't choose. We do NOT
+  // enumerate on mount: in the WebKitGTK webview, navigator.mediaDevices
+  // .enumerateDevices() synchronously probes PipeWire and HANGS the UI (this
+  // froze the page right after it opened). Instead, the device list is populated
+  // AFTER the first session starts (inside startRecording, where permission is
+  // genuinely active). The dropdown shows "System default" until then.
   const [mics, setMics] = useState([]);
   const [selectedMic, setSelectedMic] = useState('');
-  useEffect(() => {
-    let cancelled = false;
-    const enumerate = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const inputs = devices.filter((d) => d.kind === 'audioinput');
-        if (!cancelled) setMics(inputs);
-      } catch { /* enumeration may need permission first; ignored */ }
-    };
-    enumerate();
-    // Labels populate only after permission is granted; re-enumerate on change.
-    navigator.mediaDevices?.addEventListener?.('devicechange', enumerate);
-    return () => { cancelled = true; navigator.mediaDevices?.removeEventListener?.('devicechange', enumerate); };
-  }, []);
 
   // Client association + save state. A transcript is client PHI, so saving it
   // requires a selected client and routes through the encrypted Vault A.
