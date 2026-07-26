@@ -85,6 +85,7 @@ import CredentialMonitor from './pages/CredentialMonitor';
 import ReferralTracker from './pages/ReferralTracker';
 import PortableSession from './pages/PortableSession';
 import WeatherWidget from './pages/WeatherWidget';
+import { SidebarClock, SidebarRadio } from './pages/SidebarExtras';
 
 // Cycle through the theme accent colors so the marquee keeps its multicolor look
 // regardless of how many messages the user configures.
@@ -442,7 +443,9 @@ function App() {
             <div className="sidebar-logo-icon"></div>
             Sanctuary
           </div>
-          
+
+          <SidebarClock />
+
           <ul className="nav-links">
             {NAV_GROUPS.map((group) => (
               <React.Fragment key={group.titleKey}>
@@ -461,6 +464,7 @@ function App() {
           </ul>
 
           <LanguageSwitcher />
+          <SidebarRadio />
         </aside>
 
         {/* Main Content Area */}
