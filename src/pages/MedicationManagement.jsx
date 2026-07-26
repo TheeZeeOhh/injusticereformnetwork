@@ -17,11 +17,12 @@ import { useLanguage } from '../i18n/LanguageContext';
 const INDEX_A = 'med_index';   // Vault A index
 const INDEX_B = 'med_index_b'; // Vault B index
 
-// MAT (medication-assisted treatment for substance use) is folded into this
-// module rather than a separate one, so all sensitive medication records live in
-// one place. MAT records are 42 CFR Part 2 data and MUST go to Vault B — typing a
-// MAT medication auto-flags the record sensitive. This is a RECORD of a client's
-// existing MAT, not prescribing or dosing authority.
+// MAT / MOUD (medication-assisted treatment / medications for opioid use
+// disorder — the same class; MOUD is the current preferred term) is folded into
+// this module rather than a separate one, so all sensitive medication records
+// live in one place. These records are 42 CFR Part 2 data and MUST go to Vault B
+// — typing such a medication auto-flags the record sensitive. This is a RECORD of
+// a client's existing treatment, not prescribing or dosing authority.
 export const MAT_MEDS = ['buprenorphine', 'suboxone', 'subutex', 'methadone', 'naltrexone', 'vivitrol', 'sublocade'];
 export function isMatMed(name) {
   const n = (name || '').toLowerCase();
@@ -148,7 +149,7 @@ export default function MedicationManagement() {
 
       {!vaultBOpen && (
         <div style={{ background: 'rgba(225,29,72,0.10)', borderLeft: '4px solid #e11d48', padding: '0.75rem 1rem', color: '#fda4af', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', marginBottom: '1rem' }}>
-          🔒 Vault B closed — sensitive medications (HRT, MAT / 42 CFR Part 2) are hidden. Unlock Vault B to view or add them.
+          🔒 Vault B closed — sensitive medications (HRT, MAT / MOUD · 42 CFR Part 2) are hidden. Unlock Vault B to view or add them.
         </div>
       )}
 
@@ -171,11 +172,11 @@ export default function MedicationManagement() {
           <input type="date" title={t('meds.nextRefillTitle')} value={form.refillDate} onChange={(e) => update('refillDate', e.target.value)} style={inp} />
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--bone)' }}>
             <input type="checkbox" checked={form.sensitive} onChange={(e) => update('sensitive', e.target.checked)} />
-            Sensitive (HRT / MAT → Vault B)
+            Sensitive (HRT / MAT / MOUD → Vault B)
           </label>
           {isMatMed(form.medication) && (
             <div style={{ gridColumn: '1 / -1', fontSize: '0.75rem', color: '#fda4af', fontFamily: 'var(--font-mono)' }}>
-              MAT medication detected — this record is 42 CFR Part 2 and will be stored in Vault B.
+              MAT / MOUD medication detected — this record is 42 CFR Part 2 and will be stored in Vault B.
             </div>
           )}
           <button className="btn-primary" onClick={handleAdd} style={{ gridColumn: '1 / -1' }}>{t('meds.saveMed')}</button>

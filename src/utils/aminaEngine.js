@@ -162,7 +162,7 @@ const INTENT = [
   { cat: 'Legal', kw: ['legal', 'lawyer', 'name change', 'gender marker', 'id', 'court', 'rights', 'discrimination', 'immigration'] },
   { cat: 'Crisis', kw: ['crisis', 'suicid', 'hurt', 'emergency', 'hotline', 'danger', 'unsafe', 'help now', '988'] },
   { cat: 'Harm Reduction', kw: ['narcan', 'naloxone', 'overdose', 'safer use', 'harm reduction'] },
-  { cat: 'Recovery', kw: ['recovery', 'mat', 'methadone', 'suboxone', 'buprenorphine', 'treatment', 'sober', 'detox', 'addiction', 'using again', 'relapse', 'quit'] },
+  { cat: 'Recovery', kw: ['recovery', 'mat', 'moud', 'methadone', 'suboxone', 'buprenorphine', 'treatment', 'sober', 'detox', 'addiction', 'using again', 'relapse', 'quit'] },
   { cat: 'Food', kw: ['food', 'hungry', 'eat', 'pantry', 'groceries', 'meal', 'snap', 'wic'] },
   { cat: 'Financial', kw: ['money', 'relief', 'fund', 'cash', 'rent', 'financial', 'bills'] }
 ];
