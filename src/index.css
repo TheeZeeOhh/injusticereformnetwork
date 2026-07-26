@@ -332,15 +332,19 @@ input:focus, select:focus, textarea:focus {
    value). Pairs with the contextmenu/copy/drag blockers in App.jsx and the
    Rust set_content_protected() screen-capture exclusion. This is friction,
    not a guarantee: it cannot stop an OS screenshot or a phone camera. */
-body {
+/* EXCEPTION: a Systems Admin who has unlocked Vault B (body.admin-unlocked,
+   set in App.jsx) keeps full selection — an authenticated override. */
+body:not(.admin-unlocked) {
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
 }
-input, textarea, [contenteditable="true"] {
+body:not(.admin-unlocked) input,
+body:not(.admin-unlocked) textarea,
+body:not(.admin-unlocked) [contenteditable="true"] {
   -webkit-user-select: text;
   -moz-user-select: text;
   user-select: text;
 }
-/* Images can't be dragged out of the app. */
-img { -webkit-user-drag: none; user-drag: none; }
+/* Images can't be dragged out of the app (admin bypass is JS-side in App.jsx). */
+body:not(.admin-unlocked) img { -webkit-user-drag: none; }

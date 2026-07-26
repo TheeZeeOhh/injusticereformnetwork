@@ -363,7 +363,18 @@ function App() {
   // NOTE: this is friction, not a guarantee — it cannot stop an OS screenshot
   // tool or a phone camera. OS-level screen-capture exclusion is applied in the
   // Rust shell (set_content_protected), effective on Windows/macOS only.
+  // Admin bypass: protections are LIFTED only for a Systems Admin who has ALSO
+  // unlocked Vault B. Vault B has its own independent passphrase (a real secret,
+  // unrecoverable, not cross-keyed), so this is an AUTHENTICATED override — not
+  // the self-selected login role alone (which anyone could pick). Everyone else
+  // is locked out of right-click / copy / selection / image-drag.
+  const adminBypass = user?.role === 'Systems Admin' && !!vaultBKey;
+
   useEffect(() => {
+    // Reflect bypass state on <body> so the CSS selection rules can key off it.
+    document.body.classList.toggle('admin-unlocked', adminBypass);
+    if (adminBypass) return undefined; // admin: no listeners, full access
+
     const block = (e) => e.preventDefault();
     // Allow copy/cut only when it originates inside a form field (a navigator
     // legitimately needs to copy e.g. a resource phone number they typed/see in
@@ -383,7 +394,7 @@ function App() {
       document.removeEventListener('cut', blockCopyOutsideInputs);
       document.removeEventListener('dragstart', block);
     };
-  }, []);
+  }, [adminBypass]);
 
   // USB insertion trigger: when the Rust poll thread sees the persisted trigger
   // token appear on the bus, it emits 'usb-token-inserted'. If the app is locked,
