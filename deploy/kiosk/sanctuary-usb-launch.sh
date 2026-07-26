@@ -21,9 +21,11 @@ log "udev trigger fired (uid=$(id -u))"
 # --- The desktop user and the app binary. Edit these for the box. ------------
 KIOSK_USER="aziza"
 KIOSK_UID="1000"
-APP_BIN="/home/aziza/injusticereformnetwork/src-tauri/target/release/app"
-# If you install the .deb instead, point APP_BIN at the installed binary, e.g.
-# APP_BIN="/usr/bin/sanctuary"
+# The .deb/.rpm install the binary as /usr/bin/app (the Cargo crate is named
+# "app", even though the product is "Sanctuary"). This is the deployed path.
+APP_BIN="/usr/bin/app"
+# For running the dev build directly (no package install), use instead:
+# APP_BIN="/home/aziza/injusticereformnetwork/src-tauri/target/release/app"
 
 # --- If we are root (udev), re-exec as the kiosk user with a login shell so the
 #     user session/dbus is reachable. --------------------------------------------

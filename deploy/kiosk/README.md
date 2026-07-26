@@ -45,9 +45,11 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 ## Adapting for a real deployment
 
-- `APP_BIN` in `sanctuary-usb-launch.sh` points at the **dev build**
-  (`src-tauri/target/release/app`). If you install the `.deb`/`.rpm` on the box,
-  edit `APP_BIN` to the installed binary (e.g. `/usr/bin/sanctuary`).
+- `APP_BIN` in `sanctuary-usb-launch.sh` defaults to the **installed package**
+  path `/usr/bin/app` — the `.deb`/`.rpm` install the binary as `app` (the Cargo
+  crate name), not `sanctuary`, even though the product is "Sanctuary". To run
+  the **dev build** instead (no package install), point `APP_BIN` at
+  `src-tauri/target/release/app` (commented alternative in the script).
 - `KIOSK_USER` / `KIOSK_UID` are hardcoded to `aziza` / `1000`. Change for a
   different box.
 - To find another stick's serial: `udevadm info -q property -n /dev/sdX | grep ID_SERIAL_SHORT`.
