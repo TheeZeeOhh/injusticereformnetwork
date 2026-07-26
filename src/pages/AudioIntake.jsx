@@ -52,11 +52,13 @@ export default function AudioIntake() {
   const bufferRef = useRef([]); // accumulates Float32 samples until a chunk is full
   const chunkIdRef = useRef(0);
 
-  // Spin up the worker once. It's torn down on unmount so nothing persists.
-  useEffect(() => {
+  // Lazily create the transcription worker. Spawning it eagerly on page mount
+  // pulls in the multi-MB transformers.js/WASM module immediately, which stalls
+  // the webview and froze the app the moment you opened Audio Intake. Create it
+  // ONLY when a session actually starts, so opening the page is instant.
+  const ensureWorker = () => {
+    if (workerRef.current) return workerRef.current;
     const worker = new Worker(new URL('../workers/whisperWorker.js', import.meta.url), { type: 'module' });
-    workerRef.current = worker;
-
     worker.onmessage = (e) => {
       const { type, payload } = e.data;
       if (type === 'model-progress') {
@@ -76,12 +78,12 @@ export default function AudioIntake() {
         setStatusMsg('Transcription error: ' + payload);
       }
     };
+    workerRef.current = worker;
+    return worker;
+  };
 
-    return () => {
-      worker.terminate();
-      workerRef.current = null;
-    };
-  }, []);
+  // Tear the worker down on unmount so nothing persists.
+  useEffect(() => () => { workerRef.current?.terminate(); workerRef.current = null; }, []);
 
   // Load the encrypted client directory so a transcript can be attached to a
   // client. Same pattern as ClientsModule; empty/failed load → no clients.
@@ -166,11 +168,14 @@ export default function AudioIntake() {
         setMics(devices.filter((d) => d.kind === 'audioinput'));
       } catch { /* ignore */ }
 
-      // Load the model (no-op if already loaded) and show progress.
+      // Create the worker now (first time only) and load the model. This is when
+      // the heavy transformers.js/WASM work happens — deliberately NOT on page
+      // mount, so opening Audio Intake stays instant.
+      const worker = ensureWorker();
       if (modelState !== 'ready') {
         setModelState('loading');
         setStatusMsg('Loading on-device speech model (first run downloads it once)…');
-        workerRef.current?.postMessage({ type: 'load' });
+        worker.postMessage({ type: 'load' });
       }
 
       const ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
