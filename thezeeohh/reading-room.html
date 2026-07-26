@@ -364,21 +364,29 @@ let actx=null, srcNode=null, eqNodes=[], eqGains=(()=>{
 })();
 let eqPreset=(()=>{try{return JSON.parse(localStorage.getItem(EQKEY)||'{}').preset||'Flat';}catch(_){return 'Flat';}})();
 
-// build the audio graph once, on first play (needs a user gesture for AudioContext)
+// Build the Web Audio graph ONLY when the user opens the EQ — never on plain play.
+// createMediaElementSource() permanently reroutes the element's output through the
+// graph, so if we did it eagerly and the AudioContext were suspended, the radio
+// would go silent. Default playback stays a plain <audio> element and is untouched.
+let graphReady=false;
 function ensureGraph(){
-  if(actx) return;
+  if(graphReady) return true;
   const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC) return;                                   // no Web Audio -> radio still plays, EQ just inert
-  actx=new AC();
-  srcNode=actx.createMediaElementSource(audio);
-  let node=srcNode;
-  eqNodes=EQ_BANDS.map((f,i)=>{
-    const b=actx.createBiquadFilter();
-    b.type = i===0?'lowshelf' : i===EQ_BANDS.length-1?'highshelf':'peaking';
-    b.frequency.value=f; b.Q.value=1.0; b.gain.value=eqGains[i];
-    node.connect(b); node=b; return b;
-  });
-  node.connect(actx.destination);                   // MUST connect or audio goes silent
+  if(!AC) return false;                              // no Web Audio -> EQ simply unavailable
+  try{
+    actx=new AC();
+    srcNode=actx.createMediaElementSource(audio);
+    let node=srcNode;
+    eqNodes=EQ_BANDS.map((f,i)=>{
+      const b=actx.createBiquadFilter();
+      b.type = i===0?'lowshelf' : i===EQ_BANDS.length-1?'highshelf':'peaking';
+      b.frequency.value=f; b.Q.value=1.0; b.gain.value=eqGains[i];
+      node.connect(b); node=b; return b;
+    });
+    node.connect(actx.destination);                  // MUST connect or audio goes silent
+    graphReady=true;
+    return true;
+  }catch(_){ graphReady=false; return false; }       // never let EQ setup break playback
 }
 function applyGains(){eqNodes.forEach((b,i)=>{try{b.gain.value=eqGains[i];}catch(_){}});
   try{localStorage.setItem(EQKEY,JSON.stringify({gains:eqGains,preset:eqPreset}));}catch(_){}}
@@ -407,14 +415,14 @@ Object.keys(EQ_PRESETS).forEach(name=>{
 });
 function syncPresets(){[...eqPresetsEl.children].forEach(b=>b.classList.toggle('on',b.dataset.pre===eqPreset));}
 syncPresets();
-// toggle panel
+// toggle panel — build the graph on FIRST open (a real user gesture), then resume.
 const eqBtn=document.getElementById('eqBtn'), eqPanel=document.getElementById('eqPanel');
-eqBtn.onclick=()=>{const open=eqPanel.classList.toggle('open');eqBtn.classList.toggle('on',open);};
+eqBtn.onclick=()=>{
+  const open=eqPanel.classList.toggle('open');eqBtn.classList.toggle('on',open);
+  if(open){ ensureGraph(); if(actx&&actx.state==='suspended')actx.resume(); }
+};
 document.addEventListener('click',e=>{if(!eqPanel.contains(e.target)&&e.target!==eqBtn&&eqPanel.classList.contains('open')){
   eqPanel.classList.remove('open');eqBtn.classList.remove('on');}});
-// hook graph creation into playback
-const _play=play;
-play=function(){ensureGraph();if(actx&&actx.state==='suspended')actx.resume();_play();};
 </script>
 </body>
 </html>
