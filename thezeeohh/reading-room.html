@@ -121,6 +121,25 @@ mark{background:rgba(201,162,75,.32);color:var(--ink);border-radius:2px;padding:
 .r-vol{display:flex;align-items:center;gap:7px}
 .r-vol input{width:90px;accent-color:var(--gold);cursor:pointer}
 .r-vol .vi{color:var(--dim);font-size:14px}
+.r-eqbtn{background:var(--bg2);border:1px solid var(--line);border-radius:20px;color:var(--muted);
+  font-size:11px;letter-spacing:.5px;font-weight:700;padding:9px 12px;cursor:pointer;transition:.15s}
+.r-eqbtn:hover{border-color:var(--gold);color:var(--ink)}
+.r-eqbtn.on{background:var(--gold);border-color:var(--gold);color:#241a10}
+.eqpanel{position:fixed;right:16px;bottom:74px;z-index:75;width:300px;background:var(--bar);
+  backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:14px;padding:14px 16px 16px;
+  box-shadow:0 8px 30px var(--shadow);display:none}
+.eqpanel.open{display:block}
+.eqpanel h4{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;font-weight:700}
+.eqbands{display:flex;justify-content:space-between;gap:6px;height:120px;margin-bottom:12px}
+.eqband{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.eqband input[type=range]{writing-mode:vertical-lr;direction:rtl;width:6px;height:88px;accent-color:var(--gold);cursor:pointer}
+.eqband .lbl{font-size:9.5px;color:var(--dim);letter-spacing:.3px}
+.eqband .gv{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
+.eqpresets{display:flex;flex-wrap:wrap;gap:6px}
+.eqpre{background:var(--bg2);border:1px solid var(--line);border-radius:14px;color:var(--muted);
+  font-size:11px;padding:5px 10px;cursor:pointer;transition:.12s}
+.eqpre:hover{border-color:var(--gold);color:var(--ink)}
+.eqpre.on{background:var(--gold);border-color:var(--gold);color:#241a10;font-weight:700}
 .r-err{font-size:11px;color:#c0603a;display:none}
 .radio.err .r-err{display:block}
 @media(max-width:640px){
@@ -184,7 +203,14 @@ mark{background:rgba(201,162,75,.32);color:var(--ink);border-radius:2px;padding:
     </div>
     <select class="r-sel" id="rSel" aria-label="Choose station"></select>
     <div class="r-vol"><span class="vi">&#128266;</span><input id="rVol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume"/></div>
+    <button class="r-eqbtn" id="eqBtn" aria-label="Equalizer" title="Equalizer">EQ</button>
   </div>
+</div>
+
+<div class="eqpanel" id="eqPanel" role="dialog" aria-label="Equalizer">
+  <h4>Equalizer</h4>
+  <div class="eqbands" id="eqBands"></div>
+  <div class="eqpresets" id="eqPresets"></div>
 </div>
 
 <audio id="rAudio" preload="none"></audio>
@@ -319,6 +345,76 @@ rPlay.onclick=()=>{if(!audio.src)audio.src=STATIONS[curStation].url;
   if(audio.paused)play();else audio.pause();};
 rSel.onchange=()=>loadStation(+rSel.value,!audio.paused||radio.classList.contains('playing'));
 rVol.oninput=()=>{audio.volume=+rVol.value;saveRadio();};
+
+// ===== equalizer (Web Audio BiquadFilters — real, local, no CORS needed) =====
+const EQKEY='sanctuary_rr_eq';
+const EQ_BANDS=[60,250,1000,4000,12000];           // Hz
+const EQ_LABELS=['60','250','1K','4K','12K'];
+const EQ_PRESETS={
+  Flat:      [0,0,0,0,0],
+  'Bass Boost':[7,4,0,-1,-1],
+  Vocal:     [-2,0,3,4,1],
+  Warm:      [3,2,0,-2,-3],
+  Bright:    [-2,-1,1,4,6],
+};
+let actx=null, srcNode=null, eqNodes=[], eqGains=(()=>{
+  try{const s=JSON.parse(localStorage.getItem(EQKEY)||'{}');
+    if(Array.isArray(s.gains)&&s.gains.length===5)return s.gains.slice();}catch(_){}
+  return [0,0,0,0,0];
+})();
+let eqPreset=(()=>{try{return JSON.parse(localStorage.getItem(EQKEY)||'{}').preset||'Flat';}catch(_){return 'Flat';}})();
+
+// build the audio graph once, on first play (needs a user gesture for AudioContext)
+function ensureGraph(){
+  if(actx) return;
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC) return;                                   // no Web Audio -> radio still plays, EQ just inert
+  actx=new AC();
+  srcNode=actx.createMediaElementSource(audio);
+  let node=srcNode;
+  eqNodes=EQ_BANDS.map((f,i)=>{
+    const b=actx.createBiquadFilter();
+    b.type = i===0?'lowshelf' : i===EQ_BANDS.length-1?'highshelf':'peaking';
+    b.frequency.value=f; b.Q.value=1.0; b.gain.value=eqGains[i];
+    node.connect(b); node=b; return b;
+  });
+  node.connect(actx.destination);                   // MUST connect or audio goes silent
+}
+function applyGains(){eqNodes.forEach((b,i)=>{try{b.gain.value=eqGains[i];}catch(_){}});
+  try{localStorage.setItem(EQKEY,JSON.stringify({gains:eqGains,preset:eqPreset}));}catch(_){}}
+
+// build sliders
+const eqBandsEl=document.getElementById('eqBands');
+EQ_BANDS.forEach((f,i)=>{
+  const wrap=document.createElement('div');wrap.className='eqband';
+  const gv=document.createElement('span');gv.className='gv';gv.textContent=(eqGains[i]>0?'+':'')+eqGains[i];
+  const inp=document.createElement('input');inp.type='range';inp.min='-12';inp.max='12';inp.step='1';
+  inp.value=eqGains[i];inp.setAttribute('aria-label',EQ_LABELS[i]+' Hz');
+  const lbl=document.createElement('span');lbl.className='lbl';lbl.textContent=EQ_LABELS[i];
+  inp.oninput=()=>{eqGains[i]=+inp.value;gv.textContent=(eqGains[i]>0?'+':'')+eqGains[i];
+    eqPreset='';syncPresets();applyGains();};
+  wrap.append(gv,inp,lbl);eqBandsEl.appendChild(wrap);
+});
+// preset buttons
+const eqPresetsEl=document.getElementById('eqPresets');
+Object.keys(EQ_PRESETS).forEach(name=>{
+  const b=document.createElement('button');b.className='eqpre';b.textContent=name;b.dataset.pre=name;
+  b.onclick=()=>{eqGains=EQ_PRESETS[name].slice();eqPreset=name;
+    [...eqBandsEl.querySelectorAll('input')].forEach((inp,i)=>{inp.value=eqGains[i];
+      inp.parentNode.querySelector('.gv').textContent=(eqGains[i]>0?'+':'')+eqGains[i];});
+    applyGains();syncPresets();};
+  eqPresetsEl.appendChild(b);
+});
+function syncPresets(){[...eqPresetsEl.children].forEach(b=>b.classList.toggle('on',b.dataset.pre===eqPreset));}
+syncPresets();
+// toggle panel
+const eqBtn=document.getElementById('eqBtn'), eqPanel=document.getElementById('eqPanel');
+eqBtn.onclick=()=>{const open=eqPanel.classList.toggle('open');eqBtn.classList.toggle('on',open);};
+document.addEventListener('click',e=>{if(!eqPanel.contains(e.target)&&e.target!==eqBtn&&eqPanel.classList.contains('open')){
+  eqPanel.classList.remove('open');eqBtn.classList.remove('on');}});
+// hook graph creation into playback
+const _play=play;
+play=function(){ensureGraph();if(actx&&actx.state==='suspended')actx.resume();_play();};
 </script>
 </body>
 </html>
