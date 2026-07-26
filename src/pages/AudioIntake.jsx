@@ -19,6 +19,26 @@ export default function AudioIntake() {
   const [modelProgress, setModelProgress] = useState(0);
   const [statusMsg, setStatusMsg] = useState('');
 
+  // Microphone selection. The webview auto-grants mic permission and grabs the
+  // default device, so with multiple mics you couldn't choose. Enumerate inputs
+  // and let the operator pick which one to record from.
+  const [mics, setMics] = useState([]);
+  const [selectedMic, setSelectedMic] = useState('');
+  useEffect(() => {
+    let cancelled = false;
+    const enumerate = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const inputs = devices.filter((d) => d.kind === 'audioinput');
+        if (!cancelled) setMics(inputs);
+      } catch { /* enumeration may need permission first; ignored */ }
+    };
+    enumerate();
+    // Labels populate only after permission is granted; re-enumerate on change.
+    navigator.mediaDevices?.addEventListener?.('devicechange', enumerate);
+    return () => { cancelled = true; navigator.mediaDevices?.removeEventListener?.('devicechange', enumerate); };
+  }, []);
+
   // Client association + save state. A transcript is client PHI, so saving it
   // requires a selected client and routes through the encrypted Vault A.
   const [clientDirectory, setClientDirectory] = useState([]);
@@ -136,8 +156,15 @@ export default function AudioIntake() {
     setTranscript([]);
     setStatusMsg('Requesting microphone…');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Use the chosen mic if one is selected; otherwise the system default.
+      const audioConstraint = selectedMic ? { deviceId: { exact: selectedMic } } : true;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraint });
       streamRef.current = stream;
+      // After permission is granted, device labels become available — refresh.
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        setMics(devices.filter((d) => d.kind === 'audioinput'));
+      } catch { /* ignore */ }
 
       // Load the model (no-op if already loaded) and show progress.
       if (modelState !== 'ready') {
@@ -228,6 +255,29 @@ export default function AudioIntake() {
                 No clients found. Add one in the Clients module first.
               </div>
             )}
+          </div>
+
+          {/* Microphone selection */}
+          <div>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Microphone</h4>
+            <select
+              value={selectedMic}
+              onChange={(e) => setSelectedMic(e.target.value)}
+              disabled={isRecording}
+              style={{ width: '100%', padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
+            >
+              <option value="">System default</option>
+              {mics.map((m, i) => (
+                <option key={m.deviceId || i} value={m.deviceId}>
+                  {m.label || `Microphone ${i + 1}`}
+                </option>
+              ))}
+            </select>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginTop: '0.35rem' }}>
+              {mics.length === 0
+                ? 'Device names appear after you start a session once (grants mic access).'
+                : `${mics.length} input${mics.length === 1 ? '' : 's'} detected.`}
+            </div>
           </div>
 
           <button
