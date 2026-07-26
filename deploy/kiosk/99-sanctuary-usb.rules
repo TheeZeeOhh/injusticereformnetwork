@@ -1,0 +1,26 @@
+# 99-sanctuary-usb.rules
+#
+# Launch Sanctuary when the SPECIFIC SANCTUARY security USB is inserted.
+#
+# Scoped to this exact stick by vendor:product AND serial, so a different PNY
+# drive (which shares 154b:1009) will NOT trigger it.
+#
+#   Vendor : 154b (PNY)
+#   Product: 1009 (USB 2.0 FD)
+#   Serial : 072153CE9C96CA33   <-- this specific stick only
+#
+# Install:
+#   sudo cp deploy/kiosk/99-sanctuary-usb.rules /etc/udev/rules.d/
+#   sudo cp deploy/kiosk/sanctuary-usb-launch.sh /usr/local/bin/
+#   sudo chmod +x /usr/local/bin/sanctuary-usb-launch.sh
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# Match on the USB device 'add' event. RUN+= must reference an absolute path;
+# udev will not use $PATH. The launcher backgrounds/detaches the GUI itself.
+
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="154b", ATTR{idProduct}=="1009", ATTRS{serial}=="072153CE9C96CA33", RUN+="/usr/local/bin/sanctuary-usb-launch.sh"
+
+# Some kernels expose the serial on the block/scsi node rather than the usb
+# node. If the rule above does not fire, this ENV-based variant covers the
+# block-device 'add' event for the same serial.
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_SERIAL_SHORT}=="072153CE9C96CA33", RUN+="/usr/local/bin/sanctuary-usb-launch.sh"
