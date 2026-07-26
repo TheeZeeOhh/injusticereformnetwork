@@ -29,12 +29,10 @@ model AuditLog {
   details   String?
 }
 
-model BamHistory {
-  id        Int      @id @default(autoincrement())
-  timestamp DateTime @default(now())
-  score     Float
-  delta     Float
-}
+// NOTE: BAM (Brief Addiction Monitor) scores are 42 CFR Part 2 SUD data and must
+// NEVER live in this operational DB. They are stored per-client, client-side, in
+// the encrypted Vault B (see src/pages/IntelligenceLayer.jsx). Do not re-add a
+// BamHistory model here.
 
 model EmberFund {
   id        Int      @id @default(autoincrement())

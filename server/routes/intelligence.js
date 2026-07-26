@@ -15,15 +15,11 @@ router.get('/status', async (req, res) => {
       take: 5
     });
 
-    const recentBams = await prisma.bamHistory.findMany({
-      orderBy: { timestamp: 'desc' },
-      take: 5
-    });
-
+    // NOTE: BAM scores are 42 CFR Part 2 SUD data and are NOT stored server-side.
+    // They live per-client in the client's encrypted Vault B only.
     res.json({
       emberFundBalance: balance,
-      recentAudits,
-      recentBams
+      recentAudits
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch status' });
@@ -53,15 +49,6 @@ router.post('/audit', async (req, res) => {
   const { category, details } = req.body;
   const log = await prisma.auditLog.create({
     data: { category, details }
-  });
-  res.json(log);
-});
-
-// Add Test Data: BAM Score
-router.post('/bam', async (req, res) => {
-  const { score } = req.body;
-  const log = await prisma.bamHistory.create({
-    data: { score: parseFloat(score), delta: 0 }
   });
   res.json(log);
 });

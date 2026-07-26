@@ -30,25 +30,11 @@ class DaemonManager {
       }
     }, 10000);
 
-    // Clinical Co-Pilot
-    setInterval(async () => {
-      try {
-        const history = await prisma.bamHistory.findMany({
-          orderBy: { timestamp: 'desc' },
-          take: 2
-        });
-
-        if (history.length === 2) {
-          const lastScore = history[0].score;
-          const previousScore = history[1].score;
-          if (Math.abs(lastScore - previousScore) > 0.15 * Math.abs(previousScore)) {
-            console.log("🧠 [Clinical Co-Pilot] CLINICAL ALERT: Significant BAM score delta detected! Flagged for triage.");
-          }
-        }
-      } catch (err) {
-        console.error("Daemon Error:", err);
-      }
-    }, 10000);
+    // NOTE: The former "Clinical Co-Pilot" BAM-delta daemon was removed. BAM
+    // scores are 42 CFR Part 2 SUD data and never reach this operational server;
+    // they live per-client in the client's encrypted Vault B. BAM delta/triage
+    // detection now runs client-side in IntelligenceLayer, against the client's
+    // own decrypted history, and never leaves the device.
 
     // The Ember Fund Revenue Tracker
     setInterval(async () => {

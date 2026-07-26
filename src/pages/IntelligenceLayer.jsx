@@ -1,13 +1,56 @@
 import React, { useState, useEffect } from 'react';
+import { useAuthStore } from '../store/authStore';
+import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
+
+// BAM (Brief Addiction Monitor) scores are 42 CFR Part 2 SUD data. They are
+// PER-CLIENT and live ONLY in the encrypted Vault B, keyed by client. Delta
+// detection is deterministic and runs here (client-side) against the client's
+// own decrypted history — the score value never leaves the device and never
+// touches the operational server or a plaintext log.
+const BAM_DELTA_THRESHOLD = 0.15; // 15% variance flags for triage
+export const bamRecordId = (clientId) => `bam_history_${clientId}`;
+
+/**
+ * Append a BAM score to a client's history and compute the triage delta.
+ * Pure/deterministic and side-effect-free on inputs, so it is unit-testable
+ * without mounting React. `history` is the client's prior array of
+ * { score, timestamp }.
+ * @returns {{ history: {score:number,timestamp:string}[], flagged: boolean, deltaPct: number|null }}
+ */
+export function appendBamScore(history, score, now = new Date()) {
+  const prior = Array.isArray(history) ? history : [];
+  const entry = { score, timestamp: now.toISOString() };
+  const next = [...prior, entry];
+  let flagged = false;
+  let deltaPct = null;
+  if (prior.length > 0) {
+    const last = prior[prior.length - 1].score;
+    if (last !== 0) {
+      const delta = Math.abs((score - last) / last);
+      deltaPct = delta * 100;
+      flagged = delta >= BAM_DELTA_THRESHOLD;
+    }
+  }
+  return { history: next, flagged, deltaPct };
+}
 
 export default function IntelligenceLayer() {
+  const { vaultAKey, vaultBKey } = useAuthStore();
+  const vaultBOpen = !!vaultBKey;
+
   const [emberFundBalance, setEmberFundBalance] = useState(0);
   const [revenueInput, setRevenueInput] = useState('');
-  
+
   const [crisisCount, setCrisisCount] = useState(0);
-  const [bamScores, setBamScores] = useState([]);
+
+  // Per-client BAM state. bamClients is the {id,name} directory (from Vault A);
+  // bamHistory is the SELECTED client's decrypted score history (from Vault B).
+  const [bamClients, setBamClients] = useState([]);
+  const [bamClientId, setBamClientId] = useState('');
+  const [bamHistory, setBamHistory] = useState([]);
   const [bamInput, setBamInput] = useState('');
-  
+  const [bamStatus, setBamStatus] = useState('');
+
   const [alerts, setAlerts] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -19,6 +62,32 @@ export default function IntelligenceLayer() {
   const addAlert = (msg, type = 'warning') => {
     setAlerts(prev => [{ id: Date.now(), msg, type }, ...prev].slice(0, 5));
   };
+
+  // Load the client directory (names only) from Vault A to populate the picker.
+  useEffect(() => {
+    if (!vaultAKey) { setBamClients([]); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const dir = await loadSecureRecord(vaultAKey, 'client_directory', 'A');
+        if (!cancelled) setBamClients(Array.isArray(dir) ? dir : []);
+      } catch { if (!cancelled) setBamClients([]); }
+    })();
+    return () => { cancelled = true; };
+  }, [vaultAKey]);
+
+  // Load the selected client's BAM history from Vault B (only when B is open).
+  useEffect(() => {
+    if (!vaultBKey || !bamClientId) { setBamHistory([]); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const hist = await loadSecureRecord(vaultBKey, bamRecordId(bamClientId), 'B');
+        if (!cancelled) setBamHistory(Array.isArray(hist) ? hist : []);
+      } catch { if (!cancelled) setBamHistory([]); }
+    })();
+    return () => { cancelled = true; };
+  }, [vaultBKey, bamClientId]);
 
   const triggerPolicyScan = () => {
     setIsScanning(true);
@@ -50,22 +119,27 @@ export default function IntelligenceLayer() {
     }
   };
 
-  const logBamScore = () => {
+  const logBamScore = async () => {
     const score = parseFloat(bamInput);
-    if (!isNaN(score)) {
-      setBamScores(prev => {
-        const newScores = [...prev, score];
-        if (newScores.length > 1) {
-          const lastScore = newScores[newScores.length - 2];
-          const delta = Math.abs((score - lastScore) / lastScore);
-          if (delta >= 0.15) {
-            addAlert(`🧠 [Clinical Co-Pilot] Alert: ${(delta * 100).toFixed(1)}% variance detected in clinical assessment. Record flagged for immediate triage!`, 'danger');
-          }
-        }
-        return newScores;
-      });
-      addLog('CLINICAL', `Logged new BAM score: ${score}`);
+    if (isNaN(score)) return;
+    if (!vaultBKey) { setBamStatus('Unlock Vault B to record a BAM score (42 CFR Part 2).'); return; }
+    if (!bamClientId) { setBamStatus('Select a client first — BAM scores are per-client.'); return; }
+
+    const { history: next, flagged, deltaPct } = appendBamScore(bamHistory, score);
+    try {
+      // Persist the client's history ONLY to encrypted Vault B. The score never
+      // goes to the server or a plaintext log.
+      await saveSecureRecord(vaultBKey, bamRecordId(bamClientId), next, 'B');
+      setBamHistory(next);
       setBamInput('');
+      setBamStatus('');
+      if (flagged) {
+        addAlert(`🧠 [Clinical Co-Pilot] Alert: ${deltaPct.toFixed(1)}% variance detected in this client\u2019s assessment. Flagged for triage.`, 'danger');
+      }
+      // Audit log is metadata-only: NEVER the score value (that is Part 2 PHI).
+      addLog('CLINICAL', 'BAM score recorded to Vault B (value withheld from log).');
+    } catch {
+      setBamStatus('Vault B write failed — score not saved.');
     }
   };
 
@@ -116,13 +190,38 @@ export default function IntelligenceLayer() {
 
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
             <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', fontFamily: 'var(--font-mono)' }}>🧠 Clinical Co-Pilot</h4>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>Deterministic lookups. Flags any {'>'}15% delta in sequential scores.</p>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input type="number" placeholder="BAM Score" value={bamInput} onChange={e => setBamInput(e.target.value)} style={{ padding: '0.4rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px', width: '120px' }} />
-              <button onClick={logBamScore} className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--gold)', color: 'var(--gold)' }}>Log Score</button>
-            </div>
-            {bamScores.length > 0 && (
-              <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Previous Scores: {bamScores.join(', ')}</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+              Per-client BAM tracking. 42 CFR Part 2 — stored only in encrypted Vault B. Flags any {'>'}15% delta in sequential scores.
+            </p>
+            {!vaultBOpen ? (
+              <div style={{ fontSize: '0.75rem', color: '#fda4af', fontFamily: 'var(--font-mono)' }}>
+                🔒 Vault B closed — BAM scores (42 CFR Part 2) are hidden. Unlock Vault B to view or record them.
+              </div>
+            ) : (
+              <>
+                <select
+                  value={bamClientId}
+                  onChange={e => setBamClientId(e.target.value)}
+                  style={{ width: '100%', padding: '0.4rem', marginBottom: '0.5rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}
+                >
+                  <option value="">— select client —</option>
+                  {bamClients.map(c => (
+                    <option key={c.id} value={c.id}>{c.name || c.id.replace('client_', '')}</option>
+                  ))}
+                </select>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input type="number" placeholder="BAM Score" value={bamInput} onChange={e => setBamInput(e.target.value)} disabled={!bamClientId} style={{ padding: '0.4rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px', width: '120px' }} />
+                  <button onClick={logBamScore} disabled={!bamClientId} className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--gold)', color: 'var(--gold)' }}>Log Score</button>
+                </div>
+                {bamStatus && (
+                  <p style={{ marginTop: '0.4rem', fontSize: '0.72rem', color: '#fda4af', fontFamily: 'var(--font-mono)' }}>{bamStatus}</p>
+                )}
+                {bamHistory.length > 0 && (
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                    This client&rsquo;s scores: {bamHistory.map(h => h.score).join(', ')}
+                  </p>
+                )}
+              </>
             )}
           </div>
 

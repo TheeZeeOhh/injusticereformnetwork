@@ -3,8 +3,9 @@
 // This process intentionally holds NO client PHI. All patient/client data lives
 // only in the client-side, passphrase-derived, AES-256-GCM encrypted local vault
 // (IndexedDB). This server exists solely to run the operational "intelligence"
-// daemons (Ember Fund sweeps, audit-cluster detection, BAM deltas) over
-// non-PHI operational telemetry.
+// daemons (Ember Fund sweeps, audit-cluster detection) over non-PHI operational
+// telemetry. Clinical data such as BAM scores is 42 CFR Part 2 and stays entirely
+// client-side in the encrypted vault — never here.
 const express = require('express');
 const dotenv = require('dotenv');
 
