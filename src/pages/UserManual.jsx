@@ -1,5 +1,44 @@
 import React, { useState } from 'react';
 
+// Glossary — plain-language definitions of the terms used throughout Sanctuary.
+const GLOSSARY = [
+  ['42 CFR Part 2', 'The federal regulation protecting confidentiality of substance-use-disorder (SUD) treatment records. Stricter than HIPAA. In Sanctuary, Part 2 data lives in Vault B.'],
+  ['AAD (identity binding)', 'Additional Authenticated Data — extra context (vault tag + record id) mixed into encryption so a record cannot be silently moved or decrypted under the wrong vault.'],
+  ['AES-256-GCM', 'The authenticated encryption used for every record. "Authenticated" means tampering is detected on decrypt.'],
+  ['BAA', 'Business Associate Agreement — a HIPAA contract. Telehealth requires acknowledging one before a call starts.'],
+  ['BAM', 'Brief Addiction Monitor — a numeric SUD assessment score, tracked per-client in Vault B (42 CFR Part 2).'],
+  ['Dead-man\u2019s switch', 'A hardware safeguard: removing the armed USB token instantly wipes session keys from memory.'],
+  ['HRT', 'Hormone Replacement Therapy (gender-affirming care). Sensitive — stored in Vault B.'],
+  ['k-anonymity', 'A privacy rule for aggregate numbers: a count is shown only if the group is large enough (\u22655) that no individual can be singled out. Smaller cells are suppressed.'],
+  ['MAT / MOUD', 'Medication-Assisted Treatment / Medications for Opioid Use Disorder (buprenorphine, methadone, naltrexone\u2026) — the same class; MOUD is the current preferred term. Auto-routes to Vault B.'],
+  ['PBKDF2', 'The key-stretching function that turns your passphrase into an encryption key (600,000 iterations makes brute-forcing slow).'],
+  ['PHI', 'Protected Health Information — any client health data. PHI never leaves the device unencrypted.'],
+  ['Quarantine (dual-LLM)', 'A prompt-injection defense: untrusted document text is reduced to structured fields before any AI sees it, so a malicious document cannot hijack the assistant.'],
+  ['Technical Incapacity Defense', 'The core design: the operator is technically unable to produce readable client PHI under subpoena, because keys live only in RAM and vaults are unrecoverable.'],
+  ['Vault A / Vault B', 'Two independently-encrypted stores. A = general records; B = sensitive (42 CFR Part 2 / HRT / MOUD). Separate passphrases; B is unrecoverable by design.'],
+  ['Whisper', 'The on-device speech-to-text model (runs locally via WebAssembly). Audio never leaves the device.'],
+];
+
+// Extra topics beyond the original sections, so the manual covers the whole app.
+const EXTRA = [
+  ['assistant', '🧠', 'The Assistant (Amina / Wifey)', [
+    'Amina is the LOCAL navigator assistant (on-device via Ollama, or a guided fallback) — it helps find the right Baltimore/Maryland resource, and client context stays on the device.',
+    'For a GENERIC, person-free question, the assistant may consult "Wifey," which can reach a hosted model — but ONLY as a bare question with no client or record data attached.',
+    'Attaching a client transcript forces the whole exchange LOCAL; it can never reach the hosted model. Crisis and escalation are always handled locally.',
+    'Grounding gate: the assistant will not state a deadline, fee, or filing date as fact unless it is in your source document. Unverified figures are flagged — never rely on an AI-stated legal deadline without confirming it.',
+  ]],
+  ['sensitive', '🏳️\u200d⚧️', 'Sensitive Records (Vault B)', [
+    'HRT Continuity and the Consent Manager (42 CFR Part 2 consents) live in Vault B.',
+    'Medication Management: typing a MAT/MOUD medication auto-flags the record sensitive and routes it to Vault B.',
+    'Vault B has its own passphrase, is unrecoverable by design (no reset/escrow), and is never cross-keyed with Vault A. Keep it closed unless actively in use.',
+  ]],
+  ['operations', '📅', 'Operations', [
+    'Schedule & On-Call roster, Shift Swaps, Staffing Pipeline, Credentials Monitor — operational (non-PHI) data stored in Vault A.',
+    'Intelligence Layer: on-device deterministic rule engines (policy scan, crisis-velocity interrupter, per-client BAM in Vault B). No black-box analytics on client PHI.',
+    'Some panels use a small local backend (127.0.0.1) that holds NO PHI. If a panel looks empty, that backend may not be running.',
+  ]],
+];
+
 export default function UserManual() {
   const [activeSection, setActiveSection] = useState('intro');
 
@@ -7,21 +46,71 @@ export default function UserManual() {
     { id: 'intro', title: '1. Introduction to Sanctuary', icon: '🏰' },
     { id: 'clients', title: '2. Client Management', icon: '👥' },
     { id: 'audio', title: '3. Audio Intake', icon: '🎙️' },
-    { id: 'security', title: '4. Security & Vaults', icon: '🛡️' },
-    { id: 'backups', title: '5. Backups & Recovery', icon: '💾' },
-    { id: 'logistics', title: '6. Vouchers & Transit', icon: '🎫' },
-    { id: 'legal', title: '7. Legal Tools (FOIA & Attorneys)', icon: '⚖️' },
-    { id: 'evidence', title: '8. Evidence & Canvas', icon: '🔐' },
-    { id: 'nuke', title: '9. Emergency Protocols', icon: '🚨' }
+    { id: 'assistant', title: '4. The Assistant', icon: '🧠' },
+    { id: 'sensitive', title: '5. Sensitive Records', icon: '🏳️\u200d⚧️' },
+    { id: 'security', title: '6. Security & Vaults', icon: '🛡️' },
+    { id: 'backups', title: '7. Backups & Recovery', icon: '💾' },
+    { id: 'logistics', title: '8. Vouchers & Transit', icon: '🎫' },
+    { id: 'legal', title: '9. Legal Tools (FOIA & Attorneys)', icon: '⚖️' },
+    { id: 'evidence', title: '10. Evidence & Canvas', icon: '🔐' },
+    { id: 'operations', title: '11. Operations', icon: '📅' },
+    { id: 'nuke', title: '12. Emergency Protocols', icon: '🚨' },
+    { id: 'glossary', title: '13. Glossary', icon: '📖' }
   ];
+
+  // Build a self-contained, printable HTML file of the whole manual for download.
+  const downloadManual = () => {
+    const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    const secText = {
+      intro: 'Sanctuary is a local-first, client-side-encrypted health & legal records app for the Injustice Reform Network. Built on a Technical Incapacity Defense: you are technically unable to produce unencrypted client data under subpoena, because decryption keys live in RAM and vanish on power-down or when the USB dead-man\u2019s switch is pulled. CRITICAL: never write down your vault passphrase — if lost, the data is gone, with no reset or recovery.',
+      clients: 'Clients use a dual-vault architecture. Vault A: general demographics/contact, unlocked at login. Vault B (42 CFR Part 2): clinical diagnoses, HRT, SUD records — requires a separate cryptographic unlock. Add a client, fill the profile, "Save to Vault" to encrypt locally.',
+      audio: 'Audio Intake requires the 42 CFR/BAA consent gate before recording. Transcription runs fully on-device (Whisper via WebAssembly) — no audio leaves the device. The ~145MB model downloads once from a public CDN on first use, then runs offline. Transcripts are not persisted by default.',
+      security: 'Local-only: no cloud sync, no P2P. AES-256-GCM at rest; keys derived via PBKDF2-SHA256 (600,000 iterations) over per-install salts. Keys live in RAM only, never on disk. Salts stored in the OS keychain. Closing Vault B drops its key from memory while Vault A continues. Anti-exfiltration (no right-click/copy/select/drag) is on by default; a Systems Admin who also unlocks Vault B can lift it. No software stops a phone camera or an OS screenshot on Linux — minimize time PHI is on screen.',
+      backups: 'A forgotten passphrase means unrecoverable data — back up regularly. Export a signed, encrypted backup (ciphertext only, HMAC-signed). Verify & Restore recomputes the signature and refuses tampered files or wrong passphrases. Sanctuary-to-Go moves records to another machine via an encrypted USB bundle (use records_only mode).',
+      logistics: 'Transportation Hub dispatches volunteer drivers. Voucher Program authorizes stipends within the Sovereignty Fund budget. Stipends and Referrals track per-client material support.',
+      legal: 'FOIA Generator drafts public-records requests and produces a real PDF. Attorney Directory is a vetted, encrypted (Vault A) rolodex with a Pro Bono flag. Case Reporting compiles reports. Visual Canvas is an encrypted note board for case timelines.',
+      evidence: 'Evidence Vault stores files with a real SHA-256 hash for chain of custody: Verify re-hashes and compares; Download decrypts byte-for-byte. Large videos may hit storage limits.',
+      nuke: 'Two responses to compromise: (1) Lock the keys — log out or pull the USB token; on-disk records remain but are unreadable ciphertext. (2) Scorched Earth (Settings > Catastrophic Protocols) deletes the local database via the storage API — it does NOT low-level-overwrite the disk, so the real guarantee is #1: keep your passphrase secret.',
+    };
+    const body = sections.filter((s) => s.id !== 'glossary').map((s) => {
+      const extra = EXTRA.find((e) => e[0] === s.id);
+      const text = extra ? extra[3].map((p) => `<p>${esc(p)}</p>`).join('') : `<p>${esc(secText[s.id] || '')}</p>`;
+      return `<section><h2>${esc(s.title)}</h2>${text}</section>`;
+    }).join('');
+    const gloss = GLOSSARY.map(([t, d]) => `<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join('');
+    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sanctuary User Manual v0.1.0</title>
+<style>body{font-family:Georgia,serif;max-width:820px;margin:2rem auto;padding:0 1.25rem;color:#1a1a1a;line-height:1.55}
+h1{font-size:2rem;border-bottom:3px solid #c9a24b;padding-bottom:.4rem}
+h2{margin-top:2rem;color:#8a5a00;border-bottom:1px solid #ddd;padding-bottom:.2rem}
+dt{font-weight:bold;margin-top:.7rem}dd{margin:0 0 .3rem 1.2rem}.meta{color:#666;font-size:.9rem}
+@media print{body{margin:0;max-width:none}}</style></head><body>
+<h1>Sanctuary User Manual</h1>
+<p class="meta">Version 0.1.0 · Updated 2026-07-26 · Injustice Reform Network</p>
+${body}<h2>📖 Glossary</h2><dl>${gloss}</dl>
+<hr/><p class="meta">Generated from the app. Save or print to PDF for offline reference.</p>
+</body></html>`;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'Sanctuary-User-Manual-v0.1.0.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div>
-        <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Sanctuary User Manual</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
-          Comprehensive operational guide for IRN Navigators.
-        </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Sanctuary User Manual</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
+            v0.1.0 · updated 2026-07-26 · comprehensive operational guide for IRN Navigators.
+          </p>
+        </div>
+        <button className="btn-primary" onClick={downloadManual} style={{ padding: '0.5rem 1.1rem', whiteSpace: 'nowrap' }}>
+          ⬇ Download manual (.html)
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '2rem', flex: 1, overflow: 'hidden' }}>
@@ -157,6 +246,27 @@ export default function UserManual() {
               <div style={{ background: 'rgba(226, 85, 43, 0.1)', padding: '1rem', borderLeft: '3px solid var(--ember)', marginTop: '0.5rem' }}>
                 <strong style={{ color: 'var(--ember)' }}>IMPORTANT — how the wipe actually works:</strong> "Scorched Earth" deletes the database via the browser/OS storage API. It does <strong>not</strong> perform a low-level cryptographic overwrite of the physical disk, and forensic recovery of deleted storage may be possible. The strongest guarantee is #1: the data was never stored in plaintext, so keeping your passphrase secret keeps the records unreadable regardless of what remains on disk.
               </div>
+            </>
+          )}
+
+          {EXTRA.map(([id, icon, title, paras]) => activeSection === id && (
+            <React.Fragment key={id}>
+              <h2 style={{ color: 'var(--gold)', fontFamily: 'var(--font-serif)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>{icon} {title}</h2>
+              {paras.map((p, i) => <p key={i}>{p}</p>)}
+            </React.Fragment>
+          ))}
+
+          {activeSection === 'glossary' && (
+            <>
+              <h2 style={{ color: 'var(--gold)', fontFamily: 'var(--font-serif)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>📖 Glossary</h2>
+              <dl style={{ margin: 0 }}>
+                {GLOSSARY.map(([term, def]) => (
+                  <div key={term} style={{ marginBottom: '0.9rem' }}>
+                    <dt style={{ color: 'var(--gold)', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>{term}</dt>
+                    <dd style={{ margin: '0.2rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{def}</dd>
+                  </div>
+                ))}
+              </dl>
             </>
           )}
 
