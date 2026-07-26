@@ -129,6 +129,7 @@ export default function WeatherWidget() {
       borderRadius: 14, padding: '12px 14px', minWidth: 190, maxWidth: 260,
       fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem',
       boxShadow: 'var(--shadow-md)', backdropFilter: 'blur(6px)',
+      opacity: 0.85,
     }}>
       {/* Digital clock — always shown, purely local (no network) */}
       <div style={{ textAlign: 'center', marginBottom: 10, paddingBottom: 8,
