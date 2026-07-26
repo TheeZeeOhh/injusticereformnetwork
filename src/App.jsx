@@ -354,6 +354,34 @@ function App() {
     return () => { if (unlisten) unlisten(); };
   }, [logout]);
 
+  // USB insertion trigger: when the Rust poll thread sees the persisted trigger
+  // token appear on the bus, it emits 'usb-token-inserted'. If the app is locked,
+  // we bring the window forward and ask whether to start/unlock (a confirm box —
+  // never auto-unlock). Tauri-only.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.__TAURI_INTERNALS__) return;
+    let unlisten;
+    (async () => {
+      const { listen } = await import('@tauri-apps/api/event');
+      unlisten = await listen('usb-token-inserted', async () => {
+        // Only prompt when locked; if already unlocked, a re-insert is a no-op.
+        // When locked, the <Login /> unlock screen is already the rendered view,
+        // so "start" just means bringing the window forward for the user.
+        if (isAuthenticated) return;
+        // eslint-disable-next-line no-alert
+        const start = window.confirm('Sanctuary security token detected. Bring up Sanctuary to unlock?');
+        if (!start) return;
+        try {
+          const { getCurrentWindow } = await import('@tauri-apps/api/window');
+          const w = getCurrentWindow();
+          await w.show();
+          await w.setFocus();
+        } catch { /* window focus is best-effort */ }
+      });
+    })();
+    return () => { if (unlisten) unlisten(); };
+  }, [isAuthenticated]);
+
   const renderContent = () => {
     // First run on this device (no vault enrolled yet): onboard BEFORE any
     // login/passphrase screen, so the user creates their profile and sets up

@@ -48,7 +48,9 @@ export default function Settings() {
       const { invoke } = await import('@tauri-apps/api/core');
       const msg = await invoke('arm_deadmans_switch', { vidPid: selectedUsb });
       appendEntry({ action: 'admin', recordId: 'killswitch_arm', vaultTag: null });
-      setUsbStatus(msg);
+      // Arming also persists this token as the insertion trigger: re-inserting it
+      // later (even before unlock) offers to bring Sanctuary up to the unlock screen.
+      setUsbStatus(msg + ' This token will also prompt to start Sanctuary when re-inserted.');
     } catch (err) {
       setUsbStatus('Arm failed: ' + err);
     }

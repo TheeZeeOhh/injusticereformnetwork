@@ -7,10 +7,20 @@ use tauri::{Emitter, Manager};
 // Shared state for the hardware lock. `watched` packs the armed token's
 // vendor/product id as (vid << 16 | pid) so the poll thread can read it
 // atomically without locking.
+//
+// `trigger_token` packs the SAME token id for the insertion trigger: when this
+// token transitions absent -> present on the bus, the poll thread emits an event
+// so the frontend can offer to start/unlock the app. 0 means "no trigger set".
+// It is persisted (keychain) so insertion is detected even before the app is
+// unlocked or the dead-man's switch is armed.
 struct UsbLockState {
     is_armed: Arc<AtomicBool>,
     watched: Arc<AtomicU32>,
+    trigger_token: Arc<AtomicU32>,
 }
+
+// Keychain account holding the persisted insertion-trigger token as "vid:pid".
+const KEYCHAIN_TRIGGER_ACCOUNT: &str = "usb_trigger_token_v1";
 
 fn pack_vid_pid(vid: u16, pid: u16) -> u32 {
     ((vid as u32) << 16) | (pid as u32)
@@ -91,12 +101,7 @@ fn arm_deadmans_switch(
 ) -> Result<String, String> {
     // Accept either a bare "vid:pid" or the labelled "vid:pid — Name" form the
     // device list may return. Take only the leading vid:pid token.
-    let id_part = vid_pid.split_whitespace().next().unwrap_or("").trim();
-    let (vid_s, pid_s) = id_part
-        .split_once(':')
-        .ok_or_else(|| "vid_pid must be in 'vid:pid' hex form, e.g. 1050:0407".to_string())?;
-    let vid = u16::from_str_radix(vid_s.trim(), 16).map_err(|_| "invalid vendor id".to_string())?;
-    let pid = u16::from_str_radix(pid_s.trim(), 16).map_err(|_| "invalid product id".to_string())?;
+    let (vid, pid) = parse_vid_pid(&vid_pid)?;
 
     if !usb_present(vid, pid) {
         return Err(format!(
@@ -106,6 +111,15 @@ fn arm_deadmans_switch(
 
     state.watched.store(pack_vid_pid(vid, pid), Ordering::SeqCst);
     state.is_armed.store(true, Ordering::SeqCst);
+
+    // Reuse this same token as the insertion trigger, and persist it, so a later
+    // re-insertion offers to start/unlock the app. Best-effort: never fail arming
+    // if persistence hiccups.
+    state.trigger_token.store(pack_vid_pid(vid, pid), Ordering::SeqCst);
+    if let Ok(entry) = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_TRIGGER_ACCOUNT) {
+        let _ = entry.set_password(&format!("{vid:04x}:{pid:04x}"));
+    }
+
     Ok(format!(
         "Hardware dead-man's switch ARMED to token {vid:04x}:{pid:04x}. Removal will wipe session keys."
     ))
@@ -115,6 +129,66 @@ fn arm_deadmans_switch(
 fn disarm_deadmans_switch(state: tauri::State<'_, UsbLockState>) -> Result<String, String> {
     state.is_armed.store(false, Ordering::SeqCst);
     Ok("Hardware dead-man's switch DISARMED.".to_string())
+}
+
+// --- USB insertion trigger ---------------------------------------------------
+//
+// A persisted token whose INSERTION (absent -> present) makes the poll thread
+// emit "usb-token-inserted". The frontend then offers a "Start Sanctuary?" box.
+// This is enumeration-only, advisory, and never opens the device.
+
+// Parse "vid:pid" (optionally with a trailing " — Name" label) to (vid, pid).
+fn parse_vid_pid(s: &str) -> Result<(u16, u16), String> {
+    let id_part = s.split_whitespace().next().unwrap_or("").trim();
+    let (vid_s, pid_s) = id_part
+        .split_once(':')
+        .ok_or_else(|| "vid_pid must be in 'vid:pid' hex form, e.g. 1050:0407".to_string())?;
+    let vid = u16::from_str_radix(vid_s.trim(), 16).map_err(|_| "invalid vendor id".to_string())?;
+    let pid = u16::from_str_radix(pid_s.trim(), 16).map_err(|_| "invalid product id".to_string())?;
+    Ok((vid, pid))
+}
+
+/// Sets (and persists) the token whose insertion triggers the start prompt.
+/// Reuses the same "vid:pid" identity as the dead-man's switch. Persisted to the
+/// OS keychain so it survives restart and works before unlock.
+#[tauri::command]
+fn set_usb_trigger_token(
+    state: tauri::State<'_, UsbLockState>,
+    vid_pid: String,
+) -> Result<String, String> {
+    let (vid, pid) = parse_vid_pid(&vid_pid)?;
+    state.trigger_token.store(pack_vid_pid(vid, pid), Ordering::SeqCst);
+    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_TRIGGER_ACCOUNT)
+        .map_err(|e| format!("keychain entry error: {e}"))?;
+    entry
+        .set_password(&format!("{vid:04x}:{pid:04x}"))
+        .map_err(|e| format!("keychain write error: {e}"))?;
+    Ok(format!("USB start-trigger set to token {vid:04x}:{pid:04x}."))
+}
+
+/// Clears the persisted insertion-trigger token.
+#[tauri::command]
+fn clear_usb_trigger_token(state: tauri::State<'_, UsbLockState>) -> Result<(), String> {
+    state.trigger_token.store(0, Ordering::SeqCst);
+    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_TRIGGER_ACCOUNT)
+        .map_err(|e| format!("keychain entry error: {e}"))?;
+    match entry.delete_credential() {
+        Ok(()) => Ok(()),
+        Err(keyring::Error::NoEntry) => Ok(()),
+        Err(e) => Err(format!("keychain delete error: {e}")),
+    }
+}
+
+/// Returns the persisted trigger token as "vid:pid", or None if unset.
+#[tauri::command]
+fn get_usb_trigger_token() -> Result<Option<String>, String> {
+    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_TRIGGER_ACCOUNT)
+        .map_err(|e| format!("keychain entry error: {e}"))?;
+    match entry.get_password() {
+        Ok(v) => Ok(Some(v)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(format!("keychain read error: {e}")),
+    }
 }
 
 // --- Vault salt storage in the OS credential store (Design A) ---
@@ -420,10 +494,23 @@ pub fn run() {
     let usb_state = UsbLockState {
         is_armed: Arc::new(AtomicBool::new(false)),
         watched: Arc::new(AtomicU32::new(0)),
+        trigger_token: Arc::new(AtomicU32::new(0)),
     };
+
+    // Load any persisted insertion-trigger token so it is watched from startup,
+    // before unlock / arming. Best-effort: absence or a keychain error just means
+    // no trigger is active yet.
+    if let Ok(entry) = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_TRIGGER_ACCOUNT) {
+        if let Ok(saved) = entry.get_password() {
+            if let Ok((vid, pid)) = parse_vid_pid(&saved) {
+                usb_state.trigger_token.store(pack_vid_pid(vid, pid), Ordering::SeqCst);
+            }
+        }
+    }
 
     let is_armed_clone = usb_state.is_armed.clone();
     let watched_clone = usb_state.watched.clone();
+    let trigger_clone = usb_state.trigger_token.clone();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -431,6 +518,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             arm_deadmans_switch,
             disarm_deadmans_switch,
+            set_usb_trigger_token,
+            clear_usb_trigger_token,
+            get_usb_trigger_token,
             list_usb_devices,
             get_vault_salts,
             set_vault_salts,
@@ -484,9 +574,30 @@ pub fn run() {
             // still present. Physical removal -> emit the kill signal so the
             // frontend drops all AES keys from RAM.
             thread::spawn(move || {
+                // Tracks the trigger token's presence across ticks so we emit the
+                // insertion event only on the absent -> present EDGE, not every
+                // second while it stays plugged in.
+                let mut trigger_was_present = false;
                 loop {
                     thread::sleep(Duration::from_millis(1000));
 
+                    // --- Insertion trigger (independent of arming) ---
+                    // When a persisted trigger token appears on the bus, emit once
+                    // so the frontend can offer a "Start Sanctuary?" prompt.
+                    let tpacked = trigger_clone.load(Ordering::SeqCst);
+                    if tpacked != 0 {
+                        let tvid = (tpacked >> 16) as u16;
+                        let tpid = (tpacked & 0xffff) as u16;
+                        let present = usb_present(tvid, tpid);
+                        if present && !trigger_was_present {
+                            let _ = app_handle.emit("usb-token-inserted", ());
+                        }
+                        trigger_was_present = present;
+                    } else {
+                        trigger_was_present = false;
+                    }
+
+                    // --- Removal kill-switch (only when armed) ---
                     if !is_armed_clone.load(Ordering::SeqCst) {
                         continue;
                     }
