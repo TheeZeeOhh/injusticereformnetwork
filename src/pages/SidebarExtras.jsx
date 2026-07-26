@@ -1,25 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Compact clock for the sidebar (under the Sanctuary title). Purely local — a
-// running clock + date, no network, no leak.
-export function SidebarClock() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return (
-    <div style={{ textAlign: 'center', padding: '0.5rem 0 0.75rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.25rem' }}>
-      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: '1.25rem', fontWeight: 700, letterSpacing: '1px', color: 'var(--bone)', opacity: 0.8, lineHeight: 1.1 }}>
-        {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-      </div>
-      <div style={{ fontSize: '0.62rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
-        {now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
-      </div>
-    </div>
-  );
-}
-
 // Sanctuary Radio — the same station set as the public Reading Room. Streams are
 // third-party (audio in only; no client data ever sent). The desktop CSP must
 // allow these hosts in media-src for playback (see tauri.conf.json).

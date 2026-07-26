@@ -27,7 +27,7 @@ const WMO = {
 };
 const wmo = (code) => WMO[code] || ['🌡️', 'Unknown'];
 
-export default function WeatherWidget() {
+export default function WeatherWidget({ inline = false }) {
   const [city, setCity] = useState(() => localStorage.getItem(CITY_KEY) || '');
   const [input, setInput] = useState('');
   const [data, setData] = useState(null);     // { name, temp, code, high, low, wind, humidity, updated }
@@ -121,16 +121,25 @@ export default function WeatherWidget() {
     const nm = m + delta; return { y: y + Math.floor(nm / 12), m: ((nm % 12) + 12) % 12 };
   });
 
+  // `inline`: render flowing inside a container (e.g. the sidebar under the
+  // title) instead of the default fixed bottom-right floating panel.
+  const containerStyle = inline
+    ? {
+        background: 'transparent', color: 'var(--text-primary)',
+        borderBottom: '1px solid var(--border-color)',
+        padding: '10px 12px 12px', width: '100%',
+        fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', opacity: 0.9,
+      }
+    : {
+        position: 'fixed', right: 16, bottom: 16, zIndex: 900,
+        background: 'var(--bg-color-surface)', color: 'var(--text-primary)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 14, padding: '12px 14px', minWidth: 190, maxWidth: 260,
+        fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem',
+        boxShadow: 'var(--shadow-md)', backdropFilter: 'blur(6px)', opacity: 0.85,
+      };
   return (
-    <div style={{
-      position: 'fixed', right: 16, bottom: 16, zIndex: 900,
-      background: 'var(--bg-color-surface)', color: 'var(--text-primary)',
-      border: '1px solid var(--border-color)',
-      borderRadius: 14, padding: '12px 14px', minWidth: 190, maxWidth: 260,
-      fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem',
-      boxShadow: 'var(--shadow-md)', backdropFilter: 'blur(6px)',
-      opacity: 0.85,
-    }}>
+    <div style={containerStyle}>
       {/* Digital clock — always shown, purely local (no network) */}
       <div style={{ textAlign: 'center', marginBottom: 10, paddingBottom: 8,
         borderBottom: '1px solid var(--border-color)' }}>
