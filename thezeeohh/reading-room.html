@@ -142,6 +142,8 @@ mark{background:rgba(201,162,75,.32);color:var(--ink);border-radius:2px;padding:
 .r-vol .vi{color:var(--dim);font-size:14px}
 .r-err{font-size:11px;color:#c0603a;display:none}
 .radio.err .r-err{display:block}
+.r-viz{flex:none;width:54px;height:26px;display:none;opacity:.9}
+.radio.playing .r-viz{display:block}
 @media(max-width:640px){
   .grid{grid-template-columns:1fr}
   .searchrow{flex-wrap:wrap}.sortsel{width:100%}
@@ -207,6 +209,7 @@ mark{background:rgba(201,162,75,.32);color:var(--ink);border-radius:2px;padding:
 <div class="radio" id="radio">
   <div class="in">
     <button class="r-play" id="rPlay" aria-label="Play / pause radio" title="Play / pause">&#9654;</button>
+    <canvas class="r-viz" id="rViz" width="108" height="52" aria-hidden="true"></canvas>
     <div class="r-now">
       <div class="r-label">Sanctuary Radio</div>
       <div class="r-name"><span class="eq">&#9835;</span><span id="rName">Select a station</span></div>
@@ -367,6 +370,43 @@ rPlay.onclick=()=>{if(!audio.src)audio.src=STATIONS[curStation].url;
   if(audio.paused)play();else audio.pause();};
 rSel.onchange=()=>loadStation(+rSel.value,!audio.paused||radio.classList.contains('playing'));
 rVol.oninput=()=>{audio.volume=+rVol.value;saveRadio();};
+// ===== beat visualizer (simulated; cross-origin streams can't feed AnalyserNode) =====
+(function(){
+  const cv=document.getElementById('rViz'); if(!cv||!cv.getContext) return;
+  const ctx=cv.getContext('2d');
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const BARS=9, phase=[], speed=[];
+  for(let i=0;i<BARS;i++){phase[i]=Math.random()*Math.PI*2;speed[i]=1.6+Math.random()*2.4;}
+  let raf=0, dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1)), W=0, H=0;
+  function size(){const w=cv.clientWidth||54,h=cv.clientHeight||26;
+    cv.width=w*dpr;cv.height=h*dpr;W=w;H=h;ctx.setTransform(dpr,0,0,dpr,0,0);}
+  function gold(){return getComputedStyle(document.documentElement).getPropertyValue('--gold').trim()||'#e0b054';}
+  function frame(t){
+    ctx.clearRect(0,0,W,H);
+    const col=gold(), gap=3, bw=(W-gap*(BARS-1))/BARS, sec=t/1000;
+    for(let i=0;i<BARS;i++){
+      // sum of two sines → organic, beat-like motion; never a flat bar
+      const a=Math.sin(sec*speed[i]+phase[i]), b=Math.sin(sec*(speed[i]*0.5)+phase[i]*1.7);
+      const lvl=0.18+0.82*Math.max(0,(a*0.6+b*0.4+1)/2);
+      const bh=Math.max(2,lvl*H), x=i*(bw+gap), y=H-bh;
+      ctx.globalAlpha=0.55+lvl*0.45; ctx.fillStyle=col;
+      ctx.fillRect(x,y,bw,bh);
+    }
+    ctx.globalAlpha=1;
+    raf=requestAnimationFrame(frame);
+  }
+  function start(){if(raf||reduce)return;size();raf=requestAnimationFrame(frame);}
+  function stop(){if(raf){cancelAnimationFrame(raf);raf=0;}ctx.clearRect(0,0,W,H);}
+  audio.addEventListener('playing',start);
+  audio.addEventListener('pause',stop);
+  audio.addEventListener('error',stop);
+  window.addEventListener('resize',()=>{if(raf)size();});
+  if(reduce){ // static equalizer glyph fallback
+    const on=()=>{size();ctx.clearRect(0,0,W,H);const col=gold(),gap=3,bw=(W-gap*8)/9,hs=[.4,.7,.5,.9,.6,.8,.45,.7,.55];
+      for(let i=0;i<9;i++){const bh=hs[i]*H;ctx.fillStyle=col;ctx.fillRect(i*(bw+gap),H-bh,bw,bh);}};
+    audio.addEventListener('playing',on);audio.addEventListener('pause',()=>ctx.clearRect(0,0,W,H));
+  }
+})();
 </script>
 </body>
 </html>
