@@ -175,6 +175,12 @@ export default function ClientsModule() {
       { id: 'client_PT-1002', legalName: 'Marcus Rivera', alias: 'Mari', phone: '(443) 555-0117', emergency: 'Case worker — (443) 555-0100', smsConsent: false, photo: '' },
       { id: 'client_PT-1003', legalName: 'Danielle Okafor', alias: 'Dee', phone: '(410) 555-0173', emergency: 'Partner — (410) 555-0190', smsConsent: true, photo: '' },
       { id: 'client_PT-1004', legalName: 'Sam Whitfield', alias: 'Sammy', phone: '(667) 555-0155', emergency: 'Friend — (667) 555-0166', smsConsent: false, photo: '' },
+      { id: 'client_PT-1005', legalName: 'Imani Brooks', alias: 'Mani', phone: '(410) 555-0121', emergency: 'Mother — (410) 555-0109', smsConsent: true, photo: '' },
+      { id: 'client_PT-1006', legalName: 'Devon Carter', alias: 'Dev', phone: '(443) 555-0138', emergency: 'Navigator — (443) 555-0102', smsConsent: false, photo: '' },
+      { id: 'client_PT-1007', legalName: 'Alexis Nguyen', alias: 'Lexi', phone: '(667) 555-0184', emergency: 'Aunt — (667) 555-0177', smsConsent: true, photo: '' },
+      { id: 'client_PT-1008', legalName: 'Terrence Blake', alias: 'Terry', phone: '(410) 555-0196', emergency: 'Sponsor — (410) 555-0119', smsConsent: true, photo: '' },
+      { id: 'client_PT-1009', legalName: 'Rosa Delacruz', alias: 'Rosie', phone: '(443) 555-0150', emergency: 'Cousin — (443) 555-0163', smsConsent: false, photo: '' },
+      { id: 'client_PT-1010', legalName: 'Micah Johnson', alias: 'Mic', phone: '(667) 555-0129', emergency: 'Case worker — (667) 555-0111', smsConsent: true, photo: '' },
     ];
     try {
       const dir = [...clientDirectory];
