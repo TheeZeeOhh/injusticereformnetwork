@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { guidedReply, askAmina, askWifey, isAminaLlmAvailable, isLocalOllamaModel, AMINA_SYSTEM } from './aminaEngine';
+import { guidedReply, askAmina, askWifey, askWifeyLocal, isAminaLlmAvailable, isLocalOllamaModel, AMINA_SYSTEM, WIFEY_SYSTEM } from './aminaEngine';
 
 const RES = [
   { name: 'Chase Brexton Health Care', cat: 'Healthcare', phone: '410-837-2050', note: 'Gender-affirming', addr: '1001 Cathedral St' },
@@ -169,6 +169,55 @@ describe('client transcript context is LOCAL ONLY (PHI gate)', () => {
   });
 });
 
+describe('grounding gate: flag+warn on confident-wrong deadline/fee (LOCAL path)', () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  const GENERIC_Q = 'what is a continuance';
+
+  // Drive the local Ollama path with a controlled answer string, then assert the
+  // grounding gate compares it against the attached clientContext source facts.
+  const withLocalAnswer = (content) => vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true, json: async () => ({ message: { content } }),
+  }));
+
+  it('flags a hallucinated deadline not in the transcript and appends the warning', async () => {
+    withLocalAnswer('Your hearing deadline is 2026-04-15.');
+    const source = 'Client transcript: the notice lists a hearing on 2026-05-01.';
+    const reply = await askWifey(GENERIC_Q, RES, { clientContext: source });
+    expect(reply.source).toBe('llm');
+    expect(reply.grounding.flagged).toBe(true);
+    expect(reply.grounding.violations).toContain('2026-04-15');
+    expect(reply.text).toMatch(/isn.t confirmed against the attached document/);
+  });
+
+  it('flags a hallucinated fee amount', async () => {
+    withLocalAnswer('The filing fee is $500.');
+    const reply = await askWifey(GENERIC_Q, RES, { clientContext: 'Fee listed: $150.' });
+    expect(reply.grounding.flagged).toBe(true);
+    expect(reply.grounding.violations).toContain('$500');
+  });
+
+  it('does NOT flag a grounded answer and appends no warning', async () => {
+    withLocalAnswer('Your hearing is 2026-05-01 and the fee is $150.');
+    const source = 'Hearing 2026-05-01. Filing fee $150.';
+    const reply = await askWifey(GENERIC_Q, RES, { clientContext: source });
+    expect(reply.grounding.flagged).toBe(false);
+    expect(reply.grounding.violations).toEqual([]);
+    expect(reply.text).not.toMatch(/isn.t confirmed against/);
+  });
+
+  it('does NOT flag across formats: written-out answer date grounded by ISO source', async () => {
+    withLocalAnswer('Your hearing is May 1, 2026.');
+    const reply = await askWifey(GENERIC_Q, RES, { clientContext: 'Hearing 2026-05-01.' });
+    expect(reply.grounding.flagged).toBe(false);
+  });
+
+  it('adds no grounding field when there is no clientContext (nothing to ground against)', async () => {
+    withLocalAnswer('A continuance postpones your hearing to a later date.');
+    const reply = await askWifey(GENERIC_Q, RES, {});
+    expect(reply.grounding).toBeUndefined();
+  });
+});
+
 describe('cloud-model egress guard (no PHI to ollama.com)', () => {
   it('isLocalOllamaModel rejects :cloud suffixes, accepts local names', () => {
     expect(isLocalOllamaModel('llama3.2')).toBe(true);
@@ -205,5 +254,69 @@ describe('cloud-model egress guard (no PHI to ollama.com)', () => {
     vi.stubGlobal('fetch', fetchMock);
     await askAmina('housing help?', RES, { model: 'mistral:7b-instruct-v0.3-q4_K_M' });
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).model).toBe('mistral:7b-instruct-v0.3-q4_K_M');
+  });
+});
+
+describe('Amina -> Wifey LOCAL consult (on-device only, no PHI, no cloud)', () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+  // A fetch mock that answers the localhost Ollama chat endpoint; each call is
+  // distinguishable by which system persona is in the request body.
+  const localOllama = (content) => vi.fn().mockResolvedValue({
+    ok: true, json: async () => ({ message: { content } }),
+  });
+
+  it('askWifeyLocal hits localhost Ollama with WIFEY_SYSTEM and no resources/PHI', async () => {
+    const fetchMock = localOllama('A continuance postpones a hearing.');
+    vi.stubGlobal('fetch', fetchMock);
+    const r = await askWifeyLocal('what is a continuance');
+    expect(r.source).toBe('llm-wifey');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toContain('localhost:11434');   // on-device only
+    const body = JSON.parse(init.body);
+    expect(body.messages[0].content).toBe(WIFEY_SYSTEM);  // Wifey persona
+    // no resource list smuggled into the Wifey pass
+    expect(String(init.body)).not.toContain('Baltimore Station');
+  });
+
+  it('askWifeyLocal refuses a :cloud model and uses the local default', async () => {
+    const fetchMock = localOllama('ok');
+    vi.stubGlobal('fetch', fetchMock);
+    await askWifeyLocal('what is arraignment', { model: 'deepseek-v3.2:cloud' });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).model).not.toMatch(/:cloud/);
+  });
+
+  it('consultWifey is OFF by default: only the Amina pass runs', async () => {
+    const fetchMock = localOllama('Amina answer.');
+    vi.stubGlobal('fetch', fetchMock);
+    const reply = await askWifey('what is a continuance', RES, {});
+    expect(reply.wifeyConsult).toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(1);   // no second consult call
+  });
+
+  it('consultWifey=true attaches a Wifey consult, still LOCAL, PHI never in the Wifey pass', async () => {
+    const fetchMock = localOllama('answer');
+    vi.stubGlobal('fetch', fetchMock);
+    const SECRET = 'UNIQUE_TRANSCRIPT_MARKER_99';
+    const reply = await askWifey('what is a continuance', RES, {
+      clientContext: `Client transcript. ${SECRET}. Hearing 2026-05-01.`,
+      consultWifey: true,
+    });
+    // never hosted
+    expect(reply.source).not.toBe('hosted');
+    // a Wifey consult was attached
+    expect(reply.wifeyConsult).toBeDefined();
+    expect(reply.wifeyConsult.source).toBe('llm-wifey');
+    // two localhost calls: Amina pass + Wifey pass, both on-device
+    for (const call of fetchMock.mock.calls) {
+      expect(String(call[0])).toContain('localhost:11434');
+    }
+    // the Wifey pass (WIFEY_SYSTEM) must NOT contain the transcript/PHI marker
+    const wifeyCall = fetchMock.mock.calls.find((c) => {
+      try { return JSON.parse(c[1].body).messages[0].content === WIFEY_SYSTEM; }
+      catch { return false; }
+    });
+    expect(wifeyCall).toBeDefined();
+    expect(String(wifeyCall[1].body)).not.toContain(SECRET);
   });
 });

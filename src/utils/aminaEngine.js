@@ -122,8 +122,37 @@ export async function askWifey(message, resources, opts = {}) {
     }
   }
 
-  // Local path: the existing Amina engine (Ollama or guided), untouched.
-  return askAmina(message, resources, opts);
+  // Local path: the existing Amina engine (Ollama or guided).
+  const result = await askAmina(message, resources, opts);
+
+  // Grounding gate (deterministic, model-free — cannot be prompt-injected).
+  // Only meaningful when a client document is the source of truth: check whether
+  // the answer asserts any date/amount NOT present in that source. A hit means a
+  // hallucinated deadline/fee slipped past WIFEY_SYSTEM's "never state a
+  // deadline/fee" instruction — do not trust the prompt to have held. We flag +
+  // warn (non-destructive) rather than block: the operator still sees the answer,
+  // but is told the number is unverified against the paperwork.
+  let answer = result;
+  if (typeof opts.clientContext === 'string' && opts.clientContext.trim()) {
+    const { assertGrounded } = await import('./grounding');
+    const verdict = assertGrounded(result.text, opts.clientContext);
+    answer = verdict.grounded
+      ? { ...result, grounding: { flagged: false, violations: [] } }
+      : {
+        ...result,
+        text: result.text + GROUNDING_WARNING,
+        grounding: { flagged: true, violations: verdict.violations },
+      };
+  }
+
+  // Amina -> Wifey local consult (opt-in). On-device only; the ORIGINAL person-
+  // free message is sent to Wifey's local pass, never clientContext/PHI. Result
+  // is attached as metadata; the primary local answer is unchanged.
+  if (opts.consultWifey) {
+    const consult = await askWifeyLocal(message, { model: opts.model });
+    if (consult.text) answer = { ...answer, wifeyConsult: consult };
+  }
+  return answer;
 }
 
 // Maps free-text intent to a resource category, for the guided (Tier 1) path.
@@ -140,6 +169,12 @@ const INTENT = [
 
 // Appended to a guided reply when any suggested resource is unverified.
 const UNVERIFIED_NOTE = ' A heads-up: some of these I haven\u2019t been able to double-check recently, so please confirm the number before you pass it to your client.';
+
+// Appended when the deterministic grounding gate flags a date/amount in the
+// answer that is NOT present in the attached client source facts. A confident
+// wrong court deadline or fee is worse than no answer, so we surface the doubt
+// rather than trusting the model (or the system prompt) to have gotten it right.
+const GROUNDING_WARNING = ' \u26a0 Before you rely on this: a date or dollar amount above isn\u2019t confirmed against the attached document \u2014 check it against the paperwork itself before acting on it.';
 
 // Detect whether the local Ollama service is reachable (Tier 2 availability).
 export async function isAminaLlmAvailable() {
@@ -201,6 +236,50 @@ export function guidedReply(message, resources) {
 // a code property, not a caller's discretion.
 export function isLocalOllamaModel(model) {
   return typeof model === 'string' && model.length > 0 && !/:cloud\b/i.test(model);
+}
+
+// Amina -> Wifey, LOCAL->LOCAL consult. Lets the local navigator assistant hand
+// a GENERIC, person-free sub-question to Wifey's reentry-explainer persona for a
+// plain-language answer — entirely on-device (localhost Ollama), never the hosted
+// path. By contract WIFEY_SYSTEM has NO client record, vault, or resource list,
+// so this pass is given ONLY the generic question text: no clientContext, no
+// resources, nothing PHI-derived. Nothing leaves RAM.
+//
+// @param {string} genericQuestion  a person-free question (no client data)
+// @param {{ model?: string }} opts
+// @returns {Promise<{ text: string, source: 'llm-wifey'|'guided' }>}
+export async function askWifeyLocal(genericQuestion, opts = {}) {
+  const q = String(genericQuestion || '').trim();
+  if (!q) return { text: '', source: 'guided' };
+  // Same cloud-model refusal as askAmina: a :cloud model can never be used here.
+  const requested = opts.model || 'llama3.2';
+  const model = isLocalOllamaModel(requested) ? requested : 'llama3.2';
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 20000);
+    const res = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        stream: false,
+        // WIFEY_SYSTEM only — deliberately no resource list and no client block.
+        messages: [
+          { role: 'system', content: WIFEY_SYSTEM },
+          { role: 'user', content: q }
+        ]
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(t);
+    if (!res.ok) throw new Error('Ollama returned an error');
+    const data = await res.json();
+    const content = data?.message?.content?.trim();
+    if (!content) throw new Error('Empty Ollama response');
+    return { text: content, source: 'llm-wifey' };
+  } catch {
+    return { text: '', source: 'guided' };
+  }
 }
 
 export async function askAmina(message, resources, opts = {}) {

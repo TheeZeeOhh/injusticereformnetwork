@@ -12,6 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { classifyRoute } from './routeEngine';
 import { checkGuardrails, blocksHosted } from './guardrails';
 import { quarantine } from './quarantine';
+import { ungroundedClaims } from './grounding';
 
 // --- Attack corpus: PHI/referent smuggling toward the hosted model ----------
 // Each MUST route 'local' (default-closed). A single 'hosted' here is a leak.
@@ -91,26 +92,11 @@ describe('red-team: injected documents are quarantined, not prompted', () => {
 });
 
 // --- Grounding check: catch a CONFIDENT WRONG deadline/fee -------------------
-// This is the deterministic grounding gate: given a model answer and the SOURCE
-// facts the answer must be grounded in, flag any date/amount the answer asserts
-// that is NOT present in the source. Wired here so a hallucinated deadline fails
-// the eval automatically instead of relying on human review.
-
-/**
- * Returns dates/amounts asserted in `answer` that do NOT appear in `sourceFacts`.
- * A non-empty result means the answer invented a deadline/fee -> ungrounded.
- */
-function ungroundedClaims(answer, sourceFacts) {
-  const grab = (t) => {
-    const dates = (String(t).match(/\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g) || []);
-    // Match $1,234.56 style amounts WITHOUT swallowing a trailing comma/period
-    // that is punctuation rather than part of the number (e.g. "$500," -> "$500").
-    const money = (String(t).match(/\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?/g) || []).map((s) => s.replace(/\s/g, ''));
-    return new Set([...dates, ...money]);
-  };
-  const src = grab(sourceFacts);
-  return [...grab(answer)].filter((claim) => !src.has(claim));
-}
+// The deterministic grounding gate now lives in ./grounding.js (shared and
+// exported) rather than being duplicated here. This suite exercises the SAME
+// function the app path imports, so the eval can't drift from the module the
+// live reasoning path uses. A hallucinated deadline fails the eval automatically
+// instead of relying on human review.
 
 describe('red-team: grounding gate flags confident-wrong deadline/fee', () => {
   it('flags a hallucinated deadline not in the source', () => {

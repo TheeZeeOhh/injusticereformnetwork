@@ -53,6 +53,10 @@ export default function AminaPanel({ resources, onFocusResource, vaultAKey, clie
   const [contextClientId, setContextClientId] = useState('');
   const [clientContext, setClientContext] = useState('');
   const [contextNote, setContextNote] = useState('');
+  // Opt-in: also consult Wifey's reentry-explainer persona. This is a SECOND
+  // on-device pass (localhost Ollama) — it never leaves the device and is only
+  // given the person-free question, never the client transcript (see askWifey).
+  const [consultWifey, setConsultWifey] = useState(false);
 
   useEffect(() => { isAminaLlmAvailable().then(setLlm); }, []);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
@@ -90,9 +94,20 @@ export default function AminaPanel({ resources, onFocusResource, vaultAKey, clie
     setInput('');
     setMessages((m) => [...m, { from: 'user', text }]);
     setThinking(true);
-    // Passing clientContext forces LOCAL-only routing in askWifey.
-    const reply = await askWifey(text, resources, clientContext ? { clientContext } : {});
-    setMessages((m) => [...m, { from: 'amina', text: reply.text, resources: reply.resources, source: reply.source }]);
+    // Passing clientContext forces LOCAL-only routing in askWifey. consultWifey
+    // adds an on-device Wifey pass (never leaves the device, no PHI).
+    const opts = {};
+    if (clientContext) opts.clientContext = clientContext;
+    if (consultWifey) opts.consultWifey = true;
+    const reply = await askWifey(text, resources, opts);
+    setMessages((m) => [...m, {
+      from: 'amina',
+      text: reply.text,
+      resources: reply.resources,
+      source: reply.source,
+      grounding: reply.grounding,
+      wifeyConsult: reply.wifeyConsult,
+    }]);
     setThinking(false);
   };
 
@@ -136,6 +151,19 @@ export default function AminaPanel({ resources, onFocusResource, vaultAKey, clie
                 {m.text}
               </div>
               {m.from === 'amina' && <SourceBadge source={m.source} />}
+              {m.from === 'amina' && m.grounding?.flagged && (
+                <div style={{ marginTop: '0.25rem', fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: '#fbbf24' }}>
+                  ⚠ unverified figure ({m.grounding.violations.join(', ')}) · confirm against the document
+                </div>
+              )}
+              {m.from === 'amina' && m.wifeyConsult?.text && (
+                <div style={{ marginTop: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.45rem 0.6rem', background: 'var(--charcoal-lighter)' }}>
+                  <div style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)', color: 'var(--gold)', marginBottom: '0.2rem' }}>
+                    Wifey (local · on-device) adds:
+                  </div>
+                  <div style={{ fontSize: '0.8rem', lineHeight: 1.4, color: 'var(--bone)' }}>{m.wifeyConsult.text}</div>
+                </div>
+              )}
               {m.resources && m.resources.length > 0 && (
                 <div style={{ marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                   {m.resources.map((r) => (
@@ -152,7 +180,16 @@ export default function AminaPanel({ resources, onFocusResource, vaultAKey, clie
           {thinking && <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', fontStyle: 'italic' }}>Amina is thinking…</div>}
           <div ref={endRef} />
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.5rem', fontSize: '0.62rem', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={consultWifey}
+            onChange={(e) => setConsultWifey(e.target.checked)}
+            style={{ cursor: 'pointer' }}
+          />
+          Also ask Wifey (second on-device pass · no data leaves the device)
+        </label>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
