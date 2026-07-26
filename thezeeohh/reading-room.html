@@ -148,6 +148,22 @@ mark{background:rgba(201,162,75,.32);color:var(--ink);border-radius:2px;padding:
   .grid{grid-template-columns:1fr}
   .searchrow{flex-wrap:wrap}.sortsel{width:100%}
   .radio .in{gap:9px;padding:8px 10px}.r-vol{display:none}.r-sel{max-width:130px}
+  /* On a phone the search row wraps (input + full-width sort) and the category
+     chips wrap into ~6 rows, so a sticky .controls bar becomes ~245px tall —
+     nearly a third of the screen — and freshly-filtered book titles scroll up
+     BEHIND it. Measured: searchrow 104px + chips + padding = 245px. Rather than
+     fight the offset, DON'T pin the bar on mobile: let it scroll away normally
+     so nothing can ever hide behind it. */
+  .controls{position:static}
+  /* Keep the chip list from being an endless wall: cap + scroll it. */
+  .chips{max-height:120px;overflow-y:auto;justify-content:flex-start;
+    -webkit-overflow-scrolling:touch;padding-bottom:2px}
+  /* Section jumps get a small offset (bar no longer overlaps, but keep breathing
+     room from the top edge). */
+  .section-h{scroll-margin-top:12px}
+}
+@media(max-width:380px){
+  .r-sel{max-width:104px}
 }
 ::-webkit-scrollbar{width:9px}::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px}
@@ -265,7 +281,12 @@ function makeChip(label,n,kind){const c=document.createElement('span');
   c.className='chip'+(kind==='fav'?' fav':'');c.innerHTML=label+(n!=null?` <span class="n">${n}</span>`:'');
   c.dataset.kind=kind;
   c.onclick=()=>{if(kind==='fav')favOnly=!favOnly;else if(kind==='all'){activeTheme=null;favOnly=false;}
-    else activeTheme=(activeTheme===kind)?null:kind;render();syncChips();};return c;}
+    else activeTheme=(activeTheme===kind)?null:kind;render();syncChips();
+    // Bring the first results into view below the sticky controls bar. Without
+    // this, on mobile the freshly-filtered titles can sit hidden behind the
+    // (tall, wrapped) category chips. scroll-margin-top on .section-h offsets it.
+    const first=resultsEl.querySelector('.section-h, .card');
+    if(first)requestAnimationFrame(()=>first.scrollIntoView({behavior:'smooth',block:'start'}));};return c;}
 chipsEl.appendChild(makeChip('All',DATA.length,'all'));
 ORDER.forEach(t=>chipsEl.appendChild(makeChip(t,counts[t],t)));
 const favChip=makeChip('&#9733; Favorites',0,'fav');chipsEl.appendChild(favChip);
