@@ -354,6 +354,37 @@ function App() {
     return () => { if (unlisten) unlisten(); };
   }, [logout]);
 
+  // Anti-exfiltration UI hardening (defense-in-depth, on by default).
+  // Blocks the EASY ways to lift PHI off the screen from inside the app:
+  //   - right-click context menu (Save Image / Copy / Inspect)
+  //   - copy / cut of selected text
+  //   - dragging an image (e.g. a client photo) out of the app
+  // Text selection is also disabled via CSS (see index.css .no-select).
+  // NOTE: this is friction, not a guarantee — it cannot stop an OS screenshot
+  // tool or a phone camera. OS-level screen-capture exclusion is applied in the
+  // Rust shell (set_content_protected), effective on Windows/macOS only.
+  useEffect(() => {
+    const block = (e) => e.preventDefault();
+    // Allow copy/cut only when it originates inside a form field (a navigator
+    // legitimately needs to copy e.g. a resource phone number they typed/see in
+    // an input). Everywhere else — the PHI surfaces — copy/cut is blocked.
+    const blockCopyOutsideInputs = (e) => {
+      const el = e.target;
+      const inField = el && typeof el.closest === 'function' && el.closest('input, textarea');
+      if (!inField) e.preventDefault();
+    };
+    document.addEventListener('contextmenu', block);
+    document.addEventListener('copy', blockCopyOutsideInputs);
+    document.addEventListener('cut', blockCopyOutsideInputs);
+    document.addEventListener('dragstart', block);
+    return () => {
+      document.removeEventListener('contextmenu', block);
+      document.removeEventListener('copy', blockCopyOutsideInputs);
+      document.removeEventListener('cut', blockCopyOutsideInputs);
+      document.removeEventListener('dragstart', block);
+    };
+  }, []);
+
   // USB insertion trigger: when the Rust poll thread sees the persisted trigger
   // token appear on the bus, it emits 'usb-token-inserted'. If the app is locked,
   // we bring the window forward and ask whether to start/unlock (a confirm box —

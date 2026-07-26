@@ -542,6 +542,23 @@ pub fn run() {
             
             let app_handle = app.handle().clone();
 
+            // Screen-capture protection. Marks the window as protected content so
+            // the OS excludes it from screenshots / screen recording. This is a
+            // best-effort defense-in-depth for on-screen PHI:
+            //   - Windows: effective (WDA_EXCLUDEFROMCAPTURE — capture shows black).
+            //   - macOS:   effective (NSWindowSharingNone).
+            //   - Linux:   NO-OP on X11 / most Wayland compositors — there is no
+            //     app-level screenshot block, so do NOT rely on it here.
+            // It NEVER stops a phone camera pointed at the screen; the real control
+            // for that is the dead-man's switch + short lock timeout. We enable it
+            // by default so protection is on wherever the OS supports it.
+            {
+                use tauri::Manager;
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.set_content_protected(true);
+                }
+            }
+
             // Grant the microphone permission the WebKitGTK webview denies by
             // default, so on-device Audio Intake (getUserMedia) works in the
             // desktop build. We allow ONLY user-media (mic/camera) requests and

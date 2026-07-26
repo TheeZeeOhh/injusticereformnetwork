@@ -325,3 +325,22 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--gold) !important;
 }
+
+/* Anti-exfiltration hardening (defense-in-depth, on by default).
+   Disable text selection app-wide so PHI can't be swiped + copied, but KEEP
+   form fields selectable (typing, and legitimately reading back an entered
+   value). Pairs with the contextmenu/copy/drag blockers in App.jsx and the
+   Rust set_content_protected() screen-capture exclusion. This is friction,
+   not a guarantee: it cannot stop an OS screenshot or a phone camera. */
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+/* Images can't be dragged out of the app. */
+img { -webkit-user-drag: none; user-drag: none; }
