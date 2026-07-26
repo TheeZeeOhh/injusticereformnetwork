@@ -309,13 +309,63 @@ fn is_allowed_model_host(url: &str) -> bool {
     }
 }
 
-/// Downloads a model file server-side and returns its bytes. Redirects (incl. the
-/// HF Xet CDN) are followed by reqwest. Restricted to HuggingFace hosts.
+/// Local cache path for a model URL: <cache_dir>/sanctuary-models/<hash>_<name>.
+/// Keyed by a FNV-1a hash of the URL (stable, fixed-length, filesystem-safe). The
+/// model files are public, non-PHI, so caching them on disk is fine and NOT
+/// subject to the vault's technical-incapacity rules.
+fn model_cache_path(url: &str) -> Option<std::path::PathBuf> {
+    let base = dirs_next_cache().or_else(|| std::env::temp_dir().into())?;
+    let dir = base.join("sanctuary-models");
+    // Filesystem-safe key derived from the URL. Use a FNV-1a 64-bit hash so the
+    // filename is short and fixed-length (no truncation-collision risk), and
+    // append the last path segment for human readability. No crate dependency.
+    let mut hash: u64 = 0xcbf29ce484222325;
+    for b in url.as_bytes() {
+        hash ^= *b as u64;
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    let tail: String = url
+        .rsplit('/')
+        .next()
+        .unwrap_or("model")
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == '.' || *c == '-' || *c == '_')
+        .take(40)
+        .collect();
+    Some(dir.join(format!("{hash:016x}_{tail}")))
+}
+
+// Best-effort OS cache dir without adding a crate dependency.
+fn dirs_next_cache() -> Option<std::path::PathBuf> {
+    if let Ok(x) = std::env::var("XDG_CACHE_HOME") {
+        if !x.is_empty() {
+            return Some(std::path::PathBuf::from(x));
+        }
+    }
+    if let Ok(home) = std::env::var("HOME") {
+        return Some(std::path::PathBuf::from(home).join(".cache"));
+    }
+    None
+}
+
+/// Downloads a model file server-side and returns its bytes, caching it on disk
+/// so subsequent loads read locally (no repeat 75MB download / no re-freeze).
+/// Redirects (incl. the HF Xet CDN) are followed by reqwest. HuggingFace hosts only.
 #[tauri::command]
 async fn fetch_model_file(url: String) -> Result<Vec<u8>, String> {
     if !is_allowed_model_host(&url) {
         return Err(format!("Refused: {url} is not an allowed model host."));
     }
+
+    // Serve from disk cache when present — the common case after first run.
+    if let Some(path) = model_cache_path(&url) {
+        if let Ok(bytes) = std::fs::read(&path) {
+            if !bytes.is_empty() {
+                return Ok(bytes);
+            }
+        }
+    }
+
     let resp = reqwest::Client::new()
         .get(&url)
         .send()
@@ -328,7 +378,17 @@ async fn fetch_model_file(url: String) -> Result<Vec<u8>, String> {
         .bytes()
         .await
         .map_err(|e| format!("model read failed: {e}"))?;
-    Ok(bytes.to_vec())
+    let vec = bytes.to_vec();
+
+    // Cache to disk (best-effort; a cache write failure must not fail the load).
+    if let Some(path) = model_cache_path(&url) {
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let _ = std::fs::write(&path, &vec);
+    }
+
+    Ok(vec)
 }
 
 // --- Hosted assistant call (generic bureaucracy questions ONLY) --------------
