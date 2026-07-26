@@ -21,10 +21,11 @@ log "udev trigger fired (uid=$(id -u))"
 # --- The desktop user and the app binary. Edit these for the box. ------------
 KIOSK_USER="aziza"
 KIOSK_UID="1000"
-# The .deb/.rpm install the binary as /usr/bin/app (the Cargo crate is named
-# "app", even though the product is "Sanctuary"). This is the deployed path.
-APP_BIN="/usr/bin/app"
-# For running the dev build directly (no package install), use instead:
+# Deployed install path. This box is Garuda (Arch): no dpkg/rpm, so the built
+# binary is installed manually to /usr/local/bin/sanctuary (see README, "Install
+# on Arch/Garuda"). The .deb/.rpm targets are for Debian/Fedora hosts only.
+APP_BIN="/usr/local/bin/sanctuary"
+# For running the dev build directly (no install), use instead:
 # APP_BIN="/home/aziza/injusticereformnetwork/src-tauri/target/release/app"
 
 # --- If we are root (udev), re-exec as the kiosk user with a login shell so the

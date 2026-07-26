@@ -45,11 +45,19 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 ## Adapting for a real deployment
 
-- `APP_BIN` in `sanctuary-usb-launch.sh` defaults to the **installed package**
-  path `/usr/bin/app` — the `.deb`/`.rpm` install the binary as `app` (the Cargo
-  crate name), not `sanctuary`, even though the product is "Sanctuary". To run
-  the **dev build** instead (no package install), point `APP_BIN` at
-  `src-tauri/target/release/app` (commented alternative in the script).
+- **This box is Garuda Linux (Arch): no `dpkg`/`rpm`.** The Tauri build only
+  emits `.deb`/`.rpm` (for Debian/Fedora hosts), which are NOT installable here.
+  Install the built binary manually to a stable system path:
+
+  ```bash
+  sudo install -Dm755 src-tauri/target/release/app /usr/local/bin/sanctuary
+  ```
+
+  `APP_BIN` in `sanctuary-usb-launch.sh` defaults to that path
+  (`/usr/local/bin/sanctuary`). To run the **dev build** directly instead (no
+  install), point `APP_BIN` at `src-tauri/target/release/app` (commented
+  alternative in the script). For a proper Arch package, add a pacman target to
+  `src-tauri/tauri.conf.json` and rebuild.
 - `KIOSK_USER` / `KIOSK_UID` are hardcoded to `aziza` / `1000`. Change for a
   different box.
 - To find another stick's serial: `udevadm info -q property -n /dev/sdX | grep ID_SERIAL_SHORT`.
