@@ -35,6 +35,9 @@ export default function WeatherWidget() {
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);      // expanded search box
   const [now, setNow] = useState(() => new Date()); // live digital clock
+  const [calOpen, setCalOpen] = useState(false);    // month calendar toggle
+  // Month the calendar is viewing (defaults to the current month).
+  const [calMonth, setCalMonth] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; });
 
   // Tick the clock every second. Purely local — no network, no leak.
   useEffect(() => {
@@ -101,6 +104,23 @@ export default function WeatherWidget() {
 
   const [emoji, label] = data ? wmo(data.code) : ['🌡️', ''];
 
+  // Build a month grid (weeks x 7). Local-only; no network. `null` = padding cell.
+  const buildCalendar = (y, m) => {
+    const first = new Date(y, m, 1).getDay();          // 0=Sun
+    const days = new Date(y, m + 1, 0).getDate();      // days in month
+    const cells = [];
+    for (let i = 0; i < first; i++) cells.push(null);
+    for (let d = 1; d <= days; d++) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(null);
+    return cells;
+  };
+  const cal = buildCalendar(calMonth.y, calMonth.m);
+  const isToday = (d) => d && calMonth.y === now.getFullYear() && calMonth.m === now.getMonth() && d === now.getDate();
+  const monthLabel = new Date(calMonth.y, calMonth.m, 1).toLocaleDateString([], { month: 'long', year: 'numeric' });
+  const shiftMonth = (delta) => setCalMonth(({ y, m }) => {
+    const nm = m + delta; return { y: y + Math.floor(nm / 12), m: ((nm % 12) + 12) % 12 };
+  });
+
   return (
     <div style={{
       position: 'fixed', right: 16, bottom: 16, zIndex: 900,
@@ -114,13 +134,42 @@ export default function WeatherWidget() {
       <div style={{ textAlign: 'center', marginBottom: 10, paddingBottom: 8,
         borderBottom: '1px solid var(--border-color)' }}>
         <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: '1.55rem',
-          fontWeight: 700, letterSpacing: '1px', lineHeight: 1.1 }}>
+          fontWeight: 700, letterSpacing: '1px', lineHeight: 1.1, opacity: 0.8 }}>
           {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </div>
-        <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>
-          {now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-        </div>
+        <button
+          onClick={() => { setCalOpen((v) => !v); setCalMonth({ y: now.getFullYear(), m: now.getMonth() }); }}
+          title="Toggle calendar"
+          style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer',
+            fontSize: '0.72rem', opacity: 0.7, marginTop: 2, fontFamily: 'inherit', padding: 0 }}
+        >
+          {now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} ▾
+        </button>
       </div>
+
+      {calOpen && (
+        <div style={{ marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <button onClick={() => shiftMonth(-1)} title="Previous month" style={iconBtn}>‹</button>
+            <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>{monthLabel}</span>
+            <button onClick={() => shiftMonth(1)} title="Next month" style={iconBtn}>›</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, textAlign: 'center' }}>
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+              <div key={i} style={{ fontSize: '0.6rem', opacity: 0.5, fontWeight: 700, padding: '2px 0' }}>{d}</div>
+            ))}
+            {cal.map((d, i) => (
+              <div key={i} style={{
+                fontSize: '0.7rem', padding: '3px 0', borderRadius: 5, lineHeight: 1.2,
+                background: isToday(d) ? 'var(--ember)' : 'transparent',
+                color: isToday(d) ? '#fff' : 'inherit',
+                fontWeight: isToday(d) ? 700 : 400,
+                opacity: d ? 1 : 0,
+              }}>{d || ''}</div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {status === 'loading' && <div style={{ opacity: 0.7 }}>Loading weather…</div>}
 
