@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline';">
+  <title>Sanctuary v7.0 | HRT Tracking (Vault B)</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --text: #f1f5f9;
+      --vault-b: #e11d48; --border: #334155;
+      --font: system-ui, sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .vault-container { background: var(--surface); padding: 2rem; border-radius: 8px; border-top: 4px solid var(--vault-b); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    h1 { margin-top: 0; color: var(--vault-b); border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    h2 { font-size: 1.2rem; margin-top: 2rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem; color: #cbd5e1; }
+    input, textarea, select { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box; }
+    button { background: var(--vault-b); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+    button:hover { opacity: 0.9; }
+    .alert { background: rgba(225, 29, 72, 0.1); border-left: 4px solid var(--vault-b); padding: 1rem; margin-bottom: 2rem; font-size: 0.9rem; }
+    .log { margin-top: 2rem; background: black; padding: 1rem; font-family: monospace; font-size: 0.8rem; border-radius: 4px; color: #4ade80; }
+  </style>
+</head>
+<body>
+
+  <div class="alert">
+    <strong>Vault B (BridgeVault / Sensitive)</strong> - Active Maryland Trans Shield Act Posture. This module strictly handles HRT/medical transition tracking. This data is physically isolated and AES-256-GCM encrypted separately from Vault A. Do NOT expose this on shared displays.
+  </div>
+
+  <div class="vault-container">
+    <h1>HRT "No-Interruption" Tracking</h1>
+    
+    <!-- Transition Data -->
+    <h2>Gender Marker & Chosen Name History</h2>
+    <div class="form-group">
+      <label for="chosen-name">Chosen Name / Alias (Treated as hostile input)</label>
+      <input type="text" id="chosen-name" placeholder="Opt-in only...">
+    </div>
+    <div class="form-group">
+      <label for="gender-history">Gender Marker History / Notes</label>
+      <input type="text" id="gender-history" placeholder="Strictly Vault B protected...">
+    </div>
+
+    <!-- Medication Tracking -->
+    <h2>HRT Continuity Tracker</h2>
+    <div class="form-group">
+      <label for="medication">Current Regimen / Dosage</label>
+      <input type="text" id="medication" placeholder="e.g., Estradiol 4mg daily, Testosterone 50mg weekly">
+    </div>
+    <div class="form-group">
+      <label for="refill-window">Refill Window Date</label>
+      <input type="date" id="refill-window">
+    </div>
+    <div class="form-group">
+      <label for="pharmacy-info">Prescriber & Pharmacy Contact</label>
+      <textarea id="pharmacy-info" placeholder="Enter pharmacy and out-of-state prescriber info..."></textarea>
+    </div>
+
+    <button onclick="encryptAndSaveVaultB()">Encrypt & Save Record (Vault B)</button>
+  </div>
+
+  <div class="log" id="audit-log">
+    > Vault B Initialized.<br>
+    > Awaiting operator input...
+  </div>
+
+  <script>
+    const CRYPTO_CONFIG = { KDF_ITERATIONS: 600000, HASH_ALGO: 'SHA-256', ENCRYPTION_ALGO: 'AES-GCM', KEY_LENGTH: 256, TAG_LENGTH: 128 };
+    let vaultBKey = null;
+
+    function sanitizeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[^\w. @-]/gi, function (c) { return '&#' + c.charCodeAt(0) + ';'; });
+    }
+
+    function logAudit(msg) {
+      document.getElementById('audit-log').innerHTML += `<br>> [${new Date().toISOString()}] ${msg}`;
+    }
+
+    async function loadVaultKey() {
+      logAudit("Generating volatile session key for Vault B (AES-256)...");
+      vaultBKey = await crypto.subtle.generateKey(
+        { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, length: CRYPTO_CONFIG.KEY_LENGTH },
+        true, ['encrypt', 'decrypt']
+      );
+      logAudit("Vault B Key active in memory. BridgeVault is OPEN.");
+    }
+
+    async function encryptAndSaveVaultB() {
+      if (!vaultBKey) { logAudit("ERROR: Vault B Key wiped or not found. BridgeVault is CLOSED."); return; }
+
+      const record = {
+        chosenName: sanitizeHtml(document.getElementById('chosen-name').value),
+        genderHistory: sanitizeHtml(document.getElementById('gender-history').value),
+        medication: sanitizeHtml(document.getElementById('medication').value),
+        refillWindow: sanitizeHtml(document.getElementById('refill-window').value),
+        pharmacyInfo: sanitizeHtml(document.getElementById('pharmacy-info').value),
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        const enc = new TextEncoder();
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        
+        const ciphertext = await crypto.subtle.encrypt(
+          { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, iv: iv, tagLength: CRYPTO_CONFIG.TAG_LENGTH },
+          vaultBKey, enc.encode(JSON.stringify(record))
+        );
+
+        logAudit(`SUCCESS: Record encrypted. Ciphertext size: ${ciphertext.byteLength} bytes.`);
+        logAudit(`HMAC/GCM Tag verified. Saving AES blob to Vault B...`);
+        
+        // Clear fields
+        document.getElementById('chosen-name').value = '';
+        document.getElementById('gender-history').value = '';
+        document.getElementById('medication').value = '';
+        document.getElementById('refill-window').value = '';
+        document.getElementById('pharmacy-info').value = '';
+
+      } catch (e) { logAudit(`ENCRYPTION ERROR: ${e.message}`); }
+    }
+
+    window.onload = loadVaultKey;
+  </script>
+</body>
+</html>

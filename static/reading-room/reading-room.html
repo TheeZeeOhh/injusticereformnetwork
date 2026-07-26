@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sanctuary Reading Room</title>
+  <meta name="description" content="A premium reading room for justice reform resources, featuring a glass‑morphism UI and searchable embeddings." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <div class="kicker">Sanctuary · Political Education</div>
+      <h1>The Reading <span class="amp">&</span> Room</h1>
+      <p class="tag-line">A curated space for the most powerful texts on justice, history, and liberation.</p>
+      <p class="count-line">Powered by <b id="totalN">Vector AI Search</b></p>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="wrap">
+      <div class="searchbar">
+        <input type="search" id="search" placeholder="Search the collection…" autocomplete="off" />
+        <button id="searchBtn">Search</button>
+      </div>
+      <div class="chips" id="chips">
+        <div class="chip" data-query="African History">African History</div>
+        <div class="chip" data-query="Black Liberation">Black Liberation</div>
+        <div class="chip" data-query="Pan-Africanism">Pan-Africanism</div>
+        <div class="chip" data-query="Spiritual Systems">Spiritual Systems</div>
+        <div class="chip" data-query="Civil Rights">Civil Rights</div>
+        <div class="chip" data-query="Decolonization">Decolonization</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div id="results" class="grid">
+      <div class="empty">Ready to search the full-text collection.</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="wrap">
+      <div class="big">"Study is the seed of self-determination."</div>
+      © 2026 Justice Reform Network • All rights reserved.<br/>
+      Sanctuary DVUA
+    </div>
+  </footer>
+  <script>
+    const searchBtn = document.getElementById('searchBtn');
+    const input = document.getElementById('search');
+    const results = document.getElementById('results');
+    const chips = document.querySelectorAll('.chip');
+
+    // Make chips clickable
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        // Update active class
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        
+        // Populate search and trigger
+        input.value = chip.getAttribute('data-query');
+        searchBtn.click();
+      });
+    });
+
+    searchBtn.addEventListener('click', async () => {
+      const query = input.value.trim();
+      if (!query) return;
+      results.innerHTML = `<div class="empty">🔎 Searching for "${query}"…</div>`;
+      try {
+        const resp = await fetch('http://localhost:3001/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer dev-token'
+          },
+          body: JSON.stringify({ query })
+        });
+        if (!resp.ok) {
+          throw new Error(`Server error ${resp.status}`);
+        }
+        const data = await resp.json();
+        let html = '';
+        if (data.results.length === 0) {
+          html = '<div class="empty">No results found (or database is empty).</div>';
+        } else {
+          data.results.forEach(r => {
+            html += `
+              <div class="card">
+                <div class="c-title">${r.title}</div>
+                <div class="c-score">Score: ${r.score.toFixed(2)}</div>
+                <div class="c-why">${r.snippet}</div>
+                <a href="http://localhost:3001/files/${encodeURIComponent(r.title)}" target="_blank" class="c-open">OPEN IN ARCHIVE ↗</a>
+              </div>
+            `;
+          });
+        }
+        results.innerHTML = html;
+      } catch (e) {
+        results.innerHTML = `<div class="empty" style="color:red;">Error: ${e.message}</div>`;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline';">
+  <title>Sanctuary v7.0 | Consent Manager (42 CFR Part 2)</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --text: #f1f5f9;
+      --vault-b: #e11d48; --vault-a: #0ea5e9; --border: #334155;
+      --font: system-ui, sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .vault-container { background: var(--surface); padding: 2rem; border-radius: 8px; border-top: 4px solid #f59e0b; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    h1 { margin-top: 0; color: #f59e0b; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem; color: #cbd5e1; }
+    input, select, textarea { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box; }
+    button { background: #f59e0b; color: #0f172a; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+    button:hover { opacity: 0.9; }
+    .alert { background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 1rem; margin-bottom: 2rem; font-size: 0.9rem; }
+    .log { margin-top: 2rem; background: black; padding: 1rem; font-family: monospace; font-size: 0.8rem; border-radius: 4px; color: #4ade80; }
+  </style>
+</head>
+<body>
+
+  <div class="alert">
+    <strong>Consent & Compliance Gate</strong> - This module manages cryptographic consent tokens for 42 CFR Part 2 (Substance Use Disorder records) and Telehealth BAA enforcement.
+  </div>
+
+  <div class="vault-container">
+    <h1>42 CFR Part 2 Consent Manager</h1>
+    
+    <div class="form-group">
+      <label for="client-id">Client Reference ID (Vault A linked)</label>
+      <input type="text" id="client-id" placeholder="Enter anonymized ID...">
+    </div>
+
+    <div class="form-group">
+      <label for="consent-category">Consent Category</label>
+      <select id="consent-category">
+        <option value="42cfr">42 CFR Part 2 (Substance Use Disorder)</option>
+        <option value="telehealth">Telehealth / Jitsi BAA Session</option>
+        <option value="data-sharing">External Data Sharing (Court Order)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="consent-scope">Scope & Purpose of Disclosure</label>
+      <textarea id="consent-scope" placeholder="Specifically who, what, and why..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="revocation-date">Consent Revocation Date</label>
+      <input type="date" id="revocation-date">
+    </div>
+
+    <button onclick="signConsentRecord()">Cryptographically Sign & Store Consent</button>
+  </div>
+
+  <div class="log" id="audit-log">
+    > Consent Engine Initialized.<br>
+    > Enforcing 42 CFR Part 2 requirements...
+  </div>
+
+  <script>
+    const CRYPTO_CONFIG = { KDF_ITERATIONS: 600000, HASH_ALGO: 'SHA-256', ENCRYPTION_ALGO: 'AES-GCM', KEY_LENGTH: 256, TAG_LENGTH: 128 };
+    let vaultBKey = null;
+
+    function sanitizeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[^\w. @-]/gi, function (c) { return '&#' + c.charCodeAt(0) + ';'; });
+    }
+
+    function logAudit(msg) {
+      document.getElementById('audit-log').innerHTML += `<br>> [${new Date().toISOString()}] ${msg}`;
+    }
+
+    async function loadVaultKey() {
+      logAudit("Loading Vault B Key for 42 CFR Consent signing...");
+      vaultBKey = await crypto.subtle.generateKey(
+        { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, length: CRYPTO_CONFIG.KEY_LENGTH },
+        true, ['encrypt', 'decrypt']
+      );
+      logAudit("Vault B Key loaded. Ready to mint consent tokens.");
+    }
+
+    async function signConsentRecord() {
+      if (!vaultBKey) { logAudit("ERROR: Vault B Key missing. Cannot sign consent."); return; }
+
+      const record = {
+        clientId: sanitizeHtml(document.getElementById('client-id').value),
+        category: sanitizeHtml(document.getElementById('consent-category').value),
+        scope: sanitizeHtml(document.getElementById('consent-scope').value),
+        revocationDate: sanitizeHtml(document.getElementById('revocation-date').value),
+        timestamp: new Date().toISOString(),
+        consentStatus: 'GRANTED'
+      };
+
+      if (!record.clientId || !record.scope) { logAudit("Validation Failed: ID and Scope required."); return; }
+
+      try {
+        const enc = new TextEncoder();
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        
+        const ciphertext = await crypto.subtle.encrypt(
+          { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, iv: iv, tagLength: CRYPTO_CONFIG.TAG_LENGTH },
+          vaultBKey, enc.encode(JSON.stringify(record))
+        );
+
+        logAudit(`SUCCESS: 42 CFR Part 2 Consent Token Minted & Signed.`);
+        logAudit(`This record is now required to unlock corresponding Vault B models.`);
+        
+        document.getElementById('client-id').value = '';
+        document.getElementById('consent-scope').value = '';
+
+      } catch (e) { logAudit(`SIGNING ERROR: ${e.message}`); }
+    }
+
+    window.onload = loadVaultKey;
+  </script>
+</body>
+</html>

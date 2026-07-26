@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Strict CSP: No remote scripts or styles, ensuring zero network leakage -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline';">
+  <title>Sanctuary v7.0 | EHR Core (Vault A)</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --text: #f1f5f9;
+      --vault-a: #0ea5e9; --border: #334155;
+      --font: system-ui, sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .vault-container { background: var(--surface); padding: 2rem; border-radius: 8px; border-top: 4px solid var(--vault-a); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    h1 { margin-top: 0; color: var(--vault-a); border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    h2 { font-size: 1.2rem; margin-top: 2rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem; color: #cbd5e1; }
+    input, textarea { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box; }
+    textarea { resize: vertical; min-height: 100px; }
+    button { background: var(--vault-a); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+    button:hover { opacity: 0.9; }
+    .alert { background: rgba(14, 165, 233, 0.1); border-left: 4px solid var(--vault-a); padding: 1rem; margin-bottom: 2rem; font-size: 0.9rem; }
+    .log { margin-top: 2rem; background: black; padding: 1rem; font-family: monospace; font-size: 0.8rem; border-radius: 4px; color: #4ade80; }
+  </style>
+</head>
+<body>
+
+  <div class="alert">
+    <strong>Vault A (General Operations)</strong> - This module handles non-sensitive scheduling, general demographics, and operational case notes. HRT, 42 CFR, and gender marker histories must NEVER be entered here.
+  </div>
+
+  <div class="vault-container">
+    <h1>EHR Core: Client Intake</h1>
+    
+    <!-- Demographics -->
+    <h2>General Demographics (Core Fields Only)</h2>
+    <div class="form-group">
+      <label for="client-name">Legal/Operational Name (Escaped hostile input)</label>
+      <input type="text" id="client-name" placeholder="Enter name...">
+    </div>
+    <div class="form-group">
+      <label for="client-dob">Date of Birth</label>
+      <input type="date" id="client-dob">
+    </div>
+    <div class="form-group">
+      <label for="client-contact">Primary Contact</label>
+      <input type="text" id="client-contact" placeholder="Phone or Email (Opt-in)">
+    </div>
+
+    <!-- Encounter Tracking -->
+    <h2>General Encounter / Case Notes</h2>
+    <div class="form-group">
+      <label for="encounter-type">Encounter Type</label>
+      <input type="text" id="encounter-type" placeholder="e.g., General Consultation, Program Enrollment">
+    </div>
+    <div class="form-group">
+      <label for="case-notes">Case Notes</label>
+      <textarea id="case-notes" placeholder="Enter non-sensitive operational notes..."></textarea>
+    </div>
+
+    <button onclick="encryptAndSaveVaultA()">Encrypt & Save Record (Vault A)</button>
+  </div>
+
+  <div class="log" id="audit-log">
+    > System Initialized.<br>
+    > Awaiting operator input...
+  </div>
+
+  <script>
+    // Embedded DVUA AES-256-GCM logic specifically configured for Vault A
+    // (In Tauri production, this interfaces with Rust keychain)
+
+    const CRYPTO_CONFIG = { KDF_ITERATIONS: 600000, HASH_ALGO: 'SHA-256', ENCRYPTION_ALGO: 'AES-GCM', KEY_LENGTH: 256, TAG_LENGTH: 128 };
+    
+    // Simulate the Vault A key existing in memory after successful passphrase derivation
+    let vaultAKey = null;
+
+    // Strict XSS Sanitization Layer (Treat all input as hostile)
+    function sanitizeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[^\w. @-]/gi, function (c) {
+        return '&#' + c.charCodeAt(0) + ';';
+      });
+    }
+
+    function logAudit(msg) {
+      const logBox = document.getElementById('audit-log');
+      logBox.innerHTML += `<br>> [${new Date().toISOString()}] ${msg}`;
+    }
+
+    // Mock Key Derivation for UI feedback purposes
+    async function loadVaultKey() {
+      logAudit("Generating volatile session key for Vault A (AES-256)...");
+      vaultAKey = await crypto.subtle.generateKey(
+        { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, length: CRYPTO_CONFIG.KEY_LENGTH },
+        true, ['encrypt', 'decrypt']
+      );
+      logAudit("Vault A Key active in memory.");
+    }
+
+    async function encryptAndSaveVaultA() {
+      if (!vaultAKey) { logAudit("ERROR: Vault A Key not found in memory."); return; }
+
+      // 1. Gather & Sanitize hostile input
+      const record = {
+        name: sanitizeHtml(document.getElementById('client-name').value),
+        dob: sanitizeHtml(document.getElementById('client-dob').value),
+        contact: sanitizeHtml(document.getElementById('client-contact').value),
+        encounterType: sanitizeHtml(document.getElementById('encounter-type').value),
+        notes: sanitizeHtml(document.getElementById('case-notes').value),
+        timestamp: new Date().toISOString()
+      };
+
+      // 2. Validate input
+      if (!record.name) { logAudit("Validation Failed: Operational Name is required."); return; }
+
+      // 3. Encrypt via AES-256-GCM
+      try {
+        const enc = new TextEncoder();
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        
+        const ciphertext = await crypto.subtle.encrypt(
+          { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, iv: iv, tagLength: CRYPTO_CONFIG.TAG_LENGTH },
+          vaultAKey,
+          enc.encode(JSON.stringify(record))
+        );
+
+        // Simulated save to local file system via Tauri
+        logAudit(`SUCCESS: Record encrypted. Ciphertext size: ${ciphertext.byteLength} bytes.`);
+        logAudit(`Auth Tag (GCM) appended. Saving AES blob to Vault A local storage...`);
+        
+        // Clear fields to prevent shoulder-surfing
+        document.getElementById('client-name').value = '';
+        document.getElementById('client-dob').value = '';
+        document.getElementById('client-contact').value = '';
+        document.getElementById('encounter-type').value = '';
+        document.getElementById('case-notes').value = '';
+
+      } catch (e) {
+        logAudit(`ENCRYPTION ERROR: ${e.message}`);
+      }
+    }
+
+    // Initialize key on load
+    window.onload = loadVaultKey;
+  </script>
+</body>
+</html>

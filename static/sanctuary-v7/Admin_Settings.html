@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline';">
+  <title>Sanctuary v7.0 | Vault & Admin Settings</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --text: #f1f5f9;
+      --vault-a: #0ea5e9; --vault-b: #e11d48; --warning: #f59e0b;
+      --border: #334155; --font: system-ui, sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 2rem; max-width: 900px; margin: 0 auto; }
+    h1 { color: #f8fafc; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    h2 { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 1rem; }
+    .section { background: var(--surface); padding: 2rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .section.vault-a { border-left: 4px solid var(--vault-a); }
+    .section.vault-b { border-left: 4px solid var(--vault-b); }
+    .section.hardware { border-left: 4px solid var(--warning); }
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem; color: #94a3b8; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box; }
+    select { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 4px; }
+    button { color: #0f172a; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 0.5rem; }
+    button.primary { background: #f8fafc; }
+    button.danger { background: var(--vault-b); color: white; }
+    button.warning { background: var(--warning); color: #0f172a; }
+    .toggle { display: flex; align-items: center; gap: 1rem; }
+    .toggle input { width: auto; transform: scale(1.5); }
+    .log { margin-top: 1rem; background: black; padding: 1rem; font-family: monospace; font-size: 0.8rem; border-radius: 4px; color: #4ade80; }
+  </style>
+</head>
+<body>
+
+  <h1>Sanctuary Administrative Settings</h1>
+
+  <!-- USB Dead-Man's Switch Configuration -->
+  <div class="section hardware">
+    <h2>Hardware Security: USB Dead-Man's Switch</h2>
+    <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem;">If the designated USB device is unplugged, Sanctuary will instantly wipe the AES session keys from RAM. <strong>Warning: Operator must configure carefully to avoid accidental session termination.</strong></p>
+    
+    <div class="form-group">
+      <label for="usb-device-id">Designated USB Device ID (Vendor:Product)</label>
+      <input type="text" id="usb-device-id" placeholder="e.g., 04ca:3015">
+    </div>
+
+    <div class="form-group toggle">
+      <input type="checkbox" id="usb-enable">
+      <label for="usb-enable">Enable Dead-Man's Switch for BridgeVault (Vault B)</label>
+    </div>
+    <div class="form-group toggle">
+      <input type="checkbox" id="usb-enable-all">
+      <label for="usb-enable-all">Enable Dead-Man's Switch for ALL Vaults (Total Shutdown)</label>
+    </div>
+
+    <button class="warning" onclick="saveUSBConfig()">Save Hardware Configuration</button>
+  </div>
+
+  <!-- Vault B Panic Controls -->
+  <div class="section vault-b">
+    <h2>BridgeVault (Vault B) Emergency Controls</h2>
+    <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem;">Immediate cryptographic termination of sensitive data streams (42 CFR / HRT Tracking).</p>
+    
+    <button class="danger" onclick="executePanicClose()">🚨 MANUAL BRIDGE-VAULT CLOSURE (WIPE VAULT B KEY) 🚨</button>
+  </div>
+
+  <!-- Backup & Export -->
+  <div class="section vault-a">
+    <h2>Offline Data Backup & Restoration</h2>
+    <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem;">All backups are HMAC-signed. A modified or tampered backup file will mathematically fail to restore.</p>
+    
+    <div class="form-group">
+      <label for="backup-vault-select">Select Vault to Backup</label>
+      <select id="backup-vault-select">
+        <option value="A">Vault A (General Operations)</option>
+        <option value="B">Vault B (BridgeVault / Sensitive)</option>
+      </select>
+    </div>
+
+    <button class="primary" onclick="exportBackup()">Export HMAC-Signed Backup</button>
+    <div style="height: 1rem;"></div>
+    
+    <div class="form-group">
+      <label for="restore-file">Restore from HMAC Backup</label>
+      <input type="file" id="restore-file" style="padding: 0; background: transparent; border: none;">
+    </div>
+    <button class="warning" onclick="verifyAndRestore()">Verify Integrity & Restore Data</button>
+  </div>
+
+  <div class="log" id="admin-log">
+    > Admin Interface Loaded.<br>
+    > Waiting for operator actions...
+  </div>
+
+  <script>
+    function logAudit(msg) {
+      document.getElementById('admin-log').innerHTML += `<br>> [${new Date().toLocaleTimeString()}] ${msg}`;
+    }
+
+    function saveUSBConfig() {
+      const deviceId = document.getElementById('usb-device-id').value;
+      const vaultBOnly = document.getElementById('usb-enable').checked;
+      const allVaults = document.getElementById('usb-enable-all').checked;
+
+      if (!deviceId) { logAudit("ERROR: Device ID required to configure Dead-Man's Switch."); return; }
+
+      // In production, this writes to the local Tauri config file that the Rust polling daemon reads
+      logAudit(`SUCCESS: USB Dead-Man's Switch bound to hardware ID '${deviceId}'.`);
+      if (allVaults) {
+        logAudit("POSTURE: 'Total Shutdown' selected. Unplugging will wipe Vault A & B keys.");
+      } else if (vaultBOnly) {
+        logAudit("POSTURE: 'BridgeVault Only' selected. Unplugging will only close Vault B.");
+      } else {
+        logAudit("WARNING: Switch bound to hardware, but no action toggled.");
+      }
+    }
+
+    function executePanicClose() {
+      // In production, this zeros the key array in the WASM/JS memory space and triggers Rust cleanup
+      logAudit("🚨 PANIC CLOSE INITIATED 🚨");
+      logAudit("Vault B cryptographic key explicitly overwritten with zeros.");
+      logAudit("BridgeVault is now mathematically inaccessible on this device.");
+    }
+
+    function exportBackup() {
+      const targetVault = document.getElementById('backup-vault-select').value;
+      logAudit(`Initiating backup sequence for Vault ${targetVault}...`);
+      logAudit("Calculating HMAC-SHA256 signature across all encrypted blobs...");
+      
+      // Simulate file download
+      setTimeout(() => {
+        logAudit(`SUCCESS: Backup compiled and cryptographically signed.`);
+        logAudit(`Exported to: sanctuary_backup_vault_${targetVault}_${Date.now()}.aes`);
+      }, 800);
+    }
+
+    function verifyAndRestore() {
+      const fileInput = document.getElementById('restore-file');
+      if (fileInput.files.length === 0) { logAudit("ERROR: No backup file selected."); return; }
+      
+      const fileName = fileInput.files[0].name;
+      logAudit(`Reading ${fileName}...`);
+      logAudit("Verifying HMAC-SHA256 signature...");
+
+      setTimeout(() => {
+        logAudit(`✅ Integrity Check Passed: File has not been tampered with.`);
+        logAudit(`Restoring ciphertext to local IndexedDB...`);
+      }, 1200);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline';">
+  <title>Sanctuary v7.0 | Dual-Vault Architecture</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --text: #f1f5f9;
+      --vault-a: #0ea5e9; --vault-b: #e11d48;
+      --font: system-ui, sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 2rem; }
+    .vault-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+    .vault { background: var(--surface); padding: 2rem; border-radius: 8px; border-top: 4px solid; }
+    .vault-a { border-color: var(--vault-a); }
+    .vault-b { border-color: var(--vault-b); transition: filter 0.3s ease; }
+    .locked { filter: grayscale(100%) opacity(0.5); pointer-events: none; }
+    button { background: var(--vault-a); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    button.panic { background: var(--vault-b); font-weight: bold; width: 100%; padding: 1rem; margin-bottom: 2rem;}
+    input { padding: 0.5rem; background: #334155; border: 1px solid #475569; color: white; border-radius: 4px; width: 100%; box-sizing: border-box; margin-bottom: 1rem;}
+    .log { background: #000; padding: 1rem; font-family: monospace; font-size: 0.8rem; margin-top: 2rem; border-radius: 4px; max-height: 200px; overflow-y: auto;}
+  </style>
+</head>
+<body>
+
+  <h1>Sanctuary v7.0: Local-First EHR</h1>
+  <p>Technical Incapacity Defense Active. AES-256-GCM / PBKDF2 (600,000 iterations).</p>
+
+  <div id="auth-screen">
+    <input type="password" id="master-pass" placeholder="Enter Master Passphrase (will derive Vault A & B keys)">
+    <button onclick="unlockVaults()">Unlock Vaults</button>
+  </div>
+
+  <div id="dashboard" style="display:none;">
+    <button class="panic" onclick="panicLock()">🚨 BRIDGE-VAULT CLOSURE (LOCK VAULT B) 🚨</button>
+
+    <div class="vault-container">
+      <!-- Vault A -->
+      <div class="vault vault-a" id="vault-a">
+        <h2>Vault A (General)</h2>
+        <p>Operational data: Scheduling, General Intakes.</p>
+        <textarea id="vault-a-input" style="width:100%; height:80px; background:#334155; color:white; margin-bottom:1rem;" placeholder="General encounter notes..."></textarea>
+        <button onclick="saveData('A')">Encrypt & Save to Vault A</button>
+      </div>
+
+      <!-- Vault B -->
+      <div class="vault vault-b" id="vault-b">
+        <h2>Vault B (Sensitive / 42 CFR)</h2>
+        <p>HRT Tracking, SUD Records, Gender Marker History.</p>
+        <textarea id="vault-b-input" style="width:100%; height:80px; background:#334155; color:white; margin-bottom:1rem;" placeholder="HRT / 42 CFR Part 2 sensitive notes..."></textarea>
+        <button onclick="saveData('B')">Encrypt & Save to Vault B</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="log" id="system-log">System initialized...</div>
+
+  <script>
+    // Embedded DVUA Cryptography (Normally imported in Rust/Tauri environment)
+    const CRYPTO_CONFIG = { KDF_ITERATIONS: 600000, HASH_ALGO: 'SHA-256', ENCRYPTION_ALGO: 'AES-GCM', KEY_LENGTH: 256, TAG_LENGTH: 128 };
+    let keys = { vaultA: null, vaultB: null };
+    let storage = { vaultA: null, vaultB: null };
+
+    function log(msg) {
+      document.getElementById('system-log').innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
+    }
+
+    async function deriveVaultKeys(passphrase) {
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(passphrase), { name: 'PBKDF2' }, false, ['deriveBits', 'deriveKey']);
+      
+      const vaultA = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: enc.encode('SANCTUARY_SALT_A_OPERATIONAL'), iterations: CRYPTO_CONFIG.KDF_ITERATIONS, hash: CRYPTO_CONFIG.HASH_ALGO },
+        keyMaterial, { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, length: CRYPTO_CONFIG.KEY_LENGTH }, false, ['encrypt', 'decrypt']
+      );
+
+      const vaultB = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: enc.encode('SANCTUARY_SALT_B_SENSITIVE_42CFR'), iterations: CRYPTO_CONFIG.KDF_ITERATIONS, hash: CRYPTO_CONFIG.HASH_ALGO },
+        keyMaterial, { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, length: CRYPTO_CONFIG.KEY_LENGTH }, false, ['encrypt', 'decrypt']
+      );
+
+      return { vaultA, vaultB };
+    }
+
+    async function unlockVaults() {
+      const pass = document.getElementById('master-pass').value;
+      if(!pass) return;
+      log("Deriving keys via PBKDF2 (600,000 iterations)... Please wait.");
+      
+      // Simulate blocking compute for UI feedback
+      setTimeout(async () => {
+        try {
+          const derived = await deriveVaultKeys(pass);
+          keys.vaultA = derived.vaultA;
+          keys.vaultB = derived.vaultB;
+          log("Cryptographic keys derived. Vault A and Vault B unlocked.");
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+        } catch (e) {
+          log("Decryption failed.");
+        }
+      }, 50);
+    }
+
+    function panicLock() {
+      keys.vaultB = null; // Zero-out the sensitive key from memory
+      document.getElementById('vault-b').classList.add('locked');
+      log("🚨 BRIDGE-VAULT CLOSURE EXECUTED. Vault B key wiped from RAM. 42 CFR data mathematically inaccessible.");
+    }
+
+    async function saveData(vaultType) {
+      const isVaultA = vaultType === 'A';
+      const key = isVaultA ? keys.vaultA : keys.vaultB;
+      if (!key) { log(`Error: Vault ${vaultType} is locked. Cannot encrypt.`); return; }
+      
+      const input = document.getElementById(`vault-${vaultType.toLowerCase()}-input`).value;
+      
+      // AES-256-GCM Encryption
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, iv: iv, tagLength: CRYPTO_CONFIG.TAG_LENGTH },
+        key, new TextEncoder().encode(input)
+      );
+
+      storage[`vault${vaultType}`] = { iv: Array.from(iv), data: Array.from(new Uint8Array(ciphertext)) };
+      log(`Vault ${vaultType} encrypted successfully. Ciphertext stored in local state.`);
+      document.getElementById(`vault-${vaultType.toLowerCase()}-input`).value = '';
+    }
+  </script>
+</body>
+</html>

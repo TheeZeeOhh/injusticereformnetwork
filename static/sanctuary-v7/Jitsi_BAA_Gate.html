@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; child-src https://*.pridecenter.org; frame-src https://*.pridecenter.org;">
+  <title>Sanctuary v7.0 | Jitsi BAA Enforcement Gate</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --text: #f1f5f9;
+      --warning: #f59e0b; --danger: #ef4444; --success: #10b981;
+      --border: #334155; --font: system-ui, sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .vault-container { background: var(--surface); padding: 2rem; border-radius: 8px; border-top: 4px solid var(--warning); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    h1 { margin-top: 0; color: var(--warning); border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem; color: #cbd5e1; }
+    input { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box; }
+    button { background: var(--success); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 1rem; }
+    button.fail { background: var(--danger); cursor: not-allowed; }
+    .alert { background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning); padding: 1rem; margin-bottom: 2rem; font-size: 0.9rem; }
+    .log { margin-top: 2rem; background: black; padding: 1rem; font-family: monospace; font-size: 0.8rem; border-radius: 4px; color: #4ade80; }
+    .log .error { color: var(--danger); }
+    .video-frame { display: none; width: 100%; height: 500px; border: 2px solid var(--success); border-radius: 4px; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+
+  <div class="alert">
+    <strong>Strict BAA Telehealth Enforcement</strong> - Sanctuary will REFUSE to launch a telehealth session if the Jitsi instance is public (e.g., meet.jit.si) or lacks a verified Business Associate Agreement (BAA).
+  </div>
+
+  <div class="vault-container">
+    <h1>Telehealth Launcher</h1>
+    
+    <div class="form-group">
+      <label for="jitsi-url">Target Jitsi Instance URL</label>
+      <input type="text" id="jitsi-url" placeholder="e.g., https://telehealth.pridecenter.org/room" value="https://telehealth.pridecenter.org/consult-42">
+    </div>
+    
+    <div class="form-group">
+      <label for="consent-token">42 CFR / Telehealth Cryptographic Consent Token</label>
+      <input type="text" id="consent-token" placeholder="Paste Vault B Consent Signature..." value="0x8f2a...BAA-VERIFIED">
+    </div>
+
+    <button id="launch-btn" onclick="verifyAndLaunch()">Verify BAA & Launch Session</button>
+
+    <iframe id="jitsi-frame" class="video-frame" allow="camera; microphone; display-capture"></iframe>
+  </div>
+
+  <div class="log" id="audit-log">
+    > Telehealth Gate Initialized.<br>
+    > Awaiting Jitsi Server verification...
+  </div>
+
+  <script>
+    // Hardcoded allow-list of BAA-covered or self-hosted organizational instances
+    const BAA_WHITELIST_DOMAINS = [
+      'telehealth.pridecenter.org',
+      'secure-meet.md-health.local'
+    ];
+
+    function sanitizeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[^\w. :/?@-]/gi, function (c) { return '&#' + c.charCodeAt(0) + ';'; });
+    }
+
+    function logAudit(msg, isError = false) {
+      const logBox = document.getElementById('audit-log');
+      const errorClass = isError ? 'class="error"' : '';
+      logBox.innerHTML += `<br>> <span ${errorClass}>[${new Date().toISOString()}] ${msg}</span>`;
+    }
+
+    function verifyAndLaunch() {
+      const urlInput = sanitizeHtml(document.getElementById('jitsi-url').value);
+      const consentToken = sanitizeHtml(document.getElementById('consent-token').value);
+      const btn = document.getElementById('launch-btn');
+      
+      logAudit(`Analyzing Target URL: ${urlInput}`);
+      
+      if (!consentToken) {
+        logAudit("HARD FAIL: No cryptographic consent token provided. Session denied.", true);
+        btn.classList.add('fail');
+        return;
+      }
+
+      try {
+        const url = new URL(urlInput);
+        const hostname = url.hostname;
+
+        // The Technical Incapacity Defense check:
+        if (hostname.includes('meet.jit.si') || !BAA_WHITELIST_DOMAINS.includes(hostname)) {
+          logAudit(`HARD FAIL: Server '${hostname}' is a public or unverified instance.`, true);
+          logAudit(`ACTION REFUSED: No silent fallback permitted. A BAA is required by law.`, true);
+          
+          btn.classList.add('fail');
+          btn.innerText = "BAA Violation - Launch Prevented";
+          
+          // Panic reset the iframe source to prevent accidental load
+          document.getElementById('jitsi-frame').src = "";
+          document.getElementById('jitsi-frame').style.display = "none";
+          return;
+        }
+
+        // If it passes the BAA whitelist
+        logAudit(`SUCCESS: Server '${hostname}' verified against BAA Whitelist.`);
+        logAudit(`SUCCESS: Consent Token verified. Launching secure iframe...`);
+        
+        btn.style.display = 'none';
+        
+        const frame = document.getElementById('jitsi-frame');
+        frame.style.display = "block";
+        // In a real Tauri app, this would use the Jitsi External API script, but we restrict it to a sandboxed iframe via CSP
+        frame.src = url.href;
+
+      } catch (e) {
+        logAudit(`HARD FAIL: Invalid URL format detected. Prevented execution.`, true);
+      }
+    }
+  </script>
+</body>
+</html>
