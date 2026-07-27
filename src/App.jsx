@@ -13,28 +13,29 @@ import './index.css';
 
 function DashboardHome() {
   const user = useAuthStore(state => state.user);
+  const { t } = useLanguage();
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Clinical Overview</h1>
-        <p>Welcome back, {user?.username}. Here is what is happening today.</p>
+        <h1>{t('dashboard.title')}</h1>
+        <p>{t('dashboard.welcomePrefix')} {user?.username}. {t('dashboard.welcomeSuffix')}</p>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card glass-panel">
-          <span className="stat-title">Active Patients</span>
+          <span className="stat-title">{t('dashboard.activePatients')}</span>
           <span className="stat-value">0</span>
-          <span className="stat-change">No data yet</span>
+          <span className="stat-change">{t('dashboard.noData')}</span>
         </div>
         <div className="stat-card glass-panel">
-          <span className="stat-title">Pending Reviews</span>
+          <span className="stat-title">{t('dashboard.pendingReviews')}</span>
           <span className="stat-value">0</span>
-          <span className="stat-change">No data yet</span>
+          <span className="stat-change">{t('dashboard.noData')}</span>
         </div>
         <div className="stat-card glass-panel">
-          <span className="stat-title">Staff Available</span>
+          <span className="stat-title">{t('dashboard.staffAvailable')}</span>
           <span className="stat-value">0</span>
-          <span className="stat-change">No data yet</span>
+          <span className="stat-change">{t('dashboard.noData')}</span>
         </div>
       </div>
 
@@ -42,10 +43,10 @@ function DashboardHome() {
 
       <div className="data-section">
         <div className="data-panel glass-panel">
-          <h2>Recent Patient Activity</h2>
+          <h2>{t('dashboard.recentActivity')}</h2>
           <div className="patient-list">
             <div style={{ padding: '1.5rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-              No recent activity. Client records live encrypted in your vault — open <strong>Clients</strong> to begin.
+              {t('dashboard.noRecentActivity')}
             </div>
           </div>
         </div>
@@ -122,6 +123,8 @@ const GlobalTicker = () => {
 // sensitive (Vault B / 42 CFR Part 2) modules into their own clearly-labelled
 // group so the security boundary is visible in the UI. Labels are i18n KEYS
 // (resolved via t() at render time), not literal strings.
+const SENSITIVE_ROLES = ['Clinician', 'Legal Counsel', 'Systems Admin'];
+
 const NAV_GROUPS = [
   {
     titleKey: 'nav.groupClientCare',
@@ -137,6 +140,7 @@ const NAV_GROUPS = [
   },
   {
     titleKey: 'nav.groupSensitive',
+    allowedRoles: SENSITIVE_ROLES,
     items: [
       { to: '/hrt', icon: '🏳️‍⚧️', labelKey: 'nav.hrtContinuity' },
       { to: '/consent', icon: '📜', labelKey: 'nav.consent' }
@@ -156,6 +160,7 @@ const NAV_GROUPS = [
   },
   {
     titleKey: 'nav.groupLegal',
+    allowedRoles: SENSITIVE_ROLES,
     items: [
       { to: '/foia', icon: '⚖️', labelKey: 'nav.foiaGen' },
       { to: '/case-report', icon: '🗂️', labelKey: 'nav.caseReport' },
@@ -182,10 +187,16 @@ const NAV_GROUPS = [
       { to: '/manual', icon: '📘', labelKey: 'nav.userManual' },
       { to: '/onboarding', icon: '🚀', labelKey: 'nav.onboarding' },
       { to: '/portable', icon: '🔌', labelKey: 'nav.portable' },
-      { to: '/settings', icon: '⚙️', labelKey: 'nav.settings' }
+      { to: '/settings', icon: '⚙️', labelKey: 'nav.settings', allowedRoles: ['Systems Admin'] }
     ]
   }
 ];
+
+export function hasAccess(userRole, allowedRoles) {
+  if (userRole === 'Systems Admin') return true;
+  if (!allowedRoles) return true;
+  return allowedRoles.includes(userRole);
+}
 
 // Compact preferences footer for the sidebar: language (EN/ES/FR) + theme.
 function LanguageSwitcher() {
@@ -239,6 +250,19 @@ function LanguageSwitcher() {
     </div>
   );
 }
+
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const user = useAuthStore((s) => s.user);
+  if (!hasAccess(user?.role, allowedRoles)) {
+    return (
+      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <h2>Access Denied</h2>
+        <p>Your role ({user?.role}) does not have permission to view this module.</p>
+      </div>
+    );
+  }
+  return children;
+};
 
 function App() {
   const location = useLocation();
@@ -447,12 +471,12 @@ function App() {
           <WeatherWidget inline />
 
           <ul className="nav-links">
-            {NAV_GROUPS.map((group) => (
+            {NAV_GROUPS.filter(group => hasAccess(user?.role, group.allowedRoles)).map((group) => (
               <React.Fragment key={group.titleKey}>
                 <li style={{ listStyle: 'none', padding: '0.9rem 1rem 0.3rem', fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', pointerEvents: 'none' }}>
                   {t(group.titleKey)}
                 </li>
-                {group.items.map((item) => (
+                {group.items.filter(item => hasAccess(user?.role, item.allowedRoles)).map((item) => (
                   <Link key={item.to} to={item.to} style={{ textDecoration: 'none' }}>
                     <li className={`nav-item ${location.pathname === item.to ? 'active' : ''}`}>
                       <span>{item.icon}</span> {t(item.labelKey)}
@@ -510,11 +534,11 @@ function App() {
               <Route path="/clients" element={<ClientsModule />} />
               <Route path="/templates" element={<NoteTemplatesLibrary />} />
               <Route path="/note-templates" element={<NoteTemplatesLibrary />} />
-              <Route path="/canvas" element={<VisualCanvas />} />
-              <Route path="/foia" element={<FOIAGenerator />} />
-              <Route path="/case-report" element={<CaseReporting />} />
+              <Route path="/canvas" element={<ProtectedRoute allowedRoles={SENSITIVE_ROLES}><VisualCanvas /></ProtectedRoute>} />
+              <Route path="/foia" element={<ProtectedRoute allowedRoles={SENSITIVE_ROLES}><FOIAGenerator /></ProtectedRoute>} />
+              <Route path="/case-report" element={<ProtectedRoute allowedRoles={SENSITIVE_ROLES}><CaseReporting /></ProtectedRoute>} />
               <Route path="/evidence" element={<EvidenceVault />} />
-              <Route path="/attorneys" element={<AttorneyDirectory />} />
+              <Route path="/attorneys" element={<ProtectedRoute allowedRoles={SENSITIVE_ROLES}><AttorneyDirectory /></ProtectedRoute>} />
               <Route path="/audio" element={<AudioIntake />} />
               <Route path="/telehealth" element={<Telehealth />} />
               <Route path="/discharge" element={<DischargeGenerator />} />
@@ -523,8 +547,8 @@ function App() {
               <Route path="/messages" element={<Messages />} />
               <Route path="/intelligence" element={<IntelligenceLayer />} />
               <Route path="/meds" element={<MedicationManagement />} />
-              <Route path="/hrt" element={<HrtTracking />} />
-              <Route path="/consent" element={<ConsentManager />} />
+              <Route path="/hrt" element={<ProtectedRoute allowedRoles={SENSITIVE_ROLES}><HrtTracking /></ProtectedRoute>} />
+              <Route path="/consent" element={<ProtectedRoute allowedRoles={SENSITIVE_ROLES}><ConsentManager /></ProtectedRoute>} />
               <Route path="/resources" element={<ResourceNavigator />} />
               <Route path="/oncall" element={<OnCallDashboard />} />
               <Route path="/staffing" element={<StaffingKanban />} />
@@ -538,7 +562,7 @@ function App() {
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/portable" element={<PortableSession />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route path="/settings" element={<ProtectedRoute allowedRoles={['Systems Admin']}><Settings /></ProtectedRoute>} />
             </Routes>
           </div>
         </main>

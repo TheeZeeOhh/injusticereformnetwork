@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 import { STIPEND_TYPES, stipendTotal, summarizeByType, validateStipend } from '../utils/stipends';
+import { distributeSoulTokens } from '../utils/soulNetwork';
 
 // Per-client stipend / incentive tracker. Logs incentives GIVEN TO a client
 // (gift card, transit, cash, food) as a per-client history. PHI: stored
@@ -19,7 +20,9 @@ export default function StipendTracker() {
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState('');
   const [stipends, setStipends] = useState([]);
-  const [form, setForm] = useState({ type: STIPEND_TYPES[0], amount: '', reason: '', date: today(), note: '' });
+  const [form, setForm] = useState({ type: STIPEND_TYPES[0], amount: '', reason: '', date: today(), note: '', clientWalletAddress: '' });
+  const [treasuryWif, setTreasuryWif] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -51,21 +54,33 @@ export default function StipendTracker() {
 
   const addStipend = async () => {
     setError('');
-    if (!vaultAKey) { setError('Unlock the vault first.'); return; }
-    if (!clientId) { setError('Select a client first.'); return; }
-    const check = validateStipend(form);
+    const numAmt = Number(form.amount);
+    if (!form.type) return setError('Type is required.');
+    if (isNaN(numAmt) || numAmt <= 0) return setError('Amount must be a positive number.');
+    
+    // Add Web3 Distribution Logic if type is '$SOUL Crypto' or if treasury WIF is provided
+    if (form.type.includes('Crypto')) {
+      if (!treasuryWif) return setError('Treasury WIF Private Key is required to distribute crypto.');
+      if (!form.clientWalletAddress) return setError('Client Wallet Address is required to distribute crypto.');
+      
+      setIsProcessing(true);
+      try {
+        const txHash = await distributeSoulTokens(form.clientWalletAddress, numAmt, treasuryWif);
+        form.note = `TxHash: ${txHash}\n` + form.note;
+      } catch (err) {
+        setIsProcessing(false);
+        return setError(err.message || 'Crypto distribution failed.');
+      }
+      setIsProcessing(false);
+    }
+
+    const rec = { ...form, id: `stp_${Date.now()}`, amount: numAmt };
+    const check = validateStipend(rec);
     if (!check.ok) { setError(check.error); return; }
-    const entry = {
-      id: `stp_${Date.now()}`,
-      type: form.type,
-      amount: form.amount === '' ? '' : Number(form.amount),
-      reason: form.reason.trim(),
-      date: form.date || today(),
-      note: form.note.trim(),
-    };
+    
     try {
-      await persist([entry, ...stipends]);
-      setForm({ type: STIPEND_TYPES[0], amount: '', reason: '', date: today(), note: '' });
+      await persist([rec, ...stipends]);
+      setForm({ type: STIPEND_TYPES[0], amount: '', reason: '', date: today(), note: '', clientWalletAddress: '' });
     } catch (err) {
       setError(err?.message || 'Save failed.');
     }
@@ -99,11 +114,12 @@ export default function StipendTracker() {
           {/* Add form */}
           <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h3 style={{ margin: 0, color: 'var(--gold)', fontFamily: 'var(--font-serif)', fontSize: '1rem' }}>Log an incentive</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 <label style={labelStyle}>Type</label>
-                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} style={inputStyle}>
-                  {STIPEND_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} style={inputStyle}>
+                  {STIPEND_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  <option value="$SOUL Crypto">$SOUL Crypto</option>
                 </select>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
@@ -120,8 +136,24 @@ export default function StipendTracker() {
               <input type="text" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} placeholder="e.g. Attended group session" style={inputStyle} />
             </div>
             {error && <div style={{ color: '#fda4af', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>{error}</div>}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={addStipend} className="btn-primary" style={{ background: 'var(--gold)', color: 'var(--charcoal)', fontWeight: 'bold' }}>+ Add Incentive</button>
+
+            {(form.type === '$SOUL Crypto') && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem', padding: '1rem', background: 'rgba(226, 85, 43, 0.05)', border: '1px solid var(--ember)', borderRadius: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <label style={{...labelStyle, color: 'var(--ember)'}}>Client Wallet Address (Destination)</label>
+                  <input type="text" value={form.clientWalletAddress || ''} onChange={e => setForm({ ...form, clientWalletAddress: e.target.value })} style={inputStyle} placeholder="e.g. S... " />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <label style={{...labelStyle, color: 'var(--ember)'}}>Treasury WIF Private Key (Sender)</label>
+                  <input type="password" value={treasuryWif} onChange={e => setTreasuryWif(e.target.value)} style={inputStyle} placeholder="VHz..." />
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button onClick={addStipend} disabled={isProcessing} style={{ padding: '0.6rem 1.2rem', background: 'var(--gold)', color: '#000', border: 'none', borderRadius: '4px', cursor: isProcessing ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 'bold' }}>
+                {isProcessing ? 'Broadcasting Tx...' : 'Add Incentive'}
+              </button>
             </div>
           </div>
 

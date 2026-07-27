@@ -145,9 +145,9 @@ export default function ClientsModule() {
       setClientDirectory(updatedDir);
       await saveSecureRecord(vaultAKey, 'client_directory', updatedDir, 'A');
       
-      alert('Client securely saved to local IndexedDB Vault.');
+      alert(t('clients.saveSuccess'));
     } catch (err) {
-      alert('Failed to save to vault: ' + err.message);
+      alert(t('clients.saveError') + err.message);
     }
     setIsSaving(false);
   };
@@ -343,11 +343,11 @@ export default function ClientsModule() {
   };
 
   const tabs = [
-    { id: 'profile', icon: '👤', label: 'Profile' },
-    { id: 'intake', icon: '📋', label: 'Intake' },
-    { id: 'health', icon: '⚕️', label: 'Health & Meds' },
-    { id: 'housing', icon: '🏠', label: 'Housing' },
-    { id: 'canvas', icon: '🎨', label: 'Visual Canvas' }
+    { id: 'profile', icon: '👤', label: t('clients.tabProfile') },
+    { id: 'intake', icon: '📋', label: t('clients.tabIntake') },
+    { id: 'health', icon: '⚕️', label: t('clients.tabHealth') },
+    { id: 'housing', icon: '🏠', label: t('clients.tabHousing') },
+    { id: 'canvas', icon: '🎨', label: t('clients.tabCanvas') }
   ];
 
   if (viewMode === 'list') {
@@ -367,20 +367,20 @@ export default function ClientsModule() {
                 title={t('clients.devSeed')}
                 style={{ background: 'var(--charcoal)', color: 'var(--bone)', border: '1px dashed var(--border-color)' }}
               >
-                {isSeeding ? 'Seeding…' : '🧪 Seed sample clients'}
+                {isSeeding ? t('clients.seeding') : t('clients.seedSampleClients')}
               </button>
             )}
             <button
               className="btn-primary"
               onClick={handleImportRoster}
               disabled={isImporting}
-              title="Import a client roster CSV (BestNotes / EHR export)"
+              title={t('clients.importRosterTitle')}
               style={{ background: 'var(--charcoal)', color: 'var(--bone)', border: '1px solid var(--border-color)' }}
             >
-              {isImporting ? 'Importing…' : '⬆ Import roster (CSV)'}
+              {isImporting ? t('clients.importing') : t('clients.importRosterBtn')}
             </button>
             <button className="btn-primary" onClick={handleCreateNewClient} style={{ background: 'var(--ember)', color: 'white', fontWeight: 'bold' }}>
-              + Add New Client
+              {t('clients.addNewClient')}
             </button>
           </div>
         </div>
@@ -407,7 +407,7 @@ export default function ClientsModule() {
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <button className="btn-primary" onClick={() => openClient(client.id)} style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', background: 'var(--charcoal)', border: '1px solid var(--border-color)' }}>
-                      Open Chart
+                      {t('clients.openChart')}
                     </button>
                   </td>
                 </tr>
@@ -427,7 +427,7 @@ export default function ClientsModule() {
       <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <button onClick={() => setViewMode('list')} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer' }}>
-            ← Back
+            {t('clients.back')}
           </button>
           <div className="avatar" style={{
             width: '56px', height: '56px', fontSize: '1.5rem',
@@ -443,7 +443,7 @@ export default function ClientsModule() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button className="btn-primary" onClick={handleSaveToVault} disabled={isSaving} style={{ background: 'var(--gold)', color: 'var(--charcoal)', fontWeight: 'bold' }}>
-            {isSaving ? 'Encrypting...' : t('clients.saveToVault')}
+            {isSaving ? t('clients.encrypting') : t('clients.saveToVault')}
           </button>
         </div>
       </div>
@@ -493,18 +493,18 @@ export default function ClientsModule() {
                   onClick={handleClientPhotoUpload}
                   style={{ cursor: 'pointer', display: 'inline-block', background: 'var(--charcoal)', border: '1px solid var(--border-color)', color: 'var(--bone)', padding: '0.5rem 1rem' }}
                 >
-                  {clientData.photo ? 'Replace Photo' : 'Upload Client Photo'}
+                  {clientData.photo ? t('clients.replacePhoto') : t('clients.uploadPhoto')}
                 </button>
                 {clientData.photo && (
                   <button
                     onClick={() => setClientData(prev => ({ ...prev, photo: '' }))}
                     style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', padding: '0.4rem 1rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
                   >
-                    Remove
+                    {t('clients.removePhoto')}
                   </button>
                 )}
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                  JPEG or PNG. Max 5MB. Encrypted in the vault on save.
+                  {t('clients.photoHelpText')}
                 </span>
               </div>
             </div>
@@ -546,8 +546,8 @@ export default function ClientsModule() {
 
               <div style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: nextAppt ? 'var(--bone)' : 'var(--text-secondary)' }}>
                 {nextAppt
-                  ? `Next appointment: ${new Date(nextAppt.startTime).toLocaleString()}`
-                  : 'No upcoming appointment on file — using a generic reminder.'}
+                  ? `${t('clients.nextApptPrefix')} ${new Date(nextAppt.startTime).toLocaleString()}`
+                  : t('clients.noApptReminder')}
               </div>
 
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--bone)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
@@ -556,7 +556,7 @@ export default function ClientsModule() {
                   checked={!!clientData.smsConsent}
                   onChange={e => setClientData({ ...clientData, smsConsent: e.target.checked })}
                 />
-                Client has given consent to receive appointment reminders by text.
+                {t('clients.smsConsentLabel')}
               </label>
 
               <div>
@@ -568,7 +568,7 @@ export default function ClientsModule() {
                   maxLength={640}
                   style={{ width: '100%', padding: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', resize: 'vertical' }}
                 />
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.25rem', fontFamily: 'var(--font-mono)' }}>{smsBody.length}/640 · sent to Twilio, which logs the number and message.</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.25rem', fontFamily: 'var(--font-mono)' }}>{smsBody.length}{t('clients.smsHelpText')}</div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -596,12 +596,12 @@ export default function ClientsModule() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
               <h2 style={{ color: 'var(--gold)', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('clients.intake')}</h2>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                {intakeMeta?.updatedAt ? `Last updated ${new Date(intakeMeta.updatedAt).toLocaleString()}` : 'Not yet completed'}
+                {intakeMeta?.updatedAt ? `${t('clients.lastUpdated')} ${new Date(intakeMeta.updatedAt).toLocaleString()}` : t('clients.notCompleted')}
               </span>
             </div>
 
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-              Staff-administered. Health and substance questions are handled separately under Vault B (42-CFR).
+              {t('clients.intakeHelpText')}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -624,7 +624,7 @@ export default function ClientsModule() {
                       onChange={e => setIntakeAnswers({ ...intakeAnswers, [q.id]: e.target.value })}
                       style={{ width: '100%', padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}
                     >
-                      <option value="">— select —</option>
+                      <option value="">{t('clients.selectOption')}</option>
                       {q.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
                   )}
@@ -643,7 +643,7 @@ export default function ClientsModule() {
                             fontWeight: intakeAnswers[q.id] === opt ? 'bold' : 'normal',
                           }}
                         >
-                          {opt}
+                          {opt === 'Yes' ? t('clients.yes') : t('clients.no')}
                         </button>
                       ))}
                     </div>
@@ -659,7 +659,7 @@ export default function ClientsModule() {
                 disabled={intakeSaving}
                 style={{ background: 'var(--gold)', color: 'var(--charcoal)', fontWeight: 'bold', opacity: intakeSaving ? 0.6 : 1 }}
               >
-                {intakeSaving ? 'Encrypting…' : t('clients.saveIntake')}
+                {intakeSaving ? t('clients.encrypting') : t('clients.saveIntake')}
               </button>
               {intakeStatus && (
                 <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: intakeStatus.ok ? '#4ade80' : '#f87171' }}>
@@ -675,7 +675,7 @@ export default function ClientsModule() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <h2 style={{ color: 'var(--gold)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('clients.healthVaultB')}</h2>
             <div style={{ background: 'rgba(225, 29, 72, 0.1)', padding: '1rem', borderLeft: '3px solid #e11d48', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}>
-              This tab is locked behind Vault B 42-CFR protections. Mocked for preview.
+              {t('clients.vaultBLocked')}
             </div>
           </div>
         )}

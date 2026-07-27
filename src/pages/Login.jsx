@@ -12,8 +12,8 @@ export default function Login() {
   const { loginWithPassphrase, isDecrypting, error } = useAuthStore();
   // Pre-fill the operator name captured during onboarding, if present.
   const [username, setUsername] = useState(() => localStorage.getItem(OPERATOR_NAME_KEY) || '');
+  const [role] = useState(() => localStorage.getItem('sanctuary_operator_role') || 'Lead Navigator');
   const [passphrase, setPassphrase] = useState('');
-  const [role, setRole] = useState('Lead Navigator');
   const [vaultStatus, setVaultStatus] = useState('');
 
   // First-ever login on this device enrolls the passphrase, so we show a live
@@ -52,17 +52,9 @@ export default function Login() {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('login.operatorRole')}</label>
-            <select 
-              value={role}
-              onChange={e => setRole(e.target.value)}
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}
-            >
-              <option value="Lead Navigator">Lead Navigator</option>
-              <option value="Field Navigator">Field Navigator</option>
-              <option value="Clinician">Clinician</option>
-              <option value="Legal Counsel">Legal Counsel</option>
-              <option value="Systems Admin">Systems Admin</option>
-            </select>
+            <div style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+              {role} <span style={{ opacity: 0.5, float: 'right' }}>(Locked)</span>
+            </div>
           </div>
 
           <div>

@@ -4,10 +4,12 @@ import { useAuthStore } from '../store/authStore';
 import { ensureSaltsInitialized } from '../utils/cryptoEngine';
 
 export const OPERATOR_NAME_KEY = 'sanctuary_operator_name';
+export const OPERATOR_ROLE_KEY = 'sanctuary_operator_role';
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [operatorName, setOperatorName] = useState('');
+  const [operatorRole, setOperatorRole] = useState('Lead Navigator');
   const [saltsReady, setSaltsReady] = useState(false);
   const [ackIncapacity, setAckIncapacity] = useState(false);
   const [ack42cfr, setAck42cfr] = useState(false);
@@ -33,6 +35,7 @@ export default function Onboarding() {
       if (operatorName.trim()) {
         localStorage.setItem(OPERATOR_NAME_KEY, operatorName.trim());
       }
+      localStorage.setItem(OPERATOR_ROLE_KEY, operatorRole);
       completeOnboarding();
       navigate('/');
     }
@@ -57,8 +60,20 @@ export default function Onboarding() {
               You are initializing a secure Navigator terminal. Unlike traditional EHRs, Sanctuary operates on a Zero-Trust, local-first architecture. 
             </p>
             <div style={{ background: 'var(--charcoal-lighter)', padding: '1.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
-              <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Operator Alias / Full Name</label>
-              <input type="text" value={operatorName} onChange={e => setOperatorName(e.target.value)} placeholder="Enter your chosen identifier..." style={{ width: '100%', padding: '1rem', fontSize: '1rem' }} />
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Operator Alias / Full Name</label>
+                <input type="text" value={operatorName} onChange={e => setOperatorName(e.target.value)} placeholder="Enter your chosen identifier..." style={{ width: '100%', padding: '1rem', fontSize: '1rem' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Operator Role</label>
+                <select value={operatorRole} onChange={e => setOperatorRole(e.target.value)} style={{ width: '100%', padding: '1rem', fontSize: '1rem', background: 'var(--charcoal)', color: 'var(--bone)', border: '1px solid var(--border-color)' }}>
+                  <option value="Lead Navigator">Lead Navigator</option>
+                  <option value="Field Navigator">Field Navigator</option>
+                  <option value="Clinician">Clinician</option>
+                  <option value="Legal Counsel">Legal Counsel</option>
+                  <option value="Systems Admin">Systems Admin</option>
+                </select>
+              </div>
             </div>
           </div>
         )}

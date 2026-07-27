@@ -200,9 +200,9 @@ export default function Settings() {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem', overflowY: 'auto' }}>
       <div>
-        <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>System Configuration</h1>
+        <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('settings.title')}</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
-          Manage local-first engine parameters and hardware links.
+          {t('settings.description')}
         </p>
       </div>
 
@@ -248,82 +248,80 @@ export default function Settings() {
 
         {/* Network & Sync */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Hive-Mind Network</h2>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.networkHeading')}</h2>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Sovereign AI Sync (P2P)</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Synchronize Merkle-Tries with local mesh peers.</div>
+              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>{t('settings.syncTitle')}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('settings.syncDesc')}</div>
             </div>
             <button onClick={() => toggle('meshSync')} className="btn-primary" style={{ background: settings.meshSync ? '#4ade80' : 'var(--charcoal-lighter)', color: settings.meshSync ? '#0f172a' : 'var(--text-secondary)', padding: '0.4rem 1rem' }}>
-              {settings.meshSync ? 'ENABLED' : 'DISABLED'}
+              {settings.meshSync ? t('settings.enabled') : t('settings.disabled')}
             </button>
           </div>
 
           <div style={{ background: 'var(--charcoal-lighter)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>Ollama Vector Engine:</span> <strong style={{ color: '#4ade80' }}>Connected (localhost:11434)</strong><br/>
-            <span style={{ color: 'var(--text-secondary)' }}>Model Loaded:</span> <strong style={{ color: 'var(--bone)' }}>nomic-embed-text</strong>
+            <span style={{ color: 'var(--text-secondary)' }}>{t('settings.ollamaEngine')}</span> <strong style={{ color: '#4ade80' }}>{t('settings.ollamaConnected')}</strong><br/>
+            <span style={{ color: 'var(--text-secondary)' }}>{t('settings.modelLoaded')}</span> <strong style={{ color: 'var(--bone)' }}>nomic-embed-text</strong>
           </div>
         </div>
 
         {/* Security & Privacy */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Security Gates</h2>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.securityGates')}</h2>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Audio Rentention Policy</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Persist audio files locally after transcription.</div>
+              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>{t('settings.audioRetentionTitle')}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('settings.audioRetentionDesc')}</div>
             </div>
             <button onClick={() => toggle('audioRetention')} className="btn-primary" style={{ background: settings.audioRetention ? '#4ade80' : 'var(--charcoal-lighter)', color: settings.audioRetention ? '#0f172a' : 'var(--text-secondary)', padding: '0.4rem 1rem' }}>
-              {settings.audioRetention ? 'OPT-IN' : 'DEFAULT OFF'}
+              {settings.audioRetention ? t('settings.optIn') : t('settings.defaultOff')}
             </button>
           </div>
 
           <div>
-            <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>Jitsi BAA Enforcement</div>
+            <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>{t('settings.jitsiBaaTitle')}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, background: '#020617', borderLeft: '3px solid var(--gold)', padding: '0.75rem', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
-              BAA enforcement is <strong style={{ color: 'var(--bone)' }}>always on</strong> and cannot be toggled off. Telehealth calls
-              route <strong style={{ color: 'var(--bone)' }}>only</strong> to a self-hosted Jitsi server you configure below — never the
-              public meet.jit.si. Each call also requires an explicit BAA acknowledgement
-              on the Telehealth screen. These guarantees are non-optional by design.
+              {t('settings.jitsiBaaDesc1')}<strong style={{ color: 'var(--bone)' }}>{t('settings.alwaysOn')}</strong>{t('settings.jitsiBaaDesc2')}
+              <strong style={{ color: 'var(--bone)' }}>{t('settings.only')}</strong>{t('settings.jitsiBaaDesc3')}
             </div>
           </div>
         </div>
 
         {/* Accessibility */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Accessibility</h2>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.accessibilityHeading')}</h2>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>High Contrast Mode</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Force maximum contrast for field readability.</div>
+              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>{t('settings.highContrastTitle')}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('settings.highContrastDesc')}</div>
             </div>
             <button onClick={() => toggle('highContrast')} className="btn-primary" style={{ background: settings.highContrast ? '#4ade80' : 'var(--charcoal-lighter)', color: settings.highContrast ? '#0f172a' : 'var(--text-secondary)', padding: '0.4rem 1rem' }}>
-              {settings.highContrast ? 'ON' : 'OFF'}
+              {settings.highContrast ? t('settings.on') : t('settings.off')}
             </button>
           </div>
         </div>
 
         {/* Status Ticker */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Status Ticker</h2>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.statusTickerHeading')}</h2>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Show Ticker</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Scrolling status bar at the top of the app.</div>
+              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>{t('settings.showTickerTitle')}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('settings.showTickerDesc')}</div>
             </div>
             <button onClick={() => setTickerEnabled(!ticker.enabled)} className="btn-primary" style={{ background: ticker.enabled ? '#4ade80' : 'var(--charcoal-lighter)', color: ticker.enabled ? '#0f172a' : 'var(--text-secondary)', padding: '0.4rem 1rem' }}>
-              {ticker.enabled ? 'ON' : 'OFF'}
+              {ticker.enabled ? t('settings.on') : t('settings.off')}
             </button>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
             <div>
-              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Scroll Speed</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Seconds per loop — lower is faster.</div>
+              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>{t('settings.scrollSpeedTitle')}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('settings.scrollSpeedDesc')}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <input type="range" min="5" max="60" step="1" value={ticker.speed} onChange={e => setTickerSpeed(e.target.value)} style={{ accentColor: 'var(--gold)' }} />
@@ -332,7 +330,7 @@ export default function Settings() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>Messages</div>
+            <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>{t('settings.messagesTitle')}</div>
             {ticker.messages.map((msg, i) => (
               <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <input
@@ -348,29 +346,29 @@ export default function Settings() {
             ))}
             {ticker.messages.length === 0 && (
               <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-                No messages — the ticker is hidden until you add one.
+                {t('settings.noMessagesDesc')}
               </div>
             )}
           </div>
 
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button onClick={addTickerMessage} className="btn-primary" style={{ background: 'var(--gold)', color: 'var(--charcoal)', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
-              + Add Message
+              {t('settings.addMessage')}
             </button>
             <button onClick={resetTicker} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
-              Reset to Default
+              {t('settings.resetDefault')}
             </button>
           </div>
         </div>
 
         {/* Telehealth (self-hosted Jitsi) */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Telehealth Server</h2>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.telehealthHeading')}</h2>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-            Your self-hosted Jitsi domain. Telehealth routes only here — there is no public fallback. If this is empty, telehealth calls are disabled.
+            {t('settings.telehealthDesc')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Jitsi domain (host only, e.g. meet.yourorg.org)</label>
+            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{t('settings.jitsiLabel')}</label>
             <input
               type="text"
               value={jitsiInput}
@@ -382,19 +380,19 @@ export default function Settings() {
           </div>
           <div style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: jitsiDomain ? '#4ade80' : '#f87171' }}>
             {jitsiDomain
-              ? `✓ Telehealth will connect to https://${jitsiDomain}`
-              : '✗ No server configured — telehealth is disabled.'}
+              ? `${t('settings.telehealthConnected')}${jitsiDomain}`
+              : t('settings.telehealthDisabled')}
           </div>
         </div>
 
         {/* Hardware Kill Switch */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Hardware Dead-Man's Switch</h2>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.killSwitchHeading')}</h2>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-            Designate a USB token. If it is removed while armed, all vault keys are dropped from memory (references cleared; reclaimed by the runtime).
+            {t('settings.killSwitchDesc')}
           </div>
           <button onClick={refreshUsbDevices} className="btn-primary" style={{ alignSelf: 'flex-start', background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
-            Scan USB
+            {t('settings.scanUsb')}
           </button>
 
           {/* Device picker: a styled button list, not a native <select>. Native
@@ -402,7 +400,7 @@ export default function Settings() {
               this list is used instead. Click a device to select it as the token. */}
           {usbDevices.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>Select the token to watch:</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{t('settings.selectTokenLabel')}</div>
               {usbDevices.map(d => {
                 const sel = selectedUsb === d;
                 return (
@@ -414,16 +412,16 @@ export default function Settings() {
             </div>
           ) : (
             <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-              No devices listed yet. Plug in your token and click <strong>Scan USB</strong>.
+              {t('settings.noDevicesPrefix')}<strong>{t('settings.scanUsb')}</strong>.
             </div>
           )}
 
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <button onClick={armKillSwitch} disabled={!selectedUsb} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', padding: '0.4rem 1rem', fontWeight: 'bold', opacity: selectedUsb ? 1 : 0.5, cursor: selectedUsb ? 'pointer' : 'not-allowed' }}>
-              Arm{selectedUsb ? ` (${selectedUsb})` : ''}
+              {t('settings.arm')}{selectedUsb ? ` (${selectedUsb})` : ''}
             </button>
             <button onClick={disarmKillSwitch} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
-              Disarm
+              {t('settings.disarm')}
             </button>
           </div>
           {usbStatus && (
@@ -435,16 +433,16 @@ export default function Settings() {
 
         {/* Vault Backup */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Encrypted Vault Backup</h2>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.backupHeading')}</h2>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-            Exports encrypted ciphertext only, HMAC-signed with your passphrase. Restore verifies the signature and refuses tampered files.
+            {t('settings.backupDesc')}
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button onClick={handleExportBackup} className="btn-primary" style={{ background: 'var(--gold)', color: 'var(--charcoal)', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
-              Export Signed Backup
+              {t('settings.exportBackup')}
             </button>
             <button onClick={handleImportClick} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
-              Verify &amp; Restore
+              {t('settings.verifyRestore')}
             </button>
           </div>
           {backupStatus && (
@@ -527,53 +525,53 @@ export default function Settings() {
         {/* Tamper-Evident Audit Log */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', gridColumn: '1 / -1' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-            <h2 style={{ color: 'var(--bone)', margin: 0, fontFamily: 'var(--font-serif)' }}>Access Audit Log</h2>
+            <h2 style={{ color: 'var(--bone)', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.auditLogHeading')}</h2>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={refreshAudit} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
-                Refresh
+                {t('settings.refresh')}
               </button>
               <button onClick={handleVerifyAudit} className="btn-primary" style={{ background: 'var(--gold)', color: 'var(--charcoal)', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
-                Verify Integrity
+                {t('settings.verifyIntegrity')}
               </button>
             </div>
           </div>
 
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-            Hash-chained record of every vault access (metadata only — no PHI). Editing or deleting any past entry breaks the chain.
+            {t('settings.auditLogDesc')}
           </div>
 
           {auditVerify && (
             <div style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', padding: '0.75rem', borderRadius: '4px', background: '#020617', color: auditVerify.ok ? '#4ade80' : '#f87171' }}>
               {auditVerify.error
-                ? `Verification error: ${auditVerify.error}`
+                ? `${t('settings.verifyError')}${auditVerify.error}`
                 : auditVerify.ok
-                  ? `✓ Chain intact — ${auditVerify.count} entr${auditVerify.count === 1 ? 'y' : 'ies'} verified.`
-                  : `✗ TAMPERING DETECTED — chain breaks at entry #${auditVerify.brokenAtSeq}.`}
+                  ? `${t('settings.chainIntactPrefix')}${auditVerify.count}${auditVerify.count === 1 ? t('settings.entryVerified') : t('settings.entriesVerified')}`
+                  : `${t('settings.tamperingDetectedPrefix')}${auditVerify.brokenAtSeq}.`}
             </div>
           )}
 
           <div style={{ maxHeight: '260px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
             {auditEntries.length === 0 ? (
               <div style={{ padding: '1rem', fontSize: '0.8rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-                No audit entries yet.
+                {t('settings.noAuditEntries')}
               </div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>
                 <thead>
                   <tr style={{ color: 'var(--text-secondary)', textAlign: 'left', position: 'sticky', top: 0, background: 'var(--charcoal)' }}>
-                    <th style={{ padding: '0.5rem' }}>Time</th>
-                    <th style={{ padding: '0.5rem' }}>Action</th>
-                    <th style={{ padding: '0.5rem' }}>Vault</th>
-                    <th style={{ padding: '0.5rem' }}>Record</th>
+                    <th style={{ padding: '0.5rem' }}>{t('settings.timeCol')}</th>
+                    <th style={{ padding: '0.5rem' }}>{t('settings.actionCol')}</th>
+                    <th style={{ padding: '0.5rem' }}>{t('settings.vaultCol')}</th>
+                    <th style={{ padding: '0.5rem' }}>{t('settings.recordCol')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {auditEntries.map((e) => (
                     <tr key={e.seq} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', color: 'var(--bone)' }}>
                       <td style={{ padding: '0.5rem', color: 'var(--text-secondary)' }}>{new Date(e.ts).toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem', color: e.locked ? 'var(--text-tertiary)' : e.action === 'delete' ? 'var(--ember)' : e.action === 'admin' ? '#a78bfa' : e.action === 'write' ? 'var(--gold)' : 'var(--bone)' }}>{e.locked ? '🔒 sealed' : e.action}</td>
+                      <td style={{ padding: '0.5rem', color: e.locked ? 'var(--text-tertiary)' : e.action === 'delete' ? 'var(--ember)' : e.action === 'admin' ? '#a78bfa' : e.action === 'write' ? 'var(--gold)' : 'var(--bone)' }}>{e.locked ? t('settings.sealed') : e.action}</td>
                       <td style={{ padding: '0.5rem' }}>{e.locked ? '—' : (e.vaultTag || '—')}</td>
-                      <td style={{ padding: '0.5rem', wordBreak: 'break-all', color: e.locked ? 'var(--text-tertiary)' : 'inherit' }}>{e.locked ? 'unreadable (locked)' : e.recordId}</td>
+                      <td style={{ padding: '0.5rem', wordBreak: 'break-all', color: e.locked ? 'var(--text-tertiary)' : 'inherit' }}>{e.locked ? t('settings.unreadable') : e.recordId}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -584,15 +582,15 @@ export default function Settings() {
 
         {/* Destructive Actions */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', border: '1px solid var(--ember)' }}>
-          <h2 style={{ color: 'var(--ember)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Catastrophic Protocols</h2>
+          <h2 style={{ color: 'var(--ember)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.catastrophicHeading')}</h2>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}>Scorched Earth (Nuke Vault)</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Irreversibly delete all local storage and keys.</div>
+              <div style={{ color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}>{t('settings.nukeTitle')}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('settings.nukeDesc')}</div>
             </div>
             <button onClick={handleNuke} disabled={isNuking} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
-              {isNuking ? 'DESTROYING...' : 'INITIATE DESTRUCTION'}
+              {isNuking ? t('settings.destroying') : t('settings.initiateDestruction')}
             </button>
           </div>
         </div>

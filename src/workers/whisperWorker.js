@@ -23,6 +23,11 @@ import { pipeline, env } from '@huggingface/transformers';
 env.allowLocalModels = false;
 env.allowRemoteModels = true;
 
+// Restrict WASM threads to prevent WebKitGTK CPU starvation mid-session.
+// By default ONNX spawns one worker per logical core, which saturates the CPU 
+// during 30s-chunk inference and completely locks the UI thread.
+env.backends.onnx.wasm.numThreads = 1;
+
 // Route model downloads through the Rust backend (finding: HF Xet CDN vs
 // tauri:// CORS freeze). HuggingFace redirects model files to a Xet CDN whose
 // CORS only allows the huggingface.co origin, so the webview's own fetch hangs.

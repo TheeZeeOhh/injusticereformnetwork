@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 import { AudioChunkQueue } from '../utils/audioChunkQueue';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // Whisper wants 16 kHz mono Float32 audio. We capture ~5s windows and send each
 // to the off-thread worker for on-device transcription + English translation.
@@ -10,6 +11,7 @@ const CHUNK_SECONDS = 5;
 
 export default function AudioIntake() {
   const { vaultAKey } = useAuthStore();
+  const { t } = useLanguage();
   const [hasConsent, setHasConsent] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [micMode, setMicMode] = useState('continuous');
@@ -205,13 +207,20 @@ export default function AudioIntake() {
       processor.onaudioprocess = (ev) => {
         const input = ev.inputBuffer.getChannelData(0);
         const buf = bufferRef.current;
-        let fill = bufferFillRef.current;
-        const room = Math.min(input.length, samplesPerChunk - fill);
-        buf.set(input.subarray(0, room), fill);
-        fill += room;
-        bufferFillRef.current = fill;
-        // When a full window is buffered, hand it to the scheduler.
-        if (fill >= samplesPerChunk) flushChunk();
+        let offset = 0;
+        while (offset < input.length) {
+          let fill = bufferFillRef.current;
+          const room = Math.min(input.length - offset, samplesPerChunk - fill);
+          buf.set(input.subarray(offset, offset + room), fill);
+          
+          offset += room;
+          bufferFillRef.current = fill + room;
+          
+          // When a full window is buffered, hand it to the scheduler.
+          if (bufferFillRef.current >= samplesPerChunk) {
+            flushChunk();
+          }
+        }
       };
 
       source.connect(processor);
@@ -242,9 +251,9 @@ export default function AudioIntake() {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
       <div>
-        <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Local Voice Layer</h1>
+        <h1 style={{ color: 'var(--gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('audioIntake.title')}</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
-          Zero-network NLLB-200 + Whisper.cpp. Auto language-detect.
+          {t('audioIntake.subtitle')}
         </p>
       </div>
 
@@ -255,31 +264,31 @@ export default function AudioIntake() {
           
           {/* Consent Gate */}
           <div style={{ background: 'rgba(226, 85, 43, 0.1)', border: '1px solid var(--ember)', padding: '1rem', borderRadius: '4px' }}>
-            <h4 style={{ color: 'var(--ember)', margin: '0 0 0.5rem 0', fontFamily: 'var(--font-serif)' }}>42 CFR / BAA Consent Gate</h4>
+            <h4 style={{ color: 'var(--ember)', margin: '0 0 0.5rem 0', fontFamily: 'var(--font-serif)' }}>{t('audioIntake.consentGateTitle')}</h4>
             <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', cursor: 'pointer' }}>
               <input type="checkbox" checked={hasConsent} onChange={(e) => setHasConsent(e.target.checked)} style={{ marginTop: '0.2rem' }} />
               <span style={{ fontSize: '0.75rem', color: 'var(--bone)', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
-                Client explicitly consents to on-device audio transcription. Audio is never stored; the text transcript is only saved to the encrypted vault if you press Save.
+                {t('audioIntake.consentGateDesc')}
               </span>
             </label>
           </div>
 
           {/* Client association — required before a transcript can be saved. */}
           <div>
-            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Client</h4>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('audioIntake.clientTitle')}</h4>
             <select
               value={selectedClientId}
               onChange={(e) => { setSelectedClientId(e.target.value); setSaveStatus(null); }}
               style={{ width: '100%', padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
             >
-              <option value="">— Select a client —</option>
+              <option value="">{t('audioIntake.selectClient')}</option>
               {clientDirectory.map((c) => (
                 <option key={c.id} value={c.id}>{c.name || c.id.replace('client_', '')}</option>
               ))}
             </select>
             {clientDirectory.length === 0 && (
               <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginTop: '0.35rem' }}>
-                No clients found. Add one in the Clients module first.
+                {t('audioIntake.noClients')}
               </div>
             )}
           </div>
@@ -296,7 +305,7 @@ export default function AudioIntake() {
               fontWeight: 'bold',
               border: isRecording ? '2px solid var(--ember)' : 'none'
             }}>
-            {isRecording ? '⏹ STOP SESSION' : '⏺ START SESSION'}
+            {isRecording ? t('audioIntake.stopSession') : t('audioIntake.startSession')}
           </button>
 
           {/* Explicit save — encrypted Vault A, only with a client + content. */}
@@ -315,7 +324,7 @@ export default function AudioIntake() {
                 cursor: (isSavingTranscript || !selectedClientId || transcript.length === 0) ? 'not-allowed' : 'pointer'
               }}
             >
-              {isSavingTranscript ? 'Encrypting…' : '💾 Save Transcript to Vault'}
+              {isSavingTranscript ? t('audioIntake.encrypting') : t('audioIntake.saveTranscript')}
             </button>
             {saveStatus && (
               <div style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: saveStatus.ok ? '#4ade80' : '#fda4af', marginTop: '0.4rem', lineHeight: 1.4 }}>
@@ -328,7 +337,7 @@ export default function AudioIntake() {
             <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: modelState === 'error' ? '#fda4af' : 'var(--text-secondary)', background: '#020617', padding: '0.6rem', borderRadius: '4px', lineHeight: 1.4 }}>
               {modelState === 'loading' && (
                 <div style={{ marginBottom: '0.25rem', color: 'var(--gold)' }}>
-                  Downloading model… {modelProgress > 0 ? `${modelProgress}%` : ''}
+                  {t('audioIntake.downloadingModel')} {modelProgress > 0 ? `${modelProgress}%` : ''}
                 </div>
               )}
               {statusMsg}
@@ -337,54 +346,54 @@ export default function AudioIntake() {
 
           {/* Settings */}
           <div>
-            <h4 style={{ color: 'var(--gold)', margin: '0 0 1rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Mic Mode</h4>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 1rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('audioIntake.micModeTitle')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
               <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input type="radio" name="micMode" checked={micMode === 'continuous'} onChange={() => setMicMode('continuous')} /> Continuous
+                <input type="radio" name="micMode" checked={micMode === 'continuous'} onChange={() => setMicMode('continuous')} /> {t('audioIntake.micModeContinuous')}
               </label>
               <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input type="radio" name="micMode" checked={micMode === 'ptt'} onChange={() => setMicMode('ptt')} /> Push-to-Talk
+                <input type="radio" name="micMode" checked={micMode === 'ptt'} onChange={() => setMicMode('ptt')} /> {t('audioIntake.micModePTT')}
               </label>
             </div>
           </div>
 
           <div>
-            <h4 style={{ color: 'var(--gold)', margin: '0 0 1rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Transcription Load</h4>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 1rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('audioIntake.transcriptionLoadTitle')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
               <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
                 <input type="checkbox" checked={translateToEnglish} onChange={(e) => setTranslateToEnglish(e.target.checked)} style={{ marginTop: '0.2rem' }} />
-                <span>English translation
+                <span>{t('audioIntake.englishTranslation')}
                   <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
-                    Runs a second pass over every clip. Roughly doubles the work — leave off unless you need it.
+                    {t('audioIntake.englishTranslationDesc')}
                   </span>
                 </span>
               </label>
             </div>
             {droppedSeconds > 0 && (
               <div style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#fbbf24', marginTop: '0.5rem', lineHeight: 1.4 }}>
-                Transcription is behind the microphone. {Math.round(droppedSeconds)}s of audio was dropped to keep the session responsive.
+                {t('audioIntake.transcriptionBehind')} {Math.round(droppedSeconds)}{t('audioIntake.audioDropped')}
               </div>
             )}
           </div>
 
           <div>
-            <h4 style={{ color: 'var(--gold)', margin: '0 0 1rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Accessibility Display</h4>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 1rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('audioIntake.accessibilityDisplay')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
               <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input type="checkbox" checked={enlargeText} onChange={(e) => setEnlargeText(e.target.checked)} /> Enlarge Text (Client)
+                <input type="checkbox" checked={enlargeText} onChange={(e) => setEnlargeText(e.target.checked)} /> {t('audioIntake.enlargeText')}
               </label>
               <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input type="checkbox" checked={highContrast} onChange={(e) => setHighContrast(e.target.checked)} /> High Contrast
+                <input type="checkbox" checked={highContrast} onChange={(e) => setHighContrast(e.target.checked)} /> {t('audioIntake.highContrast')}
               </label>
             </div>
           </div>
 
           <div>
-            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Pinned Glossary</h4>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>{t('audioIntake.pinnedGlossary')}</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <span style={{ background: 'var(--charcoal)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid var(--border-color)', color: 'var(--bone)' }}>Reentry Document Recovery</span>
-              <span style={{ background: 'var(--charcoal)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid var(--border-color)', color: 'var(--bone)' }}>42 CFR</span>
-              <span style={{ background: 'var(--charcoal)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid var(--border-color)', color: 'var(--bone)' }}>MHA Voucher</span>
+              <span style={{ background: 'var(--charcoal)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid var(--border-color)', color: 'var(--bone)' }}>{t('audioIntake.glossaryDocRecovery')}</span>
+              <span style={{ background: 'var(--charcoal)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid var(--border-color)', color: 'var(--bone)' }}>{t('audioIntake.glossary42CFR')}</span>
+              <span style={{ background: 'var(--charcoal)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid var(--border-color)', color: 'var(--bone)' }}>{t('audioIntake.glossaryMHAVoucher')}</span>
             </div>
           </div>
         </div>
@@ -392,8 +401,8 @@ export default function AudioIntake() {
         {/* Live Feed Canvas */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', background: highContrast ? '#000' : 'var(--charcoal-dark)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-            <h3 style={{ color: highContrast ? '#fff' : 'var(--bone)', margin: 0, fontFamily: 'var(--font-serif)' }}>Side-by-Side Live Feed</h3>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Original preserved for accuracy disputes. Tap text to inline-edit.</span>
+            <h3 style={{ color: highContrast ? '#fff' : 'var(--bone)', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('audioIntake.liveFeedTitle')}</h3>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{t('audioIntake.liveFeedDesc')}</span>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -402,10 +411,10 @@ export default function AudioIntake() {
                 {isRecording ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--ember)', animation: 'pulse 1.5s infinite' }}></div>
-                    Listening for audio...
+                    {t('audioIntake.listening')}
                   </div>
                 ) : (
-                  "Session empty. Audio is discarded immediately post-transcription."
+                  t('audioIntake.sessionEmpty')
                 )}
               </div>
             ) : (
