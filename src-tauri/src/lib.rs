@@ -286,6 +286,23 @@ fn read_usb_bundle(dir: String) -> Result<Option<String>, String> {
     }
 }
 
+/// Write bytes to an operator-chosen absolute path. In-webview `blob:` anchor
+/// downloads are silently dropped by WebKitGTK (no download handler), so the
+/// frontend picks a path with the native save dialog and hands the bytes here.
+/// The parent directory must exist (the dialog guarantees this). The bytes are
+/// whatever the frontend already produced (decrypted file, generated PDF/HTML);
+/// Rust just moves opaque bytes to disk.
+#[tauri::command]
+fn save_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
+    let p = std::path::Path::new(&path);
+    if let Some(parent) = p.parent() {
+        if !parent.as_os_str().is_empty() && !parent.is_dir() {
+            return Err(format!("destination folder does not exist: {}", parent.display()));
+        }
+    }
+    std::fs::write(p, &bytes).map_err(|e| format!("save failed: {e}"))
+}
+
 // --- Backend model fetch (Audio Intake / Whisper) ---
 //
 // The webview runs from `tauri://localhost`; HuggingFace serves model files via a
@@ -587,6 +604,7 @@ pub fn run() {
             clear_vault_salts,
             write_usb_bundle,
             read_usb_bundle,
+            save_file,
             fetch_model_file,
             hosted_assistant_ask,
             send_sms_reminder

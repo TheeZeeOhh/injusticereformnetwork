@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { saveText } from '../utils/download';
 
 // Glossary — plain-language definitions of the terms used throughout Sanctuary.
 const GLOSSARY = [
@@ -91,12 +92,7 @@ dt{font-weight:bold;margin-top:.7rem}dd{margin:0 0 .3rem 1.2rem}.meta{color:#666
 ${body}<h2>📖 Glossary</h2><dl>${gloss}</dl>
 <hr/><p class="meta">Generated from the app. Save or print to PDF for offline reference.</p>
 </body></html>`;
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'Sanctuary-User-Manual-v0.1.0.html';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    saveText(html, 'Sanctuary-User-Manual-v0.1.0.html', 'text/html');
   };
 
   return (

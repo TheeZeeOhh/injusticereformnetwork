@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
+import { saveBytes } from '../utils/download';
 
 // Evidence Vault — real chain-of-custody attachment manager.
 //
@@ -126,12 +127,8 @@ export default function EvidenceVault() {
       const blob = await loadSecureRecord(vaultAKey, `evidence_blob_${item.id}`, 'A');
       if (!blob) { setStatus('Stored file bytes not found.'); return; }
       const bytes = b64ToBytes(blob.b64);
-      const url = URL.createObjectURL(new Blob([bytes], { type: blob.mime }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = item.name;
-      a.click();
-      URL.revokeObjectURL(url);
+      const saved = await saveBytes(new Blob([bytes], { type: blob.mime }), item.name);
+      if (saved) setStatus(`Saved ${item.name}.`);
     } catch (err) {
       setStatus('Download failed: ' + err.message);
     }
