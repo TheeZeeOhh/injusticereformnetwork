@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { useLanguage } from '../i18n/LanguageContext';
+import { pickImageAsDataUrl } from '../utils/fileTransfer';
 
 export default function UserProfile() {
   const { user } = useAuthStore();
@@ -21,21 +22,22 @@ export default function UserProfile() {
     pgpKey: '0x4F92B3A1C6D7E8F9',
   });
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result;
-        // Persist to the settings store; it rejects oversized/non-image input.
-        const ok = setProfilePhoto(dataUrl);
-        if (ok) {
-          setProfilePic(dataUrl);
-        } else {
-          alert(t('profile.tooLargeAlert'));
-        }
-      };
-      reader.readAsDataURL(file);
+  // Native picker. The hidden <input type="file"> never opened a chooser inside
+  // the Tauri webview (finding B1) — wrapping it in a <label> did not help,
+  // because the missing piece is the webview's file-chooser handler, not how the
+  // input gets activated. Validation is unchanged: settingsStore still owns the
+  // size/format policy for the operator's own photo.
+  const handleImageUpload = async () => {
+    const picked = await pickImageAsDataUrl({ title: 'Select a profile picture' });
+    if (!picked.picked) {
+      if (picked.reason === 'not-an-image') alert(t('profile.tooLargeAlert'));
+      return;
+    }
+    const ok = setProfilePhoto(picked.dataUrl);
+    if (ok) {
+      setProfilePic(picked.dataUrl);
+    } else {
+      alert(t('profile.tooLargeAlert'));
     }
   };
 
@@ -82,15 +84,14 @@ export default function UserProfile() {
             </span>
           </div>
 
-          <label className="btn-primary" style={{ cursor: 'pointer', display: 'inline-block', width: '100%', textAlign: 'center' }}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={handleImageUpload}
+            style={{ cursor: 'pointer', display: 'inline-block', width: '100%', textAlign: 'center' }}
+          >
             {t('profile.uploadPicture')}
-            <input
-              type="file"
-              accept="image/png, image/jpeg"
-              onChange={handleImageUpload}
-              style={{ display: 'none' }}
-            />
-          </label>
+          </button>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '-0.5rem' }}>{t('profile.pictureHint')}</p>
         </div>
 

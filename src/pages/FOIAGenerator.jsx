@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import { useLanguage } from '../i18n/LanguageContext';
-import { saveBytes } from '../utils/download';
+import { saveFile } from '../utils/fileTransfer';
 
 export default function FOIAGenerator() {
   const { t } = useLanguage();
@@ -41,7 +41,7 @@ export default function FOIAGenerator() {
     const safeDate = incidentDate.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
     // doc.save() uses a blob-anchor download that the Tauri webview drops; route
     // the PDF bytes through the native save helper instead.
-    saveBytes(new Uint8Array(doc.output('arraybuffer')), `FOIA_Request_${safeAgency}_${safeDate}.pdf`);
+    saveFile(`FOIA_Request_${safeAgency}_${safeDate}.pdf`, new Uint8Array(doc.output('arraybuffer')), { mime: 'application/pdf', filters: [{ name: 'PDF', extensions: ['pdf'] }] });
   };
 
   return (

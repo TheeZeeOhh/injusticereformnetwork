@@ -81,7 +81,7 @@ describe('Vault B re-key upgrade (C1)', () => {
 
     // The legacy B key (login pass) must fail the new Vault B verifier.
     const legacyKey = await deriveLegacyVaultBKey(LOGIN);
-    expect(await createOrVerifyPassphrase(legacyKey, 'B')).toBe(false);
+    expect(await createOrVerifyPassphrase(legacyKey, 'B', { recordsExist: false })).toBe(false);
   });
 
   it('aborts without changes if the login passphrase is wrong', async () => {
@@ -102,7 +102,7 @@ describe('Vault B re-key upgrade (C1)', () => {
   it('is a no-op once Vault B is already enrolled', async () => {
     // Enroll B directly, then a re-key attempt should do nothing.
     const bKey = await deriveVaultBKey(NEW_B);
-    await createOrVerifyPassphrase(bKey, 'B');
+    await createOrVerifyPassphrase(bKey, 'B', { recordsExist: false });
     const res = await rekeyVaultB(LOGIN, NEW_B);
     expect(res.rekeyed).toBe(0);
   });

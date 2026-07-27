@@ -5,6 +5,7 @@ import { getEntries, verifyChain, appendEntry } from '../utils/auditLog';
 import { useAuthStore } from '../store/authStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { useLanguage } from '../i18n/LanguageContext';
+import { pickTextFile } from '../utils/fileTransfer';
 
 export default function Settings() {
   const { logout } = useAuthStore();
@@ -23,7 +24,6 @@ export default function Settings() {
   const [jitsiInput, setJitsiInput] = useState(jitsiDomain);
   const [isNuking, setIsNuking] = useState(false);
   const [backupStatus, setBackupStatus] = useState('');
-  const fileInputRef = useRef(null);
   const [usbDevices, setUsbDevices] = useState([]);
   const [selectedUsb, setSelectedUsb] = useState('');
   const [usbStatus, setUsbStatus] = useState('');
@@ -81,18 +81,20 @@ export default function Settings() {
     }
   };
 
-  const handleImportClick = () => fileInputRef.current?.click();
-
-  const handleRestoreFile = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow re-selecting the same file
-    if (!file) return;
+  // Native picker — the hidden <input type="file"> never opened a chooser in
+  // the Tauri webview (finding B1), so Restore silently did nothing.
+  const handleImportClick = async () => {
+    const picked = await pickTextFile({
+      title: 'Select a Sanctuary backup file',
+      accept: 'application/json',
+      filters: [{ name: 'Sanctuary backup', extensions: ['json'] }],
+    });
+    if (!picked.picked) return;
     const passphrase = window.prompt('Enter the master passphrase used to sign this backup:');
     if (!passphrase) return;
     setBackupStatus('Verifying signature...');
     try {
-      const text = await file.text();
-      const backup = JSON.parse(text);
+      const backup = JSON.parse(picked.text);
       const { restored } = await restoreBackup(passphrase, backup);
       appendEntry({ action: 'admin', recordId: `backup_restore:${restored}`, vaultTag: null });
       setBackupStatus(`Signature verified. Restored ${restored} record(s).`);
@@ -444,7 +446,6 @@ export default function Settings() {
             <button onClick={handleImportClick} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
               Verify &amp; Restore
             </button>
-            <input ref={fileInputRef} type="file" accept="application/json" onChange={handleRestoreFile} style={{ display: 'none' }} />
           </div>
           {backupStatus && (
             <div style={{ fontSize: '0.8rem', color: '#4ade80', fontFamily: 'var(--font-mono)', background: '#020617', padding: '0.75rem', borderRadius: '4px', wordBreak: 'break-word' }}>

@@ -5,6 +5,7 @@ import { loadClientRecord, saveClientRecord } from '../schema';
 import { CanvasBoard } from './VisualCanvas';
 import { INTAKE_QUESTIONS } from './intakeQuestions';
 import { useLanguage } from '../i18n/LanguageContext';
+import { pickImageAsDataUrl } from '../utils/fileTransfer';
 
 // Common pronoun sets offered as multi-select. A client may use more than one,
 // and the free-text "self-describe" field below covers anything not listed
@@ -206,20 +207,24 @@ export default function ClientsModule() {
   // it is PHI, so it never touches localStorage or leaves the device. Guard the
   // size so an oversized image can't bloat the encrypted record.
   const MAX_CLIENT_PHOTO_CHARS = 7 * 1024 * 1024; // ~7MB of base64
-  const handleClientPhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow re-selecting the same file
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const dataUrl = reader.result;
-      if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length > MAX_CLIENT_PHOTO_CHARS) {
+  // Native picker (finding B1 — the hidden file input never opened a chooser in
+  // the Tauri webview). The size/format policy below is UNCHANGED and still
+  // lives here: this module deliberately enforces a different cap from the
+  // operator's own profile photo.
+  const handleClientPhotoUpload = async () => {
+    const picked = await pickImageAsDataUrl({ title: 'Select a client photo' });
+    if (!picked.picked) {
+      if (picked.reason === 'not-an-image') {
         alert('That image is too large or not a supported format. Use a JPEG or PNG under 5MB.');
-        return;
       }
-      setClientData(prev => ({ ...prev, photo: dataUrl }));
-    };
-    reader.readAsDataURL(file);
+      return;
+    }
+    const dataUrl = picked.dataUrl;
+    if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length > MAX_CLIENT_PHOTO_CHARS) {
+      alert('That image is too large or not a supported format. Use a JPEG or PNG under 5MB.');
+      return;
+    }
+    setClientData(prev => ({ ...prev, photo: dataUrl }));
   };
 
   // Toggle a pronoun set on/off in clientData.pronouns (a string array). Persists
@@ -429,10 +434,14 @@ export default function ClientsModule() {
                 {!clientData.photo && (clientData.legalName ? clientData.legalName.charAt(0).toUpperCase() : '?')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label className="btn-primary" style={{ cursor: 'pointer', display: 'inline-block', background: 'var(--charcoal)', border: '1px solid var(--border-color)', color: 'var(--bone)', padding: '0.5rem 1rem' }}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleClientPhotoUpload}
+                  style={{ cursor: 'pointer', display: 'inline-block', background: 'var(--charcoal)', border: '1px solid var(--border-color)', color: 'var(--bone)', padding: '0.5rem 1rem' }}
+                >
                   {clientData.photo ? 'Replace Photo' : 'Upload Client Photo'}
-                  <input type="file" accept="image/png, image/jpeg" onChange={handleClientPhotoUpload} style={{ display: 'none' }} />
-                </label>
+                </button>
                 {clientData.photo && (
                   <button
                     onClick={() => setClientData(prev => ({ ...prev, photo: '' }))}

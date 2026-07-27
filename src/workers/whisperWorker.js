@@ -43,8 +43,15 @@ env.fetch = async (urlOrPath, options) => {
     try {
       // Import lazily so browser-dev (no Tauri) never pulls this path.
       const { invoke } = await import('@tauri-apps/api/core');
+      // fetch_model_file now returns raw bytes via tauri::ipc::Response, which
+      // the JS bridge surfaces as an ArrayBuffer/Uint8Array rather than a
+      // number array. Normalise both shapes so this keeps working either way.
       const bytes = await invoke('fetch_model_file', { url });
-      const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      let arr;
+      if (bytes instanceof Uint8Array) arr = bytes;
+      else if (bytes instanceof ArrayBuffer) arr = new Uint8Array(bytes);
+      else if (ArrayBuffer.isView(bytes)) arr = new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      else arr = new Uint8Array(bytes);
       return new Response(arr, {
         status: 200,
         headers: { 'Content-Type': 'application/octet-stream' }
@@ -64,10 +71,26 @@ env.fetch = async (urlOrPath, options) => {
 const MODEL_ID = 'Xenova/whisper-tiny';
 
 let transcriber = null;
+// Memoise the IN-FLIGHT promise, not just the resolved value (finding A2).
+// Previously `transcriber` was only assigned AFTER `await pipeline(...)`
+// resolved, so the `if (!transcriber)` guard was still false for any caller
+// that arrived during the ~75MB first-run download. AudioIntake posts 'load'
+// and then starts capturing immediately, so the first 'transcribe' landed
+// mid-download and kicked off a SECOND concurrent pipeline() — two parallel
+// model downloads and two ONNX sessions, on one thread. Holding the promise
+// makes every caller await the same single load.
+let transcriberPromise = null;
 
-async function getTranscriber() {
-  if (!transcriber) {
-    transcriber = await pipeline('automatic-speech-recognition', MODEL_ID, {
+// Inference is serialised through this chain (finding A3). `self.onmessage` is
+// async, so the worker event loop dispatches the NEXT message as soon as the
+// current handler hits its first await — meaning several transcriptions ran
+// interleaved against one transformers.js pipeline, which is not re-entrant.
+let inferenceChain = Promise.resolve();
+
+function getTranscriber() {
+  if (transcriber) return Promise.resolve(transcriber);
+  if (!transcriberPromise) {
+    transcriberPromise = pipeline('automatic-speech-recognition', MODEL_ID, {
       // Force full-precision (fp32) weights. The default picks a quantized
       // variant (q4/q8) whose format the bundled onnxruntime-web cannot decode
       // ("Missing required scale … TransposeDQWeightsForMatMulNBits") — loading
@@ -77,43 +100,63 @@ async function getTranscriber() {
       progress_callback: (p) => {
         self.postMessage({ type: 'model-progress', payload: p });
       }
-    });
+    })
+      .then((t) => {
+        transcriber = t;
+        return t;
+      })
+      .catch((err) => {
+        // Clear the memo so a retry can genuinely retry instead of resolving
+        // the same rejected promise forever.
+        transcriberPromise = null;
+        throw err;
+      });
   }
-  return transcriber;
+  return transcriberPromise;
 }
 
-self.onmessage = async (e) => {
-  const { type, audio, id } = e.data;
+self.onmessage = (e) => {
+  const { type, audio, id, translate } = e.data;
 
   if (type === 'load') {
-    try {
-      await getTranscriber();
-      self.postMessage({ type: 'model-ready' });
-    } catch (err) {
-      self.postMessage({ type: 'error', payload: String(err) });
-    }
+    getTranscriber()
+      .then(() => self.postMessage({ type: 'model-ready' }))
+      .catch((err) => self.postMessage({ type: 'error', payload: String(err) }));
     return;
   }
 
   if (type === 'transcribe') {
-    try {
-      const asr = await getTranscriber();
+    // Queue behind whatever is already running rather than racing it.
+    inferenceChain = inferenceChain.then(async () => {
+      try {
+        const asr = await getTranscriber();
 
-      // Original-language transcription.
-      const original = await asr(audio, { task: 'transcribe' });
-      // English translation of the same audio.
-      const translated = await asr(audio, { task: 'translate' });
+        // Original-language transcription.
+        const original = await asr(audio, { task: 'transcribe' });
 
-      self.postMessage({
-        type: 'result',
-        id,
-        payload: {
-          original: (original.text || '').trim(),
-          translated: (translated.text || '').trim()
+        // English translation of the same audio. This is a SECOND full pass
+        // over the same window, so it roughly doubles per-chunk cost — the
+        // single biggest contributor to capture outrunning inference. It is
+        // now opt-in from the UI instead of unconditional.
+        let translated = '';
+        if (translate) {
+          const t = await asr(audio, { task: 'translate' });
+          translated = (t.text || '').trim();
         }
-      });
-    } catch (err) {
-      self.postMessage({ type: 'error', id, payload: String(err) });
-    }
+
+        self.postMessage({
+          type: 'result',
+          id,
+          payload: { original: (original.text || '').trim(), translated }
+        });
+      } catch (err) {
+        self.postMessage({ type: 'error', id, payload: String(err) });
+      } finally {
+        // ALWAYS ack, success or failure. The main thread frees its in-flight
+        // slot on this message; if an error swallowed the ack, one bad chunk
+        // would wedge the session forever — the original freeze, relocated.
+        self.postMessage({ type: 'chunk-done', id });
+      }
+    });
   }
 };

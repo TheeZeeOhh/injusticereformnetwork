@@ -153,7 +153,11 @@ export async function rekeyVaultB(loginPassphrase, newPassphraseB) {
 
   // Phase 2 — enroll the new Vault B passphrase (creates the B verifier).
   const newBKey = await deriveVaultBKey(newPassphraseB);
-  await createOrVerifyPassphrase(newBKey, 'B');
+  // Deliberate enrollment over existing records: vaultBEnrolled() was checked
+  // above (no B verifier yet), and the records being re-keyed were already
+  // decrypted successfully in Phase 1, so nothing is orphaned. Intent is stated
+  // explicitly rather than relying on an omitted flag (finding F2).
+  await createOrVerifyPassphrase(newBKey, 'B', { allowEnrollOverRecords: true });
 
   // Phase 3 — re-encrypt each record under the new Vault B key (v2 + AAD).
   let rekeyed = 0;

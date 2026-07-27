@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
+import { AudioChunkQueue } from '../utils/audioChunkQueue';
 
 // Whisper wants 16 kHz mono Float32 audio. We capture ~5s windows and send each
 // to the off-thread worker for on-device transcription + English translation.
@@ -18,16 +19,10 @@ export default function AudioIntake() {
   const [modelState, setModelState] = useState('idle'); // idle | loading | ready | error
   const [modelProgress, setModelProgress] = useState(0);
   const [statusMsg, setStatusMsg] = useState('');
-
-  // Microphone selection. The webview auto-grants mic permission and grabs the
-  // default device, so with multiple mics you couldn't choose. We do NOT
-  // enumerate on mount: in the WebKitGTK webview, navigator.mediaDevices
-  // .enumerateDevices() synchronously probes PipeWire and HANGS the UI (this
-  // froze the page right after it opened). Instead, the device list is populated
-  // AFTER the first session starts (inside startRecording, where permission is
-  // genuinely active). The dropdown shows "System default" until then.
-  const [mics, setMics] = useState([]);
-  const [selectedMic, setSelectedMic] = useState('');
+  // Translation is a SECOND full Whisper pass per chunk (~2x cost). Default it
+  // OFF so the machine keeps up; the operator turns it on knowingly.
+  const [translateToEnglish, setTranslateToEnglish] = useState(false);
+  const [droppedSeconds, setDroppedSeconds] = useState(0);
 
   // Client association + save state. A transcript is client PHI, so saving it
   // requires a selected client and routes through the encrypted Vault A.
@@ -39,18 +34,47 @@ export default function AudioIntake() {
   const workerRef = useRef(null);
   const streamRef = useRef(null);
   const audioCtxRef = useRef(null);
-  const bufferRef = useRef([]); // accumulates Float32 samples until a chunk is full
+  // Pre-allocated Float32 window. The old code pushed samples one at a time
+  // into a plain JS array (~80k boxed doubles per 5s window) and then copied
+  // it out with Float32Array.from — all on the main thread, inside the audio
+  // callback. A fixed typed buffer with an offset does the same job with no
+  // allocation churn.
+  const bufferRef = useRef(new Float32Array(SAMPLE_RATE * CHUNK_SECONDS));
+  const bufferFillRef = useRef(0);
   const chunkIdRef = useRef(0);
+  const queueRef = useRef(null);
+  // Read inside the audio callback, which closes over its creation-time scope;
+  // a ref keeps the toggle live without tearing down capture.
+  const translateRef = useRef(false);
 
-  // Lazily create the transcription worker. Spawning it eagerly on page mount
-  // pulls in the multi-MB transformers.js/WASM module immediately, which stalls
-  // the webview and froze the app the moment you opened Audio Intake. Create it
-  // ONLY when a session actually starts, so opening the page is instant.
-  const ensureWorker = () => {
-    if (workerRef.current) return workerRef.current;
+  useEffect(() => { translateRef.current = translateToEnglish; }, [translateToEnglish]);
+
+  // Spin up the worker once. It's torn down on unmount so nothing persists.
+  useEffect(() => {
     const worker = new Worker(new URL('../workers/whisperWorker.js', import.meta.url), { type: 'module' });
+    workerRef.current = worker;
+
+    // Backpressure: at most ONE chunk in flight. Audio captured while the
+    // worker is busy is coalesced, not queued as separate jobs, and the backlog
+    // is capped so memory cannot run away during a long session.
+    queueRef.current = new AudioChunkQueue(
+      (audio) => worker.postMessage(
+        { type: 'transcribe', audio, id: chunkIdRef.current++, translate: translateRef.current },
+        [audio.buffer]
+      ),
+      {
+        maxPendingSamples: SAMPLE_RATE * 30,
+        onDrop: (n) => setDroppedSeconds((prev) => prev + n / SAMPLE_RATE),
+      }
+    );
+
     worker.onmessage = (e) => {
       const { type, payload } = e.data;
+      if (type === 'chunk-done') {
+        // Slot freed — sends the coalesced backlog if any accumulated.
+        queueRef.current?.onWorkerDone();
+        return;
+      }
       if (type === 'model-progress') {
         if (payload?.status === 'progress' && typeof payload.progress === 'number') {
           setModelProgress(Math.round(payload.progress));
@@ -68,12 +92,13 @@ export default function AudioIntake() {
         setStatusMsg('Transcription error: ' + payload);
       }
     };
-    workerRef.current = worker;
-    return worker;
-  };
 
-  // Tear the worker down on unmount so nothing persists.
-  useEffect(() => () => { workerRef.current?.terminate(); workerRef.current = null; }, []);
+    return () => {
+      worker.terminate();
+      workerRef.current = null;
+      queueRef.current = null;
+    };
+  }, []);
 
   // Load the encrypted client directory so a transcript can be attached to a
   // client. Same pattern as ClientsModule; empty/failed load → no clients.
@@ -121,26 +146,37 @@ export default function AudioIntake() {
   };
 
   // Send whatever samples we've accumulated to the worker as one chunk.
+  // Hand the accumulated window to the scheduler, which decides whether the
+  // worker can take it now or it has to wait. Previously this posted straight
+  // at the worker every time, which is what let the backlog grow without bound.
   const flushChunk = () => {
-    if (bufferRef.current.length === 0) return;
-    const audio = Float32Array.from(bufferRef.current);
-    bufferRef.current = [];
-    workerRef.current?.postMessage(
-      { type: 'transcribe', audio, id: chunkIdRef.current++ },
-      [audio.buffer] // transfer ownership; no copy, nothing retained here
-    );
+    const filled = bufferFillRef.current;
+    if (filled === 0) return;
+    const audio = bufferRef.current.slice(0, filled);
+    bufferFillRef.current = 0;
+    queueRef.current?.push(audio);
   };
 
   const stopRecording = () => {
     setIsRecording(false);
-    // Flush any trailing audio, then tear down capture.
+    // Hand the trailing audio to the scheduler, which returns it ONLY if the
+    // worker is idle. Stopping a session that is already behind used to add one
+    // more chunk to the pile, which is why STOP never seemed to unstick it.
     flushChunk();
-    if (audioCtxRef.current) { audioCtxRef.current.close(); audioCtxRef.current = null; }
+    const tail = queueRef.current?.finish();
+    if (tail) {
+      workerRef.current?.postMessage(
+        { type: 'transcribe', audio: tail, id: chunkIdRef.current++, translate: translateRef.current },
+        [tail.buffer]
+      );
+    }
+    // close() rejects if the context is already closed (stop -> unmount).
+    if (audioCtxRef.current) { audioCtxRef.current.close().catch(() => {}); audioCtxRef.current = null; }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     }
-    bufferRef.current = [];
+    bufferFillRef.current = 0;
     setStatusMsg('Session stopped. Audio discarded.');
   };
 
@@ -148,24 +184,14 @@ export default function AudioIntake() {
     setTranscript([]);
     setStatusMsg('Requesting microphone…');
     try {
-      // Use the chosen mic if one is selected; otherwise the system default.
-      const audioConstraint = selectedMic ? { deviceId: { exact: selectedMic } } : true;
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraint });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      // After permission is granted, device labels become available — refresh.
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        setMics(devices.filter((d) => d.kind === 'audioinput'));
-      } catch { /* ignore */ }
 
-      // Create the worker now (first time only) and load the model. This is when
-      // the heavy transformers.js/WASM work happens — deliberately NOT on page
-      // mount, so opening Audio Intake stays instant.
-      const worker = ensureWorker();
+      // Load the model (no-op if already loaded) and show progress.
       if (modelState !== 'ready') {
         setModelState('loading');
         setStatusMsg('Loading on-device speech model (first run downloads it once)…');
-        worker.postMessage({ type: 'load' });
+        workerRef.current?.postMessage({ type: 'load' });
       }
 
       const ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
@@ -178,9 +204,14 @@ export default function AudioIntake() {
 
       processor.onaudioprocess = (ev) => {
         const input = ev.inputBuffer.getChannelData(0);
-        for (let i = 0; i < input.length; i++) bufferRef.current.push(input[i]);
-        // When a full window is buffered, flush it for transcription.
-        if (bufferRef.current.length >= samplesPerChunk) flushChunk();
+        const buf = bufferRef.current;
+        let fill = bufferFillRef.current;
+        const room = Math.min(input.length, samplesPerChunk - fill);
+        buf.set(input.subarray(0, room), fill);
+        fill += room;
+        bufferFillRef.current = fill;
+        // When a full window is buffered, hand it to the scheduler.
+        if (fill >= samplesPerChunk) flushChunk();
       };
 
       source.connect(processor);
@@ -200,9 +231,10 @@ export default function AudioIntake() {
   // Ensure capture is torn down and audio discarded when leaving the page.
   useEffect(() => {
     return () => {
-      if (audioCtxRef.current) audioCtxRef.current.close();
+      if (audioCtxRef.current) audioCtxRef.current.close().catch(() => {});
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-      bufferRef.current = [];
+      bufferFillRef.current = 0;
+      queueRef.current?.reset();
     };
   }, []);
 
@@ -250,29 +282,6 @@ export default function AudioIntake() {
                 No clients found. Add one in the Clients module first.
               </div>
             )}
-          </div>
-
-          {/* Microphone selection */}
-          <div>
-            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Microphone</h4>
-            <select
-              value={selectedMic}
-              onChange={(e) => setSelectedMic(e.target.value)}
-              disabled={isRecording}
-              style={{ width: '100%', padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
-            >
-              <option value="">System default</option>
-              {mics.map((m, i) => (
-                <option key={m.deviceId || i} value={m.deviceId}>
-                  {m.label || `Microphone ${i + 1}`}
-                </option>
-              ))}
-            </select>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginTop: '0.35rem' }}>
-              {mics.length === 0
-                ? 'Device names appear after you start a session once (grants mic access).'
-                : `${mics.length} input${mics.length === 1 ? '' : 's'} detected.`}
-            </div>
           </div>
 
           <button
@@ -337,6 +346,25 @@ export default function AudioIntake() {
                 <input type="radio" name="micMode" checked={micMode === 'ptt'} onChange={() => setMicMode('ptt')} /> Push-to-Talk
               </label>
             </div>
+          </div>
+
+          <div>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 1rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>Transcription Load</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+              <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                <input type="checkbox" checked={translateToEnglish} onChange={(e) => setTranslateToEnglish(e.target.checked)} style={{ marginTop: '0.2rem' }} />
+                <span>English translation
+                  <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
+                    Runs a second pass over every clip. Roughly doubles the work — leave off unless you need it.
+                  </span>
+                </span>
+              </label>
+            </div>
+            {droppedSeconds > 0 && (
+              <div style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: '#fbbf24', marginTop: '0.5rem', lineHeight: 1.4 }}>
+                Transcription is behind the microphone. {Math.round(droppedSeconds)}s of audio was dropped to keep the session responsive.
+              </div>
+            )}
           </div>
 
           <div>

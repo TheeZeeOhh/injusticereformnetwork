@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { saveText } from '../utils/download';
+import { saveFile } from '../utils/fileTransfer';
 
 // Glossary — plain-language definitions of the terms used throughout Sanctuary.
 const GLOSSARY = [
@@ -92,7 +92,7 @@ dt{font-weight:bold;margin-top:.7rem}dd{margin:0 0 .3rem 1.2rem}.meta{color:#666
 ${body}<h2>📖 Glossary</h2><dl>${gloss}</dl>
 <hr/><p class="meta">Generated from the app. Save or print to PDF for offline reference.</p>
 </body></html>`;
-    saveText(html, 'Sanctuary-User-Manual-v0.1.0.html', 'text/html');
+    saveFile('Sanctuary-User-Manual-v0.1.0.html', html, { mime: 'text/html', filters: [{ name: 'HTML', extensions: ['html'] }] });
   };
 
   return (

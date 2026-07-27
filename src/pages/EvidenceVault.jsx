@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
-import { saveBytes } from '../utils/download';
+import { saveFile, pickFile } from '../utils/fileTransfer';
 
 // Evidence Vault — real chain-of-custody attachment manager.
 //
@@ -44,7 +44,6 @@ export default function EvidenceVault() {
   const [index, setIndex] = useState([]);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
-  const fileInputRef = useRef(null);
 
   const vaultOpen = !!vaultAKey;
 
@@ -61,12 +60,17 @@ export default function EvidenceVault() {
     loadIndex();
   }, [vaultAKey]);
 
-  const handleUploadClick = () => fileInputRef.current?.click();
+  // Native picker: the hidden <input type="file"> never opened a chooser
+  // inside the Tauri webview (finding B1).
+  const handleUploadClick = async () => {
+    const res = await pickFile({ title: 'Select a file to add to the vault' });
+    if (!res.picked) return;
+    await ingestFile(res.name, res.bytes);
+  };
 
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file || !vaultAKey) return;
+  const ingestFile = async (fileName, fileBytes) => {
+    if (!fileName || !fileBytes || !vaultAKey) return;
+    const file = { name: fileName, type: '', arrayBuffer: async () => fileBytes.buffer };
     setBusy(true);
     setStatus(`Hashing and encrypting ${file.name}…`);
     try {
@@ -127,8 +131,9 @@ export default function EvidenceVault() {
       const blob = await loadSecureRecord(vaultAKey, `evidence_blob_${item.id}`, 'A');
       if (!blob) { setStatus('Stored file bytes not found.'); return; }
       const bytes = b64ToBytes(blob.b64);
-      const saved = await saveBytes(new Blob([bytes], { type: blob.mime }), item.name);
-      if (saved) setStatus(`Saved ${item.name}.`);
+      // Was `<a download>` — a no-op in the webview (finding B1).
+      const res = await saveFile(item.name, bytes, { mime: blob.mime });
+      if (res.saved) setStatus(`Saved ${item.name}.`);
     } catch (err) {
       setStatus('Download failed: ' + err.message);
     }
@@ -146,7 +151,6 @@ export default function EvidenceVault() {
         <button onClick={handleUploadClick} disabled={!vaultOpen || busy} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', fontWeight: 'bold', opacity: (!vaultOpen || busy) ? 0.5 : 1 }}>
           {busy ? 'Sealing…' : '+ Secure Upload'}
         </button>
-        <input ref={fileInputRef} type="file" onChange={handleFile} style={{ display: 'none' }} />
       </div>
 
       {!vaultOpen && (

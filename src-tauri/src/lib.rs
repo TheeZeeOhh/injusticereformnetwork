@@ -286,23 +286,6 @@ fn read_usb_bundle(dir: String) -> Result<Option<String>, String> {
     }
 }
 
-/// Write bytes to an operator-chosen absolute path. In-webview `blob:` anchor
-/// downloads are silently dropped by WebKitGTK (no download handler), so the
-/// frontend picks a path with the native save dialog and hands the bytes here.
-/// The parent directory must exist (the dialog guarantees this). The bytes are
-/// whatever the frontend already produced (decrypted file, generated PDF/HTML);
-/// Rust just moves opaque bytes to disk.
-#[tauri::command]
-fn save_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
-    let p = std::path::Path::new(&path);
-    if let Some(parent) = p.parent() {
-        if !parent.as_os_str().is_empty() && !parent.is_dir() {
-            return Err(format!("destination folder does not exist: {}", parent.display()));
-        }
-    }
-    std::fs::write(p, &bytes).map_err(|e| format!("save failed: {e}"))
-}
-
 // --- Backend model fetch (Audio Intake / Whisper) ---
 //
 // The webview runs from `tauri://localhost`; HuggingFace serves model files via a
@@ -326,63 +309,60 @@ fn is_allowed_model_host(url: &str) -> bool {
     }
 }
 
-/// Local cache path for a model URL: <cache_dir>/sanctuary-models/<hash>_<name>.
-/// Keyed by a FNV-1a hash of the URL (stable, fixed-length, filesystem-safe). The
-/// model files are public, non-PHI, so caching them on disk is fine and NOT
-/// subject to the vault's technical-incapacity rules.
-fn model_cache_path(url: &str) -> Option<std::path::PathBuf> {
-    let base = dirs_next_cache().or_else(|| std::env::temp_dir().into())?;
-    let dir = base.join("sanctuary-models");
-    // Filesystem-safe key derived from the URL. Use a FNV-1a 64-bit hash so the
-    // filename is short and fixed-length (no truncation-collision risk), and
-    // append the last path segment for human readability. No crate dependency.
-    let mut hash: u64 = 0xcbf29ce484222325;
-    for b in url.as_bytes() {
-        hash ^= *b as u64;
-        hash = hash.wrapping_mul(0x100000001b3);
-    }
-    let tail: String = url
-        .rsplit('/')
-        .next()
-        .unwrap_or("model")
-        .chars()
-        .filter(|c| c.is_ascii_alphanumeric() || *c == '.' || *c == '-' || *c == '_')
-        .take(40)
-        .collect();
-    Some(dir.join(format!("{hash:016x}_{tail}")))
-}
+// --- Generic export / import file I/O ---------------------------------------
+//
+// FINDING B1: every upload and download in the app used browser DOM APIs —
+// `<a download>` + createObjectURL to save, and a hidden `<input type="file">`
+// to load. Neither works inside a Tauri webview. On Linux the webview is
+// WebKitGTK, which has no download manager wired up unless the host app handles
+// `download-requested`, and no native file chooser unless it handles
+// `run-file-chooser`. Tauri does neither by default — that is precisely why the
+// dialog plugin exists. So `a.click()` and `input.click()` were silent no-ops:
+// the buttons fired, nothing happened, no error surfaced.
+//
+// These two commands are the narrow counterpart to write_usb_bundle /
+// read_usb_bundle: the PATH always originates from a native dialog the operator
+// just interacted with, so this is not a general filesystem capability handed to
+// the webview — it is "write the bytes to the file the human literally chose."
 
-// Best-effort OS cache dir without adding a crate dependency.
-fn dirs_next_cache() -> Option<std::path::PathBuf> {
-    if let Ok(x) = std::env::var("XDG_CACHE_HOME") {
-        if !x.is_empty() {
-            return Some(std::path::PathBuf::from(x));
-        }
-    }
-    if let Ok(home) = std::env::var("HOME") {
-        return Some(std::path::PathBuf::from(home).join(".cache"));
-    }
-    None
-}
-
-/// Downloads a model file server-side and returns its bytes, caching it on disk
-/// so subsequent loads read locally (no repeat 75MB download / no re-freeze).
-/// Redirects (incl. the HF Xet CDN) are followed by reqwest. HuggingFace hosts only.
+/// Writes raw bytes to an operator-chosen path. Temp + rename so an interrupted
+/// write cannot leave a truncated export that looks complete.
 #[tauri::command]
-async fn fetch_model_file(url: String) -> Result<Vec<u8>, String> {
+fn write_export_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
+    let final_path = std::path::Path::new(&path);
+    if final_path.file_name().is_none() {
+        return Err(format!("not a writable file path: {path}"));
+    }
+    let tmp_path = final_path.with_extension("sanctuary-partial");
+    std::fs::write(&tmp_path, &bytes).map_err(|e| format!("export write failed: {e}"))?;
+    std::fs::rename(&tmp_path, final_path).map_err(|e| format!("export finalize failed: {e}"))?;
+    Ok(())
+}
+
+/// Reads an operator-chosen file and returns its bytes. Returns raw bytes via
+/// `ipc::Response` rather than `Vec<u8>` for the same reason fetch_model_file
+/// does — a JSON number array of a large file locks the webview.
+#[tauri::command]
+fn read_import_file(path: String) -> Result<tauri::ipc::Response, String> {
+    let bytes = std::fs::read(&path).map_err(|e| format!("import read failed: {e}"))?;
+    Ok(tauri::ipc::Response::new(bytes))
+}
+
+/// Downloads a model file server-side and returns its bytes. Redirects (incl. the
+/// HF Xet CDN) are followed by reqwest. Restricted to HuggingFace hosts.
+///
+/// RETURNS `tauri::ipc::Response`, NOT `Vec<u8>` (finding A1 — first-run freeze).
+/// A bare `Vec<u8>` return is serialised by serde as a JSON ARRAY OF NUMBERS.
+/// The whisper-tiny fp32 weights are ~75 MB, so that produced a JSON document
+/// with ~75 million elements — several hundred MB of text for the webview to
+/// parse on its own thread. That is the hang during "Downloading model…": the
+/// download itself finishes fine, then the UI locks solid trying to parse the
+/// response. `ipc::Response` hands the bytes across raw, no JSON encoding.
+#[tauri::command]
+async fn fetch_model_file(url: String) -> Result<tauri::ipc::Response, String> {
     if !is_allowed_model_host(&url) {
         return Err(format!("Refused: {url} is not an allowed model host."));
     }
-
-    // Serve from disk cache when present — the common case after first run.
-    if let Some(path) = model_cache_path(&url) {
-        if let Ok(bytes) = std::fs::read(&path) {
-            if !bytes.is_empty() {
-                return Ok(bytes);
-            }
-        }
-    }
-
     let resp = reqwest::Client::new()
         .get(&url)
         .send()
@@ -395,17 +375,7 @@ async fn fetch_model_file(url: String) -> Result<Vec<u8>, String> {
         .bytes()
         .await
         .map_err(|e| format!("model read failed: {e}"))?;
-    let vec = bytes.to_vec();
-
-    // Cache to disk (best-effort; a cache write failure must not fail the load).
-    if let Some(path) = model_cache_path(&url) {
-        if let Some(parent) = path.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-        let _ = std::fs::write(&path, &vec);
-    }
-
-    Ok(vec)
+    Ok(tauri::ipc::Response::new(bytes.to_vec()))
 }
 
 // --- Hosted assistant call (generic bureaucracy questions ONLY) --------------
@@ -604,7 +574,8 @@ pub fn run() {
             clear_vault_salts,
             write_usb_bundle,
             read_usb_bundle,
-            save_file,
+            write_export_file,
+            read_import_file,
             fetch_model_file,
             hosted_assistant_ask,
             send_sms_reminder

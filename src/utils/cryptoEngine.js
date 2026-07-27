@@ -366,8 +366,22 @@ export async function createOrVerifyPassphrase(vaultKey, vaultTag = 'A', opts = 
     }
   }
 
+  // FINDING F2 — the guard below fails OPEN. `opts.recordsExist` defaults to
+  // undefined, so any caller that simply forgets the flag skips the check
+  // entirely and enrolls a fresh passphrase over whatever is there. That is the
+  // precise H1 failure this guard was written to stop, reachable by omission.
+  // Require the caller to state intent explicitly; silence is not consent.
+  if (!('recordsExist' in opts) && opts.allowEnrollOverRecords !== true) {
+    throw new Error(
+      `createOrVerifyPassphrase for vault ${vaultTag} requires an explicit ` +
+      `opts.recordsExist. Omitting it previously skipped the re-enrollment ` +
+      `guard silently. Pass the real value, or opts.allowEnrollOverRecords: ` +
+      `true if this is a deliberate re-key that enrolls over existing records.`
+    );
+  }
+
   // No verifier stored. Genuine first run only if there are also no records.
-  if (opts.recordsExist) {
+  if (opts.recordsExist && opts.allowEnrollOverRecords !== true) {
     throw new Error(
       `Vault ${vaultTag} has existing encrypted records but its passphrase ` +
       `verifier is missing. Refusing to enroll a new passphrase, which would ` +
@@ -479,8 +493,29 @@ export async function encryptRecord(cryptoKey, data, aad) {
 //     same `aad` must be supplied here or GCM authentication fails.
 //   - v1 (IV || ct): legacy, no AAD. Read as-is so existing records keep
 //     working until the migration pass rewrites them to v2.
-export async function decryptRecord(cryptoKey, payload, aad) {
+export async function decryptRecord(cryptoKey, payload, aad, opts = {}) {
   const isV2 = hasV2Magic(payload);
+
+  // FINDING F1 — silent AAD downgrade. A v1 envelope carries no AAD, so if a
+  // caller supplies `aad` (i.e. it expects vault/recordId binding to be
+  // enforced) and we fall through to the v1 path, the binding is silently NOT
+  // enforced. A local attacker with IndexedDB write access could then relocate
+  // a not-yet-migrated blob into another record id — or another vault's slot —
+  // and it would decrypt cleanly, because nothing binds it to its slot. That is
+  // exactly the confused-deputy case AAD exists to prevent, and it fails open.
+  //
+  // Fail closed instead: an AAD-expecting read of a legacy record is an error.
+  // The migration path reads v1 deliberately and passes no `aad`, so it is
+  // unaffected; `opts.allowUnboundLegacy` is the explicit escape hatch for any
+  // future caller that genuinely means to read a pre-migration blob unbound.
+  if (!isV2 && aad && !opts.allowUnboundLegacy) {
+    throw new Error(
+      'Refusing to decrypt a legacy v1 record while AAD binding was requested: ' +
+      'v1 envelopes cannot enforce vault/recordId binding, so honouring this ' +
+      'read would silently drop the guarantee the caller asked for. Migrate ' +
+      'the record to v2, or pass { allowUnboundLegacy: true } deliberately.'
+    );
+  }
 
   const offset = isV2 ? V2_MAGIC.length : 0;
   const iv = payload.slice(offset, offset + 12);

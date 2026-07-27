@@ -22,6 +22,7 @@ import {
   importSaltStore,
   saltAFromStoreJson
 } from './cryptoEngine';
+import { saveFile } from './fileTransfer';
 
 const BACKUP_VERSION = 2;
 
@@ -125,19 +126,20 @@ export async function createBackup(passphrase) {
 }
 
 /**
- * Triggers a browser download of the signed backup file.
+ * Saves the signed backup file to a location the operator chooses.
+ *
+ * Was a `<a download>` click, which is a silent no-op in the Tauri webview
+ * (finding B1) — the backup button appeared to work and produced no file.
+ * Returns { saved } so the caller can distinguish "cancelled" from "done"
+ * instead of claiming success either way.
  */
 export async function downloadBackup(passphrase) {
   const backup = await createBackup(passphrase);
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {
-    type: 'application/json'
+  const name = `sanctuary-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  return saveFile(name, JSON.stringify(backup, null, 2), {
+    mime: 'application/json',
+    filters: [{ name: 'Sanctuary backup', extensions: ['json'] }],
   });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `sanctuary-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 /**

@@ -85,37 +85,37 @@ describe('independent verifiers (C1 + M1)', () => {
     expect(vaultBEnrolled()).toBe(false);
 
     // First calls ENROLL each vault's verifier.
-    expect(await createOrVerifyPassphrase(a, 'A')).toBe(true);
-    expect(await createOrVerifyPassphrase(b, 'B')).toBe(true);
+    expect(await createOrVerifyPassphrase(a, 'A', { recordsExist: false })).toBe(true);
+    expect(await createOrVerifyPassphrase(b, 'B', { recordsExist: false })).toBe(true);
     expect(vaultExists()).toBe(true);
     expect(vaultBEnrolled()).toBe(true);
 
     // Subsequent calls CHALLENGE: correct keys pass.
-    expect(await createOrVerifyPassphrase(a, 'A')).toBe(true);
-    expect(await createOrVerifyPassphrase(b, 'B')).toBe(true);
+    expect(await createOrVerifyPassphrase(a, 'A', { recordsExist: false })).toBe(true);
+    expect(await createOrVerifyPassphrase(b, 'B', { recordsExist: false })).toBe(true);
   });
 
   it('rejects a wrong Vault B passphrase at the verifier', async () => {
     const b = await deriveVaultBKey('correct-B');
-    await createOrVerifyPassphrase(b, 'B'); // enroll
+    await createOrVerifyPassphrase(b, 'B', { recordsExist: false }); // enroll
 
     const wrongB = await deriveVaultBKey('WRONG-B');
-    expect(await createOrVerifyPassphrase(wrongB, 'B')).toBe(false);
+    expect(await createOrVerifyPassphrase(wrongB, 'B', { recordsExist: false })).toBe(false);
   });
 
   it("Vault A's passphrase does not satisfy Vault B's verifier", async () => {
     const a = await deriveVaultAKey('pass-A');
     const b = await deriveVaultBKey('pass-B');
-    await createOrVerifyPassphrase(a, 'A');
-    await createOrVerifyPassphrase(b, 'B');
+    await createOrVerifyPassphrase(a, 'A', { recordsExist: false });
+    await createOrVerifyPassphrase(b, 'B', { recordsExist: false });
 
     // Presenting the Vault A key against Vault B's verifier must fail.
-    expect(await createOrVerifyPassphrase(a, 'B')).toBe(false);
+    expect(await createOrVerifyPassphrase(a, 'B', { recordsExist: false })).toBe(false);
   });
 
   it('defaults to Vault A when no vaultTag is given (back-compat)', async () => {
     const a = await deriveVaultAKey('pass-A');
-    expect(await createOrVerifyPassphrase(a)).toBe(true); // enroll A
+    expect(await createOrVerifyPassphrase(a, 'A', { recordsExist: false })).toBe(true); // enroll A
     expect(vaultExists()).toBe(true);
     expect(vaultBEnrolled()).toBe(false);
   });

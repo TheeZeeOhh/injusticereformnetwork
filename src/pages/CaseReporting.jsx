@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { useAuthStore } from '../store/authStore';
-import { saveBytes } from '../utils/download';
+import { saveFile } from '../utils/fileTransfer';
 import { loadSecureRecord } from '../utils/storageEngine';
 import { appendEntry } from '../utils/auditLog';
 import { INTAKE_QUESTIONS } from './intakeQuestions';
@@ -80,7 +80,7 @@ export default function CaseReporting() {
     const ref = clientId.replace('client_', '');
     const date = new Date().toISOString().slice(0, 10);
     // doc.save()'s blob-anchor download is dropped by the Tauri webview.
-    saveBytes(new Uint8Array(doc.output('arraybuffer')), `case_summary_${ref}_${date}.pdf`);
+    saveFile(`case_summary_${ref}_${date}.pdf`, new Uint8Array(doc.output('arraybuffer')), { mime: 'application/pdf', filters: [{ name: 'PDF', extensions: ['pdf'] }] });
     // Audit metadata only — never PHI (matches Settings backup logging).
     appendEntry({ action: 'admin', recordId: 'case_report_export', vaultTag: null });
   };
