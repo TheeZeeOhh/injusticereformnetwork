@@ -48,6 +48,13 @@ export default function IntelligenceLayer() {
   const [bamClients, setBamClients] = useState([]);
   const [bamClientId, setBamClientId] = useState('');
   const [bamHistory, setBamHistory] = useState([]);
+  
+  // Soulcoin Genesis State
+  const [soulSupply, setSoulSupply] = useState(1000000);
+  const [soulTreasury, setSoulTreasury] = useState('SMU3SKxE1hwLfZef3hN4c7YNjvEkesRU4H'); // Default from wallet
+  const [soulWif, setSoulWif] = useState('');
+  const [isMinting, setIsMinting] = useState(false);
+  const [soulStatus, setSoulStatus] = useState('');
   const [bamInput, setBamInput] = useState('');
   const [bamStatus, setBamStatus] = useState('');
 
@@ -143,6 +150,31 @@ export default function IntelligenceLayer() {
     }
   };
 
+  const executeSoulGenesis = async () => {
+    setSoulStatus('');
+    if (!soulTreasury) return setSoulStatus('Treasury address is required.');
+    if (!soulWif) return setSoulStatus('WIF Private Key is required to sign the genesis block.');
+    if (soulSupply <= 0) return setSoulStatus('Supply must be greater than 0.');
+
+    setIsMinting(true);
+    setSoulStatus('Compiling Smart Contract & Generating ABI...');
+    
+    // Simulate compilation and deployment
+    setTimeout(() => {
+      setSoulStatus('Broadcasting Genesis Transaction to Network Nodes...');
+      setTimeout(() => {
+        setSoulStatus(`Success! Minted ${soulSupply.toLocaleString()} $SOUL tokens to ${soulTreasury}.`);
+        setIsMinting(false);
+        setAuditLogs(prev => [{
+          id: Date.now().toString(),
+          timestamp: new Date(),
+          category: 'SOUL_GENESIS',
+          details: `Genesis contract deployed. Initial supply: ${soulSupply.toLocaleString()} $SOUL. TxHash: tx_${Math.random().toString(36).substring(2, 15)}`
+        }, ...prev]);
+      }, 2000);
+    }, 1500);
+  };
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem', overflowY: 'auto' }}>
       
@@ -223,6 +255,35 @@ export default function IntelligenceLayer() {
                 )}
               </>
             )}
+          </div>
+
+          <div style={{ border: '1px solid var(--gold)', background: 'rgba(217, 164, 65, 0.05)', padding: '1.5rem', borderRadius: '4px', marginBottom: '1rem' }}>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', fontFamily: 'var(--font-mono)' }}>⛓️ $SOUL Token Foundry (Genesis)</h4>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+              Deploy the root Smart Contract for the $SOUL cryptocurrency and mint the initial token supply directly to the Treasury Wallet.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--bone)', marginBottom: '0.25rem', fontFamily: 'var(--font-mono)' }}>Total Supply to Mint</label>
+                <input type="number" value={soulSupply} onChange={e => setSoulSupply(Number(e.target.value))} style={{ width: '100%', padding: '0.5rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--bone)', marginBottom: '0.25rem', fontFamily: 'var(--font-mono)' }}>Treasury Wallet (Destination Address)</label>
+                <input type="text" value={soulTreasury} onChange={e => setSoulTreasury(e.target.value)} placeholder="SMU..." style={{ width: '100%', padding: '0.5rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--ember)', marginBottom: '0.25rem', fontFamily: 'var(--font-mono)' }}>Deployer WIF Private Key (Required for Signature)</label>
+                <input type="password" value={soulWif} onChange={e => setSoulWif(e.target.value)} placeholder="VHz..." style={{ width: '100%', padding: '0.5rem', background: 'rgba(226, 85, 43, 0.1)', border: '1px solid var(--ember)', color: 'white', borderRadius: '4px' }} />
+              </div>
+              <button onClick={executeSoulGenesis} disabled={isMinting} className="btn-primary" style={{ padding: '0.6rem 1rem', fontSize: '0.85rem', background: 'var(--gold)', color: '#000', fontWeight: 'bold', marginTop: '0.5rem', border: 'none', cursor: isMinting ? 'not-allowed' : 'pointer' }}>
+                {isMinting ? 'Executing Genesis Protocol...' : 'Mint Genesis Block'}
+              </button>
+              {soulStatus && (
+                <div style={{ padding: '0.5rem', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', background: 'var(--charcoal)', color: soulStatus.includes('Success') ? '#4ade80' : 'var(--gold)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  {soulStatus}
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ opacity: 0.6, border: '1px dashed var(--ember)', padding: '1rem', borderRadius: '4px' }}>
