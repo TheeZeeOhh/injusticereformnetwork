@@ -23,18 +23,18 @@ function DashboardHome() {
       <div className="stats-grid">
         <div className="stat-card glass-panel">
           <span className="stat-title">Active Patients</span>
-          <span className="stat-value">1,248</span>
-          <span className="stat-change positive">↑ 12% this month</span>
+          <span className="stat-value">0</span>
+          <span className="stat-change">No data yet</span>
         </div>
         <div className="stat-card glass-panel">
           <span className="stat-title">Pending Reviews</span>
-          <span className="stat-value">34</span>
-          <span className="stat-change negative">↓ 5% this week</span>
+          <span className="stat-value">0</span>
+          <span className="stat-change">No data yet</span>
         </div>
         <div className="stat-card glass-panel">
           <span className="stat-title">Staff Available</span>
-          <span className="stat-value">42</span>
-          <span className="stat-change positive">Optimal coverage</span>
+          <span className="stat-value">0</span>
+          <span className="stat-change">No data yet</span>
         </div>
       </div>
 

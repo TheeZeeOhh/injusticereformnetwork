@@ -5,7 +5,8 @@ import { loadClientRecord, saveClientRecord } from '../schema';
 import { CanvasBoard } from './VisualCanvas';
 import { INTAKE_QUESTIONS } from './intakeQuestions';
 import { useLanguage } from '../i18n/LanguageContext';
-import { pickImageAsDataUrl } from '../utils/fileTransfer';
+import { pickImageAsDataUrl, pickTextFile } from '../utils/fileTransfer';
+import { parseRoster } from '../utils/rosterImport';
 
 // Common pronoun sets offered as multi-select. A client may use more than one,
 // and the free-text "self-describe" field below covers anything not listed
@@ -202,6 +203,49 @@ export default function ClientsModule() {
     setIsSeeding(false);
   };
 
+  // Import a client roster from a CSV exported by another system (BestNotes,
+  // most EHRs, spreadsheets). Each row becomes an encrypted client record in
+  // Vault A. openEHR XML/JSON compositions are a separate mapper (not yet).
+  const [isImporting, setIsImporting] = useState(false);
+  const handleImportRoster = async () => {
+    if (!vaultAKey) { alert('Unlock the vault first.'); return; }
+    const picked = await pickTextFile({
+      title: 'Select a client roster (CSV)',
+      filters: [{ name: 'CSV', extensions: ['csv', 'txt'] }],
+    });
+    if (!picked.picked) return;
+    let parsed;
+    try {
+      parsed = parseRoster(picked.text);
+    } catch (err) {
+      alert('Could not read the roster: ' + err.message);
+      return;
+    }
+    if (parsed.clients.length === 0) { alert('No client rows found in that file.'); return; }
+    setIsImporting(true);
+    try {
+      const dir = [...clientDirectory];
+      let added = 0;
+      for (const c of parsed.clients) {
+        const id = `client_IMP-${Date.now()}-${added}`;
+        await saveClientRecord(vaultAKey, id, {
+          legalName: c.legalName, alias: c.alias, phone: c.phone,
+          emergency: c.emergency, smsConsent: c.smsConsent, photo: '',
+          pronouns: [], pronounsSelfDescribe: '',
+        }, 'A');
+        dir.push({ id, name: c.legalName, status: 'Active' });
+        added++;
+      }
+      setClientDirectory(dir);
+      await saveSecureRecord(vaultAKey, 'client_directory', dir, 'A');
+      const note = parsed.skipped > 0 ? ` (${parsed.skipped} row(s) skipped — no name)` : '';
+      alert(`Imported ${added} client(s) from ${picked.name}${note}. Fields mapped: ${parsed.columns.join(', ')}.`);
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+    setIsImporting(false);
+  };
+
   // Client photo. Held on the encrypted client record (clientData.photo) and
   // written to the vault by handleSaveToVault like every other client field —
   // it is PHI, so it never touches localStorage or leaves the device. Guard the
@@ -326,6 +370,15 @@ export default function ClientsModule() {
                 {isSeeding ? 'Seeding…' : '🧪 Seed sample clients'}
               </button>
             )}
+            <button
+              className="btn-primary"
+              onClick={handleImportRoster}
+              disabled={isImporting}
+              title="Import a client roster CSV (BestNotes / EHR export)"
+              style={{ background: 'var(--charcoal)', color: 'var(--bone)', border: '1px solid var(--border-color)' }}
+            >
+              {isImporting ? 'Importing…' : '⬆ Import roster (CSV)'}
+            </button>
             <button className="btn-primary" onClick={handleCreateNewClient} style={{ background: 'var(--ember)', color: 'white', fontWeight: 'bold' }}>
               + Add New Client
             </button>
