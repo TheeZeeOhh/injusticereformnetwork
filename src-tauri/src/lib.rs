@@ -685,6 +685,15 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|_app_handle, event| {
+            // Force a clean process exit when the app is asked to quit or the
+            // last window is destroyed. The USB poll thread is an infinite loop
+            // with no join handle, so without this the process can linger after
+            // the window closes — the "have to force-close to restart" bug.
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                std::process::exit(0);
+            }
+        });
 }
