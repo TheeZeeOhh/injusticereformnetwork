@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Injustice Reform Network — Project Showcase</title>
+  <meta name="description" content="Sovereign, privacy-first software for Trans & LGBTQIA+ and justice-impacted communities. Built by the Injustice Reform Network." />
+  <style>
+    :root {
+      --bg: #0a0a0f; --bg2: #15151f; --panel: #1a1a24; --panel2: #20202c;
+      --ink: #e8e2d4; --muted: #9a9ab0; --dim: #6c6c80;
+      --gold: #d9a441; --ember: #e2552b; --line: #2c2c3a;
+      --ok: #4ade80; --violet: #a479e2; --blue: #6d9eeb;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: radial-gradient(ellipse at top, #15151f 0%, #0a0a0f 60%);
+      color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.55; min-height: 100vh;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    header.hero { padding: 72px 0 40px; text-align: center; border-bottom: 1px solid var(--line); }
+    .logo-dot { width: 46px; height: 46px; margin: 0 auto 20px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--gold), var(--ember));
+      box-shadow: 0 0 24px rgba(226,85,43,0.35); }
+    h1 { font-family: Georgia, "Times New Roman", serif; font-size: 2.5rem; margin: 0 0 8px; letter-spacing: -0.01em; }
+    h1 .accent { color: var(--gold); }
+    .tagline { color: var(--muted); font-size: 1.05rem; max-width: 620px; margin: 0 auto 8px; }
+    .subtag { color: var(--dim); font-size: 0.85rem; font-family: ui-monospace, Menlo, monospace; }
+    .creed { margin: 22px auto 0; max-width: 640px; font-size: 0.9rem; color: var(--muted);
+      border-left: 3px solid var(--gold); background: rgba(217,164,65,0.05); padding: 12px 18px; text-align: left; border-radius: 0 4px 4px 0; }
+
+    main { padding: 48px 0 72px; }
+    .section-head { display: flex; align-items: baseline; gap: 14px; margin: 44px 0 6px; }
+    .section-head h2 { font-family: Georgia, serif; font-size: 1.35rem; color: var(--gold); margin: 0; }
+    .section-head .rule { flex: 1; height: 1px; background: var(--line); }
+    .section-sub { color: var(--dim); font-size: 0.85rem; margin: 0 0 20px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
+      border: 1px solid var(--line); border-radius: 10px; padding: 22px;
+      display: flex; flex-direction: column; gap: 10px; transition: 0.18s ease;
+      text-decoration: none; color: inherit; position: relative; overflow: hidden;
+    }
+    .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--accent, var(--gold)); opacity: 0.85; }
+    .card:hover { transform: translateY(-3px); border-color: var(--gold);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+    .card h3 { margin: 4px 0 0; font-size: 1.1rem; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+    .card .emoji { font-size: 1.15rem; }
+    .card p { margin: 0; color: var(--muted); font-size: 0.88rem; flex: 1; }
+    .meta-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+    .pill { font-family: ui-monospace, Menlo, monospace; font-size: 0.68rem; padding: 2px 9px;
+      border-radius: 20px; border: 1px solid var(--line); color: var(--muted); background: rgba(255,255,255,0.02); }
+    .pill.lang { color: var(--blue); border-color: rgba(109,158,235,0.4); }
+    .pill.flagship { color: var(--gold); border-color: rgba(217,164,65,0.5); }
+    .link { font-family: ui-monospace, Menlo, monospace; font-size: 0.78rem; color: var(--gold); margin-top: 6px; }
+    .card:hover .link { text-decoration: underline; }
+    /* Cards with a live site use a link row instead of a single clickable card */
+    .card.static { cursor: default; }
+    .card.static:hover { transform: none; border-color: var(--gold); }
+    .links { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+    .links a { font-family: ui-monospace, Menlo, monospace; font-size: 0.78rem; text-decoration: none; }
+    .links a.primary { color: var(--gold); }
+    .links a.secondary { color: var(--muted); }
+    .links a:hover { text-decoration: underline; }
+
+    footer { border-top: 1px solid var(--line); padding: 30px 0 48px; text-align: center;
+      color: var(--dim); font-size: 0.8rem; font-family: ui-monospace, Menlo, monospace; }
+    footer a { color: var(--muted); }
+    @media (max-width: 560px) { h1 { font-size: 1.9rem; } }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <div class="logo-dot"></div>
+      <h1>Injustice Reform <span class="accent">Network</span></h1>
+      <p class="tagline">Sovereign, privacy-first software for Trans &amp; LGBTQIA+ and justice-impacted communities.</p>
+      <p class="subtag">501(c)(3) · EIN 83-4207890 · free to deploy · cannot be weaponized</p>
+      <div class="creed">
+        Every tool here is built local-first: data stays on the device, keys stay in RAM, and nothing
+        client-identifying leaves the machine. Software as harm reduction — designed so it can protect
+        people, not surveil them.
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- FLAGSHIP -->
+    <div class="section-head"><h2>Flagship Platform</h2><span class="rule"></span></div>
+    <p class="section-sub">The core sovereign-health infrastructure.</p>
+    <div class="grid">
+      <div class="card static" style="--accent: var(--ember)">
+        <h3><span class="emoji">🛡️</span> Sanctuary</h3>
+        <p>Local-first, client-side-encrypted health &amp; legal records platform. Built as a <em>Technical Incapacity Defense</em> — client PHI cannot be produced under subpoena. Dual-vault AES-256-GCM, on-device AI, Tauri desktop.</p>
+        <div class="meta-row"><span class="pill flagship">Flagship</span><span class="pill lang">React · Rust</span><span class="pill">Tauri</span></div>
+        <div class="links">
+          <a class="primary" href="https://theezeeohh.github.io/injusticereformnetwork/" target="_blank" rel="noopener">Visit site ↗</a>
+          <a class="secondary" href="https://github.com/TheeZeeOhh/injusticereformnetwork" target="_blank" rel="noopener">Source →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMUNITY TOOLS -->
+    <div class="section-head"><h2>Community &amp; Justice Tools</h2><span class="rule"></span></div>
+    <p class="section-sub">Direct-service tools for people navigating crisis and the justice system.</p>
+    <div class="grid">
+      <a class="card" style="--accent: var(--gold)" href="https://github.com/TheeZeeOhh/communityshield" target="_blank" rel="noopener">
+        <h3><span class="emoji">🏚️</span> CommunityShield</h3>
+        <p>Crisis navigation for people facing eviction, blight, and homelessness — turning scattered resources into a guided path.</p>
+        <div class="meta-row"><span class="pill">IRN</span><span class="pill">Crisis navigation</span></div>
+        <span class="link">View repository →</span>
+      </a>
+      <div class="card static" style="--accent: var(--gold)">
+        <h3><span class="emoji">⚖️</span> Criminal Injustice</h3>
+        <p>A web platform (Next.js) focused on the criminal-injustice work of the Network — public-facing tooling and resources.</p>
+        <div class="meta-row"><span class="pill lang">Next.js</span><span class="pill">Web</span></div>
+        <div class="links">
+          <a class="primary" href="https://theezeeohh.github.io/irn-criminal-injustice/" target="_blank" rel="noopener">Visit site ↗</a>
+          <a class="secondary" href="https://github.com/TheeZeeOhh/irn-criminal-injustice" target="_blank" rel="noopener">Source →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFRASTRUCTURE -->
+    <div class="section-head"><h2>Platform &amp; Infrastructure</h2><span class="rule"></span></div>
+    <p class="section-sub">The operating layer beneath the mission tools.</p>
+    <div class="grid">
+      <a class="card" style="--accent: var(--violet)" href="https://github.com/TheeZeeOhh/irn-os" target="_blank" rel="noopener">
+        <h3><span class="emoji">⚡</span> IRN-OS</h3>
+        <p>A secure local AI platform for multi-provider LLM balancing, telemetry calculations, and secure file integrations — installable as a global command.</p>
+        <div class="meta-row"><span class="pill lang">JavaScript</span><span class="pill">Local AI</span></div>
+        <span class="link">View repository →</span>
+      </a>
+      <a class="card" style="--accent: var(--violet)" href="https://github.com/TheeZeeOhh/radiant-threshold" target="_blank" rel="noopener">
+        <h3><span class="emoji">🌅</span> Radiant Threshold</h3>
+        <p>A personal AI configuration layer — the ritual/identity substrate that shapes how the assistant tooling behaves.</p>
+        <div class="meta-row"><span class="pill">AI config</span></div>
+        <span class="link">View repository →</span>
+      </a>
+    </div>
+
+    <!-- DEV TOOLS -->
+    <div class="section-head"><h2>Developer &amp; CLI Tools</h2><span class="rule"></span></div>
+    <p class="section-sub">Command-line utilities and building blocks.</p>
+    <div class="grid">
+      <a class="card" style="--accent: var(--blue)" href="https://github.com/TheeZeeOhh/irn-cli" target="_blank" rel="noopener">
+        <h3><span class="emoji">⌨️</span> irn-cli</h3>
+        <p>The IRN command-line toolkit — <code>irn facts</code>, <code>irn opps</code>, and more. Mission data at your fingertips in the terminal.</p>
+        <div class="meta-row"><span class="pill lang">JavaScript</span><span class="pill">CLI</span></div>
+        <span class="link">View repository →</span>
+      </a>
+      <a class="card" style="--accent: var(--blue)" href="https://github.com/TheeZeeOhh/fact-check" target="_blank" rel="noopener">
+        <h3><span class="emoji">✅</span> fact-check</h3>
+        <p>A fact-check drop-in for irn-cli: local scan, a verified-facts database, and gated live verification via the Anthropic API.</p>
+        <div class="meta-row"><span class="pill lang">JavaScript</span><span class="pill">CLI add-on</span></div>
+        <span class="link">View repository →</span>
+      </a>
+      <a class="card" style="--accent: var(--blue)" href="https://github.com/TheeZeeOhh/hermes-agent" target="_blank" rel="noopener">
+        <h3><span class="emoji">🪶</span> Hermes Agent</h3>
+        <p>An agent CLI with image generation and sandboxed command execution — an experimental autonomous tooling layer.</p>
+        <div class="meta-row"><span class="pill lang">Python</span><span class="pill">Agent</span></div>
+        <span class="link">View repository →</span>
+      </a>
+      <div class="card static" style="--accent: var(--blue)">
+        <h3><span class="emoji">📚</span> Prompt Library</h3>
+        <p>A curated, browsable library of prompts (Next.js/TypeScript) supporting the Network's AI tooling.</p>
+        <div class="meta-row"><span class="pill lang">TypeScript</span><span class="pill">Next.js</span></div>
+        <div class="links">
+          <a class="primary" href="https://theezeeohh.github.io/irn-prompt-library/" target="_blank" rel="noopener">Visit site ↗</a>
+          <a class="secondary" href="https://github.com/TheeZeeOhh/irn-prompt-library" target="_blank" rel="noopener">Source →</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="wrap">
+    Injustice Reform Network — 501(c)(3), EIN 83-4207890 ·
+    <a href="https://github.com/TheeZeeOhh" target="_blank" rel="noopener">github.com/TheeZeeOhh</a><br />
+    Curated showcase · only actively-developed public projects are listed.
+  </footer>
+</body>
+</html>
