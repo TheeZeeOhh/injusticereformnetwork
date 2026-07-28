@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { vaultExists } from '../utils/cryptoEngine';
 import { evaluatePassphrase } from '../utils/passphrasePolicy';
-import { OPERATOR_NAME_KEY } from './Onboarding';
+import { OPERATOR_NAME_KEY, OPERATOR_ROLE_KEY } from './Onboarding';
 import { useLanguage } from '../i18n/LanguageContext';
 
 const METER_COLORS = ['#e11d48', '#f97316', '#eab308', '#84cc16', '#4ade80'];
@@ -12,7 +12,7 @@ export default function Login() {
   const { loginWithPassphrase, isDecrypting, error } = useAuthStore();
   // Pre-fill the operator name captured during onboarding, if present.
   const [username, setUsername] = useState(() => localStorage.getItem(OPERATOR_NAME_KEY) || '');
-  const [role] = useState(() => localStorage.getItem('sanctuary_operator_role') || 'Lead Navigator');
+  const [role, setRole] = useState(() => localStorage.getItem(OPERATOR_ROLE_KEY) || 'Lead Navigator');
   const [passphrase, setPassphrase] = useState('');
   const [vaultStatus, setVaultStatus] = useState('');
 
@@ -27,6 +27,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (username && passphrase) {
+      localStorage.setItem(OPERATOR_ROLE_KEY, role);
       setVaultStatus('Deriving Vault A key via PBKDF2 (600,000 iterations)...');
       await loginWithPassphrase(username, passphrase, role);
     }
@@ -52,9 +53,17 @@ export default function Login() {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('login.operatorRole')}</label>
-            <div style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-              {role} <span style={{ opacity: 0.5, float: 'right' }}>(Locked)</span>
-            </div>
+            <select
+              value={role}
+              onChange={e => setRole(e.target.value)}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--charcoal-lighter)', color: 'var(--bone)', fontFamily: 'var(--font-mono)' }}
+            >
+              <option value="Lead Navigator">Lead Navigator</option>
+              <option value="Field Navigator">Field Navigator</option>
+              <option value="Clinician">Clinician</option>
+              <option value="Legal Counsel">Legal Counsel</option>
+              <option value="Systems Admin">Systems Admin</option>
+            </select>
           </div>
 
           <div>

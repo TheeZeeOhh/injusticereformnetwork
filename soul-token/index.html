@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>$SOUL Token — Console (Sepolia Testnet)</title>
+  <style>
+    :root {
+      --gold: #d9a441; --ember: #e2552b; --bone: #e8e2d4;
+      --charcoal: #15151f; --charcoal-lighter: #22222e; --border: #3a3a4a;
+      --text-secondary: #9a9ab0; --ok: #4ade80; --bad: #fda4af;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: radial-gradient(ellipse at bottom, #15151f 0%, #0a0a0f 100%);
+      color: var(--bone); font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem;
+    }
+    .panel {
+      width: 100%; max-width: 560px; background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border); border-top: 4px solid var(--gold);
+      border-radius: 6px; padding: 2rem;
+    }
+    h1 { color: var(--gold); margin: 0 0 0.25rem; font-size: 1.4rem; }
+    .sub { color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1.5rem; }
+    .warn {
+      background: rgba(226,85,43,0.1); border-left: 3px solid var(--ember);
+      padding: 0.6rem 0.8rem; font-size: 0.75rem; color: #f6b8a6; margin-bottom: 1.5rem;
+    }
+    label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-secondary); margin: 0 0 0.35rem; font-weight: bold; }
+    input {
+      width: 100%; padding: 0.6rem; background: var(--charcoal-lighter);
+      border: 1px solid var(--border); color: var(--bone); border-radius: 4px;
+      font-family: inherit; font-size: 0.85rem; margin-bottom: 1rem;
+    }
+    button {
+      width: 100%; padding: 0.7rem 1rem; border: none; border-radius: 4px;
+      font-family: inherit; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+    }
+    .btn-gold { background: var(--gold); color: #000; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--bone); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .row { display: flex; gap: 0.75rem; }
+    .row > * { flex: 1; }
+    .stat { background: var(--charcoal); border: 1px solid var(--border); border-radius: 4px;
+      padding: 0.75rem; margin-bottom: 1rem; font-size: 0.85rem; }
+    .stat span { color: var(--text-secondary); }
+    .status { padding: 0.6rem; font-size: 0.75rem; border-radius: 4px; margin-top: 1rem;
+      background: var(--charcoal); border: 1px solid var(--border); word-break: break-all; min-height: 1.2rem; }
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+    a { color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>⛓️ $SOUL Token Console</h1>
+    <div class="sub">Ethereum Sepolia testnet · signing via your browser wallet</div>
+
+    <div class="warn">
+      <strong>Testnet only.</strong> This console talks to Sepolia. Your private key
+      never leaves your wallet (MetaMask) — this page never sees or stores it.
+    </div>
+
+    <button id="connect" class="btn-gold">Connect Wallet</button>
+    <div id="account" class="stat" style="display:none; margin-top:1rem;">
+      <span>Account:</span> <b id="acct-addr">—</b><br />
+      <span>Network:</span> <b id="acct-net">—</b>
+    </div>
+
+    <div class="divider"></div>
+
+    <label for="contract">Deployed $SOUL contract address</label>
+    <input id="contract" placeholder="0x..." autocomplete="off" spellcheck="false" />
+    <button id="load" class="btn-ghost">Load Token</button>
+
+    <div id="token" style="display:none;">
+      <div class="divider"></div>
+      <div class="stat">
+        <span>Token:</span> <b id="tk-name">—</b> (<b id="tk-symbol">—</b>)<br />
+        <span>Total supply:</span> <b id="tk-supply">—</b><br />
+        <span>Your balance:</span> <b id="tk-balance">—</b><br />
+        <span>Owner:</span> <b id="tk-owner">—</b><br />
+        <span>You are owner:</span> <b id="tk-isowner">—</b>
+      </div>
+
+      <div id="mint-box" style="display:none;">
+        <label for="mint-to">Mint to (address)</label>
+        <input id="mint-to" placeholder="0x..." autocomplete="off" spellcheck="false" />
+        <label for="mint-amt">Amount (whole $SOUL)</label>
+        <input id="mint-amt" type="number" min="0" step="1" placeholder="1000" />
+        <button id="mint" class="btn-gold">Mint $SOUL</button>
+      </div>
+    </div>
+
+    <div id="status" class="status">Not connected.</div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

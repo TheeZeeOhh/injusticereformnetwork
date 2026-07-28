@@ -266,6 +266,28 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* $SOUL Token Module — admin-only entry point. Settings is already gated to
+            Systems Admin at the route level (App.jsx ProtectedRoute). The $SOUL console
+            is a SEPARATE, isolated module (soul-token/) that never runs inside this
+            PHI-vault app; this is only a link out to it. */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>⛓️ $SOUL Token Module</h2>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            The $SOUL token console runs as a <strong style={{ color: 'var(--bone)' }}>separate, isolated module</strong> — never inside this records app.
+            It signs with your browser wallet (MetaMask); no private key ever enters Sanctuary. Currently targets the <strong style={{ color: 'var(--gold)' }}>Sepolia testnet</strong>.
+          </div>
+          <div style={{ background: '#020617', borderLeft: '3px solid var(--gold)', padding: '0.75rem', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            Open <strong style={{ color: 'var(--bone)' }}>soul-token/index.html</strong> in a wallet-enabled browser, or run the deploy tooling from the <strong style={{ color: 'var(--bone)' }}>soul-token/</strong> directory. See <strong style={{ color: 'var(--bone)' }}>soul-token/README.md</strong>.
+          </div>
+          <button
+            onClick={() => { try { window.open('/soul-token/index.html', '_blank', 'noopener'); } catch { /* opening handled by host */ } }}
+            className="btn-primary"
+            style={{ background: 'var(--gold)', color: '#000', fontWeight: 'bold', padding: '0.6rem 1rem', alignSelf: 'flex-start' }}
+          >
+            Open $SOUL Console ↗
+          </button>
+        </div>
+
         {/* Security & Privacy */}
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <h2 style={{ color: 'var(--bone)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>{t('settings.securityGates')}</h2>
