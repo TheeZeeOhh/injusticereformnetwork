@@ -9,6 +9,15 @@ module** that is deliberately **isolated from the Sanctuary vault app**.
 > network). It must **never** share a process with the vault. This module runs on
 > its own, has its own toolchain, and adds **no** web3 dependencies to the root app.
 
+## Deployments
+
+| Network | Contract address | Owner / initial holder | Supply | Explorer |
+|---------|------------------|------------------------|--------|----------|
+| Sepolia (testnet) | `0x48A8a547B3B6C763D3ABDc9bC65AA17054d7DDCC` | `0x415fdc2c2A375b9bB2C8687958446c156004F533` | 1,000,000 SOUL | [view](https://sepolia.etherscan.io/token/0x48A8a547B3B6C763D3ABDc9bC65AA17054d7DDCC) |
+
+> The Sepolia owner is a **throwaway testnet deployer** — it holds no real value.
+> Do not reuse it for anything with real funds. Mainnet has no deployment (by design).
+
 ## ⚠️ Testnet only (for now)
 
 Everything here targets **Ethereum Sepolia** (a test network). Sepolia ETH is free
