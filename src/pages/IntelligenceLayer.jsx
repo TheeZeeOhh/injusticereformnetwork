@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
 import { hiveMind, getVectorEmbedding, admissionGate, HIVE_MIN_SOURCES } from '../utils/hiveEngine';
+import { seedHiveFilingRules } from '../utils/hiveSeed';
 
 // BAM (Brief Addiction Monitor) scores are 42 CFR Part 2 SUD data. They are
 // PER-CLIENT and live ONLY in the encrypted Vault B, keyed by client. Delta
@@ -101,6 +102,21 @@ export default function IntelligenceLayer() {
       setHiveKeyName(''); setHiveText(''); setHiveSources(''); setHiveVerifiedBy(''); setHiveIsPattern(false);
     } catch (err) {
       setHiveStatus(`Not admitted: ${err.message}`);
+    }
+  };
+
+  const seedFilingRules = async () => {
+    if (!hiveKey) { setHiveStatus('Log in to seed filing rules.'); return; }
+    setHiveStatus('Seeding verified VA/MD filing rules…');
+    try {
+      const { inserted, skipped, rejected } = await seedHiveFilingRules();
+      await persistHive();
+      setHiveCount(hiveMind.flatten().length);
+      const parts = [`${inserted.length} added`, `${skipped.length} already present`];
+      if (rejected.length) parts.push(`${rejected.length} rejected by gate`);
+      setHiveStatus(`Seed complete: ${parts.join(', ')}.`);
+    } catch (err) {
+      setHiveStatus(`Seed failed: ${err.message}`);
     }
   };
 
@@ -312,6 +328,13 @@ export default function IntelligenceLayer() {
                 {hiveSearching ? '…' : 'Search'}
               </button>
             </div>
+            {hiveCount === 0 && (
+              <div style={{ marginBottom: '0.5rem' }}>
+                <button onClick={seedFilingRules} className="btn-primary" style={{ padding: '0.35rem 0.9rem', fontSize: '0.75rem', background: 'var(--charcoal-lighter)', border: '1px dashed var(--gold)', color: 'var(--gold)' }}>
+                  Seed verified VA/MD filing rules
+                </button>
+              </div>
+            )}
             {hiveResult && (
               <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
                 {hiveResult.error ? 'Search failed.' :
