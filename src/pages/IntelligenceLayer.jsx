@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { loadSecureRecord, saveSecureRecord } from '../utils/storageEngine';
+import { hiveMind, getVectorEmbedding, admissionGate, HIVE_MIN_SOURCES } from '../utils/hiveEngine';
 
 // BAM (Brief Addiction Monitor) scores are 42 CFR Part 2 SUD data. They are
 // PER-CLIENT and live ONLY in the encrypted Vault B, keyed by client. Delta
@@ -35,8 +36,73 @@ export function appendBamScore(history, score, now = new Date()) {
 }
 
 export default function IntelligenceLayer() {
-  const { vaultAKey, vaultBKey } = useAuthStore();
+  const { vaultAKey, vaultBKey, hiveKey, persistHive } = useAuthStore();
   const vaultBOpen = !!vaultBKey;
+
+  // --- Hive-mind (tag 'H'): shared, non-PHI public ground truth ---------------
+  // Query state.
+  const [hiveQuery, setHiveQuery] = useState('');
+  const [hiveResult, setHiveResult] = useState(null);
+  const [hiveSearching, setHiveSearching] = useState(false);
+  // Add-entry state. isPattern entries must clear the n>=k source floor.
+  const [hiveKeyName, setHiveKeyName] = useState('');
+  const [hiveText, setHiveText] = useState('');
+  const [hiveIsPattern, setHiveIsPattern] = useState(false);
+  const [hiveSources, setHiveSources] = useState('');
+  const [hiveVerifiedBy, setHiveVerifiedBy] = useState('');
+  const [hiveStatus, setHiveStatus] = useState('');
+  const [hiveCount, setHiveCount] = useState(() => hiveMind.flatten().length);
+
+  const searchHive = async () => {
+    const q = hiveQuery.trim();
+    if (!q) return;
+    setHiveSearching(true);
+    setHiveResult(null);
+    try {
+      const res = await hiveMind.semanticSearch(q);
+      // semanticSearch returns null on an empty store, or the single best match
+      // with NO threshold — so a low score means "nothing relevant", not a hit.
+      setHiveResult(res || { node: null, score: null });
+    } catch {
+      setHiveResult({ node: null, score: null, error: true });
+    } finally {
+      setHiveSearching(false);
+    }
+  };
+
+  const addHiveEntry = async () => {
+    const key = hiveKeyName.trim();
+    const sourceText = hiveText.trim();
+    if (!key || !sourceText) { setHiveStatus('Key and source text are both required.'); return; }
+    if (!hiveKey) { setHiveStatus('Log in to add hive-mind entries.'); return; }
+
+    const candidate = {
+      sourceText,
+      isPattern: hiveIsPattern,
+      sourceCount: hiveIsPattern ? Number(hiveSources) : undefined,
+      lastVerifiedBy: hiveVerifiedBy.trim() || undefined,
+    };
+
+    // Pre-check the gate so the operator sees WHY something is refused, before we
+    // spend an embedding call. insert() enforces the same gate regardless.
+    const verdict = admissionGate(candidate);
+    if (!verdict.ok) {
+      setHiveStatus(`Refused by admission gate: ${verdict.reason}. Public, non-personal ground truth only.`);
+      return;
+    }
+
+    setHiveStatus('Embedding + admitting…');
+    try {
+      const vector = await getVectorEmbedding(sourceText);
+      await hiveMind.insert(key, vector, Date.now(), candidate);
+      const written = await persistHive(); // encrypt whole store to tag 'H'
+      setHiveCount(hiveMind.flatten().length);
+      setHiveStatus(written === false ? 'Admitted to RAM, but persist failed (not logged in?).' : `Admitted and persisted (${written} total entries).`);
+      setHiveKeyName(''); setHiveText(''); setHiveSources(''); setHiveVerifiedBy(''); setHiveIsPattern(false);
+    } catch (err) {
+      setHiveStatus(`Not admitted: ${err.message}`);
+    }
+  };
 
   const [emberFundBalance, setEmberFundBalance] = useState(0);
   const [revenueInput, setRevenueInput] = useState('');
@@ -224,6 +290,53 @@ export default function IntelligenceLayer() {
                 )}
               </>
             )}
+          </div>
+
+          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+            <h4 style={{ color: 'var(--gold)', margin: '0 0 0.5rem 0', fontFamily: 'var(--font-mono)' }}>🕸️ Hive-Mind ({hiveCount} entries)</h4>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+              Shared, encrypted store of <strong>public, non-personal</strong> procedural ground truth (filing rules, clerk-office behaviors, form quirks). A hard admission gate rejects anything client-identifying; pattern entries need &ge;{HIVE_MIN_SOURCES} sources. No PHI ever enters.
+            </p>
+
+            {/* Semantic search */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <input
+                type="text"
+                placeholder="Ask the hive… (e.g. Norfolk filing fee)"
+                value={hiveQuery}
+                onChange={e => setHiveQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') searchHive(); }}
+                style={{ flex: 1, padding: '0.4rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px', fontSize: '0.78rem' }}
+              />
+              <button onClick={searchHive} disabled={hiveSearching} className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--gold)', color: 'var(--gold)' }}>
+                {hiveSearching ? '…' : 'Search'}
+              </button>
+            </div>
+            {hiveResult && (
+              <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                {hiveResult.error ? 'Search failed.' :
+                 !hiveResult.node ? 'Hive is empty — no entries yet.' :
+                 <>Best match: <span style={{ color: 'var(--bone)' }}>{hiveResult.node.key}</span> <span style={{ color: 'var(--text-tertiary)' }}>(cosine {hiveResult.score.toFixed(3)})</span></>}
+              </div>
+            )}
+
+            {/* Add entry */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.6rem' }}>
+              <input type="text" placeholder="key (e.g. fee_norfolk)" value={hiveKeyName} onChange={e => setHiveKeyName(e.target.value)} style={{ padding: '0.4rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px', fontSize: '0.75rem' }} />
+              <textarea placeholder="public ground truth (no names, dates, pronouns, health, case refs)" value={hiveText} onChange={e => setHiveText(e.target.value)} rows={2} style={{ padding: '0.4rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px', fontSize: '0.75rem', resize: 'vertical' }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                <input type="checkbox" checked={hiveIsPattern} onChange={e => setHiveIsPattern(e.target.checked)} />
+                pattern/entity entry (requires &ge;{HIVE_MIN_SOURCES} distinct sources)
+              </label>
+              {hiveIsPattern && (
+                <input type="number" min="0" placeholder={`# distinct sources (>= ${HIVE_MIN_SOURCES})`} value={hiveSources} onChange={e => setHiveSources(e.target.value)} style={{ padding: '0.4rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px', fontSize: '0.75rem' }} />
+              )}
+              <input type="text" placeholder="verified by — role/region only (e.g. 757 intake)" value={hiveVerifiedBy} onChange={e => setHiveVerifiedBy(e.target.value)} style={{ padding: '0.4rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '4px', fontSize: '0.75rem' }} />
+              <button onClick={addHiveEntry} className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--gold)', color: 'var(--gold)', alignSelf: 'flex-start' }}>Admit to Hive</button>
+              {hiveStatus && (
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.72rem', color: '#fda4af', fontFamily: 'var(--font-mono)' }}>{hiveStatus}</p>
+              )}
+            </div>
           </div>
 
           <div style={{ opacity: 0.6, border: '1px dashed var(--ember)', padding: '1rem', borderRadius: '4px' }}>

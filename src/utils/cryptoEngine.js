@@ -272,6 +272,43 @@ export async function deriveVaultBKey(passphraseB) {
   return deriveKeyFromPassphrase(passphraseB, saltB);
 }
 
+// Hive-mind salt: DERIVED from saltA rather than stored, on purpose.
+//
+// The hive-mind namespace ('H') needs its own install-unique, stable salt so its
+// key is independent of the Vault A/B encryption keys. Adding a third random salt
+// to the persisted salt bundle would force a migration on every existing install
+// (getOrCreateSalts throws if a present salt store is missing an expected field)
+// and would break every pre-existing backup that lacks it. Instead we derive
+// saltH = SHA-256("sanctuary-hive-salt-v1" || saltA). This is:
+//   - install-unique  (depends on this install's random saltA),
+//   - stable          (saltA never changes for the life of the install),
+//   - schema-free     (no salt-store change, so old installs/backups keep working),
+//   - domain-separated from saltA by the context label, so the hive key is not a
+//     trivial function collision with the Vault A key.
+const HIVE_SALT_CONTEXT = 'sanctuary-hive-salt-v1';
+
+async function deriveHiveSalt(saltA) {
+  const enc = new TextEncoder();
+  const label = enc.encode(HIVE_SALT_CONTEXT);
+  const input = new Uint8Array(label.length + saltA.length);
+  input.set(label, 0);
+  input.set(saltA, label.length);
+  const digest = await window.crypto.subtle.digest('SHA-256', input);
+  return new Uint8Array(digest);
+}
+
+// Hive-mind key: derived from the Vault A passphrase and the derived saltH. Keyed
+// off passphrase A deliberately — the hive-mind holds only non-PHI public ground
+// truth, so it needs namespace/binding separation, NOT a third secret. There is
+// no separate hive passphrase and no extra unlock prompt: whenever Vault A is
+// unlocked, the hive key is derivable. Distinct salt => a distinct key from Vault
+// A, so tag-'H' ciphertext still cannot be read with the Vault A key.
+export async function deriveHiveKey(passphraseA) {
+  const { saltA } = await getOrCreateSalts();
+  const saltH = await deriveHiveSalt(saltA);
+  return deriveKeyFromPassphrase(passphraseA, saltH);
+}
+
 // Derives the LEGACY (pre-C1) Vault B key: on old installs Vault B records were
 // encrypted under the LOGIN passphrase plus saltB (there was no separate Vault B
 // passphrase). The re-key upgrade (task #8) uses this to decrypt those records
@@ -438,11 +475,16 @@ export function isV2Payload(payload) {
 // different id, or replaying a Vault B blob into a Vault A slot, fails the GCM
 // auth tag.
 //
-// vaultTag must be 'A' or 'B'; recordId is the IndexedDB key. The literal
+// vaultTag must be 'A', 'B', or 'H'; recordId is the IndexedDB key. The literal
 // 'sanctuaryv2|' domain-separates this scheme from any future one.
+//
+// 'H' is the hive-mind namespace: it holds only gate-admitted, non-PHI public
+// ground truth (never client data), but binding it as AAD means a hive blob
+// cannot be relocated into a Vault A/B slot, nor an A/B blob into the hive slot —
+// the same confused-deputy protection A/B already have.
 export function buildRecordAad(vaultTag, recordId) {
-  if (vaultTag !== 'A' && vaultTag !== 'B') {
-    throw new Error(`Invalid vaultTag '${vaultTag}': expected 'A' or 'B'.`);
+  if (vaultTag !== 'A' && vaultTag !== 'B' && vaultTag !== 'H') {
+    throw new Error(`Invalid vaultTag '${vaultTag}': expected 'A', 'B', or 'H'.`);
   }
   if (typeof recordId !== 'string' || recordId.length === 0) {
     throw new Error('recordId must be a non-empty string for AAD binding.');

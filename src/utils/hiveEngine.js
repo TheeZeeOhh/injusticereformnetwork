@@ -1,5 +1,12 @@
+import { saveSecureRecord, loadSecureRecord } from './storageEngine';
+
 // Sanctuary Autonomous Public License v1.1 Enforced Hash Payload
 const SAPL_WATERMARK = "SANCTUARY_AUTONOMOUS_PUBLIC_LICENSE_v1.1_OPEN_SOURCE_MANDATE";
+
+// IndexedDB record id + AAD tag for the single encrypted hive-mind blob. Tag 'H'
+// keeps it in its own namespace, cryptographically separated from Vault A/B.
+const HIVE_RECORD_ID = 'hive_mind_store';
+const HIVE_VAULT_TAG = 'H';
 
 // Fallback Deterministic Mock Embedding
 function generateMockVector(seedString) {
@@ -134,6 +141,11 @@ export function admissionGate(candidate = {}) {
 export class HiveMindEngine {
   constructor() {
     this.root = null;
+    // Per-key admission candidate metadata, kept parallel to the BST so it can be
+    // persisted and re-gated on load. Purely additive bookkeeping: it does NOT
+    // participate in insert/LWW/gate logic, so the safety-critical path is
+    // unchanged. Keyed by node key; last admitted candidate wins (mirrors LWW).
+    this.candidates = new Map();
   }
 
   // Insert or Update with LWW-CRDT rules.
@@ -146,6 +158,10 @@ export class HiveMindEngine {
     if (!verdict.ok) {
       throw new Error(`hive-mind admission REJECTED: ${verdict.reason}`);
     }
+
+    // Only reached once the gate has ADMITTED this candidate. Retain it so the
+    // store can be persisted and independently re-gated on hydrate.
+    this.candidates.set(key, candidate);
 
     if (!this.root) {
       this.root = new TrieNode(key, vector, timestamp);
@@ -230,6 +246,66 @@ export class HiveMindEngine {
     }
 
     return { node: bestNode, score: bestScore };
+  }
+
+  // --- Encrypted persistence (tag 'H') --------------------------------------
+  //
+  // The store is persisted as ONE encrypted blob, not per-node records, so a
+  // single AES-GCM envelope authenticates the whole tree. Content is non-PHI by
+  // the admission gate, but it is still encrypted at rest for consistency with
+  // every other Sanctuary store.
+
+  // Flatten the tree to a plain, order-independent array of records. Each carries
+  // its admission candidate so hydrate can re-gate it independently.
+  serialize() {
+    return this.flatten().map(node => ({
+      key: node.key,
+      vector: node.vector,
+      timestamp: node.timestamp,
+      candidate: this.candidates.get(node.key) || { sourceText: '' },
+    }));
+  }
+
+  // Encrypt and store the whole tree under the hive key. `hiveKey` is the AES-GCM
+  // key from cryptoEngine.deriveHiveKey(passphraseA). Returns the number of
+  // entries written.
+  async persist(hiveKey) {
+    const entries = this.serialize();
+    await saveSecureRecord(hiveKey, HIVE_RECORD_ID, { entries }, HIVE_VAULT_TAG);
+    return entries.length;
+  }
+
+  // Load, decrypt, and rebuild the tree from the persisted blob. Every entry is
+  // RE-GATED through admissionGate on the way in: even though it passed at write
+  // time, a locally tampered blob must not be trusted. Entries that fail the gate
+  // are DROPPED (not fatal) so one poisoned entry can't deny the whole store.
+  // Returns { admitted, dropped }. A missing blob (first run) yields zeros.
+  async hydrate(hiveKey) {
+    const payload = await loadSecureRecord(hiveKey, HIVE_RECORD_ID, HIVE_VAULT_TAG);
+    if (!payload || !Array.isArray(payload.entries)) {
+      return { admitted: 0, dropped: 0 };
+    }
+
+    this.root = null;
+    this.candidates = new Map();
+
+    let admitted = 0;
+    let dropped = 0;
+    for (const e of payload.entries) {
+      // Re-run the gate; insert() enforces it too, but check first so a rejection
+      // is a counted drop rather than a thrown abort of the whole hydrate.
+      if (!e || !admissionGate(e.candidate).ok) {
+        dropped++;
+        continue;
+      }
+      try {
+        await this.insert(e.key, e.vector, e.timestamp, e.candidate);
+        admitted++;
+      } catch {
+        dropped++;
+      }
+    }
+    return { admitted, dropped };
   }
 }
 

@@ -2,10 +2,12 @@ import { create } from 'zustand';
 import {
   deriveVaultAKey,
   deriveVaultBKey,
+  deriveHiveKey,
   createOrVerifyPassphrase,
   vaultExists,
   vaultBEnrolled
 } from '../utils/cryptoEngine';
+import { hiveMind } from '../utils/hiveEngine';
 import {
   migrateRecordsToV2,
   rekeyVaultB as rekeyVaultBRecords,
@@ -14,7 +16,7 @@ import {
 import { passphraseRejectionReason } from '../utils/passphrasePolicy';
 import { initAuditKey, clearAuditKey, appendEntry } from '../utils/auditLog';
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: null, // Basic demographics (non-sensitive)
   isAuthenticated: false,
   isOnboarded: false,
@@ -27,6 +29,11 @@ export const useAuthStore = create((set) => ({
   vaultAKey: null,
   vaultBKey: null,
   vaultBError: null,
+
+  // Hive-mind key (tag 'H'), derived from passphrase A at login. Holds only
+  // gate-admitted, non-PHI public ground truth — NOT client data — so it opens
+  // with Vault A rather than needing its own passphrase. RAM-only like the others.
+  hiveKey: null,
 
   loginWithPassphrase: async (username, passphrase, role) => {
     set({ isDecrypting: true, error: null });
@@ -76,18 +83,49 @@ export const useAuthStore = create((set) => ({
         console.warn('Audit key init failed; access logging will be skipped:', aErr);
       }
 
-      // 4. Keep the Vault A key only in active volatile RAM. Vault B stays null.
+      // 4a. Derive the hive-mind key (tag 'H') from passphrase A and load any
+      //     persisted store into the singleton. Non-fatal, like migration/audit:
+      //     the hive holds only non-PHI public ground truth, so a failure here
+      //     must never block login. hydrate() re-gates every entry on the way in.
+      let hiveKey = null;
+      try {
+        hiveKey = await deriveHiveKey(passphrase);
+        const { dropped } = await hiveMind.hydrate(hiveKey);
+        if (dropped > 0) {
+          console.warn(`hive-mind hydrate dropped ${dropped} entr(y/ies) failing the admission gate.`);
+        }
+      } catch (hErr) {
+        console.warn('hive-mind hydrate did not complete cleanly; search will be empty:', hErr);
+        hiveKey = hiveKey || null;
+      }
+
+      // 4b. Keep the Vault A + hive keys in active volatile RAM. Vault B stays null.
       set({
         user: { username, role: role || 'Lead Navigator' },
         isAuthenticated: true,
         vaultAKey,
         vaultBKey: null,
         vaultBError: null,
+        hiveKey,
         isDecrypting: false
       });
 
     } catch (err) {
       set({ error: err.message, isDecrypting: false });
+    }
+  },
+
+  // Persist the current in-RAM hive-mind store to encrypted IndexedDB (tag 'H').
+  // Callable after any insert into the hive. No-op (returns false) if the hive key
+  // is not in RAM (i.e. not logged in). Non-throwing: returns entry count or false.
+  persistHive: async () => {
+    const { hiveKey } = get();
+    if (!hiveKey) return false;
+    try {
+      return await hiveMind.persist(hiveKey);
+    } catch (err) {
+      console.warn('hive-mind persist failed:', err);
+      return false;
     }
   },
 
@@ -183,6 +221,10 @@ export const useAuthStore = create((set) => ({
     // deterministically zeroized (finding M4; true zeroize is the Rust custody
     // work). Passphrases were never cached.
     clearAuditKey(); // audit log becomes ciphertext-with-no-key after logout
+    // Drop the in-RAM hive-mind tree too, so a subsequent login on this process
+    // starts from disk rather than inheriting the prior session's entries.
+    hiveMind.root = null;
+    hiveMind.candidates = new Map();
     set({
       user: null,
       isAuthenticated: false,
@@ -190,6 +232,7 @@ export const useAuthStore = create((set) => ({
       vaultAKey: null,
       vaultBKey: null,
       vaultBError: null,
+      hiveKey: null,
       error: null
     });
   },
