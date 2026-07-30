@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildClientJoinUrl, randomRoomName } from './Telehealth';
+import { buildClientJoinUrl, randomRoomName } from './telehealthShare';
 
 // The client join link is the ONE telehealth string that leaves the operator's
 // device (sent to a client), so its construction is a boundary worth pinning:
