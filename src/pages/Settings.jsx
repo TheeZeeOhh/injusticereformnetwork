@@ -396,6 +396,7 @@ export default function Settings() {
               value={jitsiInput}
               onChange={e => setJitsiInput(e.target.value)}
               onBlur={() => setJitsiDomain(jitsiInput)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); setJitsiDomain(jitsiInput); e.target.blur(); } }}
               placeholder="meet.yourorg.org"
               style={{ padding: '0.6rem', background: 'var(--charcoal-lighter)', border: '1px solid var(--border-color)', color: 'var(--bone)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}
             />

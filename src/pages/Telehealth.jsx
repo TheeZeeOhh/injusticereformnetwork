@@ -1,10 +1,35 @@
 import React, { useState } from 'react';
 import { useSettingsStore } from '../store/settingsStore';
 
+// Build the CLEAN join URL to hand to a client on their own device. This is
+// deliberately NOT the same string as the embedded-iframe callUrl: it omits the
+// `#config.*` fragment (those flags — disabled prejoin, deep-linking — are for
+// OUR sandboxed iframe; a client on a normal browser wants Jitsi's standard
+// prejoin mic/cam check). Returns '' when no self-hosted domain is configured,
+// so there is never a link that could route to a public/unconfigured server.
+// domain is assumed already sanitized by normalizeJitsiDomain (bare host).
+// The room is percent-encoded so it cannot alter the path or origin.
+export function buildClientJoinUrl(domain, room) {
+  if (!domain) return '';
+  return `https://${domain}/${encodeURIComponent(room)}`;
+}
+
+// A random, unguessable room token. The room name IS the access control on a
+// bare self-hosted Jitsi (no per-room password by default), so a sequential
+// default like "Sanctuary-Intake-492" is guessable — anyone could walk into an
+// active session. This produces "Sanctuary-<10 hex>" from a CSPRNG.
+export function randomRoomName() {
+  const bytes = new Uint8Array(5);
+  (globalThis.crypto || window.crypto).getRandomValues(bytes);
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  return `Sanctuary-${hex}`;
+}
+
 export default function Telehealth() {
   const [inCall, setInCall] = useState(false);
   const [baaAccepted, setBaaAccepted] = useState(false);
   const [roomName, setRoomName] = useState('Sanctuary-Intake-492');
+  const [copied, setCopied] = useState(false);
   const jitsiDomain = useSettingsStore(s => s.jitsi.domain);
 
   // No public fallback: a call can only start against a configured self-hosted
@@ -32,6 +57,25 @@ export default function Telehealth() {
   const callUrl = jitsiDomain
     ? `https://${jitsiDomain}/${encodeURIComponent(roomName)}#config.prejoinPageEnabled=false&config.disableDeepLinking=true`
     : '';
+
+  // Clean link to SHARE with a client (no config fragment). Carries no PHI —
+  // only the self-hosted host and the (ideally randomized) room token.
+  const clientJoinUrl = buildClientJoinUrl(jitsiDomain, roomName);
+
+  const copyClientLink = async () => {
+    if (!clientJoinUrl) return;
+    try {
+      await navigator.clipboard.writeText(clientJoinUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API can be unavailable (non-secure context). The link is shown
+      // as selectable text below as a fallback, so the operator can copy manually.
+      setCopied(false);
+    }
+  };
+
+  const randomizeRoom = () => { setRoomName(randomRoomName()); setCopied(false); };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
@@ -73,15 +117,50 @@ export default function Telehealth() {
 
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Room ID</label>
-            <input
-              type="text"
-              value={roomName}
-              onChange={e => setRoomName(e.target.value)}
-              style={{ width: '100%', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#1e293b', color: 'white', fontSize: '1.2rem', fontFamily: 'monospace', textAlign: 'center', letterSpacing: '2px' }}
-            />
-            {jitsiDomain && (
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="text"
+                value={roomName}
+                onChange={e => { setRoomName(e.target.value); setCopied(false); }}
+                style={{ flex: 1, padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#1e293b', color: 'white', fontSize: '1.2rem', fontFamily: 'monospace', textAlign: 'center', letterSpacing: '2px' }}
+              />
+              <button
+                onClick={randomizeRoom}
+                title="Generate an unguessable room token (recommended for links shared with clients)"
+                style={{ padding: '0 1rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#1e293b', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.1rem' }}
+              >
+                🎲
+              </button>
+            </div>
+
+            {/* Client join link — shareable, no PHI, no config fragment. */}
+            {jitsiDomain ? (
+              <div style={{ marginTop: '0.75rem', background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.75rem' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                  Client join link
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    readOnly
+                    value={clientJoinUrl}
+                    onFocus={e => e.target.select()}
+                    style={{ flex: 1, padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#020617', color: 'var(--text-tertiary)', fontSize: '0.8rem', fontFamily: 'monospace' }}
+                  />
+                  <button
+                    onClick={copyClientLink}
+                    style={{ padding: '0.6rem 1rem', borderRadius: '4px', border: 'none', background: copied ? '#4ade80' : 'var(--vault-a)', color: copied ? '#022c22' : 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                  >
+                    {copied ? '✓ Copied' : 'Copy link'}
+                  </button>
+                </div>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
+                  Send this to the client to join from their own device. The room name is the only access control — use 🎲 to randomize it for a private session.
+                </div>
+              </div>
+            ) : (
               <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', fontFamily: 'monospace', textAlign: 'center' }}>
-                → https://{jitsiDomain}/{roomName}
+                Configure a Telehealth server in Settings to generate a client link.
               </div>
             )}
           </div>
@@ -109,9 +188,20 @@ export default function Telehealth() {
               <span style={{ background: '#334155', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{jitsiDomain}</span>
             </div>
 
-            <button onClick={endJitsiCall} style={{ background: '#e11d48', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-              Leave Room
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {/* Grab the client join link mid-call — e.g. for someone joining
+                  late. Same clean, fragment-free link as the pre-call box. */}
+              <button
+                onClick={copyClientLink}
+                title="Copy the client join link to share with someone joining late"
+                style={{ background: copied ? '#4ade80' : '#334155', color: copied ? '#022c22' : 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                {copied ? '✓ Copied' : 'Copy link'}
+              </button>
+              <button onClick={endJitsiCall} style={{ background: '#e11d48', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                Leave Room
+              </button>
+            </div>
           </div>
 
           <div style={{ flex: 1, position: 'relative' }}>
