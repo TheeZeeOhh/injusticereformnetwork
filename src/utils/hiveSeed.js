@@ -113,10 +113,14 @@ export const FILING_RULE_SEEDS = [
  * Does NOT persist — the caller persists once afterward (e.g. via authStore
  * persistHive) so a single encrypted write covers the whole batch.
  *
+ * @param {import('./hiveEngine').HiveMindEngine} [engine] target store. Defaults
+ *   to the shared `hiveMind` singleton (what the app uses). Passing an explicit
+ *   engine lets tests run hermetically against a fresh instance instead of the
+ *   process-wide singleton, avoiding cross-test state bleed.
  * @returns {{ inserted: string[], skipped: string[], rejected: {key:string,reason:string}[] }}
  */
-export async function seedHiveFilingRules() {
-  const existing = new Set(hiveMind.flatten().map(n => n.key));
+export async function seedHiveFilingRules(engine = hiveMind) {
+  const existing = new Set(engine.flatten().map(n => n.key));
   const inserted = [];
   const skipped = [];
   const rejected = [];
@@ -134,7 +138,7 @@ export async function seedHiveFilingRules() {
     }
 
     const vector = await getVectorEmbedding(seed.sourceText);
-    await hiveMind.insert(seed.key, vector, Date.now(), candidate);
+    await engine.insert(seed.key, vector, Date.now(), candidate);
     inserted.push(seed.key);
   }
 

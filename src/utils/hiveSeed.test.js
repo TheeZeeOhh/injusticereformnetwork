@@ -1,6 +1,20 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { HiveMindEngine, hiveMind, admissionGate } from './hiveEngine';
+import { describe, it, expect, vi } from 'vitest';
+import { HiveMindEngine, admissionGate } from './hiveEngine';
 import { FILING_RULE_SEEDS, seedHiveFilingRules } from './hiveSeed';
+
+// Stub the embedder so these unit tests are deterministic and never touch the
+// network. getVectorEmbedding otherwise attempts a 2s fetch to Ollama per call;
+// with 13 seeds x multiple runs that intermittently blew past vitest's 5s
+// timeout when Ollama WAS reachable (real round-trips) — a flaky failure that had
+// nothing to do with correctness. A fixed unit-norm vector keeps insert/search
+// working without any embedding backend.
+vi.mock('./hiveEngine', async (importOriginal) => {
+  const actual = await importOriginal();
+  const mockVec = new Array(768).fill(0).map((_, i) => Math.sin(i));
+  const mag = Math.sqrt(mockVec.reduce((a, v) => a + v * v, 0));
+  const unit = mockVec.map(v => v / mag);
+  return { ...actual, getVectorEmbedding: vi.fn(async () => unit.slice()) };
+});
 
 // The seed carries REAL public filing-rule ground truth. Two things must hold:
 //  1. every seed string clears the admission gate (a seed that trips a reject
@@ -35,30 +49,30 @@ describe('FILING_RULE_SEEDS — every seed clears the admission gate', () => {
   });
 });
 
-describe('seedHiveFilingRules — idempotent insert into a fresh singleton', () => {
-  beforeEach(() => {
-    // Reset the singleton between tests (seedHiveFilingRules operates on it).
-    hiveMind.root = null;
-    hiveMind.candidates = new Map();
-  });
-
+// Each test targets a FRESH HiveMindEngine (seedHiveFilingRules takes an optional
+// engine). This is hermetic — it never touches the process-wide `hiveMind`
+// singleton — so these tests cannot bleed state into, or flake against, other
+// files that import the singleton.
+describe('seedHiveFilingRules — idempotent insert into a fresh engine', () => {
   it('inserts all seeds on first run, skips all on a second run', async () => {
-    const first = await seedHiveFilingRules();
+    const engine = new HiveMindEngine();
+    const first = await seedHiveFilingRules(engine);
     expect(first.rejected).toEqual([]);
     expect(first.inserted.length).toBe(FILING_RULE_SEEDS.length);
     expect(first.skipped).toEqual([]);
-    expect(hiveMind.flatten().length).toBe(FILING_RULE_SEEDS.length);
+    expect(engine.flatten().length).toBe(FILING_RULE_SEEDS.length);
 
-    const second = await seedHiveFilingRules();
+    const second = await seedHiveFilingRules(engine);
     expect(second.inserted).toEqual([]);
     expect(second.skipped.length).toBe(FILING_RULE_SEEDS.length);
     // No duplication.
-    expect(hiveMind.flatten().length).toBe(FILING_RULE_SEEDS.length);
+    expect(engine.flatten().length).toBe(FILING_RULE_SEEDS.length);
   });
 
   it('seeded entries are retrievable by semantic search (mock-vector fallback ok)', async () => {
-    await seedHiveFilingRules();
-    const res = await hiveMind.semanticSearch('Maryland small claims filing fee');
+    const engine = new HiveMindEngine();
+    await seedHiveFilingRules(engine);
+    const res = await engine.semanticSearch('Maryland small claims filing fee');
     expect(res).not.toBeNull();
     expect(res.node).toBeTruthy();
     // With the deterministic mock embedding (no Ollama in test), we can't assert
@@ -66,17 +80,12 @@ describe('seedHiveFilingRules — idempotent insert into a fresh singleton', () 
     const keys = FILING_RULE_SEEDS.map(s => s.key);
     expect(keys).toContain(res.node.key);
   });
-});
 
-describe('seedHiveFilingRules — gate is still enforced on a separate engine', () => {
-  it('a fresh HiveMindEngine holds nothing until seeded, then holds the seeds', async () => {
-    const h = new HiveMindEngine();
-    expect(h.flatten().length).toBe(0);
-    // seedHiveFilingRules targets the singleton, not an arbitrary engine, so this
-    // just documents that the singleton is the seed target.
-    hiveMind.root = null;
-    hiveMind.candidates = new Map();
-    const { inserted } = await seedHiveFilingRules();
-    expect(inserted.length).toBeGreaterThan(0);
+  it('a fresh engine holds nothing until seeded, then holds the seeds', async () => {
+    const engine = new HiveMindEngine();
+    expect(engine.flatten().length).toBe(0);
+    const { inserted } = await seedHiveFilingRules(engine);
+    expect(inserted.length).toBe(FILING_RULE_SEEDS.length);
+    expect(engine.flatten().length).toBe(FILING_RULE_SEEDS.length);
   });
 });
