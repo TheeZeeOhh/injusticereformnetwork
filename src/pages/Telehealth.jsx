@@ -5,7 +5,10 @@ import { buildClientJoinUrl, randomRoomName } from './telehealthShare';
 export default function Telehealth() {
   const [inCall, setInCall] = useState(false);
   const [baaAccepted, setBaaAccepted] = useState(false);
-  const [roomName, setRoomName] = useState('Sanctuary-Intake-492');
+  // Default to an unguessable CSPRNG token, not a fixed string: the room name
+  // IS the access control on a bare self-hosted Jitsi, so a static default like
+  // "Sanctuary-Intake-492" could be walked into by anyone.
+  const [roomName, setRoomName] = useState(randomRoomName);
   const [copied, setCopied] = useState(false);
   const jitsiDomain = useSettingsStore(s => s.jitsi.domain);
 
