@@ -1,0 +1,43 @@
+* {
+  font-family: "JetBrainsMono Nerd Font", sans-serif;
+  font-size: 20px;
+  min-height: 0;
+}
+
+window#waybar {
+  background: transparent;
+}
+
+/* the visible dock pill */
+.modules-center {
+  background: rgba(16, 39, 61, 0.88);
+  border: 1px solid #16324d;
+  border-radius: 16px;
+  padding: 4px 12px;
+}
+
+#custom-launcher {
+  color: #7ab8ff;
+  padding: 0 12px;
+  margin: 2px;
+  border-radius: 12px;
+}
+
+#custom-launcher:hover {
+  background: #16324d;
+}
+
+#taskbar button {
+  padding: 2px 8px;
+  margin: 2px;
+  border-radius: 12px;
+}
+
+#taskbar button:hover {
+  background: #16324d;
+}
+
+#taskbar button.active {
+  background: #16324d;
+  border-bottom: 2px solid #7ab8ff;
+}

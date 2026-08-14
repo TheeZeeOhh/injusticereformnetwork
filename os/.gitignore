@@ -1,0 +1,18 @@
+# live-build working + output artifacts
+.build/
+cache/
+chroot/
+chroot.files
+binary/
+binary.modified_timestamp
+*.iso
+*.img
+*.log
+
+# Staged app package (build it locally; don't commit the binary)
+config/packages.chroot/*.deb
+
+# Claude Code sandbox artifacts (auto-created, zero-byte, read-only)
+.claude/
+.mcp.json
+.cc-writes/

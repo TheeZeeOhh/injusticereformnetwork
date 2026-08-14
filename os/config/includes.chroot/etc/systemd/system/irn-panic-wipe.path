@@ -1,0 +1,15 @@
+[Unit]
+Description=Watch for the IRN duress trigger file
+Documentation=file:///usr/local/sbin/irn-panic-wipe
+
+[Path]
+# The instant this file appears, irn-panic-wipe.service fires. /run is tmpfs,
+# so the trigger never survives a reboot and cannot fire accidentally at boot.
+# /run/irn is created 0700 owned by the kiosk user (see tmpfiles), so the
+# Sanctuary app can arm the wipe with a plain `touch /run/irn/panic` — no shell,
+# no root, no keybind needed.
+PathExists=/run/irn/panic
+Unit=irn-panic-wipe.service
+
+[Install]
+WantedBy=multi-user.target

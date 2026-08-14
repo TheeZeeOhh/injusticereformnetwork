@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- SUPERSEDED. The active config ships in /etc/skel/.config/labwc/ (ported from
+     the kiosk box). labwc loads the user config with precedence, so this
+     system-wide file is never used when the irn user exists. Kept only as an
+     empty, valid fallback. Safe to `git rm` this whole etc/xdg/labwc/ dir. -->
+<labwc_config>
+</labwc_config>

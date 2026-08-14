@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- SEALED KIOSK menu. rc.xml removes the right-click bind so this menu is not
+     reachable in normal use; kept minimal (Sanctuary + Lock only) as defense in
+     depth. No Terminal / Files / Exit entries. -->
+<openbox_menu>
+
+<menu id="root-menu">
+  <item label="Sanctuary (IRN)">
+    <action name="Execute" command="sanctuary" />
+  </item>
+  <item label="Lock screen">
+    <action name="Execute" command="swaylock -c 0b1a2b" />
+  </item>
+</menu>
+
+</openbox_menu>

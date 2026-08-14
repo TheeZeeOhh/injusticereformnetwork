@@ -1,0 +1,40 @@
+#!/bin/sh
+# Install Brave and make it the default browser.
+# Runs in the chroot at build time (needs network on the BUILD host). Brave is
+# not in Debian, so we add its official apt repo + signing key here rather than
+# via config/archives (we don't ship the key in the repo).
+#
+# PRIVACY NOTE: a full browser is a data-egress path on an otherwise local-first,
+# no-network-clients appliance. This is here because it was explicitly requested.
+# To drop it, delete this hook and the mimeapps/default-browser bits below.
+set -eu
+
+echo "P: IRN OS — installing Brave and setting it as default browser"
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y curl ca-certificates
+
+install -d -m 0755 /usr/share/keyrings
+curl -fsSL https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg \
+	-o /usr/share/keyrings/brave-browser-archive-keyring.gpg
+
+cat > /etc/apt/sources.list.d/brave-browser-release.sources <<'EOF'
+Types: deb
+URIs: https://brave-browser-apt-release.s3.brave.com/
+Suites: stable
+Components: main
+Signed-By: /usr/share/keyrings/brave-browser-archive-keyring.gpg
+EOF
+
+apt-get update
+apt-get install -y brave-browser
+
+# --- Make it the system default ---
+update-alternatives --install /usr/bin/x-www-browser x-www-browser /usr/bin/brave-browser 200
+update-alternatives --set x-www-browser /usr/bin/brave-browser
+if update-alternatives --list gnome-www-browser >/dev/null 2>&1; then
+	update-alternatives --set gnome-www-browser /usr/bin/brave-browser
+fi
+
+echo "P: Brave installed and set default"

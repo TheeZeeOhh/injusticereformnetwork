@@ -1,0 +1,14 @@
+#!/bin/sh
+# IRN OS kiosk entrypoint. Runs as the unprivileged `irn` user via greetd.
+# Starts a Wayland session (labwc) inside a fresh D-Bus session; labwc's
+# autostart then launches the Sanctuary app. If the compositor ever exits,
+# greetd relaunches this script, so the kiosk self-heals.
+set -eu
+
+# pam_systemd (libpam-systemd) sets XDG_RUNTIME_DIR on login; fall back just in case.
+: "${XDG_RUNTIME_DIR:=/run/user/$(id -u)}"
+export XDG_RUNTIME_DIR
+export XDG_SESSION_TYPE=wayland
+export WLR_LIBINPUT_NO_DEVICES=1   # don't fail to start if no input device is present yet
+
+exec dbus-run-session -- labwc

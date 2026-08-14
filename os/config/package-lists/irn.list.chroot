@@ -1,0 +1,52 @@
+# Packages baked into the IRN OS live filesystem.
+# Kept deliberately minimal — every package is attack surface.
+
+# --- Wayland session stack ---
+labwc
+seatd
+greetd
+xwayland
+
+# --- Session / bus plumbing labwc needs ---
+dbus-user-session
+libpam-systemd
+
+# --- Sealed-kiosk shell: status bar + lock only ---
+# (Removed vs the desktop profile: fuzzel, foot, thunar, grim, slurp,
+# wl-clipboard — every launcher/terminal/file-manager escape hatch.)
+waybar
+swaybg
+swayidle
+swaylock
+brightnessctl
+network-manager
+# audio for the waybar pulseaudio module (wpctl comes from wireplumber)
+wireplumber
+pipewire-pulse
+# Nerd-Font glyphs used by the bars. Debian's fonts-jetbrains-mono is NOT the
+# Nerd-patched build, so the PUA icons may render as tofu — drop a Nerd Font
+# into /etc/skel/.local/share/fonts to fix. See README "Fonts".
+fonts-jetbrains-mono
+
+# --- Sanctuary (Tauri) runtime deps ---
+# The Sanctuary .deb is installed from config/packages.chroot; these libraries
+# must be present up front because live-build does not resolve .deb deps itself.
+libwebkit2gtk-4.1-0
+libgtk-3-0
+libayatana-appindicator3-1
+librsvg2-common
+
+# --- Encryption / installer ---
+cryptsetup
+cryptsetup-initramfs
+calamares
+calamares-settings-debian
+
+# --- Firmware so it actually boots on real hardware ---
+firmware-linux-free
+firmware-misc-nonfree
+firmware-iwlwifi
+
+# --- Minimal diagnostics (no network clients, no browser) ---
+pciutils
+usbutils

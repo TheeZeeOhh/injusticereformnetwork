@@ -1,0 +1,8 @@
+# greetd autologin straight into the kiosk — no greeter, no login prompt.
+# The live user `irn` is created by live-config from the `username=irn` boot arg.
+[terminal]
+vt = 1
+
+[initial_session]
+command = "/usr/local/bin/irn-kiosk"
+user = "irn"

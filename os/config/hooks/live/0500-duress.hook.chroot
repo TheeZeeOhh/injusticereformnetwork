@@ -1,0 +1,16 @@
+#!/bin/sh
+# Wire the duress panic wipe. Arms the TRIGGER WATCHER only — no destructive
+# trigger (dead-man USB) is armed at build time. See SECURITY-FEATURES.md.
+set -eu
+
+echo "P: IRN OS — wiring duress panic wipe (watcher only, no armed trigger)"
+
+chmod 0755 /usr/local/sbin/irn-panic-wipe /usr/local/sbin/irn-arm-deadman
+
+# The .path unit watches /run/irn/panic and fires the wipe the instant it
+# appears. Enabling the watcher is harmless: nothing writes that file unless
+# something is deliberately armed (Sanctuary duress action, or irn-arm-deadman).
+systemctl enable irn-panic-wipe.path
+
+# Sanity: the trigger dir is provided by tmpfiles (/etc/tmpfiles.d/irn.conf).
+echo "P: duress watcher enabled; dead-man USB left DISARMED"

@@ -1,0 +1,16 @@
+[Unit]
+Description=IRN OS — disable all swap (keep decrypted keys/PHI off disk)
+DefaultDependencies=no
+After=local-fs.target
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Turn off any swap the installer or kernel brought up. On the live/amnesiac
+# boot there is none; on an installed system this guarantees no RAM contents
+# (including the master key and decrypted PHI) are ever paged to disk.
+ExecStart=/sbin/swapoff -a
+
+[Install]
+WantedBy=sysinit.target

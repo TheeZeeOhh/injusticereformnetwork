@@ -1,0 +1,26 @@
+#!/bin/sh
+# Resolving launcher for the Sanctuary app — single source of truth for the
+# binary path, referenced by labwc autostart, keybinds, and the menu.
+#
+# Why a wrapper: the kiosk box runs the dev-tree binary (Cargo name `app`),
+# but the .deb built from `productName: "Sanctuary"` installs `/usr/bin/Sanctuary`.
+# Rather than hard-code either, resolve at runtime. Lives in /usr/local/bin,
+# which precedes /usr/bin on PATH, so `sanctuary` always hits this script.
+set -eu
+
+for cand in \
+	/usr/bin/Sanctuary \
+	/usr/bin/sanctuary \
+	/usr/bin/app \
+	/home/aziza/injusticereformnetwork/src-tauri/target/release/app
+do
+	if [ -x "$cand" ]; then
+		exec "$cand" "$@"
+	fi
+done
+
+# Nothing found: surface it visibly instead of failing silently to a blank desktop.
+msg="Sanctuary binary not found. Stage the .deb into os/config/packages.chroot/ and rebuild."
+echo "E: $msg" >&2
+command -v foot >/dev/null 2>&1 && foot -e sh -c "echo '$msg'; echo; read -r _"
+exit 1

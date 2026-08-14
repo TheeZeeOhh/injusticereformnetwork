@@ -1,0 +1,26 @@
+## labwc environment — IRN OS
+## Trimmed from the box's stock labwc example (only the knobs that matter).
+## labwc will not override a variable already set in the environment.
+
+## Keyboard layout (see /usr/share/X11/xkb/rules/evdev.lst for codes).
+# XKB_DEFAULT_LAYOUT=us
+# XKB_DEFAULT_OPTIONS=grp:alt_shift_toggle
+
+## Cursor theme/size.
+# XCURSOR_THEME=Adwaita
+# XCURSOR_SIZE=24
+
+## GTK4 compose without an input method (labwc integration note).
+# GTK_IM_MODULE=simple
+
+## If cursors vanish on some GPUs, disable hardware cursors.
+# WLR_NO_HARDWARE_CURSORS=1
+
+## --- Sanctuary optional: Twilio SMS appointment reminders --------------------
+## PRIVACY NOTE: enabling these makes the Sanctuary backend send SMS via
+## Twilio — that is data leaving the device. Leave unset on a strictly
+## local-first appliance. The backend reads them at runtime; they are never
+## exposed to the frontend or written to the vault. Log out/in to apply.
+# TWILIO_ACCOUNT_SID=
+# TWILIO_AUTH_TOKEN=
+# TWILIO_FROM_NUMBER=

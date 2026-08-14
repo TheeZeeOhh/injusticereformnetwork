@@ -1,0 +1,6 @@
+# SUPERSEDED. The active autostart ships in /etc/skel/.config/labwc/autostart
+# (ported from the kiosk box). labwc runs the user autostart, not this one, when
+# the irn user exists. Kept only as an inert placeholder. Safe to `git rm` the
+# whole etc/xdg/labwc/ directory (Bash deletion was blocked by the read-only
+# repo mount in this session).
+:

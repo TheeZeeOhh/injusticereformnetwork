@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!-- SEALED KIOSK profile. No keybinds, no right-click menu, single workspace:
+     there is no key or mouse path to a terminal, launcher, or Exit. Sanctuary
+     is maximized on start and is the only app. (Brave remains installed as the
+     default browser by request — it is the one remaining escape/egress surface;
+     remove the Brave hook + browser defaults for a fully sealed device.) -->
+<labwc_config>
+
+  <theme>
+    <name>Clearlooks-3.4</name>
+    <cornerRadius>8</cornerRadius>
+    <font name="sans" size="10" />
+  </theme>
+
+  <windowRules>
+    <!-- Maximize (not fullscreen) so the status bar stays visible. Match both
+         the dev binary's app_id ("app") and the packaged app ("Sanctuary"). -->
+    <windowRule identifier="app" serverDecoration="no">
+      <action name="Maximize" />
+    </windowRule>
+    <windowRule identifier="Sanctuary" serverDecoration="no">
+      <action name="Maximize" />
+    </windowRule>
+  </windowRules>
+
+  <!-- Empty: labwc loads NONE of its built-in keybinds (which include a terminal
+       spawn and Exit). No key sequence leaves the app. -->
+  <keyboard>
+  </keyboard>
+
+  <!-- Default window interactions only. No Root right-click menu, so there is
+       no mouse path to Terminal/Files/Exit either. -->
+  <mouse>
+    <default />
+  </mouse>
+
+  <desktops number="1" />
+
+</labwc_config>

@@ -1,0 +1,9 @@
+[Unit]
+Description=IRN OS duress panic wipe (irreversible LUKS key destruction)
+# Do not let anything delay or block the wipe.
+DefaultDependencies=no
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/irn-panic-wipe

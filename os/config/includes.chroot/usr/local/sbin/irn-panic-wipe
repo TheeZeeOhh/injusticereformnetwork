@@ -1,0 +1,45 @@
+#!/bin/sh
+# IRN OS — duress panic wipe.
+# Irreversibly destroys the LUKS key material for the root device, making all
+# data on it unrecoverable, then powers off. This does NOT overwrite every
+# sector (too slow under duress) — it erases the key slots and clobbers the
+# LUKS header, so the ciphertext can never be decrypted again. That is the
+# Technical-Incapacity guarantee: the operator cannot produce plaintext.
+#
+# TRIGGERED BY: irn-panic-wipe.path watching /run/irn/panic (see that unit).
+# Runs as root via systemd. DESTRUCTIVE AND IRREVERSIBLE. No confirmation —
+# by the time this runs, the decision was already made by whatever armed it.
+set -u
+
+log() { echo "irn-panic-wipe: $*" | systemd-cat -t irn-panic-wipe 2>/dev/null || echo "irn-panic-wipe: $*" >&2; }
+
+log "PANIC TRIGGERED — destroying LUKS key material"
+
+# Resolve every LUKS backing device from crypttab (the installed-system source
+# of truth). Format: <name> <source> ...
+if [ -r /etc/crypttab ]; then
+	while read -r name source _rest; do
+		case "$name" in ''|\#*) continue ;; esac
+		dev=""
+		case "$source" in
+			UUID=*) dev="/dev/disk/by-uuid/${source#UUID=}" ;;
+			/dev/*) dev="$source" ;;
+			*)      dev="$(blkid -U "${source#*=}" 2>/dev/null || true)" ;;
+		esac
+		[ -n "$dev" ] && [ -e "$dev" ] || { log "skip $name: source '$source' unresolved"; continue; }
+
+		log "erasing LUKS key slots on $dev ($name)"
+		cryptsetup luksErase --batch-mode "$dev" 2>/dev/null || log "luksErase failed on $dev"
+
+		# Clobber the header area so even a cached master key can't re-seed it.
+		log "overwriting LUKS header on $dev"
+		dd if=/dev/urandom of="$dev" bs=1M count=32 conv=fsync 2>/dev/null || log "header overwrite failed on $dev"
+	done < /etc/crypttab
+else
+	log "no /etc/crypttab (live/amnesiac boot?) — nothing at rest to wipe"
+fi
+
+# Drop caches so the master key isn't lingering, then hard power off.
+sync
+log "powering off"
+systemctl poweroff -ff 2>/dev/null || poweroff -f

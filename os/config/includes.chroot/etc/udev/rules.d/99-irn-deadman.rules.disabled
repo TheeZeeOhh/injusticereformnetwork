@@ -1,0 +1,8 @@
+# IRN OS — USB dead-man's switch (DISARMED).
+# When armed, removing a specific USB token fires the duress wipe. This file is
+# inert until renamed to `99-irn-deadman.rules` (drop the `.disabled`) with a
+# real vendor/product/serial filled in. Use `irn-arm-deadman` to do that safely.
+#
+# ACTION=="remove" matches unplugging. Match on serial so ONLY your token counts.
+#
+# ACTION=="remove", SUBSYSTEM=="usb", ENV{ID_SERIAL_SHORT}=="REPLACE_WITH_SERIAL", RUN+="/bin/sh -c 'touch /run/irn/panic'"

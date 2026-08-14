@@ -1,0 +1,18 @@
+#!/bin/sh
+# Amnesiac posture: nothing decrypted ever touches disk.
+set -eu
+
+echo "P: IRN OS — enabling amnesiac (no-swap) posture"
+
+# Disable swap on every boot (keys/PHI stay in RAM only). The kernel cmdline
+# adds init_on_alloc/init_on_free (zero memory on alloc+free) via auto/config.
+systemctl enable irn-noswap.service
+
+# Belt-and-suspenders: strip any swap entry from the live fstab.
+sed -i '/\sswap\s/d' /etc/fstab 2>/dev/null || true
+
+# The live image already runs from a tmpfs overlay (amnesiac by default): with no
+# persistence partition, every write lives in RAM and dies at poweroff. To also
+# free the USB stick at boot, append `toram` at the boot menu (loads fully to RAM
+# so the stick can be pulled). Documented in SECURITY-FEATURES.md.
+echo "P: amnesiac posture set"

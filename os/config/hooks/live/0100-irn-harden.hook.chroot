@@ -1,0 +1,53 @@
+#!/bin/sh
+# Runs inside the live chroot at build time. Wires up the kiosk and applies
+# baseline hardening. Keep this idempotent and fail loud.
+set -eu
+
+echo "P: IRN OS — enabling kiosk services and hardening"
+
+# --- Session wiring ---
+chmod 0755 /usr/local/bin/irn-kiosk /usr/local/bin/sanctuary
+chmod 0755 /etc/skel/.config/labwc/autostart   # labwc requires autostart executable
+systemctl enable seatd.service
+systemctl enable greetd.service
+systemctl set-default graphical.target
+
+# --- Sanctuary app ---
+# live-build already installed anything from config/packages.chroot/ before this
+# hook runs. Resolve any leftover unmet deps, then check for the real app binary
+# (the `sanctuary` launcher resolves /usr/bin/Sanctuary, /usr/bin/app, etc.).
+# Warn rather than fail: the launcher shows a visible error at runtime if the app
+# is missing, which is easier to diagnose than a build that dies here.
+apt-get -y --fix-broken install || true
+if ! ls /usr/bin/Sanctuary /usr/bin/sanctuary /usr/bin/app >/dev/null 2>&1; then
+	echo "W: no Sanctuary app binary found in /usr/bin. Did you stage the .deb into" >&2
+	echo "W: config/packages.chroot/? The image will boot to the desktop but the app" >&2
+	echo "W: launcher will report the binary missing." >&2
+fi
+
+# --- Baseline hardening ---
+# No remote entry: make sure nothing is listening for the network.
+systemctl mask ssh.service 2>/dev/null || true
+systemctl mask avahi-daemon.service 2>/dev/null || true
+systemctl mask ModemManager.service 2>/dev/null || true
+
+# No telemetry: popularity-contest should never have been pulled in
+# (--apt-recommends false), but belt-and-suspenders.
+apt-get -y purge popularity-contest 2>/dev/null || true
+
+# Lock the root account (kiosk user is unprivileged; installer sets its own).
+passwd -l root || true
+
+# Kernel hardening: no core dumps (they can leak decrypted PHI from RAM),
+# restrict kernel pointer/log exposure.
+cat > /etc/sysctl.d/99-irn-harden.conf <<'EOF'
+kernel.kptr_restrict=2
+kernel.dmesg_restrict=1
+fs.suid_dumpable=0
+kernel.yama.ptrace_scope=2
+EOF
+
+# Disable core dumps at the limits level too.
+printf '* hard core 0\n' > /etc/security/limits.d/99-irn-nocore.conf
+
+echo "P: IRN OS hardening complete"

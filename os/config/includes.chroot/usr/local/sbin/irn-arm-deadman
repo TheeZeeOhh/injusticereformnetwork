@@ -1,0 +1,32 @@
+#!/bin/sh
+# Arm the USB dead-man's switch against a specific token: removing that USB
+# device will fire the duress panic wipe. Run as root. Plug in ONLY the token
+# you want to use as the key, then run this.
+#
+# ARMING THIS MAKES DATA DESTRUCTION A HARDWARE EVENT. Unplug the wrong stick
+# (or knock it loose) and everything at rest is gone. Understand that first.
+set -eu
+
+[ "$(id -u)" -eq 0 ] || { echo "run as root" >&2; exit 1; }
+
+echo "Plugged-in USB devices with serials:"
+for d in /sys/bus/usb/devices/*; do
+	[ -r "$d/serial" ] || continue
+	printf '  %-24s %s %s\n' "$(cat "$d/serial")" \
+		"$(cat "$d/manufacturer" 2>/dev/null || echo '?')" \
+		"$(cat "$d/product" 2>/dev/null || echo '?')"
+done
+
+printf '\nSerial of the token to arm as the dead-man key: '
+read -r serial
+[ -n "$serial" ] || { echo "no serial given, aborting"; exit 1; }
+
+printf 'Type ARM to confirm this token removal will WIPE all data: '
+read -r confirm
+[ "$confirm" = "ARM" ] || { echo "not confirmed, aborting"; exit 1; }
+
+rule=/etc/udev/rules.d/99-irn-deadman.rules
+printf 'ACTION=="remove", SUBSYSTEM=="usb", ENV{ID_SERIAL_SHORT}=="%s", RUN+="/bin/sh -c '\''touch /run/irn/panic'\''"\n' \
+	"$serial" > "$rule"
+udevadm control --reload-rules
+echo "Armed. Dead-man rule written to $rule. Disarm with: rm $rule && udevadm control --reload-rules"

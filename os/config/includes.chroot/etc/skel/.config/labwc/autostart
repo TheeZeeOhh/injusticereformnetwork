@@ -1,0 +1,25 @@
+# labwc autostart — IRN OS command center
+# Ported from the working kiosk box (~/.config/labwc/autostart), adapted for the
+# live image: paths point at the `sanctuary` launcher, not the dev tree.
+
+# Dark background.
+swaybg -c '#0b1a2b' >/dev/null 2>&1 &
+
+# Status bar only (clock, audio, network status, battery, tray). No on-click
+# escapes. The bottom dock + fuzzel launcher are removed in the sealed profile.
+waybar >/dev/null 2>&1 &
+
+# Idle handling: lock after inactivity. (The box also blanked outputs via
+# `wlopm`, which is not packaged in Debian — omitted here. Add wlopm and the
+# `timeout 900 'wlopm --off *' resume 'wlopm --on *'` lines back if you build it.)
+swayidle -w \
+  timeout 600 'swaylock -f -c 0b1a2b' \
+  before-sleep 'swaylock -f -c 0b1a2b' >/dev/null 2>&1 &
+
+# Launch Sanctuary. Small delay so the compositor and bars are up first.
+# NOTE: output captured to /tmp for the runtime/CSP gauntlet. Revert to
+# `>/dev/null 2>&1` once the gauntlet is confirmed clean on the image.
+( sleep 1; sanctuary ) >/tmp/sanctuary-runtime.log 2>&1 &
+
+# (The box also autostarted a separate "Sanctuary terminal" from an Arch-only
+# Desktop path; dropped here. Add it back via the launcher if you package it.)
