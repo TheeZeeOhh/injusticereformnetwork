@@ -30,12 +30,11 @@ EOF
 apt-get update
 apt-get install -y brave-browser
 
-# --- Make it the system default ---
-update-alternatives --install /usr/bin/x-www-browser x-www-browser /usr/bin/brave-browser 200
-update-alternatives --set x-www-browser /usr/bin/brave-browser
-if update-alternatives --list gnome-www-browser >/dev/null 2>&1; then
-	update-alternatives --set gnome-www-browser /usr/bin/brave-browser
-fi
+# Brave's own package already registers it as x-www-browser / gnome-www-browser
+# (via /usr/bin/brave-browser-stable), and /etc/skel's mimeapps.list sets it as
+# the http/https handler for xdg-open. So no manual update-alternatives dance is
+# needed — the earlier version tried to --set gnome-www-browser to a path it had
+# not registered and aborted the build. Left to the package + mimeapps.list.
 
 # The IRN Browser launcher wrapper (used by irn-browser.desktop).
 chmod 0755 /usr/local/bin/irn-browser
