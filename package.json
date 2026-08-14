@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "test": "vitest run",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "pet": "node pet.js"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
