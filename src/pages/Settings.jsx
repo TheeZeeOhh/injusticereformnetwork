@@ -8,6 +8,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { pickTextFile } from '../utils/fileTransfer';
 import { enrollDuressPassphrase, clearDuressPassphrase, duressEnrolled } from '../utils/cryptoEngine';
 import { passphraseRejectionReason } from '../utils/passphrasePolicy';
+import { triggerDuressWipe } from '../utils/duressBridge';
 
 export default function Settings() {
   const { logout } = useAuthStore();
@@ -53,6 +54,25 @@ export default function Settings() {
     clearDuressPassphrase();
     setDuressSet(false);
     setDuressStatus('Duress passphrase removed.');
+  };
+
+  // In-app panic button: an irreversible OS-level wipe while already unlocked.
+  // Two-step (arm → confirm) so a stray tap can't destroy everything; auto-
+  // disarms after 5s. triggerDuressWipe touches /run/irn/panic on IRN OS (or a
+  // Garuda box set up via harden-garuda.sh --duress); elsewhere it is a safe
+  // no-op and this just logs out, dropping RAM keys.
+  const [panicArmed, setPanicArmed] = useState(false);
+  const panicTimer = useRef(null);
+  const doPanic = async () => {
+    if (!panicArmed) {
+      setPanicArmed(true);
+      clearTimeout(panicTimer.current);
+      panicTimer.current = setTimeout(() => setPanicArmed(false), 5000);
+      return;
+    }
+    clearTimeout(panicTimer.current);
+    await triggerDuressWipe();
+    logout();
   };
 
   const isTauri = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
@@ -509,6 +529,32 @@ export default function Settings() {
               {duressStatus}
             </div>
           )}
+
+          {/* In-app panic button — irreversible wipe while unlocked. Two-step. */}
+          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+              Panic wipe now — fires the same OS-level destruction as the duress passphrase, immediately. <strong style={{ color: 'var(--ember)' }}>Irreversible.</strong> Requires the OS trigger to be installed (IRN OS, or Garuda via <code>harden-garuda.sh --duress</code>); otherwise it only drops keys from memory.
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <button
+                onClick={doPanic}
+                className="btn-primary"
+                style={{ background: panicArmed ? '#7f1d1d' : 'var(--ember)', color: 'white', padding: '0.5rem 1.25rem', fontWeight: 'bold', border: panicArmed ? '2px solid #ff6b6b' : 'none' }}
+              >
+                {panicArmed ? 'CONFIRM — DESTROY EVERYTHING' : '⚠ Panic wipe now'}
+              </button>
+              {panicArmed && (
+                <button onClick={() => setPanicArmed(false)} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.5rem 1rem' }}>
+                  Cancel
+                </button>
+              )}
+            </div>
+            {panicArmed && (
+              <div style={{ fontSize: '0.75rem', color: '#ff6b6b', fontFamily: 'var(--font-mono)' }}>
+                Click again to wipe. Auto-cancels in 5 seconds.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Vault Backup */}
