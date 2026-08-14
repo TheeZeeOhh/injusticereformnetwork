@@ -9,6 +9,7 @@ lb config noauto \
 	--architectures amd64 \
 	--archive-areas "main contrib non-free non-free-firmware" \
 	--binary-images iso-hybrid \
+	--bootloaders "syslinux,grub-efi" \
 	--bootappend-live "boot=live components quiet splash noeject hostname=irn-os username=irn init_on_alloc=1 init_on_free=1 mce=off" \
 	--bootappend-install "init_on_alloc=1 init_on_free=1" \
 	--debian-installer live \

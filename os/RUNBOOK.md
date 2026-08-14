@@ -67,7 +67,17 @@ lsblk                                   # find the stick, e.g. /dev/sdX (NOT a p
 sudo dd if=live-image-amd64.hybrid.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
-Boot the target from USB (may need Secure Boot off; this ISO is not signed).
+The image is `iso-hybrid` with **both** bootloaders (`syslinux` for legacy BIOS,
+`grub-efi` for UEFI), so the dd'd stick boots on old and modern machines alike.
+**Turn Secure Boot OFF** in firmware — the ISO is unsigned. Pick the USB from the
+boot menu (F12/F9/Esc, varies) or set it first in boot order.
+
+Verify the stick is bootable before trusting it:
+```bash
+file live-image-amd64.hybrid.iso     # should say "DOS/MBR boot sector" (isohybrid)
+# after dd, the stick should show an EFI System Partition:
+lsblk -f /dev/sdX                     # expect a small vfat 'ESP'/EFI part + the live part
+```
 
 ## 6. First-boot verification (the real "works" bar)
 
