@@ -240,6 +240,52 @@ fn clear_vault_salts() -> Result<(), String> {
     }
 }
 
+// --- Duress panic wipe bridge (IRN OS) ---------------------------------------
+//
+// On IRN OS a systemd path unit watches /run/irn/panic and, the instant it
+// appears, irreversibly destroys the LUKS key material and powers off (see
+// os/SECURITY-FEATURES.md). The kiosk user owns /run/irn, so the app can arm
+// that wipe with a single file touch — no root, no shell. This command is the
+// app-side actuator. The DECISION to call it (a verified duress passphrase)
+// lives in the frontend auth layer; Rust only pulls the trigger.
+const DURESS_TRIGGER_DIR: &str = "/run/irn";
+
+// Writes the panic trigger file into `base`. `base` must already exist — that
+// directory is created (0700, owned by the kiosk user) only by the IRN OS
+// tmpfiles rule, so its presence is our proof we are on the appliance and not a
+// dev machine. Factored out so it can be unit-tested against a temp dir.
+fn write_duress_trigger(base: &std::path::Path) -> Result<(), String> {
+    if !base.is_dir() {
+        return Err(format!(
+            "duress wipe unavailable: {} not present (not running on IRN OS)",
+            base.display()
+        ));
+    }
+    std::fs::write(base.join("panic"), b"1")
+        .map_err(|e| format!("failed to arm duress wipe: {e}"))
+}
+
+/// Duress panic wipe. Fires the OS-level irreversible LUKS destruction by
+/// touching the IRN OS trigger file, and emits `duress-wipe-initiated` so the
+/// frontend drops all AES keys from RAM in the brief window before poweroff.
+/// IRREVERSIBLE. IRN OS (Linux) only; errors out elsewhere so it can never
+/// misfire on a dev build.
+#[tauri::command]
+fn trigger_duress_wipe(app: tauri::AppHandle) -> Result<String, String> {
+    #[cfg(target_os = "linux")]
+    {
+        write_duress_trigger(std::path::Path::new(DURESS_TRIGGER_DIR))?;
+        // Best-effort: force RAM keys out now; the OS wipe + poweroff follows.
+        let _ = app.emit("duress-wipe-initiated", ());
+        Ok("Duress wipe armed. Destroying keys and powering off.".to_string())
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = app;
+        Err("duress wipe is only available on IRN OS".to_string())
+    }
+}
+
 // --- Portable USB bundle I/O ("Sanctuary-to-Go") -----------------------------
 //
 // The webview is NOT given filesystem access (no fs plugin). Instead these narrow
@@ -578,7 +624,8 @@ pub fn run() {
             read_import_file,
             fetch_model_file,
             hosted_assistant_ask,
-            send_sms_reminder
+            send_sms_reminder,
+            trigger_duress_wipe
         ])
         .setup(move |app| {
             if cfg!(debug_assertions) {
@@ -696,4 +743,33 @@ pub fn run() {
                 std::process::exit(0);
             }
         });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The duress trigger MUST write only when the IRN OS trigger dir exists,
+    // and MUST refuse (not panic, not write elsewhere) when it does not — that
+    // refusal is what keeps a dev build from ever arming a real wipe.
+    #[test]
+    fn duress_trigger_written_when_dir_exists() {
+        let dir = std::env::temp_dir().join(format!("irn-duress-ok-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+
+        assert!(write_duress_trigger(&dir).is_ok());
+        assert!(dir.join("panic").exists(), "trigger file should be created");
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn duress_trigger_refuses_when_dir_missing() {
+        let dir = std::env::temp_dir().join(format!("irn-duress-absent-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir); // ensure it does NOT exist
+
+        let res = write_duress_trigger(&dir);
+        assert!(res.is_err(), "must refuse when the IRN OS trigger dir is absent");
+        assert!(!dir.join("panic").exists(), "must not create anything");
+    }
 }

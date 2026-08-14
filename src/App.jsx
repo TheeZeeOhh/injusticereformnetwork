@@ -85,6 +85,7 @@ import StipendTracker from './pages/StipendTracker';
 import CredentialMonitor from './pages/CredentialMonitor';
 import ReferralTracker from './pages/ReferralTracker';
 import PortableSession from './pages/PortableSession';
+import Nexus from './pages/Nexus';
 import WeatherWidget from './pages/WeatherWidget';
 import { SidebarRadio } from './pages/SidebarExtras';
 
@@ -378,6 +379,24 @@ function App() {
     return () => { if (unlisten) unlisten(); };
   }, [logout]);
 
+  // Duress panic wipe: the Rust `trigger_duress_wipe` command touches the IRN OS
+  // trigger file (starting the irreversible LUKS destruction + poweroff) and
+  // emits 'duress-wipe-initiated'. We respond by dropping RAM keys immediately,
+  // so keys are gone even in the brief window before the OS powers the box off.
+  // No alert here (unlike the dead-man switch) — a duress event should look
+  // unremarkable to an onlooker. Tauri-only.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.__TAURI_INTERNALS__) return;
+    let unlisten;
+    (async () => {
+      const { listen } = await import('@tauri-apps/api/event');
+      unlisten = await listen('duress-wipe-initiated', () => {
+        logout();
+      });
+    })();
+    return () => { if (unlisten) unlisten(); };
+  }, [logout]);
+
   // Anti-exfiltration UI hardening (defense-in-depth, on by default).
   // Blocks the EASY ways to lift PHI off the screen from inside the app:
   //   - right-click context menu (Save Image / Copy / Inspect)
@@ -470,6 +489,12 @@ function App() {
 
           <WeatherWidget inline />
 
+          <Link to="/nexus" style={{ textDecoration: 'none' }}>
+            <li className={`nav-item ${location.pathname === '/nexus' ? 'active' : ''}`} style={{ listStyle: 'none', fontWeight: 600 }}>
+              <span>🧭</span> Nexus
+            </li>
+          </Link>
+
           <ul className="nav-links">
             {NAV_GROUPS.filter(group => hasAccess(user?.role, group.allowedRoles)).map((group) => (
               <React.Fragment key={group.titleKey}>
@@ -531,6 +556,7 @@ function App() {
           <div style={{ padding: '1.5rem 3rem' }}>
             <Routes>
               <Route path="/" element={<DashboardHome />} />
+              <Route path="/nexus" element={<Nexus />} />
               <Route path="/clients" element={<ClientsModule />} />
               <Route path="/templates" element={<NoteTemplatesLibrary />} />
               <Route path="/note-templates" element={<NoteTemplatesLibrary />} />

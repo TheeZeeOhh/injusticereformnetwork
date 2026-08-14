@@ -5,8 +5,11 @@ import {
   deriveHiveKey,
   createOrVerifyPassphrase,
   vaultExists,
-  vaultBEnrolled
+  vaultBEnrolled,
+  duressEnrolled,
+  isDuressPassphrase
 } from '../utils/cryptoEngine';
+import { triggerDuressWipe } from '../utils/duressBridge';
 import { hiveMind } from '../utils/hiveEngine';
 import {
   migrateRecordsToV2,
@@ -42,6 +45,19 @@ export const useAuthStore = create((set, get) => ({
       if (!passphrase) {
         throw new Error("Passphrase required.");
       }
+
+      // DURESS INTERCEPTION. If a duress passphrase is enrolled and the entered
+      // one matches it, fire the panic wipe and fall through to the SAME
+      // "incorrect passphrase" failure a typo produces — never unlock, never
+      // reveal. On IRN OS this begins the irreversible LUKS wipe + poweroff; on
+      // a dev/browser build triggerDuressWipe is a safe no-op. Checked before the
+      // Vault A derivation, and the duress phrase is guaranteed (at enrollment)
+      // not to collide with any real vault passphrase, so there is no ambiguity.
+      if (duressEnrolled() && (await isDuressPassphrase(passphrase))) {
+        await triggerDuressWipe();
+        throw new Error("Incorrect passphrase. Vault decryption denied.");
+      }
+
       // Enforce the strength policy only on FIRST enrollment (finding H3).
       // Returning users may hold a legacy passphrase that predates the policy —
       // locking them out would destroy their data, so we only gate new vaults.

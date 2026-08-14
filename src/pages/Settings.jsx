@@ -6,6 +6,8 @@ import { useAuthStore } from '../store/authStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { useLanguage } from '../i18n/LanguageContext';
 import { pickTextFile } from '../utils/fileTransfer';
+import { enrollDuressPassphrase, clearDuressPassphrase, duressEnrolled } from '../utils/cryptoEngine';
+import { passphraseRejectionReason } from '../utils/passphrasePolicy';
 
 export default function Settings() {
   const { logout } = useAuthStore();
@@ -27,6 +29,31 @@ export default function Settings() {
   const [usbDevices, setUsbDevices] = useState([]);
   const [selectedUsb, setSelectedUsb] = useState('');
   const [usbStatus, setUsbStatus] = useState('');
+  const [duressInput, setDuressInput] = useState('');
+  const [duressStatus, setDuressStatus] = useState('');
+  const [duressSet, setDuressSet] = useState(() => {
+    try { return duressEnrolled(); } catch { return false; }
+  });
+
+  const registerDuress = async () => {
+    if (!duressInput) { setDuressStatus('Enter a duress passphrase.'); return; }
+    const reason = passphraseRejectionReason(duressInput);
+    if (reason) { setDuressStatus(reason); return; }
+    try {
+      await enrollDuressPassphrase(duressInput);
+      setDuressInput('');
+      setDuressSet(true);
+      setDuressStatus('Duress passphrase set. Entering it at login triggers the wipe.');
+    } catch (err) {
+      setDuressStatus(err.message);
+    }
+  };
+
+  const removeDuress = () => {
+    clearDuressPassphrase();
+    setDuressSet(false);
+    setDuressStatus('Duress passphrase removed.');
+  };
 
   const isTauri = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
@@ -450,6 +477,36 @@ export default function Settings() {
           {usbStatus && (
             <div style={{ fontSize: '0.8rem', color: '#4ade80', fontFamily: 'var(--font-mono)', background: '#020617', padding: '0.75rem', borderRadius: '4px', wordBreak: 'break-word' }}>
               {usbStatus}
+            </div>
+          )}
+        </div>
+
+        {/* Duress Passphrase */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <h2 style={{ color: 'var(--ember)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Duress Passphrase</h2>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+            A second passphrase that, entered at the login screen, silently triggers the panic wipe instead of unlocking — for use under coercion. On IRN OS it irreversibly destroys the disk-encryption keys and powers off; elsewhere it drops in-memory keys. It must differ from every real vault passphrase. Status: <strong>{duressSet ? 'SET' : 'not set'}</strong>.
+          </div>
+          <input
+            type="password"
+            value={duressInput}
+            onChange={(e) => setDuressInput(e.target.value)}
+            placeholder="Duress passphrase"
+            style={{ padding: '0.5rem 0.75rem', borderRadius: '4px', background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
+          />
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button onClick={registerDuress} className="btn-primary" style={{ background: 'var(--ember)', color: 'white', padding: '0.4rem 1rem', fontWeight: 'bold' }}>
+              {duressSet ? 'Replace duress passphrase' : 'Set duress passphrase'}
+            </button>
+            {duressSet && (
+              <button onClick={removeDuress} className="btn-primary" style={{ background: 'var(--charcoal-lighter)', color: 'var(--bone)', border: '1px solid var(--border-color)', padding: '0.4rem 1rem' }}>
+                Remove
+              </button>
+            )}
+          </div>
+          {duressStatus && (
+            <div style={{ fontSize: '0.8rem', color: '#4ade80', fontFamily: 'var(--font-mono)', background: '#020617', padding: '0.75rem', borderRadius: '4px', wordBreak: 'break-word' }}>
+              {duressStatus}
             </div>
           )}
         </div>

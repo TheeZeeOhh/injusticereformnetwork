@@ -433,6 +433,97 @@ export async function createOrVerifyPassphrase(vaultKey, vaultTag = 'A', opts = 
   return true;
 }
 
+// --- Duress passphrase (panic-wipe trigger) ---------------------------------
+//
+// A duress passphrase unlocks NOTHING. It exists only so that, entered at the
+// login prompt under coercion, it can fire the panic wipe while presenting the
+// SAME "incorrect passphrase" outcome as a typo. It is verified exactly like the
+// vault passphrases — an AES-GCM verifier blob that only the right passphrase can
+// decrypt — but derived under its OWN context salt, so it is cryptographically
+// independent of the Vault A/B keys and reveals nothing about them. The verifier
+// is ciphertext (not secret), so localStorage is an acceptable, stable home.
+const DURESS_VERIFIER_STORAGE_KEY = 'sanctuary_duress_verifier_v1';
+const DURESS_VERIFIER_PLAINTEXT = 'SANCTUARY_DURESS_VERIFIER';
+
+async function deriveDuressKey(passphrase) {
+  const enc = new TextEncoder();
+  const { saltA } = await getOrCreateSalts();
+  // Domain-separate from the vault/HMAC/audit keys by a distinct context label.
+  const duressSalt = new Uint8Array([...saltA, ...enc.encode('DURESS_VERIFIER_CTX')]);
+  const keyMaterial = await window.crypto.subtle.importKey(
+    'raw', enc.encode(passphrase), { name: 'PBKDF2' }, false, ['deriveKey']
+  );
+  return window.crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: duressSalt, iterations: CRYPTO_CONFIG.KDF_ITERATIONS, hash: CRYPTO_CONFIG.HASH_ALGO },
+    keyMaterial,
+    { name: CRYPTO_CONFIG.ENCRYPTION_ALGO, length: CRYPTO_CONFIG.KEY_LENGTH },
+    false, ['encrypt', 'decrypt']
+  );
+}
+
+// True once a duress passphrase has been enrolled on this device.
+export function duressEnrolled() {
+  return localStorage.getItem(DURESS_VERIFIER_STORAGE_KEY) !== null;
+}
+
+// True iff `passphrase` is the enrolled duress passphrase. False when none is
+// enrolled or it does not match. Always attempts the decrypt when a verifier
+// exists, so it fails closed on any crypto error.
+export async function isDuressPassphrase(passphrase) {
+  const stored = localStorage.getItem(DURESS_VERIFIER_STORAGE_KEY);
+  if (!stored) return false;
+  try {
+    const key = await deriveDuressKey(passphrase);
+    const decoded = await decryptRecord(key, fromBase64(stored));
+    return decoded === DURESS_VERIFIER_PLAINTEXT;
+  } catch {
+    return false;
+  }
+}
+
+// True iff `passphrase` decrypts the Vault A OR Vault B verifier — i.e. it is a
+// real vault passphrase. Used to forbid a duress phrase that collides with one
+// (a collision would either wipe on a normal login, or fail to wipe under
+// coercion). Best-effort per vault: a missing verifier just means "not that".
+async function passphraseMatchesAnyVault(passphrase) {
+  const aStored = localStorage.getItem(VERIFIER_STORAGE_KEY_A);
+  if (aStored) {
+    try {
+      const keyA = await deriveVaultAKey(passphrase);
+      if ((await decryptRecord(keyA, fromBase64(aStored))) === VERIFIER_PLAINTEXT) return true;
+    } catch { /* not the Vault A passphrase */ }
+  }
+  const bStored = localStorage.getItem(VERIFIER_STORAGE_KEY_B);
+  if (bStored) {
+    try {
+      const keyB = await deriveVaultBKey(passphrase);
+      if ((await decryptRecord(keyB, fromBase64(bStored))) === VERIFIER_PLAINTEXT) return true;
+    } catch { /* not the Vault B passphrase */ }
+  }
+  return false;
+}
+
+// Enroll (or replace) the duress passphrase. Refuses one that already unlocks a
+// real vault. Caller is responsible for strength-checking the passphrase first
+// (same policy as the vaults).
+export async function enrollDuressPassphrase(passphrase) {
+  if (!passphrase) throw new Error('Duress passphrase required.');
+  if (await passphraseMatchesAnyVault(passphrase)) {
+    throw new Error(
+      'That passphrase already unlocks a vault. Choose a duress passphrase ' +
+      'different from every real vault passphrase.'
+    );
+  }
+  const key = await deriveDuressKey(passphrase);
+  const payload = await encryptRecord(key, DURESS_VERIFIER_PLAINTEXT);
+  localStorage.setItem(DURESS_VERIFIER_STORAGE_KEY, toBase64(payload));
+}
+
+// Remove the enrolled duress passphrase (disarm the login-prompt trigger).
+export function clearDuressPassphrase() {
+  localStorage.removeItem(DURESS_VERIFIER_STORAGE_KEY);
+}
+
 // Convert string to Uint8Array buffer
 const encodeText = (text) => new TextEncoder().encode(text);
 const decodeText = (buffer) => new TextDecoder().decode(buffer);
