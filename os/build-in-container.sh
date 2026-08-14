@@ -22,6 +22,12 @@ elif command -v docker >/dev/null 2>&1; then ENGINE=docker
 else echo "need podman or docker installed" >&2; exit 1; fi
 echo "Using container engine: $ENGINE"
 
+# debootstrap must mknod device nodes — impossible rootless on most kernels.
+if [ "$ENGINE" = podman ] && [ "$(id -u)" -ne 0 ]; then
+  echo "NOTE: rootless podman cannot mknod device nodes; debootstrap will fail." >&2
+  echo "      Re-run this whole script with sudo:  sudo bash $0" >&2
+fi
+
 # Storage-driver selection (podman only; docker's driver is daemon-level).
 # Rootless podman's default `overlay` driver is NOT supported directly over
 # btrfs (Garuda's default FS) — it fails with "overlay is not supported over
@@ -58,19 +64,25 @@ if ! ls os/config/packages.chroot/*.deb >/dev/null 2>&1; then
   read -r ans; [ "$ans" = y ] || [ "$ans" = Y ] || exit 1
 fi
 
-# Run the build. --privileged for loop/mount; the repo is bind-mounted so the
-# ISO lands back in os/ on the host. $ENGINE_OPTS is unquoted on purpose (it is a
-# flag list, possibly empty).
+# Run the build.
+#  --privileged      : debootstrap needs mknod + loop/mount (requires ROOTFUL —
+#                      run this whole script with sudo; rootless can't mknod
+#                      device nodes on most kernels).
+#  --network=host    : use the host's network stack so the container reaches the
+#                      Debian mirrors. Rootful podman's default bridge often has
+#                      no egress (firewall/netavark), which fails debootstrap.
+# $ENGINE_OPTS is unquoted on purpose (it is a flag list, possibly empty).
 # shellcheck disable=SC2086
-"$ENGINE" $ENGINE_OPTS run --rm --privileged \
+"$ENGINE" $ENGINE_OPTS run --rm --privileged --network=host \
   -v "$REPO":/repo -w /repo/os \
   docker.io/library/debian:bookworm \
   bash -euxc '
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get install -y --no-install-recommends live-build ca-certificates
-    lb config          # reads auto/config
-    lb build           # → live-image-amd64.hybrid.iso
+    lb clean --purge || true   # clear any stale chroot/cache from a failed run
+    lb config                  # reads auto/config
+    lb build                   # → live-image-amd64.hybrid.iso
     ls -l live-image-*.iso
   ' && exit 0
 
