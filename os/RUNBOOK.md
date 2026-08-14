@@ -40,11 +40,23 @@ mkdir -p os/config/includes.chroot/etc/skel/.local/share/fonts
 
 ## 4. Build the ISO
 
+On a Debian host with `live-build`:
+
 ```bash
 cd os
 sudo ./build.sh              # lb config (auto/config) + lb build
 # → live-image-amd64.hybrid.iso
 ```
+
+**Not on Debian?** (e.g. an Arch/Garuda box.) Build inside a Debian container
+instead — same result, no separate machine:
+
+```bash
+./os/build-in-container.sh   # runs lb build in a debian:bookworm container
+# if rootless podman errors on loop/mount: sudo ./os/build-in-container.sh
+```
+
+Needs Podman or Docker + internet. Stage the `.deb` (step 2) first either way.
 
 Rebuilding after config changes: `sudo lb clean --purge` first.
 
