@@ -9,6 +9,12 @@ swaybg -c '#0b1a2b' >/dev/null 2>&1 &
 # escapes. The bottom dock + fuzzel launcher are removed in the sealed profile.
 waybar >/dev/null 2>&1 &
 
+# System-wide audio EQ (EasyEffects on PipeWire): run headless and apply the
+# IRN preset. Fully configurable — edit ~/.config/easyeffects/output/IRN.json,
+# or open the EasyEffects GUI on the desktop profile to retune. See AUDIO.md.
+easyeffects --gapplication-service >/dev/null 2>&1 &
+( sleep 2; easyeffects -l IRN ) >/dev/null 2>&1 &
+
 # Idle handling: lock after inactivity. (The box also blanked outputs via
 # `wlopm`, which is not packaged in Debian — omitted here. Add wlopm and the
 # `timeout 900 'wlopm --off *' resume 'wlopm --on *'` lines back if you build it.)

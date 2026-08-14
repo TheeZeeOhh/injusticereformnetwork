@@ -12,6 +12,9 @@ binary.modified_timestamp
 # Staged app package (build it locally; don't commit the binary)
 config/packages.chroot/*.deb
 
+# Real secrets — never commit an actual VPN config (keys). Ship only .example.
+config/includes.chroot/etc/wireguard/irn.conf
+
 # Claude Code sandbox artifacts (auto-created, zero-byte, read-only)
 .claude/
 .mcp.json

@@ -1,0 +1,62 @@
+#!/bin/sh
+# IRN OS VPN control — WireGuard (free, open-source, bring-your-own config).
+#
+# The VPN is CONFIGURABLE: drop any WireGuard .conf at /etc/wireguard/irn.conf
+# (from a self-hosted peer, Proton's free tier, Mullvad, etc.) and this wrapper
+# brings it up/down, autostarts it, and checks it for leaks. Nothing is enabled
+# until you supply a config — a fresh image ships only the example.
+#
+# Usage:
+#   irn-vpn import <file>     copy <file> to /etc/wireguard/irn.conf (chmod 600)
+#   irn-vpn up | down         connect / disconnect now
+#   irn-vpn status            show the tunnel state
+#   irn-vpn autostart on|off  connect automatically at every boot
+#   irn-vpn check             warn if the config is not a full-tunnel kill-switch
+set -eu
+
+IFACE=irn
+CONF="/etc/wireguard/${IFACE}.conf"
+
+need_root() { [ "$(id -u)" -eq 0 ] || { echo "irn-vpn: run as root" >&2; exit 1; }; }
+have_conf() { [ -r "$CONF" ] || { echo "irn-vpn: no config at $CONF (run: irn-vpn import <file>)" >&2; exit 1; }; }
+
+# A full-tunnel config (AllowedIPs = 0.0.0.0/0, ::/0) makes wg-quick install its
+# built-in kill-switch: traffic that would bypass the tunnel is dropped, so a
+# dropped VPN fails closed rather than leaking to the clear net.
+check_killswitch() {
+  if grep -qiE '^\s*AllowedIPs\s*=.*0\.0\.0\.0/0' "$CONF"; then
+    echo "irn-vpn: full-tunnel (kill-switch active — traffic fails closed if the VPN drops)"
+  else
+    echo "irn-vpn: WARNING — AllowedIPs is not 0.0.0.0/0. This is a SPLIT tunnel:" >&2
+    echo "         traffic outside AllowedIPs goes out in the clear and keeps" >&2
+    echo "         flowing if the VPN drops. Set AllowedIPs = 0.0.0.0/0, ::/0 for" >&2
+    echo "         a leak-proof kill-switch." >&2
+  fi
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  import)
+    need_root
+    src="${2:-}"; [ -r "$src" ] || { echo "irn-vpn: usage: irn-vpn import <file>" >&2; exit 1; }
+    install -D -m 600 "$src" "$CONF"
+    echo "irn-vpn: imported to $CONF"
+    check_killswitch
+    ;;
+  up)      need_root; have_conf; check_killswitch; wg-quick up "$IFACE" ;;
+  down)    need_root; wg-quick down "$IFACE" ;;
+  status)  wg show "$IFACE" 2>/dev/null || { echo "irn-vpn: tunnel is down"; exit 1; } ;;
+  check)   have_conf; check_killswitch ;;
+  autostart)
+    need_root
+    case "${2:-}" in
+      on)  have_conf; systemctl enable --now "wg-quick@${IFACE}"; echo "irn-vpn: autostart ON" ;;
+      off) systemctl disable --now "wg-quick@${IFACE}" 2>/dev/null || true; echo "irn-vpn: autostart OFF" ;;
+      *)   echo "irn-vpn: usage: irn-vpn autostart on|off" >&2; exit 1 ;;
+    esac
+    ;;
+  *)
+    echo "irn-vpn: import <file> | up | down | status | autostart on|off | check" >&2
+    exit 1
+    ;;
+esac

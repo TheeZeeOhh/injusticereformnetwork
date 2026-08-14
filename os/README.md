@@ -12,9 +12,15 @@ telemetry, and boots directly into the Sanctuary app with nothing else exposed.
   **sealed labwc kiosk**: Sanctuary launched maximized, a status-only waybar
   (clock/audio/network/battery/tray), and **no way out** — no keybinds, no
   launcher, no terminal, no file manager, no Exit, no right-click menu.
-- **Brave** installed and set as the default browser (kept by request).
+- **Brave** installed and set as the default browser (kept by request),
+  **hardened by managed policy** — telemetry/sync/extensions off, HTTPS-only,
+  encrypted DNS, no history, downloads blocked. See **`BROWSER.md`**.
 - **LUKS** full-disk encryption available at install time (via the bundled
   Calamares installer profile).
+- **VPN**: WireGuard (free, bring-your-own config) with a leak-proof kill-switch,
+  driven by the `irn-vpn` helper; OpenVPN import too. See **`VPN.md`**.
+- **Audio EQ**: system-wide EasyEffects equalizer on PipeWire, with a starter
+  preset. See **`AUDIO.md`**.
 - **Amnesiac mode**: runs from RAM, swap disabled, memory zeroed on free —
   nothing decrypted touches disk (add `toram` to free the USB entirely).
 - **Duress panic wipe**: an armable trigger that irreversibly destroys the LUKS

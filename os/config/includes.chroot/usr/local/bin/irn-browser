@@ -1,0 +1,12 @@
+#!/bin/sh
+# Launch the IRN-hardened Brave. Resolves the binary name across distros:
+# brave-browser (Debian / IRN OS) or brave (Arch / AUR). The hardening is the
+# managed policy at /etc/brave/policies/managed/irn-hardening.json — this wrapper
+# only picks the right binary and forwards args (URLs).
+for b in brave-browser brave; do
+  if command -v "$b" >/dev/null 2>&1; then
+    exec "$b" "$@"
+  fi
+done
+echo "IRN Browser: no Brave binary found (looked for brave-browser, brave)" >&2
+exit 1

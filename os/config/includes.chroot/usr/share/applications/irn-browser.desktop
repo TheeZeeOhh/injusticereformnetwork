@@ -1,0 +1,15 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=IRN Browser
+GenericName=Hardened Web Browser
+Comment=Privacy-hardened Brave (IRN OS managed policy)
+# irn-browser resolves the Brave binary across distros. %U passes any URLs.
+Exec=irn-browser %U
+Icon=irn-browser
+Terminal=false
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=brave-browser
+StartupNotify=true
+Keywords=browser;web;internet;privacy;irn;brave;

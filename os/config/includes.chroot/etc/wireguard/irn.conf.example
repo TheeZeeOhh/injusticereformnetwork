@@ -1,0 +1,26 @@
+# IRN OS WireGuard config TEMPLATE.
+# Copy your real config to /etc/wireguard/irn.conf (chmod 600) — or use
+# `irn-vpn import <file>`. The real irn.conf is git-ignored; never commit keys.
+#
+# Get a config from any WireGuard provider or a self-hosted peer:
+#   - Self-hosted: `wg genkey` on a VPS + `wg-quick` server, hand out this peer.
+#   - Proton VPN free tier: export a WireGuard config from the dashboard.
+#   - Mullvad / IVPN / etc.: download a WireGuard config.
+#
+# KILL-SWITCH: keep AllowedIPs = 0.0.0.0/0, ::/0 (full tunnel). wg-quick then
+# drops any traffic that would bypass the tunnel, so a dropped VPN fails CLOSED
+# instead of leaking to the clear net. `irn-vpn check` warns if you narrow it.
+
+[Interface]
+PrivateKey = <YOUR_PRIVATE_KEY>
+Address = 10.0.0.2/32
+# Push DNS through the tunnel too (needs openresolv, which is installed) so DNS
+# queries don't leak to the local network's resolver.
+DNS = 10.0.0.1
+
+[Peer]
+PublicKey = <SERVER_PUBLIC_KEY>
+Endpoint = <SERVER_HOST_OR_IP>:51820
+AllowedIPs = 0.0.0.0/0, ::/0
+# Keeps the tunnel alive behind NAT; 25s is the usual value.
+PersistentKeepalive = 25

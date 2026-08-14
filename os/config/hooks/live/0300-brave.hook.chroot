@@ -37,4 +37,7 @@ if update-alternatives --list gnome-www-browser >/dev/null 2>&1; then
 	update-alternatives --set gnome-www-browser /usr/bin/brave-browser
 fi
 
+# The IRN Browser launcher wrapper (used by irn-browser.desktop).
+chmod 0755 /usr/local/bin/irn-browser
+
 echo "P: Brave installed and set default"

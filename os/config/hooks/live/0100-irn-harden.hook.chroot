@@ -6,7 +6,7 @@ set -eu
 echo "P: IRN OS — enabling kiosk services and hardening"
 
 # --- Session wiring ---
-chmod 0755 /usr/local/bin/irn-kiosk /usr/local/bin/sanctuary
+chmod 0755 /usr/local/bin/irn-kiosk /usr/local/bin/sanctuary /usr/local/sbin/irn-vpn
 chmod 0755 /etc/skel/.config/labwc/autostart   # labwc requires autostart executable
 systemctl enable seatd.service
 systemctl enable greetd.service
