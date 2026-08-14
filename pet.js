@@ -7,11 +7,21 @@
 //   node pet.js            fast read of the repo, render Sable once
 //   node pet.js --test     also run the test suite and let a red bar spook her
 //   node pet.js --watch    stay resident; re-read + re-render when files change
+//   node pet.js --bar      emit one line of waybar JSON (a live desktop pet that
+//                          reacts to the repo AND your machine: load, battery,
+//                          time of day, music). Point a waybar custom module at it.
 //
 // Purely local and read-only. Sable never writes to your repo.
 
 import { execSync } from 'node:child_process';
-import { watch } from 'node:fs';
+import { watch, readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+import os from 'node:os';
+
+// Sable's home is the repo she lives in, resolved from this script's location —
+// so she reads the same repo even when launched from elsewhere (e.g. waybar).
+const REPO = dirname(fileURLToPath(import.meta.url));
 
 const C = {
   reset: '\x1b[0m', dim: '\x1b[2m', bold: '\x1b[1m',
@@ -22,10 +32,11 @@ const C = {
 const args = new Set(process.argv.slice(2));
 const RUN_TESTS = args.has('--test');
 const WATCH = args.has('--watch');
+const BAR = args.has('--bar'); // emit one line of waybar JSON, then exit
 
 function sh(cmd) {
   try {
-    return execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    return execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'], cwd: REPO }).toString().trim();
   } catch {
     return '';
   }
@@ -98,7 +109,89 @@ const FACES = {
   sleepy:   { eyes: '－   －', mouth: ' ⌣ ', color: C.gray,    aura: 'curled up, dreaming',   emote: 'z' },
   worried:  { eyes: 'ⓞ   ⓞ', mouth: ' ⌒ ', color: C.yellow,  aura: 'ears pinned back',      emote: '!' },
   alarmed:  { eyes: '✖   ✖', mouth: ' ▢ ',  color: C.red,     aura: 'fur bristling',         emote: '!!' },
+  busy:     { eyes: '>   <', mouth: ' ◇ ',  color: C.blue,    aura: 'working hard with you',  emote: '⚙' },
+  happy:    { eyes: '^   ^', mouth: ' ᵕ ',  color: C.green,   aura: 'swaying to the music',   emote: '♫' },
 };
+
+// ── Machine signals: how Sable reads what YOU'RE doing right now ────────────
+// Live, non-invasive reads only — load, battery, clock, and whatever media
+// player is running. No input capture, no window snooping (Wayland doesn't
+// expose those, and Sable is a familiar, not a spy).
+function readSystem() {
+  const cpus = os.cpus().length || 1;
+  const load1 = os.loadavg()[0] || 0;
+  const hour = new Date().getHours();
+
+  let battery = null, charging = false;
+  try {
+    const base = '/sys/class/power_supply';
+    for (const name of readdirSync(base)) {
+      let type = '';
+      try { type = readFileSync(`${base}/${name}/type`, 'utf8').trim(); } catch { /* skip */ }
+      if (type !== 'Battery') continue;
+      const cap = Number(readFileSync(`${base}/${name}/capacity`, 'utf8').trim());
+      let status = '';
+      try { status = readFileSync(`${base}/${name}/status`, 'utf8').trim(); } catch { /* skip */ }
+      if (Number.isFinite(cap)) battery = cap;
+      charging = status === 'Charging' || status === 'Full';
+      break;
+    }
+  } catch { /* no battery (desktop) */ }
+
+  const media = sh('playerctl status 2>/dev/null');          // Playing | Paused | ''
+  const track = media === 'Playing' ? sh('playerctl metadata title 2>/dev/null') : '';
+
+  return { cpus, load1, loadRatio: load1 / cpus, hour, battery, charging, media, track };
+}
+
+// Compact faces for the waybar module (the ASCII fox is too wide for a bar).
+const BAR_FACES = {
+  content: '◕ᴥ◕', happy: '◕ᴥ◕♫', proud: '★ᴥ★', eager: '◕ᴥ◕↑',
+  curious: 'o.O', anxious: '·︿·', worried: 'ⓞ﹏ⓞ', sleepy: '-ᴥ-z',
+  busy: '>ᴥ<', alarmed: '⊙ᴥ⊙!',
+};
+
+// Bar mood: repo signals + machine signals, danger first.
+function barMood(s, sys) {
+  if (sys.battery !== null && sys.battery <= 10 && !sys.charging)
+    return { key: 'alarmed', why: `battery at ${sys.battery}% — she's frightened` };
+  if (s.testsPass === false)
+    return { key: 'alarmed', why: 'a test is red' };
+  if (sys.loadRatio > 1.2)
+    return { key: 'busy', why: `load ${sys.load1.toFixed(1)} on ${sys.cpus} cores — working hard with you` };
+  if (s.trackedDirty > 0)
+    return { key: 'anxious', why: `${s.trackedDirty} unsaved change${s.trackedDirty > 1 ? 's' : ''} in the tree` };
+  if (s.ahead > 0)
+    return { key: 'eager', why: `${s.ahead} commit${s.ahead > 1 ? 's' : ''} to push` };
+  if (sys.media === 'Playing')
+    return { key: 'happy', why: sys.track ? `swaying to “${sys.track}”` : "music's on — she's swaying" };
+  if (sys.hour >= 23 || sys.hour < 5)
+    return { key: 'sleepy', why: `it's ${String(sys.hour).padStart(2, '0')}:00 — she's dozing` };
+  if (s.untracked > 15)
+    return { key: 'curious', why: `${s.untracked} untracked files she's sniffing` };
+  return { key: 'content', why: "all quiet — she's content" };
+}
+
+// One line of waybar JSON: { text, tooltip, class }. `class` drives CSS color.
+function printBar() {
+  const s = readSignals();
+  const sys = readSystem();
+  const mood = barMood(s, sys);
+  const tip = [
+    `Sable · ${s.branch}`,
+    mood.why,
+    '',
+    `tree: ${s.trackedDirty ? s.trackedDirty + ' dirty' : 'clean'} · untracked ${s.untracked} · unpushed ${s.ahead}`,
+    `load: ${sys.load1.toFixed(2)}/${sys.cpus}${sys.battery !== null ? ` · battery ${sys.battery}%${sys.charging ? '⚡' : ''}` : ''}`,
+    sys.media === 'Playing' ? `♪ ${sys.track || 'playing'}` : '',
+  ].filter(Boolean).join('\n');
+  process.stdout.write(JSON.stringify({
+    text: BAR_FACES[mood.key] || '◕ᴥ◕',
+    tooltip: tip,
+    class: mood.key,
+    alt: mood.key,
+  }) + '\n');
+}
 
 function render(s, mood) {
   const f = FACES[mood.key];
@@ -142,15 +235,19 @@ function beat() {
   render(s, moodFor(s));
 }
 
-beat();
-
-if (WATCH) {
-  let pending;
-  const nudge = () => { clearTimeout(pending); pending = setTimeout(beat, 250); };
-  try {
-    watch('src', { recursive: true }, nudge);
-  } catch {
-    // recursive watch unsupported on some platforms — poll instead
-    setInterval(beat, 3000);
+if (BAR) {
+  // waybar custom module: emit one JSON line and exit (waybar re-runs on interval)
+  printBar();
+} else {
+  beat();
+  if (WATCH) {
+    let pending;
+    const nudge = () => { clearTimeout(pending); pending = setTimeout(beat, 250); };
+    try {
+      watch(`${REPO}/src`, { recursive: true }, nudge);
+    } catch {
+      // recursive watch unsupported on some platforms — poll instead
+      setInterval(beat, 3000);
+    }
   }
 }
