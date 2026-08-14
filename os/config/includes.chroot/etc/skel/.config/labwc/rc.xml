@@ -1,9 +1,8 @@
 <?xml version="1.0"?>
-<!-- SEALED KIOSK profile. No keybinds, no right-click menu, single workspace:
-     there is no key or mouse path to a terminal, launcher, or Exit. Sanctuary
-     is maximized on start and is the only app. (Brave remains installed as the
-     default browser by request — it is the one remaining escape/egress surface;
-     remove the Brave hook + browser defaults for a fully sealed device.) -->
+<!-- Hardened daily-driver desktop (ported from the Garuda command-center box).
+     A usable desktop: launcher, terminal, file manager, workspaces, Exit. This
+     is NOT a sealed kiosk — those are escape hatches to a shell. See BROWSER.md
+     / SECURITY-FEATURES.md for what this posture does and does not protect. -->
 <labwc_config>
 
   <theme>
@@ -13,8 +12,8 @@
   </theme>
 
   <windowRules>
-    <!-- Maximize (not fullscreen) so the status bar stays visible. Match both
-         the dev binary's app_id ("app") and the packaged app ("Sanctuary"). -->
+    <!-- Maximize (not fullscreen) so the top bar stays visible. Match the dev
+         binary's app_id ("app") and the packaged app ("Sanctuary"). -->
     <windowRule identifier="app" serverDecoration="no">
       <action name="Maximize" />
     </windowRule>
@@ -23,17 +22,55 @@
     </windowRule>
   </windowRules>
 
-  <!-- Empty: labwc loads NONE of its built-in keybinds (which include a terminal
-       spawn and Exit). No key sequence leaves the app. -->
   <keyboard>
+    <default />
+
+    <!-- Launchers -->
+    <keybind key="W-d"><action name="Execute" command="fuzzel" /></keybind>
+    <keybind key="W-Return"><action name="Execute" command="foot" /></keybind>
+    <keybind key="W-e"><action name="Execute" command="thunar" /></keybind>
+    <keybind key="W-s"><action name="Execute" command="sanctuary" /></keybind>
+    <keybind key="W-b"><action name="Execute" command="irn-browser" /></keybind>
+
+    <!-- Window management -->
+    <keybind key="W-q"><action name="Close" /></keybind>
+    <keybind key="W-f"><action name="ToggleFullscreen" /></keybind>
+    <keybind key="A-Tab"><action name="NextWindow" /></keybind>
+    <keybind key="W-Left"><action name="SnapToEdge" direction="left" /></keybind>
+    <keybind key="W-Right"><action name="SnapToEdge" direction="right" /></keybind>
+    <keybind key="W-Up"><action name="Maximize" /></keybind>
+    <keybind key="W-Down"><action name="Iconify" /></keybind>
+
+    <!-- Workspaces -->
+    <keybind key="W-1"><action name="GoToDesktop" to="1" /></keybind>
+    <keybind key="W-2"><action name="GoToDesktop" to="2" /></keybind>
+    <keybind key="W-3"><action name="GoToDesktop" to="3" /></keybind>
+    <keybind key="W-S-1"><action name="SendToDesktop" to="1" /></keybind>
+    <keybind key="W-S-2"><action name="SendToDesktop" to="2" /></keybind>
+    <keybind key="W-S-3"><action name="SendToDesktop" to="3" /></keybind>
+
+    <!-- Media / brightness -->
+    <keybind key="XF86_AudioRaiseVolume"><action name="Execute" command="wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+" /></keybind>
+    <keybind key="XF86_AudioLowerVolume"><action name="Execute" command="wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" /></keybind>
+    <keybind key="XF86_AudioMute"><action name="Execute" command="wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" /></keybind>
+    <keybind key="XF86_MonBrightnessUp"><action name="Execute" command="brightnessctl set 5%+" /></keybind>
+    <keybind key="XF86_MonBrightnessDown"><action name="Execute" command="brightnessctl set 5%-" /></keybind>
+
+    <!-- Screenshot / lock / exit -->
+    <keybind key="W-S-s"><action name="Execute" command="sh -c 'grim -g &quot;$(slurp)&quot; - | wl-copy'" /></keybind>
+    <keybind key="W-l"><action name="Execute" command="swaylock -c 0b1a2b" /></keybind>
+    <keybind key="W-S-e"><action name="Exit" /></keybind>
   </keyboard>
 
-  <!-- Default window interactions only. No Root right-click menu, so there is
-       no mouse path to Terminal/Files/Exit either. -->
+  <desktops number="3" />
+
   <mouse>
     <default />
+    <context name="Root">
+      <mousebind button="Right" action="Press">
+        <action name="ShowMenu" menu="root-menu" />
+      </mousebind>
+    </context>
   </mouse>
-
-  <desktops number="1" />
 
 </labwc_config>

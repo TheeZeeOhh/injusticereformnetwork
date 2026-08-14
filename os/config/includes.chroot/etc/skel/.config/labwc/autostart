@@ -1,31 +1,25 @@
-# labwc autostart — IRN OS command center
-# Ported from the working kiosk box (~/.config/labwc/autostart), adapted for the
-# live image: paths point at the `sanctuary` launcher, not the dev tree.
+# labwc autostart — IRN OS hardened desktop (command center).
+# Ported from the Garuda box, adapted for the image: Sanctuary via the launcher
+# wrapper, the desktop shell (bars + dock + idle lock), and the system EQ.
 
 # Dark background.
 swaybg -c '#0b1a2b' >/dev/null 2>&1 &
 
-# Status bar only (clock, audio, network status, battery, tray). No on-click
-# escapes. The bottom dock + fuzzel launcher are removed in the sealed profile.
+# Top bar (workspaces, clock, audio, network, battery, tray).
 waybar >/dev/null 2>&1 &
 
-# System-wide audio EQ (EasyEffects on PipeWire): run headless and apply the
-# IRN preset. Fully configurable — edit ~/.config/easyeffects/output/IRN.json,
-# or open the EasyEffects GUI on the desktop profile to retune. See AUDIO.md.
-easyeffects --gapplication-service >/dev/null 2>&1 &
-( sleep 2; easyeffects -l IRN ) >/dev/null 2>&1 &
+# Bottom dock (waybar, second instance styled as a dock, with the fuzzel launcher).
+waybar -c ~/.config/waybar/dock.jsonc -s ~/.config/waybar/dock.css >/dev/null 2>&1 &
 
-# Idle handling: lock after inactivity. (The box also blanked outputs via
-# `wlopm`, which is not packaged in Debian — omitted here. Add wlopm and the
-# `timeout 900 'wlopm --off *' resume 'wlopm --on *'` lines back if you build it.)
+# Idle: lock after inactivity.
 swayidle -w \
   timeout 600 'swaylock -f -c 0b1a2b' \
   before-sleep 'swaylock -f -c 0b1a2b' >/dev/null 2>&1 &
 
-# Launch Sanctuary. Small delay so the compositor and bars are up first.
-# NOTE: output captured to /tmp for the runtime/CSP gauntlet. Revert to
-# `>/dev/null 2>&1` once the gauntlet is confirmed clean on the image.
-( sleep 1; sanctuary ) >/tmp/sanctuary-runtime.log 2>&1 &
+# System-wide audio EQ (EasyEffects on PipeWire): headless + apply the IRN preset.
+easyeffects --gapplication-service >/dev/null 2>&1 &
+( sleep 2; easyeffects -l IRN ) >/dev/null 2>&1 &
 
-# (The box also autostarted a separate "Sanctuary terminal" from an Arch-only
-# Desktop path; dropped here. Add it back via the launcher if you package it.)
+# Launch Sanctuary maximized. NOTE: output captured to /tmp for the CSP gauntlet;
+# revert to >/dev/null once confirmed clean.
+( sleep 1; sanctuary ) >/tmp/sanctuary-runtime.log 2>&1 &

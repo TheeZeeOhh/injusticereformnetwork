@@ -1,16 +1,19 @@
 <?xml version="1.0"?>
-<!-- SEALED KIOSK menu. rc.xml removes the right-click bind so this menu is not
-     reachable in normal use; kept minimal (Sanctuary + Lock only) as defense in
-     depth. No Terminal / Files / Exit entries. -->
+<!-- Hardened desktop root menu (right-click). Full menu — this is a usable
+     desktop, not a sealed kiosk. -->
 <openbox_menu>
 
 <menu id="root-menu">
-  <item label="Sanctuary (IRN)">
-    <action name="Execute" command="sanctuary" />
-  </item>
-  <item label="Lock screen">
-    <action name="Execute" command="swaylock -c 0b1a2b" />
-  </item>
+  <item label="Applications…"><action name="Execute" command="fuzzel" /></item>
+  <item label="Sanctuary (IRN)"><action name="Execute" command="sanctuary" /></item>
+  <item label="IRN Browser"><action name="Execute" command="irn-browser" /></item>
+  <item label="Files"><action name="Execute" command="thunar" /></item>
+  <item label="Terminal"><action name="Execute" command="foot" /></item>
+  <item label="Screenshot region"><action name="Execute" command="sh -c 'grim -g &quot;$(slurp)&quot; - | wl-copy'" /></item>
+  <separator />
+  <item label="Lock screen"><action name="Execute" command="swaylock -c 0b1a2b" /></item>
+  <item label="Reconfigure"><action name="Reconfigure" /></item>
+  <item label="Exit"><action name="Exit" /></item>
 </menu>
 
 </openbox_menu>

@@ -1,46 +1,43 @@
-# IRN OS — a hardened Debian spin that boots into Sanctuary
+# IRN OS — a hardened, privacy-first Debian desktop
 
-A local-first, client-side-encrypted appliance OS for the Injustice Reform
-Network. Built with Debian **live-build** (the same tooling behind Tails and
-Kali). The design goal is continuous with Sanctuary's **Technical Incapacity
-Defense**: a device that is encrypted at rest, keeps keys in RAM, ships no
-telemetry, and boots directly into the Sanctuary app with nothing else exposed.
+A local-first, encrypted **daily-driver desktop** for the Injustice Reform
+Network, built with Debian **live-build** (the tooling behind Tails and Kali).
+It's a usable labwc desktop — launcher, terminal, apps, Sanctuary front and
+center — with the privacy junk stripped out and encryption/VPN/duress tools
+built in. Think "a quiet, no-telemetry Debian that boots into your work," not a
+locked box.
+
+> **What this is NOT.** A *hardened desktop*, not a sealed appliance. It has a
+> shell, a file manager, and a browser — so it does **not** provide any
+> "technically incapable of producing PHI" guarantee: someone at the unlocked
+> desktop can reach the filesystem. The subpoena-resistance story lives in the
+> **Sanctuary app** (client-side encryption, Vault A/B, keys in RAM); the OS just
+> makes that app pleasant and private to run. Want the sealed-kiosk posture
+> instead? See "Re-lock as a kiosk" below.
 
 ## What you get
 
 - A bootable **live USB/ISO** (amd64) that autologins (via greetd) into a
-  **sealed labwc kiosk**: Sanctuary launched maximized, a status-only waybar
-  (clock/audio/network/battery/tray), and **no way out** — no keybinds, no
-  launcher, no terminal, no file manager, no Exit, no right-click menu.
-- **Brave** installed and set as the default browser (kept by request),
-  **hardened by managed policy** — telemetry/sync/extensions off, HTTPS-only,
-  encrypted DNS, no history, downloads blocked. See **`BROWSER.md`**.
-- **LUKS** full-disk encryption available at install time (via the bundled
-  Calamares installer profile).
-- **VPN**: WireGuard (free, bring-your-own config) with a leak-proof kill-switch,
-  driven by the `irn-vpn` helper; OpenVPN import too. See **`VPN.md`**.
-- **Audio EQ**: system-wide EasyEffects equalizer on PipeWire, with a starter
-  preset. See **`AUDIO.md`**.
-- **Amnesiac mode**: runs from RAM, swap disabled, memory zeroed on free —
-  nothing decrypted touches disk (add `toram` to free the USB entirely).
-- **Duress panic wipe**: an armable trigger that irreversibly destroys the LUKS
-  keys and powers off. Disarmed by default. See **`SECURITY-FEATURES.md`**.
-- **Hardened defaults**: telemetry off, ssh/avahi/ModemManager masked, no core
-  dumps, minimal base, unprivileged user.
+  **labwc desktop**: Sanctuary maximized on start, waybar top bar + dock, fuzzel
+  launcher, workspaces, terminal, file manager.
+- **Brave** as default browser, **hardened by managed policy** —
+  telemetry/sync/extensions off, HTTPS-only, encrypted DNS, no history. See
+  **`BROWSER.md`**.
+- **LUKS** full-disk encryption at install time (Calamares).
+- **VPN**: WireGuard (free, bring-your-own config) with a leak-proof kill-switch;
+  OpenVPN import too. See **`VPN.md`**.
+- **Audio EQ**: system-wide EasyEffects on PipeWire with a starter preset. See
+  **`AUDIO.md`**.
+- **Duress panic wipe** (disarmed by default) + optional **amnesiac** live boot.
+  See **`SECURITY-FEATURES.md`**.
+- **Hardened defaults**: no telemetry, ssh/avahi/ModemManager masked, no core
+  dumps, swap off (keys stay in RAM), minimal base, unprivileged user.
 
-> **Seal boundary — read this.** The kiosk is sealed against the *shell*: the
-> labwc config ships an empty `<keyboard>`, no launcher, and no menu, so there is
-> no key/mouse path to a terminal or the filesystem. It is **not** sealed against
-> *data egress*, because Brave remains installed and default — its address bar
-> (`file://`), downloads, and network access are the one open surface. For a
-> fully subpoena-hardened device, delete `config/hooks/live/0300-brave.hook.chroot`
-> and the `mimeapps.list` / `etc/profile.d/irn-browser.sh` browser defaults, then
-> rebuild.
->
-> **Vestigial files** (inert; Bash could not delete them under the read-only repo
-> mount): the desktop profile's `fuzzel/` config, waybar `dock.jsonc`/`dock.css`,
-> and `etc/xdg/labwc/` stubs still exist in the tree but are never loaded (fuzzel
-> is uninstalled; the dock is not autostarted). Safe to `git rm` them.
+> **Re-lock as a kiosk (optional).** To turn this back into a sealed, single-app
+> appliance (no shell/launcher/Exit), empty the `<keyboard>` in
+> `etc/skel/.config/labwc/rc.xml`, trim `menu.xml`, drop the dock launcher +
+> `fuzzel`/`foot`/`thunar` from the package list, and remove Brave. That trades
+> livability for the "technically incapable" guarantee.
 
 ## Build requirements (NOT satisfiable in the Claude sandbox)
 

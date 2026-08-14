@@ -6,18 +6,22 @@ labwc
 seatd
 greetd
 xwayland
+foot
 
 # --- Session / bus plumbing labwc needs ---
 dbus-user-session
 libpam-systemd
 
-# --- Sealed-kiosk shell: status bar + lock only ---
-# (Removed vs the desktop profile: fuzzel, foot, thunar, grim, slurp,
-# wl-clipboard — every launcher/terminal/file-manager escape hatch.)
+# --- Hardened desktop shell (waybar + fuzzel launcher + friends) ---
 waybar
+fuzzel
 swaybg
 swayidle
 swaylock
+thunar
+grim
+slurp
+wl-clipboard
 brightnessctl
 network-manager
 # audio for the waybar pulseaudio module (wpctl comes from wireplumber)
