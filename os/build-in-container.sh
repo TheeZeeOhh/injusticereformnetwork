@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the IRN OS ISO inside a Debian bookworm container — so it works on any
+# Build the IRN OS ISO inside a Debian trixie container — so it works on any
 # host with Podman or Docker (e.g. this Arch/Garuda box, which cannot run
 # live-build natively). A --privileged Debian container supplies the three things
 # the build needs and the sandbox/host lacks: root, Debian mirrors, and the
@@ -75,12 +75,16 @@ fi
 # shellcheck disable=SC2086
 "$ENGINE" $ENGINE_OPTS run --rm --privileged --network=host \
   -v "$REPO":/repo -w /repo/os \
-  docker.io/library/debian:bookworm \
+  docker.io/library/debian:trixie \
   bash -euxc '
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get install -y --no-install-recommends live-build ca-certificates
     lb clean --purge || true   # clear any stale chroot/cache from a failed run
+    # Drop lb-generated config files (from an earlier bookworm run) so lb config
+    # regenerates them for the distribution in auto/config. Hand-written config
+    # (package-lists/, hooks/, includes.chroot/, packages.chroot/) is untouched.
+    rm -f config/bootstrap config/binary config/chroot config/common config/source
     lb config                  # reads auto/config
     lb build                   # → live-image-amd64.hybrid.iso
     ls -l live-image-*.iso

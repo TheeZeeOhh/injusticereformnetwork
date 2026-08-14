@@ -1,6 +1,6 @@
 #!/bin/sh
 # Preflight + build wrapper for IRN OS.
-# Run on a Debian bookworm host with root and network access to deb.debian.org.
+# Run on a Debian trixie host with root and network access to deb.debian.org.
 set -eu
 
 cd "$(dirname "$0")"

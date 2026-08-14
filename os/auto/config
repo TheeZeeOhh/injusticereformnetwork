@@ -5,7 +5,7 @@
 set -e
 
 lb config noauto \
-	--distribution bookworm \
+	--distribution trixie \
 	--architectures amd64 \
 	--archive-areas "main contrib non-free non-free-firmware" \
 	--binary-images iso-hybrid \

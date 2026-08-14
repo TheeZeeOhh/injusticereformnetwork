@@ -41,7 +41,7 @@ locked box.
 
 ## Build requirements (NOT satisfiable in the Claude sandbox)
 
-You need a **Debian bookworm host** (or a Debian container) with **root** and
+You need a **Debian trixie host** (or a Debian container) with **root** and
 **network access to `deb.debian.org`**. This cannot be built inside the Claude
 Code sandbox — its network allowlist and lack of root prevent `debootstrap`.
 

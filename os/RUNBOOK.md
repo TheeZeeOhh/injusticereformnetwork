@@ -1,7 +1,7 @@
 # IRN OS — full operator runbook
 
 End-to-end: bare Debian host → bootable ISO → installed, encrypted kiosk.
-Everything here runs on a **Debian bookworm build host with root + network**.
+Everything here runs on a **Debian trixie build host with root + network**.
 None of it can run in the Claude sandbox (no root, no Debian-mirror access).
 
 ## 0. Build host prep (once)
@@ -52,7 +52,7 @@ sudo ./build.sh              # lb config (auto/config) + lb build
 instead — same result, no separate machine:
 
 ```bash
-./os/build-in-container.sh   # runs lb build in a debian:bookworm container
+./os/build-in-container.sh   # runs lb build in a debian:trixie container
 # if rootless podman errors on loop/mount: sudo ./os/build-in-container.sh
 ```
 
