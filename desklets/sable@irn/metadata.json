@@ -1,0 +1,8 @@
+{
+    "uuid": "sable@irn",
+    "name": "Sable",
+    "description": "Your Sanctuary familiar on the desktop — a small fox-guardian whose face reflects the live state of the repo and your machine (git, tests, load, battery, music). Reads every 5s. Local and read-only; never writes to the repo. Click her to open the full terminal view.",
+    "version": "1.0",
+    "max-instances": "1",
+    "prevent-decorations": false
+}

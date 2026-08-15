@@ -1,0 +1,8 @@
+{
+    "uuid": "posture@irn",
+    "name": "Sanctuary Posture",
+    "description": "A glanceable security-posture light: off-loopback listeners, disk encryption, firewall, screen lock, duress chain, app state. Read-only, no PHI, state only — never contents. Left-click for the full report.",
+    "version": "1.0",
+    "max-instances": "1",
+    "prevent-decorations": false
+}

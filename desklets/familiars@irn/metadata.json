@@ -1,0 +1,8 @@
+{
+    "uuid": "familiars@irn",
+    "name": "Familiars",
+    "description": "A row of Sable-familiars — one mood face per IRN codebase, so a glance shows which repo has a red test, unpushed work, or a staged secret. Click a row for that repo's full view. Local, read-only.",
+    "version": "1.0",
+    "max-instances": "1",
+    "prevent-decorations": false
+}

@@ -1,0 +1,8 @@
+{
+    "uuid": "readingroom@irn",
+    "name": "Reading Room",
+    "description": "A passage of the day from the local 514-book Sanctuary library, with citation. Rotates at midnight; fully offline. Left-click to ask Amina about the book.",
+    "version": "1.0",
+    "max-instances": "1",
+    "prevent-decorations": false
+}

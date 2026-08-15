@@ -59,9 +59,9 @@ if [ -f "$CSS" ] && ! grep -q 'custom-sable' "$CSS"; then
 
 #custom-sable { padding: 0 10px; margin: 3px 2px; border-radius: 6px; background: #10273d; }
 #custom-sable.content, #custom-sable.happy, #custom-sable.proud, #custom-sable.eager, #custom-sable.busy { color: #7ab8ff; }
-#custom-sable.anxious, #custom-sable.worried, #custom-sable.curious { color: #ffcc66; }
+#custom-sable.anxious, #custom-sable.worried, #custom-sable.curious, #custom-sable.tangled { color: #ffcc66; }
 #custom-sable.sleepy { color: #6b7a8d; }
-#custom-sable.alarmed { color: #ff6b6b; }
+#custom-sable.alarmed, #custom-sable.guarding { color: #ff6b6b; }
 CSSEOF
   say "waybar style: added Sable's mood colors"
 fi

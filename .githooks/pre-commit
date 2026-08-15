@@ -56,7 +56,14 @@ fi
 echo "[pre-commit] ✓ no secrets detected"
 
 echo "[pre-commit] running test suite (npm test)…"
-npm test
+# Record the verdict for Sable so her bar/desklet can show red without
+# re-running the suite. Guarded so a pet.js hiccup never blocks a commit.
+if npm test; then
+  node pet.js --record-test pass 2>/dev/null || true
+else
+  node pet.js --record-test fail 2>/dev/null || true
+  exit 1
+fi
 
 echo "[pre-commit] running lint (npm run lint)…"
 npm run lint
