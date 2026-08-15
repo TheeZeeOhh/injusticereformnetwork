@@ -1,0 +1,38 @@
+#!/bin/sh
+# Wire the IRN-hardened Firefox into the image. firefox-esr is installed from
+# Debian (via the package list), so unlike the old Brave hook this needs NO
+# third-party apt repo or signing key. This hook only places the enterprise
+# policy + autoconfig into firefox-esr's install dirs (which exist by now: hooks
+# run after packages are installed) and marks the launcher executable.
+#
+# PRIVACY NOTE: a full browser is a data-egress path on an otherwise local-first,
+# no-network-clients appliance. It's here because a daily-driver browser was
+# explicitly requested. The hardening (policies.json + mozilla.cfg) turns off
+# telemetry, tracking, sponsored content, and prediction, forces HTTPS + DoH,
+# and keeps add-on installation ENABLED (daily-driver requirement). To drop the
+# browser entirely: remove firefox-esr from the package list and delete this hook.
+set -eu
+
+echo "P: IRN OS — wiring hardened Firefox (policy + autoconfig)"
+
+SRC=/usr/local/share/irn-browser
+FFDIR=/usr/lib/firefox-esr
+
+if [ ! -d "$FFDIR" ]; then
+	echo "P: WARNING firefox-esr not found at $FFDIR — is it in the package list?" >&2
+fi
+
+# 1. Enterprise policy — both the distribution dir and Debian's /etc path, so it
+#    applies regardless of which Firefox reads which location.
+install -d -m 0755 "$FFDIR/distribution" /etc/firefox-esr/policies
+install -Dm644 "$SRC/policies.json" "$FFDIR/distribution/policies.json"
+install -Dm644 "$SRC/policies.json" /etc/firefox-esr/policies/policies.json
+
+# 2. Autoconfig: the loader goes in defaults/pref, the .cfg in the install root.
+install -Dm644 "$SRC/local-settings.js" "$FFDIR/defaults/pref/local-settings.js"
+install -Dm644 "$SRC/mozilla.cfg" "$FFDIR/mozilla.cfg"
+
+# 3. Launcher wrapper executable (used by irn-browser.desktop + $BROWSER).
+chmod 0755 /usr/local/bin/irn-browser || true
+
+echo "P: hardened Firefox wired (add-ons enabled, telemetry/tracking off, DoH + HTTPS-only)"

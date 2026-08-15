@@ -38,7 +38,17 @@ openresolv
 openvpn
 network-manager-openvpn
 
+# --- Hardened daily-driver browser ---
+# firefox-esr is IN Debian (no third-party repo needed). Hardening is applied by
+# hooks/live/0300-firefox.hook.chroot (enterprise policy + autoconfig): telemetry
+# and tracking off, DoH + HTTPS-only, sponsored content off, add-ons ENABLED.
+firefox-esr
+
 # --- System-wide audio equalizer (PipeWire) ---
+# Also the browser's EQ: EasyEffects sits below Firefox and equalizes ALL its
+# audio (any origin, the Reading Room radio included) — an in-browser EQ can't,
+# because createMediaElementSource silences cross-origin streams. The IRN preset
+# ships in /etc/skel and is applied headless at login (labwc autostart).
 easyeffects
 
 # --- Sanctuary (Tauri) runtime deps ---

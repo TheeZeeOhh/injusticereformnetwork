@@ -1,12 +1,80 @@
 #!/bin/sh
-# Launch the IRN-hardened Brave. Resolves the binary name across distros:
-# brave-browser (Debian / IRN OS) or brave (Arch / AUR). The hardening is the
-# managed policy at /etc/brave/policies/managed/irn-hardening.json — this wrapper
-# only picks the right binary and forwards args (URLs).
-for b in brave-browser brave; do
-  if command -v "$b" >/dev/null 2>&1; then
-    exec "$b" "$@"
-  fi
-done
-echo "IRN Browser: no Brave binary found (looked for brave-browser, brave)" >&2
-exit 1
+# Launch the IRN-hardened Firefox. Picks the binary across distros:
+# firefox-esr (Debian / IRN OS) or firefox (Arch / Garuda). The hardening is the
+# enterprise policy (policies.json) + autoconfig (mozilla.cfg) installed
+# system-wide by the IRN OS build hook or install-irn-browser.sh.
+#
+#   irn-browser [URL...]        normal launch; with no URL, opens the IRN
+#                               command center (irn-newtab).
+#   irn-browser --ephemeral     amnesiac session in a throwaway RAM profile:
+#     (--amnesiac, --burner)    resistFingerprinting on, nothing written to disk,
+#                               erased on exit and on any poweroff/panic.
+#
+# This wrapper picks the right binary, seeds the dark userChrome, builds the
+# command center, and forwards args (URLs).
+set -eu
+
+CHROME_SRC="/usr/local/share/irn-browser/userChrome.css"
+
+pick_firefox() {
+  for b in firefox-esr firefox; do
+    if command -v "$b" >/dev/null 2>&1; then echo "$b"; return 0; fi
+  done
+  return 1
+}
+
+# Best-effort: drop userChrome.css into any existing default profile so the
+# dark-UI polish applies. Non-fatal; the compact-dark theme works without it.
+seed_userchrome() {
+  [ -f "$CHROME_SRC" ] || return 0
+  ini="$HOME/.mozilla/firefox/profiles.ini"
+  [ -f "$ini" ] || return 0
+  for d in "$HOME"/.mozilla/firefox/*.default* "$HOME"/.mozilla/firefox/*.default-esr*; do
+    [ -d "$d" ] || continue
+    mkdir -p "$d/chrome" 2>/dev/null || continue
+    [ -f "$d/chrome/userChrome.css" ] || cp "$CHROME_SRC" "$d/chrome/userChrome.css" 2>/dev/null || true
+  done
+}
+
+# --- Ephemeral / amnesiac mode ----------------------------------------------
+# A throwaway profile in RAM (XDG_RUNTIME_DIR / /dev/shm are tmpfs). Nothing
+# hits disk; the profile is deleted on exit and, being in RAM, is gone after any
+# poweroff or duress panic. resistFingerprinting is seeded per-profile so the
+# everyday persistent profile stays usable (RFP breaks some sites).
+run_ephemeral() {
+  shift # drop the mode flag
+  ff="$(pick_firefox)" || { echo "IRN Browser: no Firefox binary found" >&2; exit 1; }
+  base="${XDG_RUNTIME_DIR:-/dev/shm}"; [ -d "$base" ] || base="/tmp"
+  prof="$(mktemp -d "$base/irn-ff.XXXXXX")"
+  trap 'rm -rf "$prof" 2>/dev/null || true' EXIT INT TERM
+  cat > "$prof/user.js" <<'JS'
+// Ephemeral IRN profile — armored + amnesiac, seeded fresh each launch.
+user_pref("privacy.resistFingerprinting", true);
+user_pref("privacy.resistFingerprinting.letterboxing", true);
+user_pref("browser.cache.disk.enable", false);
+user_pref("browser.privatebrowsing.autostart", true);
+user_pref("privacy.sanitize.sanitizeOnShutdown", true);
+user_pref("privacy.clearOnShutdown.cache", true);
+user_pref("privacy.clearOnShutdown.cookies", true);
+user_pref("privacy.clearOnShutdown.history", true);
+user_pref("privacy.clearOnShutdown.sessions", true);
+user_pref("privacy.clearOnShutdown.offlineApps", true);
+user_pref("signon.rememberSignons", false);
+user_pref("browser.formfill.enable", false);
+JS
+  [ -f "$CHROME_SRC" ] && { mkdir -p "$prof/chrome"; cp "$CHROME_SRC" "$prof/chrome/userChrome.css" 2>/dev/null || true; }
+  "$ff" --no-remote --new-instance --profile "$prof" "$@"
+}
+
+case "${1:-}" in
+  --ephemeral|--amnesiac|--burner) run_ephemeral "$@"; exit $? ;;
+esac
+
+seed_userchrome
+ff="$(pick_firefox)" || { echo "IRN Browser: no Firefox binary found (looked for firefox-esr, firefox)" >&2; exit 1; }
+
+# Refresh the command center (the configured home page) so its passage + posture
+# are current, then launch. Firefox opens the home page itself on startup.
+command -v irn-newtab >/dev/null 2>&1 && irn-newtab >/dev/null 2>&1 || true
+
+exec "$ff" "$@"

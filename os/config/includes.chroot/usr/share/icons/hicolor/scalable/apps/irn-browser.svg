@@ -1,36 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="IRN Browser">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#12273d"/>
-      <stop offset="1" stop-color="#0b1a2b"/>
-    </linearGradient>
-    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7ab8ff"/>
+    <!-- Deep IRN blue-black badge, lit from top-left. -->
+    <radialGradient id="badge" cx="0.32" cy="0.28" r="0.95">
+      <stop offset="0" stop-color="#173352"/>
+      <stop offset="0.55" stop-color="#0f2338"/>
+      <stop offset="1" stop-color="#081524"/>
+    </radialGradient>
+    <!-- Aurora sweep for the orbit ring. -->
+    <linearGradient id="orbit" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8fd0ff"/>
+      <stop offset="0.5" stop-color="#7ab8ff"/>
       <stop offset="1" stop-color="#4d86c8"/>
     </linearGradient>
+    <radialGradient id="globefill" cx="0.38" cy="0.34" r="0.85">
+      <stop offset="0" stop-color="#14304c"/>
+      <stop offset="1" stop-color="#0c2036"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
 
   <!-- Badge -->
-  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#bg)" stroke="#16324d" stroke-width="3"/>
+  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#badge)" stroke="#25476b" stroke-width="2.5"/>
+  <!-- top-edge sheen -->
+  <rect x="20" y="18" width="216" height="96" rx="48" fill="#ffffff" opacity="0.04"/>
 
-  <!-- Protective shield -->
-  <path d="M128 40 L196 66 V128 C196 172 166 202 128 218 C90 202 60 172 60 128 V66 Z"
-        fill="#10273d" stroke="url(#shield)" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Globe -->
+  <g transform="translate(128 128)">
+    <circle r="58" fill="url(#globefill)" stroke="#7ab8ff" stroke-width="3.5"/>
+    <!-- graticule: kept minimal so it survives at menu size -->
+    <g fill="none" stroke="#7ab8ff" stroke-width="3" stroke-linecap="round" opacity="0.9">
+      <line x1="-58" y1="0" x2="58" y2="0"/>
+      <path d="M-52 -26 H52" opacity="0.6"/>
+      <path d="M-52 26 H52" opacity="0.6"/>
+      <ellipse rx="24" ry="58"/>
+    </g>
 
-  <!-- Globe inside the shield: the 'browser' motif, cradius 40 centered at (128,132) -->
-  <g fill="none" stroke="#7ab8ff" stroke-width="4.5" stroke-linecap="round">
-    <circle cx="128" cy="132" r="40"/>
-    <!-- latitude -->
-    <line x1="88" y1="132" x2="168" y2="132"/>
-    <path d="M92 112 H164" opacity="0.85"/>
-    <path d="M92 152 H164" opacity="0.85"/>
-    <!-- longitude (meridians as ellipses) -->
-    <ellipse cx="128" cy="132" rx="16" ry="40"/>
-  </g>
-
-  <!-- Lock notch: privacy accent at the shield crest -->
-  <g fill="#7ab8ff">
-    <rect x="120" y="70" width="16" height="12" rx="2"/>
-    <path d="M122 70 v-4 a6 6 0 0 1 12 0 v4" fill="none" stroke="#7ab8ff" stroke-width="4"/>
+    <!-- Orbit ring — the motion/web motif, angled and glowing -->
+    <g transform="rotate(-24)" filter="url(#glow)">
+      <ellipse rx="86" ry="34" fill="none" stroke="url(#orbit)" stroke-width="6.5"/>
+      <!-- traveller node on the orbit -->
+      <circle cx="86" cy="0" r="8" fill="#bfe2ff"/>
+    </g>
   </g>
 </svg>

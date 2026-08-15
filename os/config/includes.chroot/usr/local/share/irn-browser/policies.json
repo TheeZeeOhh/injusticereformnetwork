@@ -1,0 +1,100 @@
+{
+  "policies": {
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DisableFeedbackCommands": true,
+    "DisablePocket": true,
+    "DisableFirefoxAccounts": true,
+    "DisableFormHistory": true,
+    "DisableDefaultBrowserAgent": true,
+    "DisableSetDesktopBackground": true,
+    "PasswordManagerEnabled": false,
+    "OfferToSaveLogins": false,
+    "SearchSuggestEnabled": false,
+    "NetworkPrediction": false,
+    "PromptForDownloadLocation": true,
+
+    "HttpsOnlyMode": "force_enabled",
+    "DNSOverHTTPS": {
+      "Enabled": true,
+      "ProviderURL": "https://dns.quad9.net/dns-query",
+      "Locked": true
+    },
+
+    "EnableTrackingProtection": {
+      "Value": true,
+      "Locked": true,
+      "Cryptomining": true,
+      "Fingerprinting": true
+    },
+    "Cookies": {
+      "Behavior": "reject-tracker-and-partition-foreign"
+    },
+
+    "ExtensionUpdate": true,
+    "InstallAddonsPermission": {
+      "Default": true
+    },
+    "ExtensionSettings": {
+      "*": {
+        "installation_mode": "allowed"
+      },
+      "uBlock0@raymondhill.net": {
+        "installation_mode": "force_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
+      },
+      "addon@darkreader.org": {
+        "installation_mode": "force_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/darkreader/latest.xpi"
+      }
+    },
+
+    "FirefoxHome": {
+      "Search": true,
+      "TopSites": true,
+      "SponsoredTopSites": false,
+      "Highlights": false,
+      "Pocket": false,
+      "SponsoredPocket": false,
+      "Snippets": false,
+      "Locked": false
+    },
+    "UserMessaging": {
+      "WhatsNew": false,
+      "ExtensionRecommendations": false,
+      "FeatureRecommendations": false,
+      "UrlbarInterventions": false,
+      "SkipOnboarding": true,
+      "MoreFromMozilla": false,
+      "Locked": false
+    },
+    "FirefoxSuggest": {
+      "WebSuggestions": false,
+      "SponsoredSuggestions": false,
+      "ImproveSuggest": false,
+      "Locked": true
+    },
+
+    "SearchEngines": {
+      "Default": "DuckDuckGo",
+      "PreventInstalls": false
+    },
+
+    "OverrideFirstRunPage": "",
+    "OverridePostUpdatePage": "",
+    "Homepage": {
+      "URL": "file:///usr/local/share/irn-browser/newtab.html",
+      "StartPage": "homepage",
+      "Locked": false
+    },
+    "NewTabPage": true,
+
+    "Permissions": {
+      "Camera": { "BlockNewRequests": true },
+      "Microphone": { "BlockNewRequests": true },
+      "Location": { "BlockNewRequests": true },
+      "Notifications": { "BlockNewRequests": true },
+      "Autoplay": { "Default": "block-audio-video" }
+    }
+  }
+}

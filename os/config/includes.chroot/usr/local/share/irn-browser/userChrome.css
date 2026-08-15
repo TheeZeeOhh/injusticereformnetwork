@@ -1,0 +1,29 @@
+/* IRN Browser — dark-UI polish. Enabled via
+ * toolkit.legacyUserProfileCustomizations.stylesheets (set in mozilla.cfg).
+ * Copied into each profile's chrome/userChrome.css by the irn-browser wrapper
+ * on first launch. Deliberately minimal: the built-in compact-dark theme does
+ * the heavy lifting; this just deepens the palette to IRN's blue-black. */
+
+:root {
+  --irn-bg: #0b1a2b;
+  --irn-bg-elev: #10233a;
+  --irn-accent: #7ab8ff;
+}
+
+/* Toolbar + tab strip in IRN blue-black rather than Firefox grey. */
+#navigator-toolbox,
+#nav-bar,
+#TabsToolbar,
+#PersonalToolbar {
+  background-color: var(--irn-bg) !important;
+}
+
+/* Active tab a touch lighter so it reads as raised. */
+.tabbrowser-tab[selected] .tab-background {
+  background-color: var(--irn-bg-elev) !important;
+}
+
+/* URL bar accent on focus. */
+#urlbar[focused="true"] {
+  outline: 1px solid var(--irn-accent) !important;
+}
