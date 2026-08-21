@@ -41,3 +41,35 @@ server/*.db
 
 # Tau scratch artifacts
 .tau/
+
+# live-build generated config + build outputs (os/).
+# `lb config` writes config/{binary,bootstrap,chroot,common,source} and symlinks
+# every stock hook under config/hooks/ to /usr/share/live/build/... — absolute
+# links that DANGLE on any host without live-build installed (e.g. this Garuda
+# box; they're created inside the build container). Authored hooks (0100-, 0300-,
+# 0400-, 0500-) are real source and stay tracked.
+os/config/binary
+os/config/bootstrap
+os/config/chroot
+os/config/common
+os/config/source
+os/config/hooks/normal/
+os/config/hooks/live/0010-disable-kexec-tools.hook.chroot
+os/config/hooks/live/0050-disable-sysvinit-tmpfs.hook.chroot
+os/binary.modified_timestamps
+os/chroot.packages.*
+os/live-image-*
+
+# Sandbox stub dotfiles: 0-byte, mode 444 placeholders the agent sandbox drops in
+# the repo root. Anchored with / so a real dotfile shipped inside the OS image
+# (os/config/includes.chroot/etc/skel/...) is unaffected.
+/.bashrc
+/.bash_profile
+/.zshrc
+/.zprofile
+/.profile
+/.gitconfig
+/.ripgreprc
+/.mcp.json
+/.gitmodules
+/.vscode
