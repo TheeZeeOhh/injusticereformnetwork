@@ -73,3 +73,11 @@ os/live-image-*
 /.mcp.json
 /.gitmodules
 /.vscode
+.claude/agents
+.claude/commands
+.claude/hooks
+.claude/launch.json
+.claude/loop.md
+.claude/output-styles
+.claude/routines
+.claude/workflows
