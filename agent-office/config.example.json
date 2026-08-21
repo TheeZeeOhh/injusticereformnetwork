@@ -1,0 +1,23 @@
+{
+  "_comment": "Copy to config.json and edit. Providers are command templates; {prompt} is filled with the composed task text at spawn time (no shell, so it is a literal argv string). The 'echo' and 'sleep' providers need no API key and let you try the harness immediately.",
+  "providers": {
+    "echo": {
+      "cmd": "bash",
+      "args": ["-lc", "printf '%s\\n' \"{prompt}\""]
+    },
+    "sleep": {
+      "cmd": "bash",
+      "args": ["-lc", "echo working on: {title}; sleep 3; echo done"]
+    },
+    "claude": {
+      "cmd": "claude",
+      "args": ["-p", "{prompt}"],
+      "caps": { "maxRuntimeMs": 600000 }
+    }
+  },
+  "agents": [
+    { "id": "michael", "name": "Michael", "role": "orchestrator", "provider": "echo" },
+    { "id": "jim", "name": "Jim", "role": "worker", "provider": "sleep" },
+    { "id": "pam", "name": "Pam", "role": "worker", "provider": "sleep" }
+  ]
+}

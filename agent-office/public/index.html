@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent Office</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">▦</span>
+        <h1>Agent Office</h1>
+        <span class="badge badge-local" title="Binds 127.0.0.1 only. No webhooks, tunnels, Slack, telemetry, or third-party egress.">local-only</span>
+      </div>
+      <div class="conn">
+        <span id="conn-dot" class="dot dot-off"></span>
+        <span id="conn-label">connecting…</span>
+      </div>
+    </header>
+
+    <section class="floor" aria-label="Office floor">
+      <h2 class="section-title">The Floor</h2>
+      <div id="desks" class="desks"></div>
+    </section>
+
+    <main class="grid">
+      <section class="panel board-panel">
+        <h2 class="section-title">Task Board</h2>
+        <form id="add-task" class="add-task">
+          <input id="task-title" type="text" placeholder="New task title…" autocomplete="off" required />
+          <select id="task-assignee"><option value="">— assign later —</option></select>
+          <button type="submit">Add</button>
+        </form>
+        <textarea id="task-body" class="task-body" placeholder="Optional details / prompt body…" rows="2"></textarea>
+        <div class="columns">
+          <div class="column" data-col="todo"><h3>To do</h3><div class="cards" id="col-todo"></div></div>
+          <div class="column" data-col="doing"><h3>Doing</h3><div class="cards" id="col-doing"></div></div>
+          <div class="column" data-col="done"><h3>Done</h3><div class="cards" id="col-done"></div></div>
+        </div>
+      </section>
+
+      <section class="panel side">
+        <div class="terminal-panel">
+          <h2 class="section-title">Terminal <span id="term-agent" class="muted"></span></h2>
+          <pre id="terminal" class="terminal" aria-live="polite"></pre>
+        </div>
+        <div class="log-panel">
+          <h2 class="section-title">Activity</h2>
+          <ul id="log" class="log"></ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

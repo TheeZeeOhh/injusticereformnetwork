@@ -1,0 +1,15 @@
+{
+  "name": "agent-office",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A scoped, local-only multi-agent harness: wrap the CLI agents you already run as autonomous workers on a shared task board, with a live office view. Loopback only — no webhooks, tunnels, Slack, telemetry, or third-party egress.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test 'test/*.test.js'"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
