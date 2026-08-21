@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commons — IRN community ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#151119;
+  --panel:#1D1824;
+  --raise:#251E2E;
+  --bone:#EFE9DC;
+  --dim:#9A92A6;
+  --gold:#DDAE46;
+  --gold-soft:rgba(221,174,70,.16);
+  --ember:#CB5335;
+  --ember-soft:rgba(203,83,53,.16);
+  --hair:rgba(239,233,220,.10);
+  --hair-strong:rgba(239,233,220,.22);
+  --display:'Fraunces',Georgia,'Times New Roman',serif;
+  --ui:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --data:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:6px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ink);color:var(--bone);
+  font-family:var(--ui);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0;font-family:var(--display);font-weight:600;letter-spacing:-.01em}
+a{color:var(--gold)}
+.num,.mono{font-family:var(--data);font-variant-numeric:tabular-nums}
+
+/* ================= masthead ================= */
+.masthead{
+  position:sticky;top:0;z-index:30;
+  background:rgba(21,17,25,.94);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--hair);
+}
+.masthead-in{
+  max-width:1180px;margin:0 auto;padding:14px 22px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.mark{
+  font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.16em;
+  color:var(--gold);border:1px solid rgba(221,174,70,.45);
+  padding:5px 9px 4px;border-radius:var(--r);line-height:1;
+}
+.title h1{font-size:22px;line-height:1.15}
+.title p{margin:1px 0 0;color:var(--dim);font-size:12px}
+.mast-spacer{flex:1 1 40px}
+
+.status{
+  display:flex;align-items:center;gap:9px;
+  border:1px solid var(--hair);background:var(--panel);
+  border-radius:99px;padding:6px 14px 6px 11px;
+  font-size:12.5px;cursor:pointer;color:var(--bone);font-family:var(--ui);
+}
+.status:hover{border-color:var(--hair-strong)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex:none;
+  box-shadow:0 0 0 4px var(--gold-soft)}
+.status.bad .dot{background:var(--ember);box-shadow:0 0 0 4px var(--ember-soft)}
+.status.bad{color:var(--ember);border-color:rgba(203,83,53,.4)}
+.status .sum{font-family:var(--data);color:var(--dim)}
+.status.bad .sum{color:var(--ember)}
+.saveflag{font-size:11.5px;color:var(--dim);white-space:nowrap}
+.saveflag b{color:var(--gold);font-weight:500}
+
+/* ================= tabs ================= */
+.tabs{background:var(--ink);border-bottom:1px solid var(--hair)}
+.tabs-in{
+  max-width:1180px;margin:0 auto;padding:0 22px;
+  display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;
+}
+.tabs-in::-webkit-scrollbar{display:none}
+.tab{
+  appearance:none;background:none;border:0;color:var(--dim);cursor:pointer;
+  font-family:var(--ui);font-size:13.5px;font-weight:500;
+  padding:13px 15px 11px;white-space:nowrap;border-bottom:2px solid transparent;
+}
+.tab:hover{color:var(--bone)}
+.tab[aria-selected="true"]{color:var(--bone);border-bottom-color:var(--gold)}
+.tab:focus-visible{outline:2px solid var(--gold);outline-offset:-3px;border-radius:3px}
+.tab .badge{
+  display:inline-block;margin-left:7px;min-width:18px;padding:0 5px;
+  background:var(--gold-soft);color:var(--gold);border-radius:99px;
+  font-family:var(--data);font-size:11px;line-height:17px;text-align:center;
+}
+
+/* ================= shell ================= */
+.shell{max-width:1180px;margin:0 auto;padding:26px 22px 100px;
+  display:grid;gap:26px;grid-template-columns:1fr}
+@media(min-width:940px){
+  .shell{grid-template-columns:minmax(0,1fr) 306px;align-items:start}
+  .rail{position:sticky;top:86px}
+}
+.panel{display:none}
+.panel.on{display:grid;gap:20px}
+
+.card{
+  background:var(--panel);border:1px solid var(--hair);
+  border-radius:var(--r);padding:20px;
+}
+.card h2{font-size:18px}
+.card .lede{margin:5px 0 0;color:var(--dim);font-size:13px;max-width:62ch}
+.card-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.card-head .grow{flex:1 1 220px}
+
+/* ================= the beam ================= */
+.beam-wrap{
+  background:var(--panel);border:1px solid var(--hair);
+  border-radius:var(--r);padding:18px 20px 16px;
+}
+.beam-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.beam-head h2{font-size:16px}
+.beam-head .eq{font-family:var(--data);font-size:13.5px;color:var(--dim);margin-left:auto}
+.beam-head .eq b{color:var(--gold);font-weight:500}
+.beam-wrap.broken .beam-head .eq b{color:var(--ember)}
+
+.beam{
+  position:relative;height:46px;display:flex;align-items:stretch;
+  border-radius:3px;overflow:hidden;background:rgba(239,233,220,.04);
+}
+.beam .side{flex:1 1 50%;display:flex;min-width:0}
+.beam .side.owe{justify-content:flex-end}
+.beam .seg{
+  min-width:2px;transition:width .28s cubic-bezier(.22,.61,.36,1);
+  border-right:1px solid rgba(21,17,25,.65);
+  display:flex;align-items:flex-end;padding:0 0 4px 5px;overflow:hidden;
+}
+.beam .side.owe .seg{background:var(--ember)}
+.beam .side.owed .seg{background:var(--gold)}
+.beam .seg:last-child{border-right:0}
+.beam .seg span{
+  font-family:var(--data);font-size:10.5px;color:rgba(21,17,25,.82);
+  white-space:nowrap;font-weight:500;
+}
+.beam .axis{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--hair-strong)}
+.beam-legend{
+  display:flex;gap:10px;margin-top:9px;font-size:11.5px;color:var(--dim);
+  justify-content:space-between;flex-wrap:wrap;
+}
+.beam-legend .mid{text-align:center;flex:1 1 auto}
+.beam-empty{
+  height:46px;display:flex;align-items:center;justify-content:center;
+  color:var(--dim);font-size:13px;border:1px dashed var(--hair);border-radius:3px;
+}
+
+/* ================= forms ================= */
+label{display:block;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 6px;font-weight:500}
+input,select,textarea{
+  width:100%;background:var(--ink);color:var(--bone);
+  border:1px solid var(--hair);border-radius:var(--r);
+  font-family:var(--ui);font-size:14.5px;padding:10px 11px;
+}
+input.num,select{font-family:var(--data);font-size:14px}
+textarea{font-size:14px;resize:vertical;min-height:62px}
+input::placeholder,textarea::placeholder{color:#6C6577}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft);
+}
+.field{margin-bottom:14px}
+.field.bad input,.field.bad select{border-color:var(--ember)}
+.err{display:none;color:var(--ember);font-size:12px;margin-top:6px}
+.field.bad .err{display:block}
+.two{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+
+.swap-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:start}
+.swap-row .swapcell{padding-top:26px}
+@media(max-width:560px){
+  .swap-row{grid-template-columns:1fr;gap:6px}
+  .swap-row .swapcell{padding-top:0;margin-bottom:14px}
+}
+.swap{
+  appearance:none;cursor:pointer;background:var(--raise);color:var(--dim);
+  border:1px solid var(--hair);border-radius:var(--r);
+  height:41px;width:41px;font-size:15px;line-height:1;
+}
+.swap:hover{color:var(--gold);border-color:var(--gold)}
+@media(max-width:560px){.swap{width:100%;height:34px}}
+
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.chip{
+  appearance:none;cursor:pointer;background:none;color:var(--dim);
+  border:1px solid var(--hair);border-radius:99px;
+  font-family:var(--data);font-size:12.5px;padding:5px 12px;
+}
+.chip:hover{color:var(--bone);border-color:var(--hair-strong)}
+.chip.on{background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:500}
+
+button.btn{
+  appearance:none;cursor:pointer;
+  background:var(--gold);color:var(--ink);border:1px solid var(--gold);
+  font-family:var(--ui);font-weight:600;font-size:14px;
+  padding:10px 18px;border-radius:var(--r);
+}
+button.btn:hover{background:#E9BE58;border-color:#E9BE58}
+button.btn.ghost{background:none;color:var(--bone);border-color:var(--hair-strong)}
+button.btn.ghost:hover{background:rgba(239,233,220,.06);border-color:var(--bone)}
+button.btn.warn{background:none;color:var(--ember);border-color:rgba(203,83,53,.5)}
+button.btn.warn:hover{background:var(--ember-soft);border-color:var(--ember)}
+button:focus-visible,.link:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px}
+
+.link{
+  appearance:none;background:none;border:0;cursor:pointer;padding:0;
+  color:var(--gold);font-family:var(--ui);font-size:13px;
+  border-bottom:1px solid rgba(221,174,70,.35);
+}
+.link:hover{border-bottom-color:var(--gold)}
+
+.mini{
+  appearance:none;cursor:pointer;background:none;color:var(--dim);
+  border:1px solid var(--hair);border-radius:4px;
+  font-family:var(--ui);font-size:12px;padding:4px 9px;margin-left:6px;
+}
+.mini:hover{color:var(--bone);border-color:var(--hair-strong)}
+.mini.go{color:var(--gold);border-color:rgba(221,174,70,.45)}
+.mini.go:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.mini.no{color:var(--ember);border-color:rgba(203,83,53,.4)}
+.mini.no:hover{background:var(--ember-soft)}
+
+.firstrun{
+  border:1px dashed rgba(221,174,70,.4);background:var(--gold-soft);
+  border-radius:var(--r);padding:14px 16px;margin-bottom:18px;
+}
+.firstrun p{margin:0;font-size:13.5px;color:var(--bone)}
+.firstrun .btn-row{margin-top:12px}
+
+.quickadd{margin-top:14px;padding-top:14px;border-top:1px solid var(--hair)}
+.quickadd .fields{display:none;gap:9px;margin-top:11px;grid-template-columns:1fr 1fr auto}
+.quickadd.open .fields{display:grid}
+.quickadd.open .link{display:none}
+@media(max-width:560px){.quickadd .fields{grid-template-columns:1fr}}
+
+/* ================= tables ================= */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{
+  text-align:left;font-family:var(--ui);font-weight:500;font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--dim);
+  padding:0 10px 8px 0;border-bottom:1px solid var(--hair);
+}
+td{padding:11px 10px 11px 0;border-bottom:1px solid var(--hair);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(239,233,220,.028)}
+td.num,th.num{text-align:right;padding-right:0}
+td.act{text-align:right;padding-right:0;white-space:nowrap}
+.pos{color:var(--gold)}
+.neg{color:var(--ember)}
+.zero{color:var(--dim)}
+.when{color:var(--dim);font-family:var(--data);font-size:12.5px;white-space:nowrap}
+.memo{color:var(--dim)}
+.empty{color:var(--dim);font-size:13.5px;padding:22px 0;text-align:center}
+.empty b{display:block;color:var(--bone);font-family:var(--display);
+  font-size:16px;font-weight:600;margin-bottom:4px}
+
+.pill{
+  display:inline-block;font-size:11px;font-weight:500;
+  border-radius:99px;padding:3px 10px;border:1px solid var(--hair);color:var(--dim);
+}
+.pill.open{color:var(--bone);border-color:var(--hair-strong)}
+.pill.approved{color:var(--gold);border-color:rgba(221,174,70,.5);background:var(--gold-soft)}
+.pill.paid{color:var(--ink);background:var(--gold);border-color:var(--gold)}
+.pill.declined{color:var(--ember);border-color:rgba(203,83,53,.45)}
+
+@media(max-width:620px){
+  .beam-legend > span:not(.mid){display:none}
+  .beam-legend .mid{text-align:left}
+  .beam .seg span{display:none}
+}
+@media(max-width:680px){
+  table,thead,tbody,tr,td,th{display:block}
+  thead{display:none}
+  tbody tr{border-bottom:1px solid var(--hair);padding:12px 0}
+  tbody tr:hover td{background:none}
+  td{border:0;padding:3px 0;display:flex;justify-content:space-between;gap:16px;text-align:right}
+  td::before{
+    content:attr(data-label);color:var(--dim);font-size:11px;font-weight:500;
+    letter-spacing:.06em;text-transform:uppercase;text-align:left;flex:none;
+  }
+  td.act{padding-top:9px;justify-content:flex-end}
+  td.act::before{content:none}
+  td.act .mini{margin:0 0 0 6px}
+  /* a date and a memo say what they are without a label in front of them */
+  #hoursLog td.when::before,#hoursLog td.memo::before,#reqLog td.when::before{content:none}
+  #hoursLog td.when,#hoursLog td.memo,#reqLog td.when{justify-content:flex-start;text-align:left}
+  .empty{display:block}
+}
+
+/* ================= rail ================= */
+.rail{display:grid;gap:16px;align-content:start}
+.rail .card{padding:17px}
+.rail h3{font-size:12px;font-family:var(--ui);font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:13px}
+.glance{display:grid;gap:12px}
+.glance .g{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.glance .g span{color:var(--dim);font-size:12.5px}
+.glance .g b{font-family:var(--display);font-size:19px;font-weight:600}
+.glance .g b.money{font-size:17px}
+
+.bal{display:grid;gap:2px}
+.bal-row{display:grid;grid-template-columns:1fr 66px;gap:10px;align-items:center;
+  padding:6px 0;border-bottom:1px solid var(--hair)}
+.bal-row:last-child{border-bottom:0}
+.bal-who{min-width:0}
+.bal-who .h{font-size:13.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bal-who .track{position:relative;display:block;height:4px;margin-top:5px;
+  background:rgba(239,233,220,.06);border-radius:2px;overflow:hidden}
+.bal-who .track i{position:absolute;top:0;bottom:0;display:block;border-radius:2px;
+  transition:width .28s cubic-bezier(.22,.61,.36,1),left .28s cubic-bezier(.22,.61,.36,1)}
+.bal-row .v{text-align:right;font-family:var(--data);font-size:13px}
+.floorwarn{color:var(--ember);font-size:11.5px;margin-top:11px}
+
+/* ================= checks ================= */
+.checks{list-style:none;margin:0;padding:0}
+.checks li{display:flex;gap:13px;align-items:flex-start;padding:12px 0;
+  border-bottom:1px solid var(--hair)}
+.checks li:last-child{border-bottom:0}
+.checks .mk{flex:none;width:52px;font-family:var(--data);font-size:10.5px;
+  letter-spacing:.06em;padding-top:3px}
+.checks .mk.pass{color:var(--gold)}
+.checks .mk.fail{color:var(--ember)}
+.checks .lb{font-size:14px}
+.checks .dt{display:block;color:var(--dim);font-size:12.5px;margin-top:2px}
+
+.note{border-left:2px solid rgba(203,83,53,.6);padding:3px 0 3px 14px;
+  color:var(--dim);font-size:12.5px;margin:18px 0 0;max-width:70ch}
+.note.calm{border-left-color:var(--hair-strong)}
+.prose{color:var(--dim);font-size:13.5px;max-width:70ch;margin:0}
+.prose + .prose{margin-top:11px}
+.prose b{color:var(--bone);font-weight:600}
+
+/* ================= toast ================= */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(9px);
+  display:flex;align-items:center;gap:14px;
+  background:var(--raise);color:var(--bone);
+  border:1px solid var(--hair-strong);border-radius:var(--r);
+  padding:11px 16px;font-size:13.5px;box-shadow:0 12px 34px rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;z-index:60;
+  max-width:calc(100vw - 32px);
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast.bad{border-color:rgba(203,83,53,.55)}
+.toast.bad .msg{color:var(--ember)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ================= member view (You) ================= */
+/* The member-facing front door. Same ledger underneath as every other panel —
+   this only ever writes state.hours through the same floor and self-dealing
+   guards, and asks become real hours only on acceptance. */
+.me-pick{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.me-pick label{font-size:12.5px;color:var(--dim)}
+.me-pick select{max-width:260px}
+.bal{
+  position:relative;overflow:hidden;
+  background:linear-gradient(155deg,var(--raise) 0%,var(--panel) 100%);
+  border:1px solid var(--hair);border-radius:var(--r);
+  padding:26px 22px;margin-bottom:14px;
+}
+.bal::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(60% 80% at 100% 0%,var(--gold-soft),transparent 60%);
+}
+.bal-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.bal-value{font-family:var(--data);font-variant-numeric:tabular-nums;font-size:42px;line-height:1;font-weight:500}
+.bal-value .unit{font-family:var(--ui);font-size:14px;color:var(--gold);margin-left:9px;letter-spacing:.02em}
+.bal-sub{margin-top:10px;font-size:12.5px;color:var(--dim)}
+.bal-foot{margin-top:14px;padding-top:13px;border-top:1px solid var(--hair);font-size:11.5px;color:var(--dim)}
+.bal.low .bal-value{color:var(--ember)}
+.me-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
+.me-actions .btn{width:100%;justify-content:center}
+.me-form{display:none}
+.me-form.open{display:block}
+/* Scoped to this panel's forms — nothing else in the file uses .grid. */
+.me-form .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.me-form .grid .field:last-child{grid-column:1 / -1}
+@media (max-width:560px){ .me-form .grid{grid-template-columns:1fr} }
+button.btn.small{padding:6px 11px;font-size:12.5px}
+.ask{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 2px;border-bottom:1px solid var(--hair);
+}
+.ask:last-child{border-bottom:none}
+.ask-mark{
+  width:34px;height:34px;border-radius:50%;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--data);font-size:14px;font-weight:500;
+}
+.ask-mark.out{background:var(--ember-soft);color:var(--ember)}
+.ask-mark.in{background:var(--gold-soft);color:var(--gold)}
+.ask-body{flex:1;min-width:0}
+.ask-title{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ask-memo{font-size:11.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ask-amt{font-family:var(--data);font-variant-numeric:tabular-nums;font-size:14px;flex:0 0 auto}
+.ask-amt.out{color:var(--ember)}
+.ask-amt.in{color:var(--gold)}
+.ask-acts{display:flex;gap:6px;flex:0 0 auto}
+@media (max-width:520px){
+  .bal-value{font-size:34px}
+  .ask-acts{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="mark">IRN</div>
+    <div class="title">
+      <h1>Commons</h1>
+      <p>Hours and mutual aid, kept on this device only</p>
+    </div>
+    <div class="mast-spacer"></div>
+    <div class="saveflag" id="saveflag"></div>
+    <button class="status" id="status" title="Go to the ledger check">
+      <span class="dot"></span><span id="statusText">Ledger conserves</span>
+      <span class="sum" id="statusSum">Σ 0.00</span>
+    </button>
+  </div>
+</header>
+
+<nav class="tabs"><div class="tabs-in" role="tablist" aria-label="Sections">
+  <button class="tab" role="tab" id="tab-me"     aria-controls="panel-me"     aria-selected="true"  data-p="me">You<span class="badge" id="meBadge" hidden></span></button>
+  <button class="tab" role="tab" id="tab-hours"  aria-controls="panel-hours"  aria-selected="false" data-p="hours">Hours</button>
+  <button class="tab" role="tab" id="tab-aid"    aria-controls="panel-aid"    aria-selected="false" data-p="aid">Aid fund<span class="badge" id="aidBadge" hidden></span></button>
+  <button class="tab" role="tab" id="tab-people" aria-controls="panel-people" aria-selected="false" data-p="people">People</button>
+  <button class="tab" role="tab" id="tab-check"  aria-controls="panel-check"  aria-selected="false" data-p="check">Ledger check</button>
+  <button class="tab" role="tab" id="tab-save"   aria-controls="panel-save"   aria-selected="false" data-p="save">Save &amp; load</button>
+</div></nav>
+
+<div class="shell">
+<main>
+
+  <!-- ============ YOU (member view) ============ -->
+  <section class="panel on" id="panel-me" role="tabpanel" aria-labelledby="tab-me">
+
+    <div class="card">
+      <div class="me-pick">
+        <label for="meWho">Viewing as</label>
+        <select id="meWho" aria-label="Which member this view belongs to"></select>
+      </div>
+
+      <div class="bal" id="balCard">
+        <div class="bal-label">Your balance</div>
+        <div class="bal-value" id="balValue">0.00<span class="unit">hours</span></div>
+        <div class="bal-sub" id="balSub"></div>
+        <div class="bal-foot" id="balFoot"></div>
+      </div>
+
+      <div class="me-actions">
+        <button class="btn" id="meSendOpen" type="button">Send hours</button>
+        <button class="btn ghost" id="meAskOpen" type="button">Request hours</button>
+      </div>
+
+      <div class="me-form" id="meSendForm">
+        <div class="grid">
+          <div class="field" id="f-sendto">
+            <label for="sendTo">To</label>
+            <select id="sendTo"></select>
+            <div class="err">Choose who receives the time.</div>
+          </div>
+          <div class="field" id="f-sendunits">
+            <label for="sendUnits">Hours</label>
+            <input id="sendUnits" type="number" step="0.25" min="0" inputmode="decimal" placeholder="0.00">
+            <div class="err">Enter more than zero hours.</div>
+          </div>
+          <div class="field" id="f-sendmemo">
+            <label for="sendMemo">What it was for</label>
+            <input id="sendMemo" type="text" maxlength="60" placeholder="ride to the courthouse">
+            <div class="err">Say what the time was for.</div>
+          </div>
+        </div>
+        <div class="btn-row"><button class="btn" id="sendSubmit" type="button">Record the exchange</button></div>
+      </div>
+
+      <div class="me-form" id="meAskForm">
+        <div class="grid">
+          <div class="field" id="f-askfrom">
+            <label for="askFrom">From</label>
+            <select id="askFrom"></select>
+            <div class="err">Choose who you are asking.</div>
+          </div>
+          <div class="field" id="f-askunits">
+            <label for="askUnits">Hours</label>
+            <input id="askUnits" type="number" step="0.25" min="0" inputmode="decimal" placeholder="0.00">
+            <div class="err">Enter more than zero hours.</div>
+          </div>
+          <div class="field" id="f-askmemo">
+            <label for="askMemo">What it's for</label>
+            <input id="askMemo" type="text" maxlength="60" placeholder="childcare Thursday">
+            <div class="err">Say what the time is for.</div>
+          </div>
+        </div>
+        <div class="btn-row"><button class="btn" id="askSubmit" type="button">Send the request</button></div>
+        <p class="note calm">A request moves no hours. It sits open until it is accepted, and only
+          then is a real exchange written to the ledger.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow"><h2>Open requests</h2></div></div>
+      <div id="askList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow"><h2>Your recent activity</h2></div></div>
+      <div id="meFeed"></div>
+    </div>
+  </section>
+
+  <!-- ============ HOURS ============ -->
+  <section class="panel" id="panel-hours" role="tabpanel" aria-labelledby="tab-hours" hidden>
+
+    <div class="beam-wrap" id="beamWrap">
+      <div class="beam-head">
+        <h2>The beam</h2>
+        <div class="eq" id="beamEq"></div>
+      </div>
+      <div id="beamBody"></div>
+      <div class="beam-legend">
+        <span>&larr; hours owed to the commons</span>
+        <span class="mid" id="beamMid"></span>
+        <span>hours the commons owes &rarr;</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>Log an exchange</h2>
+        <p class="lede">One person's time moves to another. Nothing is bought and nothing is cashed out.</p>
+      </div></div>
+
+      <div class="firstrun" id="firstRun" hidden>
+        <p id="firstRunMsg"></p>
+        <div class="btn-row">
+          <button class="btn ghost" id="frAdd" type="button">Add someone</button>
+          <button class="btn ghost" id="frSample" type="button">Load a sample ledger</button>
+        </div>
+      </div>
+
+      <div class="swap-row">
+        <div class="field" id="f-from">
+          <label for="hFrom">Hours from</label>
+          <select id="hFrom"></select>
+          <div class="err">Choose who gave the time.</div>
+        </div>
+        <div class="swapcell">
+          <button class="swap" id="hSwap" type="button" title="Swap sides" aria-label="Swap the two people">&#8646;</button>
+        </div>
+        <div class="field" id="f-to">
+          <label for="hTo">Hours to</label>
+          <select id="hTo"></select>
+          <div class="err">Choose who received the time.</div>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field" id="f-units">
+          <label for="hUnits">How many hours</label>
+          <input id="hUnits" class="num" type="number" step="0.25" min="0.25" inputmode="decimal" placeholder="1.75">
+          <div class="chips" id="hChips">
+            <button class="chip" type="button" data-h="0.5">0.5</button>
+            <button class="chip" type="button" data-h="1">1</button>
+            <button class="chip" type="button" data-h="1.5">1.5</button>
+            <button class="chip" type="button" data-h="2">2</button>
+            <button class="chip" type="button" data-h="3">3</button>
+            <button class="chip" type="button" data-h="4">4</button>
+          </div>
+          <div class="err">Enter more than zero hours.</div>
+        </div>
+        <div class="field" id="f-memo">
+          <label for="hMemo">What it was for</label>
+          <input id="hMemo" type="text" maxlength="60" placeholder="ride to the courthouse">
+          <div class="err">Say what the time was for.</div>
+        </div>
+      </div>
+
+      <div class="btn-row"><button class="btn" id="hSubmit">Record exchange</button></div>
+      <p class="note calm" id="floorNote"></p>
+
+      <div class="quickadd" id="quickAdd">
+        <button class="link" id="qaOpen" type="button">&#65291; Add someone new</button>
+        <div class="fields">
+          <input id="qaHandle" type="text" maxlength="24" placeholder="handle — e.g. river" aria-label="New handle">
+          <input id="qaTag" type="text" maxlength="24" placeholder="circle, optional — e.g. 757" aria-label="Circle">
+          <button class="btn ghost" id="qaAdd" type="button">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="grow"><h2>Exchanges</h2></div>
+        <input id="hFilter" type="search" placeholder="Filter by handle or memo" aria-label="Filter exchanges" style="max-width:250px;padding:7px 10px;font-size:13px">
+      </div>
+      <table>
+        <thead><tr><th>When</th><th>From</th><th>To</th><th>For</th><th class="num">Hours</th><th></th></tr></thead>
+        <tbody id="hoursLog"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ AID ============ -->
+  <section class="panel" id="panel-aid" role="tabpanel" aria-labelledby="tab-aid" hidden>
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>New request</h2>
+        <p class="lede">A handle is optional. A request with nobody attached to it is still payable.</p>
+      </div></div>
+      <div class="two">
+        <div class="field" id="f-ramt">
+          <label for="rAmt">Amount</label>
+          <input id="rAmt" class="num" type="number" step="0.01" min="0.01" inputmode="decimal" placeholder="120.00">
+          <div class="err">Enter an amount above zero.</div>
+        </div>
+        <div class="field">
+          <label for="rCat">What for</label>
+          <select id="rCat">
+            <option>Transport</option><option>Documents &amp; fees</option>
+            <option>Food</option><option>Housing gap</option>
+            <option>Medication</option><option>Phone</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label for="rWho">Handle (optional)</label>
+          <select id="rWho"></select>
+        </div>
+        <div class="field">
+          <label for="rNote">Note (optional)</label>
+          <input id="rNote" type="text" maxlength="140" placeholder="Only what the decision needs.">
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn" id="rSubmit">File request</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>Requests</h2>
+        <p class="lede">Approve first, then pay. A request pays once, and only if the fund covers it.</p>
+      </div></div>
+      <table>
+        <thead><tr><th>When</th><th>For</th><th>Handle</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+        <tbody id="reqLog"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>Add to the fund</h2>
+        <p class="lede">Money IRN already holds. Record where it came from as a category, never as a donor.</p>
+      </div></div>
+      <div class="two">
+        <div class="field" id="f-damt">
+          <label for="dAmt">Amount</label>
+          <input id="dAmt" class="num" type="number" step="0.01" min="0.01" inputmode="decimal" placeholder="500.00">
+          <div class="err">Enter an amount above zero.</div>
+        </div>
+        <div class="field">
+          <label for="dSrc">Source</label>
+          <select id="dSrc">
+            <option>Grant</option><option>Individual gifts</option>
+            <option>Event</option><option>Org transfer</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn ghost" id="dSubmit">Record deposit</button></div>
+      <p class="note calm">The fund pays out money IRN already holds. It never moves money between two people, because that is licensed activity and it is not in this file.</p>
+    </div>
+  </section>
+
+  <!-- ============ PEOPLE ============ -->
+  <section class="panel" id="panel-people" role="tabpanel" aria-labelledby="tab-people" hidden>
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>Add a person</h2>
+        <p class="lede">A handle, and a circle if it helps you find them. There is no field here for a legal name, an address, a birthdate, or a document number. That absence is the design.</p>
+      </div></div>
+      <div class="two">
+        <div class="field" id="f-handle">
+          <label for="mHandle">Handle</label>
+          <input id="mHandle" type="text" maxlength="24" placeholder="river">
+          <div class="err">Pick a handle.</div>
+        </div>
+        <div class="field">
+          <label for="mTag">Circle (optional)</label>
+          <input id="mTag" type="text" maxlength="24" placeholder="757">
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn" id="mSubmit">Add person</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow"><h2>Roster</h2></div></div>
+      <table>
+        <thead><tr><th>Handle</th><th>Circle</th><th class="num">Balance</th><th class="num">Exchanges</th><th></th></tr></thead>
+        <tbody id="roster"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ CHECK ============ -->
+  <section class="panel" id="panel-check" role="tabpanel" aria-labelledby="tab-check" hidden>
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>Ledger check</h2>
+        <p class="lede">Every check below is recomputed from the raw entries, right now, each time the ledger changes. Nothing here reads a stored total — if a balance and the exchanges behind it ever disagree, this is what catches it.</p>
+      </div></div>
+      <ul class="checks" id="checks"></ul>
+      <div class="btn-row" style="margin-top:18px">
+        <button class="btn ghost" id="verify">Run and stamp verification</button>
+      </div>
+      <p class="note calm" id="verifiedAt">Not stamped this session.</p>
+    </div>
+  </section>
+
+  <!-- ============ SAVE ============ -->
+  <section class="panel" id="panel-save" role="tabpanel" aria-labelledby="tab-save" hidden>
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>Save a copy</h2>
+        <p class="lede">This ledger lives in memory. Nothing is written to the disk, to a browser store, or to a network until you save a file here, and closing the tab ends the session.</p>
+      </div></div>
+      <div class="btn-row">
+        <button class="btn" id="expJson">Save ledger file</button>
+        <button class="btn ghost" id="expCsv">Save hours as CSV</button>
+      </div>
+      <p class="note calm" id="lastSaved">Not saved yet this session.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>Load a ledger</h2>
+        <p class="lede">Opens a saved file and replaces whatever is on screen now. Undo brings the old one back.</p>
+      </div></div>
+      <div class="field"><input id="impFile" type="file" accept="application/json,.json" aria-label="Ledger file"></div>
+      <div class="btn-row"><button class="btn ghost" id="impBtn">Load file</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow">
+        <h2>Clear the session</h2>
+        <p class="lede">Wipes everything held in memory right now. There is no undo and no backup.</p>
+      </div></div>
+      <div class="btn-row" id="wipeRow"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="grow"><h2>What this is, and what it isn't</h2></div></div>
+      <p class="prose">Hours are <b>mutual credit</b>. They cannot be bought with money and cannot be redeemed for money, which is what keeps this out of money-transmission territory. The ledger is the whole mechanism: a balance is a record of what the commons owes you, held by the commons.</p>
+      <p class="prose">The aid fund records disbursements IRN makes from money <b>it already holds</b>. It does not move anyone's money for them.</p>
+      <p class="prose">Person-to-person payment is a different build with a licensed partner behind it. It carries identity verification and reporting duties that would contaminate everything on this page, so it does not belong in this file.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ RAIL ============ -->
+<aside class="rail">
+  <div class="card">
+    <h3>At a glance</h3>
+    <div class="glance">
+      <div class="g"><span>People</span><b id="gPeople">0</b></div>
+      <div class="g"><span>Hours exchanged</span><b id="gHours">0.00</b></div>
+      <div class="g"><span>Fund available</span><b class="money" id="gFund">$0.00</b></div>
+      <div class="g"><span>Requests open</span><b id="gOpen">0</b></div>
+      <div class="g"><span>Paid out</span><b class="money" id="gPaid">$0.00</b></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Balances</h3>
+    <div class="bal" id="balances"></div>
+    <div class="floorwarn" id="floorWarn" hidden></div>
+  </div>
+</aside>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="msg" id="toastMsg"></span>
+  <button class="mini" id="toastUndo" hidden>Undo</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- constants ---------- */
+var FLOOR = -2000;              // hundredths of an hour: -20.00
+var NEAR  = FLOOR + 500;        // within 5 hours of the floor
+
+/* ---------- state ---------- */
+var state = blank();
+var undoStack = [];
+var dirty = false;
+var lastSaved = null;
+var filter = '';
+var confirming = null;          // key of the row awaiting a yes/no
+
+function blank(){
+  /* v3 adds `asks` (hour requests between members) and `meId` (whose view the You
+     panel shows). Neither holds hours: an ask is a proposal, and hours still exist
+     only as entries in `hours`, which is what keeps Σ balances at 0. A v2 file
+     loads fine — the import backfills both. */
+  return { version:3, members:[], hours:[], deposits:[], payouts:[], requests:[], asks:[], meId:null };
+}
+
+/* ---------- helpers ---------- */
+function $(id){ return document.getElementById(id); }
+function uid(){
+  if(window.crypto && crypto.getRandomValues){
+    var a = new Uint8Array(6); crypto.getRandomValues(a);
+    return Array.prototype.map.call(a, function(b){
+      return ('0' + b.toString(16)).slice(-2);
+    }).join('');
+  }
+  return Math.random().toString(36).slice(2,10);
+}
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function toH(v){ var n = parseFloat(v); return isFinite(n) ? Math.round(n*100) : 0; }
+function fmtH(n){ return (n/100).toFixed(2); }
+function signH(n){ return (n > 0 ? '+' : n < 0 ? '−' : '') + fmtH(Math.abs(n)); }
+function toC(v){ var n = parseFloat(v); return isFinite(n) ? Math.round(n*100) : 0; }
+function fmtC(n){
+  return (n < 0 ? '−$' : '$') +
+    Math.abs(n/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function stamp(ts){
+  var d = new Date(ts);
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' +
+         d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+}
+function member(id){
+  for(var i=0;i<state.members.length;i++) if(state.members[i].id === id) return state.members[i];
+  return null;
+}
+function handleOf(id){ var m = member(id); return m ? m.handle : '—'; }
+function request(id){
+  for(var i=0;i<state.requests.length;i++) if(state.requests[i].id === id) return state.requests[i];
+  return null;
+}
+
+/* ---------- derived, never stored ---------- */
+function balances(){
+  var b = Object.create(null);
+  state.members.forEach(function(m){ b[m.id] = 0; });
+  state.hours.forEach(function(h){
+    if(h.from in b) b[h.from] -= h.units;
+    if(h.to   in b) b[h.to]   += h.units;
+  });
+  return b;
+}
+function fundBalance(){
+  var d = state.deposits.reduce(function(a,x){ return a + x.amount; }, 0);
+  var p = state.payouts.reduce(function(a,x){ return a + x.amount; }, 0);
+  return d - p;
+}
+function paidTotal(){ return state.payouts.reduce(function(a,p){ return a + p.amount; }, 0); }
+function hoursMoved(){ return state.hours.reduce(function(a,h){ return a + h.units; }, 0); }
+function hasData(){
+  return state.members.length || state.hours.length ||
+         state.requests.length || state.deposits.length || state.asks.length;
+}
+
+/* ---------- mutation + undo ---------- */
+function commit(label, fn){
+  var snap = JSON.stringify(state);
+  fn();
+  undoStack.push(snap);
+  if(undoStack.length > 25) undoStack.shift();
+  dirty = true; confirming = null;
+  render();
+  toast(label, {undo:true});
+}
+function undo(){
+  var snap = undoStack.pop();
+  if(!snap) return;
+  state = JSON.parse(snap);
+  dirty = true; confirming = null;
+  render();
+  toast('Undone.');
+}
+
+/* ---------- toast ---------- */
+var toastTimer;
+function toast(msg, opts){
+  opts = opts || {};
+  var t = $('toast');
+  $('toastMsg').textContent = msg;
+  t.classList.toggle('bad', !!opts.bad);
+  $('toastUndo').hidden = !opts.undo;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('on'); }, opts.undo ? 6000 : 3400);
+}
+$('toastUndo').addEventListener('click', function(){
+  $('toast').classList.remove('on');
+  undo();
+});
+
+/* ---------- inline field errors ---------- */
+function setErr(fieldId, msg){
+  var f = $(fieldId);
+  if(!f) return;
+  f.classList.add('bad');
+  if(msg){ var e = f.querySelector('.err'); if(e) e.textContent = msg; }
+}
+function clearErrs(){
+  Array.prototype.forEach.call(document.querySelectorAll('.field.bad'), function(f){
+    f.classList.remove('bad');
+  });
+}
+document.addEventListener('input', function(e){
+  var f = e.target.closest ? e.target.closest('.field') : null;
+  if(f) f.classList.remove('bad');
+});
+
+/* ---------- tabs ---------- */
+var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+function showPanel(name){
+  tabs.forEach(function(t){
+    var on = t.dataset.p === name;
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+    t.tabIndex = on ? 0 : -1;
+    var p = $('panel-' + t.dataset.p);
+    p.classList.toggle('on', on);
+    p.hidden = !on;
+  });
+}
+tabs.forEach(function(t, i){
+  t.tabIndex = i === 0 ? 0 : -1;
+  t.addEventListener('click', function(){ showPanel(t.dataset.p); });
+  t.addEventListener('keydown', function(e){
+    var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 :
+            e.key === 'Home' ? -99 : e.key === 'End' ? 99 : 0;
+    if(!d) return;
+    e.preventDefault();
+    var n = d === -99 ? 0 : d === 99 ? tabs.length - 1 : (i + d + tabs.length) % tabs.length;
+    tabs[n].focus(); showPanel(tabs[n].dataset.p);
+  });
+});
+$('status').addEventListener('click', function(){
+  showPanel('check'); $('tab-check').focus();
+});
+
+/* ---------- people ---------- */
+function handleTaken(h){
+  return state.members.some(function(m){ return m.handle.toLowerCase() === h.toLowerCase(); });
+}
+$('mSubmit').addEventListener('click', function(){
+  clearErrs();
+  var h = $('mHandle').value.trim();
+  if(!h){ setErr('f-handle', 'Pick a handle.'); return; }
+  if(handleTaken(h)){ setErr('f-handle', 'That handle is already on the roster.'); return; }
+  var m = { id:uid(), handle:h, tag:$('mTag').value.trim(), joined:Date.now() };
+  commit(h + ' added.', function(){ state.members.push(m); });
+  $('mHandle').value = ''; $('mTag').value = ''; $('mHandle').focus();
+});
+$('mHandle').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') $('mSubmit').click();
+});
+
+function openQuickAdd(){
+  $('quickAdd').classList.add('open');
+  $('qaHandle').focus();
+}
+$('qaOpen').addEventListener('click', openQuickAdd);
+$('frAdd').addEventListener('click', openQuickAdd);
+function quickAdd(){
+  var h = $('qaHandle').value.trim();
+  if(!h){ toast('Type a handle first.', {bad:true}); $('qaHandle').focus(); return; }
+  if(handleTaken(h)){ toast('That handle is already on the roster.', {bad:true}); return; }
+  var m = { id:uid(), handle:h, tag:$('qaTag').value.trim(), joined:Date.now() };
+  commit(h + ' added.', function(){ state.members.push(m); });
+  $('qaHandle').value = ''; $('qaTag').value = '';
+  if(!$('hFrom').value) $('hFrom').value = m.id;
+  else if(!$('hTo').value) $('hTo').value = m.id;
+  $('qaHandle').focus();
+}
+$('qaAdd').addEventListener('click', quickAdd);
+['qaHandle','qaTag'].forEach(function(id){
+  $(id).addEventListener('keydown', function(e){ if(e.key === 'Enter') quickAdd(); });
+});
+
+function removeMember(id){
+  var used = state.hours.some(function(h){ return h.from === id || h.to === id; }) ||
+             state.requests.some(function(r){ return r.memberId === id; });
+  if(used){ toast('They have ledger history, so they stay on the roster.', {bad:true}); return; }
+  var name = handleOf(id);
+  commit(name + ' removed.', function(){
+    state.members = state.members.filter(function(m){ return m.id !== id; });
+  });
+}
+
+/* ---------- sample ledger ---------- */
+$('frSample').addEventListener('click', function(){
+  var now = Date.now(), hour = 3600000;
+  var names = [['river','757'],['juniper','757'],['mesa','Baltimore'],['sparrow','']];
+  var ms = names.map(function(n){
+    return { id:uid(), handle:n[0], tag:n[1], joined:now - 30*24*hour };
+  });
+  var ex = [
+    [0,1,300,'ride to the courthouse',   72],
+    [2,0,150,'childcare during hearing', 60],
+    [1,3,200,'moving help',              44],
+    [3,2,125,'phone calls and intake',   20],
+    [0,2, 75,'notarizing paperwork',      5]
+  ].map(function(e){
+    return { id:uid(), from:ms[e[0]].id, to:ms[e[1]].id, units:e[2], memo:e[3], ts:now - e[4]*hour };
+  });
+  var dep = { id:uid(), amount:150000, source:'Grant', ts:now - 20*24*hour };
+  var reqs = [
+    { id:uid(), amount:12000, category:'Transport', memberId:ms[2].id,
+      note:'Bus fare for three hearings', status:'open', ts:now - 26*hour },
+    { id:uid(), amount:8500, category:'Documents & fees', memberId:null,
+      note:'Certified copies', status:'approved', ts:now - 50*hour }
+  ];
+  commit('Sample ledger loaded.', function(){
+    /* asks:[] is not optional here — this replaces state wholesale, and every
+       render/check path now reads state.asks. Omitting it makes it undefined. */
+    state = { version:3, members:ms, hours:ex, deposits:[dep], payouts:[], requests:reqs,
+              asks:[], meId: ms.length ? ms[0].id : null };
+  });
+});
+
+/* ---------- hours ---------- */
+$('hSwap').addEventListener('click', function(){
+  var a = $('hFrom').value, b = $('hTo').value;
+  $('hFrom').value = b; $('hTo').value = a;
+});
+function markChips(){
+  var v = parseFloat($('hUnits').value);
+  Array.prototype.forEach.call($('hChips').children, function(c){
+    c.classList.toggle('on', parseFloat(c.dataset.h) === v);
+  });
+}
+$('hChips').addEventListener('click', function(e){
+  var c = e.target.closest('.chip'); if(!c) return;
+  $('hUnits').value = c.dataset.h;
+  $('f-units').classList.remove('bad');
+  markChips();
+});
+$('hUnits').addEventListener('input', markChips);
+
+function recordExchange(){
+  clearErrs();
+  var from = $('hFrom').value, to = $('hTo').value;
+  var units = toH($('hUnits').value);
+  var ok = true;
+  if(!from){ setErr('f-from', 'Choose who gave the time.'); ok = false; }
+  if(!to){ setErr('f-to', 'Choose who received the time.'); ok = false; }
+  if(from && to && from === to){
+    setErr('f-to', 'An exchange needs two different people.'); ok = false;
+  }
+  if(units <= 0){ setErr('f-units', 'Enter more than zero hours.'); ok = false; }
+  if(!ok) return;
+
+  var b = balances();
+  if(b[from] - units < FLOOR){
+    setErr('f-units', handleOf(from) + ' would land at ' + fmtH(b[from] - units) +
+      ', past the ' + fmtH(FLOOR) + ' floor. There is ' + fmtH(b[from] - FLOOR) + ' left to give.');
+    return;
+  }
+  var entry = { id:uid(), from:from, to:to, units:units, memo:$('hMemo').value.trim(), ts:Date.now() };
+  commit(fmtH(units) + ' hours: ' + handleOf(from) + ' → ' + handleOf(to) + '.', function(){
+    state.hours.push(entry);
+  });
+  $('hUnits').value = ''; $('hMemo').value = '';
+  markChips();
+  $('hUnits').focus();
+}
+$('hSubmit').addEventListener('click', recordExchange);
+['hUnits','hMemo'].forEach(function(id){
+  $(id).addEventListener('keydown', function(e){ if(e.key === 'Enter') recordExchange(); });
+});
+function removeExchange(id){
+  commit('Exchange removed.', function(){
+    state.hours = state.hours.filter(function(h){ return h.id !== id; });
+  });
+}
+$('hFilter').addEventListener('input', function(){
+  filter = this.value.trim().toLowerCase();
+  renderHoursLog();
+});
+
+/* ---------- aid ---------- */
+$('dSubmit').addEventListener('click', function(){
+  clearErrs();
+  var amt = toC($('dAmt').value);
+  if(amt <= 0){ setErr('f-damt'); return; }
+  var d = { id:uid(), amount:amt, source:$('dSrc').value, ts:Date.now() };
+  commit(fmtC(amt) + ' added to the fund.', function(){ state.deposits.push(d); });
+  $('dAmt').value = '';
+});
+$('dAmt').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') $('dSubmit').click();
+});
+function fileRequest(){
+  clearErrs();
+  var amt = toC($('rAmt').value);
+  if(amt <= 0){ setErr('f-ramt'); return; }
+  var r = {
+    id:uid(), amount:amt, category:$('rCat').value,
+    memberId:$('rWho').value || null, note:$('rNote').value.trim(),
+    status:'open', ts:Date.now()
+  };
+  commit('Request filed for ' + fmtC(amt) + '.', function(){ state.requests.push(r); });
+  $('rAmt').value = ''; $('rNote').value = '';
+}
+$('rSubmit').addEventListener('click', fileRequest);
+['rAmt','rNote'].forEach(function(id){
+  $(id).addEventListener('keydown', function(e){ if(e.key === 'Enter') fileRequest(); });
+});
+function setStatus(id, status){
+  var r = request(id); if(!r) return;
+  var word = status === 'open' ? 'reopened' : status;
+  commit('Request ' + word + '.', function(){ r.status = status; });
+}
+function payRequest(id){
+  var r = request(id); if(!r) return;
+  if(r.status === 'paid'){ toast('That one is already paid.', {bad:true}); return; }
+  if(r.amount > fundBalance()){
+    toast('The fund holds ' + fmtC(fundBalance()) + ', short of ' + fmtC(r.amount) + '.', {bad:true});
+    confirming = null; render(); return;
+  }
+  var p = { id:uid(), requestId:r.id, amount:r.amount, ts:Date.now() };
+  commit(fmtC(r.amount) + ' paid out.', function(){
+    state.payouts.push(p); r.status = 'paid';
+  });
+}
+
+/* ---------- you (member view) ----------
+
+   This panel writes nothing of its own. "Send" builds the same state.hours entry
+   recordExchange() builds, behind the same floor and self-dealing guards. "Request"
+   creates an ask, which holds no hours at all — accepting one is what writes the
+   exchange. So conservation, the floor and the roster checks all keep working
+   exactly as they did, and the Ledger check covers this panel for free.          */
+
+function meId(){
+  /* A stale meId (member removed) must not silently address someone else. */
+  return member(state.meId) ? state.meId : null;
+}
+function ask(id){
+  for(var i=0;i<state.asks.length;i++) if(state.asks[i].id === id) return state.asks[i];
+  return null;
+}
+function memberOptionsExcept(placeholder, exceptId){
+  return '<option value="">' + placeholder + '</option>' + state.members.filter(function(m){
+    return m.id !== exceptId;
+  }).map(function(m){
+    return '<option value="' + m.id + '">' + esc(m.handle) +
+      (m.tag ? ' · ' + esc(m.tag) : '') + '</option>';
+  }).join('');
+}
+
+$('meWho').addEventListener('change', function(){
+  var v = this.value || null;
+  /* Not commit(): choosing whose view you are looking at changes no ledger entry,
+     so it must not land on the undo stack or mark the file dirty. */
+  state.meId = v;
+  render();
+});
+
+function toggleMeForm(openId, otherId){
+  clearErrs();
+  $(otherId).classList.remove('open');
+  $(openId).classList.toggle('open');
+}
+$('meSendOpen').addEventListener('click', function(){ toggleMeForm('meSendForm','meAskForm'); });
+$('meAskOpen').addEventListener('click', function(){ toggleMeForm('meAskForm','meSendForm'); });
+
+function sendHours(){
+  clearErrs();
+  var from = meId(), to = $('sendTo').value, units = toH($('sendUnits').value);
+  if(!from){ toast('Choose who you are viewing as first.', {bad:true}); return; }
+  var ok = true;
+  if(!to){ setErr('f-sendto', 'Choose who receives the time.'); ok = false; }
+  if(to && to === from){ setErr('f-sendto', 'An exchange needs two different people.'); ok = false; }
+  if(units <= 0){ setErr('f-sendunits', 'Enter more than zero hours.'); ok = false; }
+  if(!ok) return;
+
+  var b = balances();
+  if(b[from] - units < FLOOR){
+    setErr('f-sendunits', 'That would land you at ' + fmtH(b[from] - units) + ', past the ' +
+      fmtH(FLOOR) + ' floor. There is ' + fmtH(b[from] - FLOOR) + ' left to give.');
+    return;
+  }
+  var entry = { id:uid(), from:from, to:to, units:units, memo:$('sendMemo').value.trim(), ts:Date.now() };
+  commit(fmtH(units) + ' hours: ' + handleOf(from) + ' → ' + handleOf(to) + '.', function(){
+    state.hours.push(entry);
+  });
+  $('sendUnits').value = ''; $('sendMemo').value = '';
+  $('meSendForm').classList.remove('open');
+}
+$('sendSubmit').addEventListener('click', sendHours);
+['sendUnits','sendMemo'].forEach(function(id){
+  $(id).addEventListener('keydown', function(e){ if(e.key === 'Enter') sendHours(); });
+});
+
+function fileAsk(){
+  clearErrs();
+  var to = meId(), from = $('askFrom').value, units = toH($('askUnits').value);
+  if(!to){ toast('Choose who you are viewing as first.', {bad:true}); return; }
+  var ok = true;
+  if(!from){ setErr('f-askfrom', 'Choose who you are asking.'); ok = false; }
+  if(from && from === to){ setErr('f-askfrom', 'You cannot request hours from yourself.'); ok = false; }
+  if(units <= 0){ setErr('f-askunits', 'Enter more than zero hours.'); ok = false; }
+  if(!ok) return;
+  /* No floor check here on purpose: an ask moves nothing. The giver's floor is
+     checked at acceptance, against their balance at that moment, not this one. */
+  var a = { id:uid(), from:from, to:to, units:units, memo:$('askMemo').value.trim(),
+            status:'open', ts:Date.now(), exchangeId:null };
+  commit('Requested ' + fmtH(units) + ' hours from ' + handleOf(from) + '.', function(){
+    state.asks.push(a);
+  });
+  $('askUnits').value = ''; $('askMemo').value = '';
+  $('meAskForm').classList.remove('open');
+}
+$('askSubmit').addEventListener('click', fileAsk);
+['askUnits','askMemo'].forEach(function(id){
+  $(id).addEventListener('keydown', function(e){ if(e.key === 'Enter') fileAsk(); });
+});
+
+function acceptAsk(id){
+  var a = ask(id); if(!a || a.status !== 'open') return;
+  if(!member(a.from) || !member(a.to)){
+    toast('That request points at someone no longer on the roster.', {bad:true}); return;
+  }
+  var b = balances();
+  if(b[a.from] - a.units < FLOOR){
+    toast(handleOf(a.from) + ' would land at ' + fmtH(b[a.from] - a.units) + ', past the ' +
+      fmtH(FLOOR) + ' floor.', {bad:true});
+    confirming = null; render(); return;
+  }
+  var entry = { id:uid(), from:a.from, to:a.to, units:a.units, memo:a.memo, ts:Date.now() };
+  commit('Accepted — ' + fmtH(a.units) + ' hours: ' + handleOf(a.from) + ' → ' + handleOf(a.to) + '.',
+    function(){ state.hours.push(entry); a.status = 'accepted'; a.exchangeId = entry.id; });
+}
+function declineAsk(id){
+  var a = ask(id); if(!a || a.status !== 'open') return;
+  commit('Request declined.', function(){ a.status = 'declined'; });
+}
+function withdrawAsk(id){
+  var a = ask(id); if(!a || a.status !== 'open') return;
+  commit('Request withdrawn.', function(){
+    state.asks = state.asks.filter(function(x){ return x.id !== id; });
+  });
+}
+
+function renderMe(b){
+  var me = meId();
+  fillSelect($('meWho'), memberOptions('— choose a member —'));
+  $('meWho').value = me || '';
+  fillSelect($('sendTo'),  memberOptionsExcept('— choose —', me));
+  fillSelect($('askFrom'), memberOptionsExcept('— choose —', me));
+
+  var card = $('balCard'), val = $('balValue'), sub = $('balSub'), foot = $('balFoot');
+  if(!me){
+    card.classList.remove('low');
+    val.innerHTML = '—<span class="unit">hours</span>';
+    sub.textContent = state.members.length
+      ? 'Pick a member above to see their balance and act as them.'
+      : 'Add someone on the People tab first — a commons needs a roster.';
+    foot.textContent = 'The credit floor is ' + fmtH(FLOOR) + ' hours for everyone.';
+    $('askList').innerHTML = '<p class="empty">No requests yet.</p>';
+    $('meFeed').innerHTML = '<p class="empty">No activity yet.</p>';
+    $('meBadge').hidden = true;
+    return;
+  }
+
+  var bal = b[me] || 0;
+  card.classList.toggle('low', bal < 0);
+  val.innerHTML = signH(bal) + '<span class="unit">hours</span>';
+  sub.textContent = bal === 0
+    ? 'Even with the commons. Every hour sent is an hour someone else receives.'
+    : bal > 0
+      ? 'The commons owes you this time.'
+      : 'You owe the commons this time.';
+  foot.textContent = 'Floor ' + fmtH(FLOOR) + ' · ' + fmtH(bal - FLOOR) + ' hours left to give. ' +
+    'Hours are mutual credit — they cannot be bought with money or redeemed for it.';
+
+  var open = state.asks.filter(function(a){
+    return a.status === 'open' && (a.from === me || a.to === me);
+  });
+  var mine = open.filter(function(a){ return a.from === me; }).length;
+  $('meBadge').hidden = mine === 0;
+  $('meBadge').textContent = mine;
+
+  $('askList').innerHTML = open.length === 0
+    ? '<p class="empty">Nothing open. Requests you send or receive show up here.</p>'
+    : open.map(function(a){
+        var onMe = a.from === me;
+        var acts = onMe
+          ? '<button class="btn small" data-accept="' + a.id + '">Accept</button>' +
+            '<button class="btn ghost small" data-decline="' + a.id + '">Decline</button>'
+          : '<button class="btn ghost small" data-withdraw="' + a.id + '">Withdraw</button>';
+        return '<div class="ask">' +
+          '<div class="ask-mark ' + (onMe ? 'out' : 'in') + '">' + (onMe ? '↑' : '↓') + '</div>' +
+          '<div class="ask-body">' +
+            '<div class="ask-title">' + (onMe
+              ? esc(handleOf(a.to)) + ' is asking you for time'
+              : 'You asked ' + esc(handleOf(a.from))) + '</div>' +
+            '<div class="ask-memo">' + esc(a.memo || 'No memo') + ' · ' + stamp(a.ts) + '</div>' +
+          '</div>' +
+          '<div class="ask-amt ' + (onMe ? 'out' : 'in') + '">' + fmtH(a.units) + '</div>' +
+          '<div class="ask-acts">' + acts + '</div>' +
+        '</div>';
+      }).join('');
+
+  var feed = state.hours.filter(function(h){ return h.from === me || h.to === me; })
+    .slice().sort(function(x,y){ return y.ts - x.ts; }).slice(0, 12);
+  $('meFeed').innerHTML = feed.length === 0
+    ? '<p class="empty">No exchanges yet.</p>'
+    : feed.map(function(h){
+        var out = h.from === me;
+        return '<div class="ask">' +
+          '<div class="ask-mark ' + (out ? 'out' : 'in') + '">' + (out ? '↑' : '↓') + '</div>' +
+          '<div class="ask-body">' +
+            '<div class="ask-title">' + (out ? 'To ' : 'From ') +
+              esc(handleOf(out ? h.to : h.from)) + '</div>' +
+            '<div class="ask-memo">' + esc(h.memo || 'No memo') + ' · ' + stamp(h.ts) + '</div>' +
+          '</div>' +
+          '<div class="ask-amt ' + (out ? 'out' : 'in') + '">' +
+            (out ? '−' : '+') + fmtH(h.units) + '</div>' +
+        '</div>';
+      }).join('');
+}
+
+/* Delegated so the buttons survive every re-render. */
+$('askList').addEventListener('click', function(e){
+  var t = e.target.closest ? e.target.closest('button') : null;
+  if(!t) return;
+  if(t.dataset.accept)   acceptAsk(t.dataset.accept);
+  if(t.dataset.decline)  declineAsk(t.dataset.decline);
+  if(t.dataset.withdraw) withdrawAsk(t.dataset.withdraw);
+});
+
+/* ---------- checks ---------- */
+function runChecks(){
+  var out = [], b = balances(), sum = 0;
+  Object.keys(b).forEach(function(k){ sum += b[k]; });
+
+  out.push({ ok: sum === 0, label:'Hours conserve',
+    detail: 'Every balance added together comes to ' + fmtH(sum) + '. It has to be exactly 0.00.' });
+
+  var below = [];
+  Object.keys(b).forEach(function(k){ if(b[k] < FLOOR) below.push(handleOf(k)); });
+  out.push({ ok: below.length === 0, label:'Credit floor holds',
+    detail: below.length ? 'Past the floor: ' + below.join(', ') + '.'
+                         : 'Nobody is below ' + fmtH(FLOOR) + ' hours.' });
+
+  var orphanH = state.hours.filter(function(h){ return !member(h.from) || !member(h.to); }).length;
+  out.push({ ok: orphanH === 0, label:'Exchanges resolve',
+    detail: orphanH === 0 ? 'Every exchange points at two people on the roster.'
+                          : orphanH + ' exchange(s) point at someone not on the roster.' });
+
+  var selfH = state.hours.filter(function(h){ return h.from === h.to; }).length;
+  out.push({ ok: selfH === 0, label:'No self-dealing',
+    detail: selfH === 0 ? 'No exchange has the same person on both sides.'
+                        : selfH + ' exchange(s) have one person on both sides.' });
+
+  var fb = fundBalance();
+  out.push({ ok: fb >= 0, label:'Fund is solvent',
+    detail: 'Deposits minus payouts comes to ' + fmtC(fb) + '. It must not go negative.' });
+
+  var seen = Object.create(null), dbl = 0, orphanP = 0, mismatch = 0;
+  state.payouts.forEach(function(p){
+    if(seen[p.requestId]) dbl++;
+    seen[p.requestId] = true;
+    var r = request(p.requestId);
+    if(!r) orphanP++;
+    else if(r.amount !== p.amount) mismatch++;
+  });
+  out.push({ ok: dbl === 0, label:'Nothing paid twice',
+    detail: dbl === 0 ? 'No request has more than one payout behind it.'
+                      : dbl + ' request(s) were paid more than once.' });
+  out.push({ ok: orphanP === 0, label:'Payouts trace back',
+    detail: orphanP === 0 ? 'Every payout matches a request on file.'
+                          : orphanP + ' payout(s) have no request behind them.' });
+  out.push({ ok: mismatch === 0, label:'Amounts agree',
+    detail: mismatch === 0 ? 'Every payout equals the amount that was requested.'
+                           : mismatch + ' payout(s) differ from the requested amount.' });
+
+  var lying = state.requests.filter(function(r){
+    return r.status === 'paid' && !seen[r.id];
+  }).length;
+  out.push({ ok: lying === 0, label:'Statuses are honest',
+    detail: lying === 0 ? 'Everything marked paid has a payout behind it.'
+                        : lying + ' request(s) say paid with no payout behind them.' });
+
+  /* --- hour requests (the You panel) --- */
+  var orphanA = state.asks.filter(function(a){
+    return !member(a.from) || !member(a.to);
+  }).length;
+  out.push({ ok: orphanA === 0, label:'Requests resolve',
+    detail: orphanA === 0 ? 'Every hour request points at two people on the roster.'
+                          : orphanA + ' hour request(s) point at someone not on the roster.' });
+
+  var selfA = state.asks.filter(function(a){ return a.from === a.to; }).length;
+  out.push({ ok: selfA === 0, label:'No self-requests',
+    detail: selfA === 0 ? 'No hour request has the same person on both sides.'
+                        : selfA + ' hour request(s) ask a person for their own time.' });
+
+  /* The one that matters: an accepted request must have produced a real exchange,
+     and that exchange must match it. Without this, "accepted" could mint hours the
+     way the standalone Send/Request demo did. */
+  var hById = Object.create(null);
+  state.hours.forEach(function(h){ hById[h.id] = h; });
+  var badA = state.asks.filter(function(a){
+    if(a.status !== 'accepted') return false;
+    var h = a.exchangeId ? hById[a.exchangeId] : null;
+    return !h || h.from !== a.from || h.to !== a.to || h.units !== a.units;
+  }).length;
+  out.push({ ok: badA === 0, label:'Accepted requests moved time',
+    detail: badA === 0 ? 'Every accepted request has one matching exchange behind it.'
+                       : badA + ' accepted request(s) have no matching exchange behind them.' });
+
+  var openNeg = state.asks.filter(function(a){ return a.units <= 0; }).length;
+  out.push({ ok: openNeg === 0, label:'Requests carry real time',
+    detail: openNeg === 0 ? 'No hour request is for zero or negative time.'
+                          : openNeg + ' hour request(s) are for zero or negative time.' });
+
+  return out;
+}
+$('verify').addEventListener('click', function(){
+  var checks = runChecks();
+  var failed = checks.filter(function(c){ return !c.ok; }).length;
+  $('verifiedAt').textContent = failed === 0
+    ? 'All ' + checks.length + ' checks passed at ' + stamp(Date.now()) + '.'
+    : failed + ' of ' + checks.length + ' checks failed at ' + stamp(Date.now()) +
+      '. Fix the ledger before you save a copy of it.';
+  toast(failed === 0 ? 'Verified. All ' + checks.length + ' checks passed.'
+                     : failed + ' check(s) failed.', {bad: failed > 0});
+});
+
+/* ---------- save & load ---------- */
+function download(name, text, type){
+  var blob = new Blob([text], {type:type});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+function today(){ return new Date().toISOString().slice(0,10); }
+
+$('expJson').addEventListener('click', function(){
+  var failed = runChecks().filter(function(c){ return !c.ok; }).length;
+  download('commons-ledger-' + today() + '.json', JSON.stringify(state, null, 2), 'application/json');
+  lastSaved = Date.now(); dirty = false; render();
+  toast(failed ? 'Saved, but ' + failed + ' check(s) are failing.' : 'Ledger saved.', {bad: failed > 0});
+});
+$('expCsv').addEventListener('click', function(){
+  var rows = [['timestamp','from','to','hours','memo']];
+  state.hours.forEach(function(h){
+    rows.push([new Date(h.ts).toISOString(), handleOf(h.from), handleOf(h.to), fmtH(h.units), h.memo]);
+  });
+  var csv = rows.map(function(r){
+    return r.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(',');
+  }).join('\r\n');
+  download('commons-hours-' + today() + '.csv', csv, 'text/csv');
+  toast('Hours saved as CSV.');
+});
+$('impBtn').addEventListener('click', function(){
+  var f = $('impFile').files[0];
+  if(!f){ toast('Choose a file first.', {bad:true}); return; }
+  var rd = new FileReader();
+  rd.onload = function(){
+    var next;
+    try { next = JSON.parse(rd.result); }
+    catch(err){ toast('That file is not readable JSON.', {bad:true}); return; }
+    if(!next || !Array.isArray(next.members) || !Array.isArray(next.hours)){
+      toast('That file is not a Commons ledger.', {bad:true}); return;
+    }
+    var snap = JSON.stringify(state);
+    state = {
+      version: next.version || 1,
+      members: next.members || [], hours: next.hours || [],
+      deposits: next.deposits || [], payouts: next.payouts || [],
+      requests: next.requests || [],
+      /* v2 files predate both — backfill rather than reject, and drop a meId that
+         no longer names anyone on the roster it arrived with. */
+      asks: Array.isArray(next.asks) ? next.asks : [],
+      meId: next.meId || null
+    };
+    if(state.meId && !state.members.some(function(m){ return m.id === state.meId; })) state.meId = null;
+    undoStack.push(snap);
+    dirty = true; lastSaved = null; confirming = null;
+    render();
+    var failed = runChecks().filter(function(c){ return !c.ok; }).length;
+    toast(failed ? 'Loaded. ' + failed + ' check(s) are failing.' : 'Loaded. All checks pass.',
+      {bad: failed > 0, undo:true});
+  };
+  rd.readAsText(f);
+});
+
+/* the wipe row is a two-step confirm, so no browser dialog is involved */
+function resetWipeRow(){
+  $('wipeRow').innerHTML = '<button class="btn warn" id="wipe">Clear everything</button>';
+  $('wipe').addEventListener('click', askWipe);
+}
+function askWipe(){
+  $('wipeRow').innerHTML =
+    '<span style="color:var(--ember);font-size:13.5px">Clear the whole session? There is no undo.</span>' +
+    '<button class="btn warn" id="wipeYes">Yes, clear it</button>' +
+    '<button class="btn ghost" id="wipeNo">Keep it</button>';
+  $('wipeNo').addEventListener('click', resetWipeRow);
+  $('wipeYes').addEventListener('click', function(){
+    state = blank(); undoStack = []; dirty = false; lastSaved = null; confirming = null;
+    $('verifiedAt').textContent = 'Not stamped this session.';
+    resetWipeRow(); render();
+    toast('Session cleared.');
+  });
+}
+
+/* ---------- leaving with unsaved work ---------- */
+window.addEventListener('beforeunload', function(e){
+  if(dirty && hasData()){ e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ---------- delegated row actions ---------- */
+document.addEventListener('click', function(e){
+  var t = e.target;
+  if(!t || !t.dataset) return;
+  var d = t.dataset;
+  if(d.rm)   { removeMember(d.rm); }
+  else if(d.rmh)  { confirming = 'h:' + d.rmh; render(); }
+  else if(d.rmhy) { removeExchange(d.rmhy); }
+  else if(d.ap)   { setStatus(d.ap, 'approved'); }
+  else if(d.dc)   { setStatus(d.dc, 'declined'); }
+  else if(d.re)   { setStatus(d.re, 'open'); }
+  else if(d.py)   { confirming = 'p:' + d.py; render(); }
+  else if(d.pyy)  { payRequest(d.pyy); }
+  else if(d.cancel){ confirming = null; render(); }
+});
+
+/* ---------- render ---------- */
+function fillSelect(el, html){
+  var keep = el.value;
+  el.innerHTML = html;
+  el.value = keep;
+  if(el.selectedIndex < 0) el.selectedIndex = 0;
+}
+function memberOptions(placeholder){
+  return '<option value="">' + placeholder + '</option>' + state.members.map(function(m){
+    return '<option value="' + m.id + '">' + esc(m.handle) +
+      (m.tag ? ' · ' + esc(m.tag) : '') + '</option>';
+  }).join('');
+}
+
+function renderBeam(b){
+  var credits = [], debits = [], totalC = 0, totalD = 0;
+  state.members.forEach(function(m){
+    var v = b[m.id];
+    if(v > 0){ credits.push({h:m.handle, v:v}); totalC += v; }
+    else if(v < 0){ debits.push({h:m.handle, v:-v}); totalD += -v; }
+  });
+  credits.sort(function(x,y){ return y.v - x.v; });
+  debits.sort(function(x,y){ return y.v - x.v; });
+
+  $('beamWrap').classList.toggle('broken', totalC !== totalD);
+  $('beamEq').innerHTML = 'owed <b>' + fmtH(totalD) + '</b> &nbsp;·&nbsp; owing <b>' + fmtH(totalC) + '</b>';
+
+  if(!credits.length && !debits.length){
+    $('beamBody').innerHTML = '<div class="beam-empty">Nothing exchanged yet. The beam is flat.</div>';
+    $('beamMid').textContent = state.members.length ? 'balanced at zero' : 'no ledger yet';
+    return;
+  }
+  var span = Math.max(totalC, totalD) || 1;
+  function segs(list){
+    return list.map(function(s){
+      var w = (s.v / span) * 100;
+      var lbl = w > 18 ? '<span>' + esc(s.h) + '</span>' : '';
+      return '<div class="seg" style="width:' + w.toFixed(3) + '%" title="' +
+        esc(s.h) + ' · ' + fmtH(s.v) + ' hours">' + lbl + '</div>';
+    }).join('');
+  }
+  $('beamBody').innerHTML =
+    '<div class="beam">' +
+      '<div class="side owe">'  + segs(debits)  + '</div>' +
+      '<div class="side owed">' + segs(credits) + '</div>' +
+      '<div class="axis"></div>' +
+    '</div>';
+  $('beamMid').textContent = totalC === totalD
+    ? 'both wings are the same length, so the ledger conserves'
+    : 'the wings disagree by ' + fmtH(Math.abs(totalC - totalD)) + ' hours';
+}
+
+function renderBalances(b){
+  var wrap = $('balances');
+  if(!state.members.length){
+    wrap.innerHTML = '<div class="memo" style="font-size:13px">Nobody on the roster yet.</div>';
+    $('floorWarn').hidden = true;
+    return;
+  }
+  var peak = 1;
+  state.members.forEach(function(m){ peak = Math.max(peak, Math.abs(b[m.id])); });
+  var sorted = state.members.slice().sort(function(x,y){ return b[y.id] - b[x.id]; });
+  wrap.innerHTML = sorted.map(function(m){
+    var v = b[m.id];
+    var w = (Math.abs(v) / peak) * 50;
+    var bar = v === 0 ? '' :
+      '<i style="' + (v > 0
+        ? 'left:50%;background:var(--gold);'
+        : 'left:' + (50 - w).toFixed(2) + '%;background:var(--ember);') +
+      'width:' + w.toFixed(2) + '%"></i>';
+    return '<div class="bal-row">' +
+      '<div class="bal-who"><span class="h">' + esc(m.handle) + '</span>' +
+      '<span class="track">' + bar + '</span></div>' +
+      '<div class="v ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero') + '">' + signH(v) + '</div>' +
+    '</div>';
+  }).join('');
+
+  var near = state.members.filter(function(m){ return b[m.id] <= NEAR; });
+  $('floorWarn').hidden = near.length === 0;
+  if(near.length){
+    $('floorWarn').textContent = near.length === 1
+      ? near[0].handle + ' is close to the ' + fmtH(FLOOR) + ' floor.'
+      : near.length + ' people are close to the ' + fmtH(FLOOR) + ' floor.';
+  }
+}
+
+function renderHoursLog(){
+  var rows = state.hours.slice().reverse().filter(function(h){
+    if(!filter) return true;
+    return (handleOf(h.from) + ' ' + handleOf(h.to) + ' ' + (h.memo || ''))
+      .toLowerCase().indexOf(filter) > -1;
+  });
+  if(!rows.length){
+    $('hoursLog').innerHTML = '<tr><td colspan="6" class="empty">' +
+      (state.hours.length
+        ? 'No exchange matches “' + esc(filter) + '”.'
+        : '<b>No exchanges yet</b>Record the first one above and the beam will move.') +
+      '</td></tr>';
+    return;
+  }
+  $('hoursLog').innerHTML = rows.map(function(h){
+    var act = confirming === 'h:' + h.id
+      ? '<button class="mini no" data-rmhy="' + h.id + '">Remove</button>' +
+        '<button class="mini" data-cancel="1">Keep</button>'
+      : '<button class="mini" data-rmh="' + h.id + '">remove</button>';
+    return '<tr>' +
+      '<td data-label="When" class="when">' + stamp(h.ts) + '</td>' +
+      '<td data-label="From">' + esc(handleOf(h.from)) + '</td>' +
+      '<td data-label="To">' + esc(handleOf(h.to)) + '</td>' +
+      '<td data-label="For" class="memo">' + esc(h.memo || '—') + '</td>' +
+      '<td data-label="Hours" class="num mono">' + fmtH(h.units) + '</td>' +
+      '<td class="act">' + act + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderRoster(b){
+  if(!state.members.length){
+    $('roster').innerHTML = '<tr><td colspan="5" class="empty">' +
+      '<b>The roster is empty</b>Add the first handle above.</td></tr>';
+    return;
+  }
+  $('roster').innerHTML = state.members.map(function(m){
+    var v = b[m.id];
+    var n = state.hours.filter(function(h){ return h.from === m.id || h.to === m.id; }).length;
+    return '<tr>' +
+      '<td data-label="Handle">' + esc(m.handle) + '</td>' +
+      '<td data-label="Circle" class="memo">' + esc(m.tag || '—') + '</td>' +
+      '<td data-label="Balance" class="num mono ' +
+        (v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero') + '">' + signH(v) + '</td>' +
+      '<td data-label="Exchanges" class="num mono">' + n + '</td>' +
+      '<td class="act">' + (n === 0
+        ? '<button class="mini" data-rm="' + m.id + '">remove</button>'
+        : '<span class="memo" style="font-size:12px">on the ledger</span>') + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderRequests(){
+  if(!state.requests.length){
+    $('reqLog').innerHTML = '<tr><td colspan="6" class="empty">' +
+      '<b>No requests yet</b>File one above when someone needs something covered.</td></tr>';
+    return;
+  }
+  var fund = fundBalance();
+  $('reqLog').innerHTML = state.requests.slice().reverse().map(function(r){
+    var act = '';
+    if(confirming === 'p:' + r.id){
+      act = '<button class="mini go" data-pyy="' + r.id + '">Pay ' + fmtC(r.amount) + '</button>' +
+            '<button class="mini" data-cancel="1">Cancel</button>';
+    } else if(r.status === 'open'){
+      act = '<button class="mini go" data-ap="' + r.id + '">approve</button>' +
+            '<button class="mini no" data-dc="' + r.id + '">decline</button>';
+    } else if(r.status === 'approved'){
+      act = '<button class="mini go" data-py="' + r.id + '">pay</button>' +
+            '<button class="mini" data-re="' + r.id + '">reopen</button>';
+    } else if(r.status === 'declined'){
+      act = '<button class="mini" data-re="' + r.id + '">reopen</button>';
+    }
+    var short = (r.status !== 'paid' && r.amount > fund)
+      ? '<span class="memo" style="font-size:11.5px;display:block">fund is short ' +
+        fmtC(r.amount - fund) + '</span>' : '';
+    return '<tr>' +
+      '<td data-label="When" class="when">' + stamp(r.ts) + '</td>' +
+      '<td data-label="For">' + esc(r.category) +
+        (r.note ? '<span class="memo" style="font-size:12px;display:block">' +
+          esc(r.note) + '</span>' : '') + '</td>' +
+      '<td data-label="Handle" class="memo">' +
+        esc(r.memberId ? handleOf(r.memberId) : '—') + '</td>' +
+      '<td data-label="Amount" class="num mono">' + fmtC(r.amount) + short + '</td>' +
+      '<td data-label="Status"><span class="pill ' + esc(r.status) + '">' +
+        esc(r.status) + '</span></td>' +
+      '<td class="act">' + act + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderChecks(){
+  var checks = runChecks();
+  $('checks').innerHTML = checks.map(function(c){
+    return '<li><span class="mk ' + (c.ok ? 'pass' : 'fail') + '">' +
+      (c.ok ? 'PASS' : 'FAIL') + '</span>' +
+      '<span><span class="lb">' + esc(c.label) + '</span>' +
+      '<span class="dt">' + esc(c.detail) + '</span></span></li>';
+  }).join('');
+  return checks.filter(function(c){ return !c.ok; }).length;
+}
+
+function render(){
+  var b = balances();
+
+  fillSelect($('hFrom'), memberOptions('— choose —'));
+  fillSelect($('hTo'),   memberOptions('— choose —'));
+  fillSelect($('rWho'),  memberOptions('— nobody attached —'));
+
+  $('floorNote').textContent =
+    'The credit floor is ' + fmtH(FLOOR) + ' hours. Past that an exchange is refused rather ' +
+    'than recorded, so nobody can draw on the commons without end.';
+
+  // first-run guidance
+  var fr = $('firstRun');
+  if(state.members.length >= 2){
+    fr.hidden = true;
+  } else {
+    fr.hidden = false;
+    $('firstRunMsg').textContent = state.members.length === 0
+      ? 'An exchange needs two people. Add the first two handles, or load a sample ledger to see how it behaves.'
+      : 'One more handle and you can record an exchange.';
+    $('frSample').hidden = hasData() ? true : false;
+  }
+
+  renderMe(b);
+  renderBeam(b);
+  renderBalances(b);
+  renderHoursLog();
+  renderRoster(b);
+  renderRequests();
+  var failed = renderChecks();
+
+  $('gPeople').textContent = state.members.length;
+  $('gHours').textContent  = fmtH(hoursMoved());
+  $('gFund').textContent   = fmtC(fundBalance());
+  $('gPaid').textContent   = fmtC(paidTotal());
+
+  var open = state.requests.filter(function(r){ return r.status === 'open'; }).length;
+  $('gOpen').textContent = open;
+  $('aidBadge').hidden = open === 0;
+  $('aidBadge').textContent = open;
+
+  var sum = 0; Object.keys(b).forEach(function(k){ sum += b[k]; });
+  $('status').classList.toggle('bad', failed > 0);
+  $('statusText').textContent = failed === 0
+    ? 'Ledger conserves'
+    : failed + ' check' + (failed > 1 ? 's' : '') + ' failing';
+  $('statusSum').textContent = 'Σ ' + fmtH(sum);
+
+  $('saveflag').innerHTML = !hasData()
+    ? 'In memory only'
+    : dirty ? '<b>Unsaved</b> · in memory only'
+            : 'Saved ' + stamp(lastSaved);
+  $('lastSaved').textContent = lastSaved
+    ? 'Last saved at ' + stamp(lastSaved) + (dirty ? ', and there are changes since then.' : '.')
+    : 'Not saved yet this session.';
+}
+
+resetWipeRow();
+render();
+})();
+</script>
+</body>
+</html>
