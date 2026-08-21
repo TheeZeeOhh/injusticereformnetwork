@@ -6,6 +6,7 @@ import Messages from './pages/Messages';
 import Login from './pages/Login';
 import { useAuthStore } from './store/authStore';
 import { useSettingsStore } from './store/settingsStore';
+import { handleHiveAdmitRequest } from './utils/hiveBridge';
 import { vaultExists, vaultBEnrolled } from './utils/cryptoEngine';
 import { needsVaultBRekey } from './utils/migrationEngine';
 import { useLanguage } from './i18n/LanguageContext';
@@ -396,6 +397,33 @@ function App() {
     })();
     return () => { if (unlisten) unlisten(); };
   }, [logout]);
+
+  // Hive-mind admission bridge: an external local process (e.g. Zee Zee's
+  // crdt_put tool) proposes a candidate over src-tauri's Unix-socket bridge;
+  // Rust relays it here as 'hive-admit-request' WITHOUT interpreting it —
+  // admissionGate + hiveMind.insert() below are the only real gate, run over
+  // the exact same path IntelligenceLayer.jsx's manual entry form uses. We
+  // then reply so the waiting socket connection can return a verdict to the
+  // caller. Tauri-only.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.__TAURI_INTERNALS__) return;
+    let unlisten;
+    (async () => {
+      const { listen } = await import('@tauri-apps/api/event');
+      const { invoke } = await import('@tauri-apps/api/core');
+      unlisten = await listen('hive-admit-request', async (event) => {
+        const { id, candidate } = event.payload || {};
+        const result = await handleHiveAdmitRequest(candidate);
+        try {
+          await invoke('hive_bridge_respond', { id, ...result });
+        } catch {
+          // The waiting socket connection may already have timed out — the
+          // verdict is simply lost, not re-thrown into the UI.
+        }
+      });
+    })();
+    return () => { if (unlisten) unlisten(); };
+  }, []);
 
   // Anti-exfiltration UI hardening (defense-in-depth, on by default).
   // Blocks the EASY ways to lift PHI off the screen from inside the app:

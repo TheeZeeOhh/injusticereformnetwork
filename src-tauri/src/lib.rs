@@ -1,5 +1,8 @@
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use std::sync::Arc;
+use std::collections::HashMap;
+#[cfg(unix)]
+use std::os::unix::net::UnixStream;
+use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 use tauri::{Emitter, Manager};
@@ -582,6 +585,336 @@ async fn send_sms_reminder(to: String, body: String) -> Result<String, String> {
     Ok(sid)
 }
 
+// --- Hive-mind admission bridge (local IPC) ----------------------------------
+//
+// admissionGate + hiveMind.insert() (src/utils/hiveEngine.js) live entirely in
+// the webview: they need IndexedDB and the in-RAM hive key derived from the
+// unlocked Vault A passphrase, neither of which exist in Rust. An external
+// local process that wants to propose a hive-mind entry — e.g. Zee Zee's
+// crdt_put tool — has no way to reach that gate today.
+//
+// This bridge is a narrow, authenticated relay, not a second gate: a Unix
+// socket accepts one JSON candidate per connection, and Rust forwards it
+// VERBATIM to the webview via a Tauri event without interpreting or
+// validating its shape. The webview is the only place that runs
+// admissionGate / hiveMind.insert(), so the gate cannot be bypassed by
+// talking to Rust instead of the UI — a malformed or person-identifying
+// candidate is rejected there exactly as it would be from IntelligenceLayer.
+//
+// Auth: a random token, generated once and stored in the OS keychain (same
+// mechanism as vault_salts), is required on every request so an arbitrary
+// local process cannot write into the bridge. get_hive_bridge_token lets the
+// operator retrieve it once to hand to the external process (e.g. stored in
+// Zee Zee's own local secret vault) — it is never transmitted anywhere else.
+// Not #[cfg(unix)]-gated: plain cross-platform types, so `.manage()` and the
+// (not(unix)) stub command both work unconditionally. Only the socket
+// listener itself (spawn_hive_bridge, handle_hive_bridge_conn) is Unix-only.
+struct HiveBridgeState {
+    pending: Arc<Mutex<HashMap<String, mpsc::Sender<serde_json::Value>>>>,
+}
+
+const KEYCHAIN_HIVE_TOKEN_ACCOUNT: &str = "hive_bridge_token_v1";
+#[cfg(unix)]
+const HIVE_BRIDGE_SOCKET_NAME: &str = "hive_bridge.sock";
+#[cfg(unix)]
+const HIVE_BRIDGE_MAX_REQUEST_BYTES: usize = 16 * 1024; // candidates are short text
+#[cfg(unix)]
+const HIVE_BRIDGE_RESPONSE_TIMEOUT: Duration = Duration::from_secs(8);
+
+/// Returns the persisted bridge token, generating and persisting one on first
+/// use so it stays constant across restarts (the external process's stored
+/// copy keeps working). Lives in the OS keychain, never in a file the webview
+/// or an unrelated local process could read directly.
+fn get_or_create_hive_bridge_token() -> Result<String, String> {
+    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_HIVE_TOKEN_ACCOUNT)
+        .map_err(|e| format!("keychain entry error: {e}"))?;
+    match entry.get_password() {
+        Ok(tok) => Ok(tok),
+        Err(keyring::Error::NoEntry) => {
+            let tok = generate_bridge_token()?;
+            entry
+                .set_password(&tok)
+                .map_err(|e| format!("keychain write error: {e}"))?;
+            Ok(tok)
+        }
+        Err(e) => Err(format!("keychain read error: {e}")),
+    }
+}
+
+/// Returns the persisted bridge token so the operator can copy it into the
+/// external process's own local secret store. Does not create a new one.
+#[tauri::command]
+fn get_hive_bridge_token() -> Result<String, String> {
+    get_or_create_hive_bridge_token()
+}
+
+/// 32 bytes of OS CSPRNG randomness, hex-encoded. Reads /dev/urandom directly
+/// rather than pulling in an RNG crate for one one-time token — Linux only,
+/// matching this bridge's #[cfg(unix)] scope and the app's deployment targets.
+fn generate_bridge_token() -> Result<String, String> {
+    use std::io::Read;
+    let mut buf = [0u8; 32];
+    let mut f = std::fs::File::open("/dev/urandom")
+        .map_err(|e| format!("failed to open /dev/urandom: {e}"))?;
+    f.read_exact(&mut buf)
+        .map_err(|e| format!("failed to read entropy: {e}"))?;
+    Ok(buf.iter().map(|b| format!("{b:02x}")).collect())
+}
+
+/// Constant-time string comparison so token checking doesn't leak a timing
+/// side-channel on how many leading bytes matched.
+fn constant_time_eq(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut diff = 0u8;
+    for (x, y) in a.iter().zip(b.iter()) {
+        diff |= x ^ y;
+    }
+    diff == 0
+}
+
+#[cfg(unix)]
+static HIVE_REQUEST_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+#[cfg(unix)]
+fn generate_hive_request_id() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let n = HIVE_REQUEST_COUNTER.fetch_add(1, Ordering::SeqCst);
+    let t = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    format!("{t:x}-{n:x}")
+}
+
+/// Frontend reply to one relayed candidate, delivered from JS after it has run
+/// admissionGate / hiveMind.insert() / persistHive(). Looks up the waiting
+/// socket thread by `id` and wakes it with the verdict; if that thread already
+/// timed out and gave up, the send is a harmless no-op (dropped receiver).
+#[cfg(unix)]
+#[tauri::command]
+fn hive_bridge_respond(
+    state: tauri::State<'_, HiveBridgeState>,
+    id: String,
+    ok: bool,
+    reason: Option<String>,
+    admitted: Option<i64>,
+) -> Result<(), String> {
+    let sender = {
+        let mut guard = state
+            .pending
+            .lock()
+            .map_err(|_| "hive bridge state poisoned".to_string())?;
+        guard.remove(&id)
+    };
+    if let Some(tx) = sender {
+        let mut payload = serde_json::json!({ "ok": ok });
+        if let Some(r) = reason {
+            payload["reason"] = serde_json::Value::String(r);
+        }
+        if let Some(a) = admitted {
+            payload["admitted"] = serde_json::Value::from(a);
+        }
+        let _ = tx.send(payload);
+    }
+    Ok(())
+}
+
+#[cfg(not(unix))]
+#[tauri::command]
+fn hive_bridge_respond(
+    _id: String,
+    _ok: bool,
+    _reason: Option<String>,
+    _admitted: Option<i64>,
+) -> Result<(), String> {
+    Err("hive bridge is only available on Unix".to_string())
+}
+
+#[cfg(unix)]
+fn write_hive_bridge_response(
+    stream: &mut UnixStream,
+    value: &serde_json::Value,
+) -> std::io::Result<()> {
+    use std::io::Write;
+    let bytes = serde_json::to_vec(value)
+        .unwrap_or_else(|_| br#"{"ok":false,"reason":"internal serialize error"}"#.to_vec());
+    stream.write_all(&bytes)?;
+    stream.shutdown(std::net::Shutdown::Write)
+}
+
+/// Handles one connection: read until EOF (the client half-closes its write
+/// side once it has sent the full request — see zee_powerhouse.py's client),
+/// authenticate, relay to the webview, wait for its verdict, write the
+/// response, done. One request per connection, no persistent session state.
+#[cfg(unix)]
+fn handle_hive_bridge_conn(
+    mut stream: UnixStream,
+    app_handle: tauri::AppHandle,
+    pending: Arc<Mutex<HashMap<String, mpsc::Sender<serde_json::Value>>>>,
+    expected_token: &str,
+) {
+    use std::io::Read;
+    let mut buf = Vec::new();
+    let mut chunk = [0u8; 4096];
+    loop {
+        match stream.read(&mut chunk) {
+            Ok(0) => break,
+            Ok(n) => {
+                buf.extend_from_slice(&chunk[..n]);
+                if buf.len() > HIVE_BRIDGE_MAX_REQUEST_BYTES {
+                    let _ = write_hive_bridge_response(
+                        &mut stream,
+                        &serde_json::json!({ "ok": false, "reason": "request too large" }),
+                    );
+                    return;
+                }
+            }
+            Err(_) => return,
+        }
+    }
+
+    let req: serde_json::Value = match serde_json::from_slice(&buf) {
+        Ok(v) => v,
+        Err(_) => {
+            let _ = write_hive_bridge_response(
+                &mut stream,
+                &serde_json::json!({ "ok": false, "reason": "malformed JSON request" }),
+            );
+            return;
+        }
+    };
+
+    let token = req.get("token").and_then(|t| t.as_str()).unwrap_or("");
+    if !constant_time_eq(token, expected_token) {
+        let _ = write_hive_bridge_response(
+            &mut stream,
+            &serde_json::json!({ "ok": false, "reason": "unauthorized" }),
+        );
+        return;
+    }
+
+    // Everything except the token, forwarded as-is. Rust deliberately does not
+    // interpret this — admissionGate in the webview is the sole authority.
+    let mut candidate = req;
+    if let serde_json::Value::Object(ref mut map) = candidate {
+        map.remove("token");
+    }
+
+    let request_id = generate_hive_request_id();
+    let (tx, rx) = mpsc::channel::<serde_json::Value>();
+    {
+        let mut guard = match pending.lock() {
+            Ok(g) => g,
+            Err(_) => {
+                let _ = write_hive_bridge_response(
+                    &mut stream,
+                    &serde_json::json!({ "ok": false, "reason": "internal: bridge state poisoned" }),
+                );
+                return;
+            }
+        };
+        guard.insert(request_id.clone(), tx);
+    }
+
+    let emitted = app_handle.emit(
+        "hive-admit-request",
+        serde_json::json!({ "id": request_id, "candidate": candidate }),
+    );
+    if emitted.is_err() {
+        if let Ok(mut guard) = pending.lock() {
+            guard.remove(&request_id);
+        }
+        let _ = write_hive_bridge_response(
+            &mut stream,
+            &serde_json::json!({ "ok": false, "reason": "internal: could not reach the app" }),
+        );
+        return;
+    }
+
+    let result = rx.recv_timeout(HIVE_BRIDGE_RESPONSE_TIMEOUT);
+    if let Ok(mut guard) = pending.lock() {
+        guard.remove(&request_id); // always clean up, whether timed out or answered
+    }
+
+    match result {
+        Ok(response) => {
+            let _ = write_hive_bridge_response(&mut stream, &response);
+        }
+        Err(_) => {
+            let _ = write_hive_bridge_response(
+                &mut stream,
+                &serde_json::json!({
+                    "ok": false,
+                    "reason": "no response from Sanctuary (is it running and Vault A unlocked?)"
+                }),
+            );
+        }
+    }
+}
+
+/// Spawns the socket-accepting thread. Best-effort: any setup failure (no
+/// keychain, no writable app data dir, bind failure) logs and simply leaves
+/// the bridge unavailable rather than failing app startup — the hive-mind
+/// bridge is optional infrastructure, not core to Sanctuary running at all.
+#[cfg(unix)]
+fn spawn_hive_bridge(app: &tauri::App) {
+    use std::os::unix::fs::PermissionsExt;
+    use std::os::unix::net::UnixListener;
+
+    let token = match get_or_create_hive_bridge_token() {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("hive bridge disabled: {e}");
+            return;
+        }
+    };
+
+    let data_dir = app
+        .path()
+        .app_data_dir()
+        .unwrap_or_else(|_| std::env::temp_dir());
+    if let Err(e) = std::fs::create_dir_all(&data_dir) {
+        eprintln!("hive bridge disabled: could not create {}: {e}", data_dir.display());
+        return;
+    }
+    let socket_path = data_dir.join(HIVE_BRIDGE_SOCKET_NAME);
+    // A prior run's socket file (crash, unclean exit) would otherwise make
+    // bind() fail with "address in use" even though nothing is listening.
+    let _ = std::fs::remove_file(&socket_path);
+
+    let listener = match UnixListener::bind(&socket_path) {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("hive bridge disabled: bind failed: {e}");
+            return;
+        }
+    };
+    if let Err(e) = std::fs::set_permissions(&socket_path, std::fs::Permissions::from_mode(0o600))
+    {
+        eprintln!("hive bridge disabled: could not restrict socket permissions: {e}");
+        let _ = std::fs::remove_file(&socket_path);
+        return;
+    }
+
+    let app_handle = app.handle().clone();
+    let pending = app.state::<HiveBridgeState>().pending.clone();
+
+    thread::spawn(move || {
+        for conn in listener.incoming() {
+            let Ok(stream) = conn else { continue };
+            let app_handle = app_handle.clone();
+            let pending = pending.clone();
+            let token = token.clone();
+            thread::spawn(move || {
+                handle_hive_bridge_conn(stream, app_handle, pending, &token);
+            });
+        }
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let usb_state = UsbLockState {
@@ -605,9 +938,14 @@ pub fn run() {
     let watched_clone = usb_state.watched.clone();
     let trigger_clone = usb_state.trigger_token.clone();
 
+    let hive_bridge_state = HiveBridgeState {
+        pending: Arc::new(Mutex::new(HashMap::new())),
+    };
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(usb_state)
+        .manage(hive_bridge_state)
         .invoke_handler(tauri::generate_handler![
             arm_deadmans_switch,
             disarm_deadmans_switch,
@@ -625,7 +963,9 @@ pub fn run() {
             fetch_model_file,
             hosted_assistant_ask,
             send_sms_reminder,
-            trigger_duress_wipe
+            trigger_duress_wipe,
+            get_hive_bridge_token,
+            hive_bridge_respond
         ])
         .setup(move |app| {
             if cfg!(debug_assertions) {
@@ -730,6 +1070,9 @@ pub fn run() {
                 }
             });
 
+            #[cfg(unix)]
+            spawn_hive_bridge(app);
+
             Ok(())
         })
         .build(tauri::generate_context!())
@@ -771,5 +1114,45 @@ mod tests {
         let res = write_duress_trigger(&dir);
         assert!(res.is_err(), "must refuse when the IRN OS trigger dir is absent");
         assert!(!dir.join("panic").exists(), "must not create anything");
+    }
+
+    // Bridge token must be real CSPRNG output, not something guessable from
+    // process start time — 64 hex chars (32 bytes) and never repeats.
+    #[test]
+    fn bridge_token_is_well_formed_and_unique() {
+        let a = generate_bridge_token().expect("token generation should succeed");
+        let b = generate_bridge_token().expect("token generation should succeed");
+        assert_eq!(a.len(), 64, "expected 32 bytes hex-encoded");
+        assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
+        assert_ne!(a, b, "two independently generated tokens must not collide");
+    }
+
+    // The token check is the ONLY thing standing between an arbitrary local
+    // process and writing into the hive-mind bridge — it must reject anything
+    // that isn't an exact match, including same-prefix and different-length
+    // strings (a naive prefix compare would wrongly accept those).
+    #[test]
+    fn constant_time_eq_matches_only_exact_strings() {
+        assert!(constant_time_eq("abc123", "abc123"));
+        assert!(!constant_time_eq("abc123", "abc124"));
+        assert!(!constant_time_eq("abc123", "abc12"));
+        assert!(!constant_time_eq("abc123", "abc1234"));
+        assert!(!constant_time_eq("", "a"));
+        assert!(constant_time_eq("", ""));
+    }
+
+    // get_or_create_hive_bridge_token must be idempotent: a second call
+    // returns the SAME token rather than silently rotating it, since the
+    // external process's stored copy would otherwise stop working on every
+    // Sanctuary restart. Uses the real keychain — skipped if none is
+    // available (e.g. a headless CI box with no Secret Service running).
+    #[test]
+    fn hive_bridge_token_persists_across_calls() {
+        let first = match get_or_create_hive_bridge_token() {
+            Ok(t) => t,
+            Err(_) => return, // no keychain backend available in this environment
+        };
+        let second = get_or_create_hive_bridge_token().expect("second read should succeed");
+        assert_eq!(first, second, "token must be stable across calls, not rotated");
     }
 }
