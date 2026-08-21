@@ -1,0 +1,32 @@
+#%PAM-1.0
+#
+# IRN OS override of the stock greetd PAM stack.
+#
+# WHY THIS EXISTS: greetd here only ever AUTOLOGINS the fixed, unprivileged kiosk
+# user `irn` (see /etc/greetd/config.toml -> [initial_session]). There is no
+# interactive greeter, root is locked, ssh is masked, and the image is an
+# amnesiac live appliance — so greetd's job is to start one known session, not to
+# guard a login.
+#
+# The stock file does `@include login`, whose auth stack is `pam_unix.so nullok`.
+# live-config creates `irn` at boot with a DISABLED password (`*` in shadow) and
+# only wires passwordless autologin for display managers it recognises — greetd is
+# not one of them. `pam_unix` accepts an EMPTY password but rejects a disabled one,
+# so autologin failed with "could not authenticate" (post-GRUB, post-kernel).
+#
+# Permit auth for this autologin-only service, but keep the normal account/session
+# handling so pam_systemd still registers the seat and exports XDG_RUNTIME_DIR
+# (the kiosk relies on it — see /usr/local/bin/irn-kiosk).
+#
+# SECURITY NOTE: `auth required pam_permit.so` means greetd performs no password
+# check. That is acceptable ONLY because this service exclusively autologins the
+# unprivileged kiosk user on a login-less appliance. Do NOT copy this stack to any
+# greetd instance that offers an interactive login.
+
+auth       required   pam_permit.so
+account    required   pam_permit.so
+
+session    required   pam_limits.so
+session    optional   pam_env.so readenv=1
+session    optional   pam_env.so readenv=1 envfile=/etc/default/locale
+@include common-session

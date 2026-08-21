@@ -3,7 +3,7 @@
 # distro to maintain. Safe wins run by default; destructive/optional ones are
 # behind flags. Idempotent; backs up user configs it edits to *.bak.
 #
-#   ./harden-garuda.sh              Brave policy + WireGuard tool + EasyEffects EQ
+#   ./harden-garuda.sh              Firefox policy + WireGuard tool + EasyEffects EQ
 #   ./harden-garuda.sh --sysctl     also apply kernel-hardening sysctls
 #   ./harden-garuda.sh --duress     also install the duress panic wipe (prompts)
 #
@@ -22,12 +22,29 @@ USER_NAME="$USER"
 say() { printf '  %s\n' "$*"; }
 backup() { [ -f "$1" ] && cp -n "$1" "$1.bak" && say "backed up $1 -> $1.bak" || true; }
 
-# --- Safe win: hardened Brave managed policy ------------------------------
-do_brave() {
-  echo "[Brave] hardened managed policy"
-  sudo install -Dm644 "$SRC/etc/brave/policies/managed/irn-hardening.json" \
-    /etc/brave/policies/managed/irn-hardening.json
-  say "restart Brave, verify at brave://policy (source should be Platform)"
+# --- Safe win: hardened Firefox (enterprise policy + autoconfig) -----------
+do_browser() {
+  echo "[Browser] hardened Firefox policy + autoconfig"
+  local share="$SRC/usr/local/share/irn-browser" bin="" lib="" etc=""
+  for c in firefox firefox-esr; do command -v "$c" >/dev/null 2>&1 && { bin="$c"; break; }; done
+  if [ -z "$bin" ]; then
+    say "no Firefox found — install it (sudo pacman -S firefox) then re-run"
+    return 0
+  fi
+  case "$bin" in
+    firefox-esr) lib=/usr/lib/firefox-esr; etc=/etc/firefox-esr ;;
+    firefox)     lib=/usr/lib/firefox;     etc=/etc/firefox ;;
+  esac
+  sudo install -Dm644 "$share/policies.json"     "$lib/distribution/policies.json"
+  sudo install -Dm644 "$share/policies.json"     "$etc/policies/policies.json"
+  sudo install -Dm644 "$share/local-settings.js" "$lib/defaults/pref/local-settings.js"
+  sudo install -Dm644 "$share/mozilla.cfg"       "$lib/mozilla.cfg"
+  # Launcher + icon (user-level) so "IRN Browser" appears in menus/dock.
+  install -Dm755 "$SRC/usr/local/bin/irn-browser" "$HOME/.local/bin/irn-browser"
+  install -Dm644 "$SRC/usr/share/applications/irn-browser.desktop" "$HOME/.local/share/applications/irn-browser.desktop"
+  install -Dm644 "$SRC/usr/share/icons/hicolor/scalable/apps/irn-browser.svg" "$HOME/.local/share/icons/hicolor/scalable/apps/irn-browser.svg"
+  [ "$bin" = firefox ] && sed -i 's/^StartupWMClass=.*/StartupWMClass=firefox/' "$HOME/.local/share/applications/irn-browser.desktop"
+  say "restart Firefox, verify at about:policies (add-ons enabled; dark mode on; DoH + HTTPS-only)"
 }
 
 # --- Safe win: WireGuard VPN tool -----------------------------------------
@@ -98,7 +115,7 @@ do_duress() {
 }
 
 echo "Folding IRN hardening onto Garuda (user: $USER_NAME)"
-do_brave
+do_browser
 do_vpn
 do_eq
 for a in "$@"; do

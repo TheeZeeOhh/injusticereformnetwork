@@ -96,7 +96,7 @@ if [ -n "$FF_BIN" ] && [ "$DO_SUDO" = 1 ]; then
   # a /usr/local system path for the IRN OS image; rewrite it for the daily driver).
   USER_NEWTAB="$HOME/.local/share/irn-browser/newtab.html"
   sudo sed -i "s#file:///usr/local/share/irn-browser/newtab.html#file://$USER_NEWTAB#g" \
-    "$FF_LIB/distribution/policies.json" "$FF_ETC/policies/policies.json" 2>/dev/null || true
+    "$FF_LIB/distribution/policies.json" "$FF_ETC/policies/policies.json" "$FF_LIB/mozilla.cfg" 2>/dev/null || true
   say "policy + autoconfig installed; home page -> $USER_NEWTAB"
   say "restart Firefox, verify at about:policies"
 elif [ -n "$FF_BIN" ]; then

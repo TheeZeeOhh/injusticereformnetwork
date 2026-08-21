@@ -37,4 +37,11 @@ function copySoulConsole() {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), copySoulConsole()],
+  server: {
+    // os/ is a Debian live-build chroot tree (os/chroot/...) checked into this
+    // repo. It contains device-node symlink loops (e.g. .../var/run/udev/watch)
+    // that crash Vite's chokidar watcher with ELOOP and take down the whole dev
+    // server. It's not app source, so it never needs watching.
+    watch: { ignored: ['**/os/**'] },
+  },
 })

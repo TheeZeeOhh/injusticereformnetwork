@@ -74,7 +74,10 @@ seed_userchrome
 ff="$(pick_firefox)" || { echo "IRN Browser: no Firefox binary found (looked for firefox-esr, firefox)" >&2; exit 1; }
 
 # Refresh the command center (the configured home page) so its passage + posture
-# are current, then launch. Firefox opens the home page itself on startup.
-command -v irn-newtab >/dev/null 2>&1 && irn-newtab >/dev/null 2>&1 || true
+# are current, then launch. Resolve the generator next to this wrapper first —
+# a GUI .desktop launcher often has a minimal PATH without ~/.local/bin.
+newtab_bin="$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")/irn-newtab"
+[ -x "$newtab_bin" ] || newtab_bin="$(command -v irn-newtab 2>/dev/null || true)"
+[ -n "$newtab_bin" ] && [ -x "$newtab_bin" ] && "$newtab_bin" >/dev/null 2>&1 || true
 
 exec "$ff" "$@"
