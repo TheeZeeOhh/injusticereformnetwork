@@ -204,26 +204,106 @@ fn get_usb_trigger_token() -> Result<Option<String>, String> {
 const KEYCHAIN_SERVICE: &str = "org.injusticereformnetwork.sanctuary";
 const KEYCHAIN_SALT_ACCOUNT: &str = "vault_salts_v1";
 
+// --- Keychain access must never be able to freeze the UI ------------------
+//
+// THE BUG THIS EXISTS TO PREVENT (observed 2026-08-23):
+// These were plain synchronous `#[tauri::command] fn`s. Tauri runs sync commands
+// on the MAIN thread, and keyring's secret-service backend makes a blocking D-Bus
+// call with no timeout of its own. On a desktop where nothing had started
+// gnome-keyring there was no org.freedesktop.secrets to answer, so the call never
+// returned -- and because it held the main thread, the whole webview froze. The
+// operator saw a vault unlock where "nothing happens": no spinner resolution, no
+// error, no way to tell a missing daemon from a wrong passphrase.
+//
+// Two independent things fix that, and both are needed:
+//   1. `async fn` + spawn_blocking moves the call OFF the main thread, so the UI
+//      keeps rendering no matter how long the keychain takes.
+//   2. A timeout turns "hangs forever" into a real Err the frontend can show.
+//      Without this the promise simply never settles and the spinner spins on.
+//
+// A timed-out call leaks its blocking thread -- a stuck D-Bus call cannot be
+// cancelled from outside. That is deliberate: one parked thread is a far better
+// outcome than an unusable app, and the process is short-lived anyway.
+const KEYCHAIN_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+
+/// Runs a blocking keychain operation off the main thread, with a hard deadline.
+/// `what` names the operation so a timeout message says which one gave up.
+async fn keychain_op<T, F>(what: &'static str, f: F) -> Result<T, String>
+where
+    F: FnOnce() -> Result<T, String> + Send + 'static,
+    T: Send + 'static,
+{
+    // The deadline is a plain std channel recv_timeout, NOT tokio::time::timeout.
+    // tokio's timer panics at runtime ("no timer running") unless the surrounding
+    // runtime was built with the time driver enabled -- which is tauri's choice,
+    // not ours, and could change under us. Trading a timer for one extra thread
+    // buys immunity from that: a panic here would be strictly worse than the hang
+    // this function exists to prevent.
+    tauri::async_runtime::spawn_blocking(move || run_with_deadline(what, KEYCHAIN_TIMEOUT, f))
+        .await
+        .map_err(|e| format!("keychain {what} task failed: {e}"))?
+}
+
+/// Runs `f` on a helper thread and gives up after `deadline`.
+///
+/// Split out from `keychain_op` so the deadline behaviour is unit-testable
+/// without standing up a tauri runtime -- see the tests at the bottom of this
+/// file. Blocking, so callers must already be off the main thread.
+fn run_with_deadline<T, F>(
+    what: &str,
+    deadline: std::time::Duration,
+    f: F,
+) -> Result<T, String>
+where
+    F: FnOnce() -> Result<T, String> + Send + 'static,
+    T: Send + 'static,
+{
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        // Send fails only if the receiver already timed out and went away, which
+        // is the expected path for a stuck call -- so the error is dropped.
+        let _ = tx.send(f());
+    });
+    match rx.recv_timeout(deadline) {
+        Ok(result) => result,
+        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => Err(format!(
+            "keychain {what} timed out after {}s. The OS credential store \
+             (org.freedesktop.secrets) did not respond -- on Linux this usually \
+             means no keyring daemon is running for this session.",
+            deadline.as_secs()
+        )),
+        Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+            Err(format!("keychain {what} worker stopped unexpectedly"))
+        }
+    }
+}
+
 /// Returns the persisted salts JSON, or None if not yet initialized.
 #[tauri::command]
-fn get_vault_salts() -> Result<Option<String>, String> {
-    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_SALT_ACCOUNT)
-        .map_err(|e| format!("keychain entry error: {e}"))?;
-    match entry.get_password() {
-        Ok(secret) => Ok(Some(secret)),
-        Err(keyring::Error::NoEntry) => Ok(None),
-        Err(e) => Err(format!("keychain read error: {e}")),
-    }
+async fn get_vault_salts() -> Result<Option<String>, String> {
+    keychain_op("read", || {
+        let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_SALT_ACCOUNT)
+            .map_err(|e| format!("keychain entry error: {e}"))?;
+        match entry.get_password() {
+            Ok(secret) => Ok(Some(secret)),
+            Err(keyring::Error::NoEntry) => Ok(None),
+            Err(e) => Err(format!("keychain read error: {e}")),
+        }
+    })
+    .await
 }
 
 /// Persists the salts JSON to the OS keychain. Idempotent overwrite.
 #[tauri::command]
-fn set_vault_salts(salts_json: String) -> Result<(), String> {
-    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_SALT_ACCOUNT)
-        .map_err(|e| format!("keychain entry error: {e}"))?;
-    entry
-        .set_password(&salts_json)
-        .map_err(|e| format!("keychain write error: {e}"))
+async fn set_vault_salts(salts_json: String) -> Result<(), String> {
+    keychain_op("write", move || {
+        let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_SALT_ACCOUNT)
+            .map_err(|e| format!("keychain entry error: {e}"))?;
+        entry
+            .set_password(&salts_json)
+            .map_err(|e| format!("keychain write error: {e}"))
+    })
+    .await
 }
 
 /// Deletes the per-install salts from the OS keychain. Used by the portable-USB
@@ -233,14 +313,17 @@ fn set_vault_salts(salts_json: String) -> Result<(), String> {
 /// machine. Idempotent: an already-absent entry is treated as success, so a wipe
 /// on an already-clean host never errors.
 #[tauri::command]
-fn clear_vault_salts() -> Result<(), String> {
-    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_SALT_ACCOUNT)
-        .map_err(|e| format!("keychain entry error: {e}"))?;
-    match entry.delete_credential() {
-        Ok(()) => Ok(()),
-        Err(keyring::Error::NoEntry) => Ok(()), // already clear — nothing to do
-        Err(e) => Err(format!("keychain delete error: {e}")),
-    }
+async fn clear_vault_salts() -> Result<(), String> {
+    keychain_op("delete", || {
+        let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_SALT_ACCOUNT)
+            .map_err(|e| format!("keychain entry error: {e}"))?;
+        match entry.delete_credential() {
+            Ok(()) => Ok(()),
+            Err(keyring::Error::NoEntry) => Ok(()), // already clear — nothing to do
+            Err(e) => Err(format!("keychain delete error: {e}")),
+        }
+    })
+    .await
 }
 
 // --- Duress panic wipe bridge (IRN OS) ---------------------------------------
@@ -1154,5 +1237,43 @@ mod tests {
         };
         let second = get_or_create_hive_bridge_token().expect("second read should succeed");
         assert_eq!(first, second, "token must be stable across calls, not rotated");
+    }
+}
+
+
+#[cfg(test)]
+mod keychain_deadline_tests {
+    use super::run_with_deadline;
+    use std::time::{Duration, Instant};
+
+    #[test]
+    fn returns_value_when_the_call_completes_in_time() {
+        let r = run_with_deadline("read", Duration::from_secs(5), || Ok::<_, String>(Some("ok".to_string())));
+        assert_eq!(r.unwrap(), Some("ok".to_string()));
+    }
+
+    #[test]
+    fn propagates_the_inner_error_unchanged() {
+        let r: Result<(), String> =
+            run_with_deadline("write", Duration::from_secs(5), || Err("keychain write error: nope".into()));
+        assert_eq!(r.unwrap_err(), "keychain write error: nope");
+    }
+
+    /// The regression that matters: a keychain call that never returns must
+    /// surface an Err, not hang. Before this, a missing secret-service daemon
+    /// froze the whole app at vault unlock with no message.
+    #[test]
+    fn a_hanging_call_times_out_instead_of_blocking_forever() {
+        let started = Instant::now();
+        let r: Result<(), String> = run_with_deadline("read", Duration::from_millis(300), || {
+            std::thread::sleep(Duration::from_secs(30)); // never returns in time
+            Ok(())
+        });
+        let waited = started.elapsed();
+
+        let err = r.expect_err("a hanging keychain call must return Err, not Ok");
+        assert!(err.contains("timed out"), "unhelpful message: {err}");
+        assert!(err.contains("keyring daemon"), "message should name the likely cause: {err}");
+        assert!(waited < Duration::from_secs(5), "gave up too late: {waited:?}");
     }
 }

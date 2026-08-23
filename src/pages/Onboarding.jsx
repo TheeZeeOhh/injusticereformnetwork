@@ -11,6 +11,8 @@ export default function Onboarding() {
   const [operatorName, setOperatorName] = useState('');
   const [operatorRole, setOperatorRole] = useState('Lead Navigator');
   const [saltsReady, setSaltsReady] = useState(false);
+  const [saltError, setSaltError] = useState(null);
+  const [busy, setBusy] = useState(false);
   const [ackIncapacity, setAckIncapacity] = useState(false);
   const [ack42cfr, setAck42cfr] = useState(false);
 
@@ -20,8 +22,25 @@ export default function Onboarding() {
 
   const handleNext = async () => {
     // Entering step 2: actually generate this device's per-install salts.
+    //
+    // This MUST stay wrapped. ensureSaltsInitialized talks to the OS keychain
+    // through a Tauri command, and that can legitimately fail -- no secret
+    // service running is the common one. Before this try/catch the rejection
+    // propagated out of an async onClick, where React drops it: setStep(2) never
+    // ran, nothing was rendered, and the operator saw a CONTINUE button that
+    // simply did nothing. Observed on IRN OS, 2026-08-23. A vault app must never
+    // fail silently at enrollment -- if the salts cannot be written, say so.
     if (step === 1) {
-      await ensureSaltsInitialized();
+      setSaltError(null);
+      setBusy(true);
+      try {
+        await ensureSaltsInitialized();
+      } catch (err) {
+        setSaltError(err?.message || String(err));
+        return;
+      } finally {
+        setBusy(false);
+      }
       setSaltsReady(true);
       setStep(2);
       return;
@@ -155,13 +174,28 @@ export default function Onboarding() {
           
           <button
             onClick={handleNext}
-            disabled={step === 4 && !complianceComplete}
+            disabled={busy || (step === 4 && !complianceComplete)}
             className="btn-primary"
             style={{ background: step === 4 ? 'var(--ember)' : 'var(--gold)', color: 'var(--charcoal)', fontWeight: 'bold', fontSize: '1rem', padding: '0.75rem 2rem', opacity: (step === 4 && !complianceComplete) ? 0.45 : 1, cursor: (step === 4 && !complianceComplete) ? 'not-allowed' : 'pointer' }}
           >
-            {step === 4 ? 'SET PASSPHRASE →' : 'CONTINUE →'}
+            {busy ? 'PREPARING VAULT…' : (step === 4 ? 'SET PASSPHRASE →' : 'CONTINUE →')}
           </button>
         </div>
+
+        {saltError && (
+          <div style={{ marginTop: '1.5rem', padding: '1rem', borderRadius: '4px', border: '1px solid var(--ember)', background: 'rgba(194, 84, 122, 0.12)' }}>
+            <div style={{ color: 'var(--ember)', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+              Could not prepare this device&apos;s vault keys.
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--bone)', fontFamily: 'var(--font-mono)', wordBreak: 'break-word' }}>
+              {saltError}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+              The per-install salts live in the OS keychain. On Linux this usually
+              means no keyring daemon is running for this session.
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
