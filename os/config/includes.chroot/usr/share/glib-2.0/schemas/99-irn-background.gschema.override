@@ -1,0 +1,17 @@
+# IRN OS default desktop background.
+#
+# 'centered' rather than 'zoom' (the Cinnamon default) on purpose: the crest is
+# 2048x1951, near-square, and zoom on a 16:9 display would crop the laurel and
+# the motto straight off the edges. Centred on a black field the artwork stays
+# whole, and primary-color matches the logo's own background so the surround is
+# seamless at any resolution.
+#
+# Keys verified against org.cinnamon.desktop.background.gschema.xml as shipped in
+# cinnamon-desktop-data 6.4.1-1 -- an override naming a key that does not exist
+# makes glib-compile-schemas fail for the WHOLE system, not just this file.
+[org.cinnamon.desktop.background]
+picture-uri='file:///usr/share/backgrounds/irn/irn-logo.jpg'
+picture-options='centered'
+primary-color='#000000'
+secondary-color='#000000'
+color-shading-type='solid'

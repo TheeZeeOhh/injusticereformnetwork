@@ -2,8 +2,10 @@
 # Ported from the Garuda box, adapted for the image: Sanctuary via the launcher
 # wrapper, the desktop shell (bars + dock + idle lock), and the system EQ.
 
-# Dark background.
-swaybg -c '#0b1a2b' >/dev/null 2>&1 &
+# Background: the IRN crest, centred on black. labwc reads no gsettings, so the
+# Cinnamon gschema override does not reach it -- swaybg has to be told directly.
+# -m center keeps the near-square crest uncropped; -c fills the surround to match.
+swaybg -i /usr/share/backgrounds/irn/irn-logo.jpg -m center -c '#000000' >/dev/null 2>&1 &
 
 # Top bar (workspaces, clock, audio, network, battery, tray).
 waybar >/dev/null 2>&1 &

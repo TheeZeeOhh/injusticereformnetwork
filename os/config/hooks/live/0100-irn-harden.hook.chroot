@@ -61,6 +61,23 @@ grep -q pam_gnome_keyring /etc/pam.d/greetd \
 ls /var/cache/cracklib/cracklib_dict.* >/dev/null 2>&1 \
 	|| echo "W: /var/cache/cracklib/cracklib_dict.* missing — the installer will refuse to set a password." >&2
 
+# Default wallpaper (the IRN crest). The override is inert until the schemas are
+# recompiled, so this must run AFTER cinnamon-desktop-data is installed.
+#
+# Deliberately non-fatal: a bad override makes glib-compile-schemas fail for the
+# entire system, and shipping a desktop with the wrong background is a far better
+# outcome than failing the build over it. The keys were checked against the
+# shipped schema, so this is belt-and-braces rather than an expected path.
+if [ -f /usr/share/glib-2.0/schemas/99-irn-background.gschema.override ]; then
+	if glib-compile-schemas /usr/share/glib-2.0/schemas 2>/dev/null; then
+		echo "P: IRN OS — default wallpaper compiled into gsettings"
+	else
+		echo "W: glib-compile-schemas failed — the default wallpaper will not apply." >&2
+	fi
+fi
+[ -f /usr/share/backgrounds/irn/irn-logo.jpg ] \
+	|| echo "W: /usr/share/backgrounds/irn/irn-logo.jpg missing — wallpaper will be blank." >&2
+
 # Xorg.wrap policy gates whether the unprivileged session user may start X at all.
 [ -f /etc/X11/Xwrapper.config ] || echo "W: /etc/X11/Xwrapper.config missing — startx will be refused." >&2
 # Admin-route backstop for INSTALLED systems. Inert on the live image and inert
