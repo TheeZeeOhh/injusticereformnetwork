@@ -1,0 +1,13 @@
+#!/bin/sh
+# Launch Sanctuary with its output captured somewhere that survives a reboot.
+#
+# WHY A WRAPPER: the log has to land in $HOME, because trixie ships systemd 257
+# which mounts /tmp as a tmpfs -- a log written there is gone at shutdown, i.e.
+# exactly when you need to read it (this cost a whole boot cycle while diagnosing
+# the 2026-08-23 vault-enrolment failure).
+#
+# And it cannot be done inline in the .desktop entry: the Desktop Entry spec
+# requires a `$` inside a quoted Exec to be backslash-escaped, which then stops
+# the shell expanding it -- so `$HOME` either fails validation or arrives at sh
+# as a literal. A wrapper sidesteps the whole quoting problem.
+exec sanctuary >"$HOME/sanctuary.log" 2>&1

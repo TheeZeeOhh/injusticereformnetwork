@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Sanctuary
+Comment=Local-first encrypted health & legal records vault
+# Cinnamon reads XDG autostart; labwc does not (it uses ~/.config/labwc/autostart).
+# OnlyShowIn pins this to the Cinnamon session anyway, so that if a future
+# Wayland shell ever DOES honour XDG autostart, Sanctuary cannot be launched
+# twice against the same vault.
+OnlyShowIn=X-Cinnamon;
+# The wrapper redirects to $HOME/sanctuary.log rather than /tmp -- trixie mounts
+# /tmp as a tmpfs, so a log there does not survive the shutdown you want to
+# debug. See /usr/local/libexec/irn-sanctuary-session for why it is not inline.
+Exec=/usr/local/libexec/irn-sanctuary-session
+Icon=sanctuary
+Terminal=false
+X-GNOME-Autostart-enabled=true

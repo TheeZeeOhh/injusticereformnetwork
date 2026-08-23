@@ -1,0 +1,33 @@
+#!/bin/sh
+# X session command for Cinnamon, exec'd by startx from irn-kiosk.
+#
+# Exists as its own file because startx parses `client args -- server args` and
+# splits on the FIRST `--`; writing `dbus-run-session -- cinnamon-session`
+# inline would hand dbus-run-session's separator to startx instead.
+#
+# cinnamon-session needs a session bus (Depends: default-dbus-session-bus), but
+# it must be the RIGHT one. The image ships dbus-user-session and libpam-systemd,
+# and /etc/pam.d/greetd ends in `@include common-session`, whose pam_systemd
+# creates /run/user/UID and starts the per-user systemd instance -- which owns a
+# session bus at $XDG_RUNTIME_DIR/bus. Unconditionally wrapping in
+# dbus-run-session would spawn a SECOND, private bus and strand cinnamon-session
+# on it: the systemd user units, xdg-desktop-portal and the tray would all be
+# talking on the first bus, and the symptoms (missing tray icons, portals timing
+# out on file dialogs) look nothing like their cause.
+#
+# So: use the existing bus when there is one, and only start our own as a
+# fallback for a session where pam_systemd did not run.
+set -eu
+
+if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+	exec cinnamon-session
+fi
+
+if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "${XDG_RUNTIME_DIR}/bus" ]; then
+	DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+	export DBUS_SESSION_BUS_ADDRESS
+	exec cinnamon-session
+fi
+
+echo "irn-cinnamon-session: no user bus found, starting a private one" >&2
+exec dbus-run-session -- cinnamon-session

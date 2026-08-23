@@ -1,0 +1,26 @@
+#!/bin/sh
+# Emits the fleet block. IRN OS ships no Docker (nothing that pulls images from
+# a registry belongs on a machine whose threat model is a subpoena), so where the
+# origin config listed containers this reports the local IRN services instead.
+# Docker is still honoured if a build ever adds it.
+set -eu
+if command -v docker >/dev/null 2>&1 && docker ps -q >/dev/null 2>&1; then
+	n="$(docker ps -q 2>/dev/null | wc -l)"
+	printf '${color2}DOCKER FLEET ${alignr}%s Active\n' "$n"
+	printf '${color3}${hr 1}\n'
+	# One container per line. An earlier version piped through `tr -d '\n'` and
+	# collapsed the whole fleet onto a single unreadable row.
+	docker ps --format '{{.Names}}  {{.Status}}' 2>/dev/null | head -6 | sed 's/^/${color1} /'
+	exit 0
+fi
+
+printf '${color2}IRN SERVICES\n'
+printf '${color3}${hr 1}\n'
+for svc in greetd ollama irn-panic-wipe.path; do
+	label="$(printf '%s' "$svc" | sed 's/\.path$//')"
+	if systemctl is-active --quiet "$svc" 2>/dev/null; then
+		printf '${color1} %-16s${alignr}${color4}UP${color}\n' "$label"
+	else
+		printf '${color1} %-16s${alignr}${color3}down${color}\n' "$label"
+	fi
+done

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=EasyEffects (system EQ)
+Comment=Headless PipeWire equalizer, applies the IRN preset
+OnlyShowIn=X-Cinnamon;
+# Mirrors the labwc autostart: start headless, then load the IRN preset once the
+# service is actually up. `easyeffects -l` against a not-yet-running service is a
+# no-op, which is why the load is delayed rather than chained with &&.
+Exec=sh -c "easyeffects --gapplication-service & sleep 3; easyeffects -l IRN"
+Terminal=false
+X-GNOME-Autostart-enabled=true

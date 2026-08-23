@@ -1,0 +1,93 @@
+#!/bin/sh
+# Ensure the secret service has an unlocked default keyring before the desktop
+# (and therefore Sanctuary) starts.
+#
+# WHY THIS EXISTS (root-caused 2026-08-23 on an installed IRN OS):
+# gnome-keyring-daemon was running, PAM was wired, the packages were installed --
+# and every keychain WRITE still failed:
+#
+#   hive bridge disabled: keychain write error:
+#   Couldn't access platform storage: SS error: result not returned from SS API
+#
+# "SS" is the Secret Service. That error means the write needed a collection that
+# was locked (or absent) and the resulting prompt never completed. The daemon
+# starting is not the same as there being somewhere to write to.
+#
+# The cause is structural on an autologin image: pam_gnome_keyring unlocks the
+# login keyring with the password PAM captured, but the autologin path never
+# captures one (see /etc/pam.d/greetd), so the keyring is never created and never
+# unlocked. Sanctuary's get/set_vault_salts then fail, and the operator sees a
+# vault that will not enrol.
+#
+# So: where there is no password to unlock with, create the login keyring with an
+# EMPTY one. gnome-keyring auto-unlocks an empty-password keyring on every
+# subsequent start, which is exactly the behaviour an appliance needs.
+#
+# SECURITY NOTE -- the same trade already documented in /etc/pam.d/greetd:
+# an empty-password keyring is not a secret store. It holds the per-install vault
+# SALTS, which are not secret by design (unique + stable per install is all they
+# must be). The AES keys never leave the webview's RAM. The real boundary is LUKS
+# at rest plus the Vault A/B passphrases. Do not put anything genuinely secret in
+# this keyring on an autologin image.
+#
+# On a system with real logins this script does NOTHING: pam_gnome_keyring will
+# have unlocked the keyring properly with the user's own password.
+set -eu
+
+log() { echo "irn-keyring-init: $*" >&2; }
+
+command -v gnome-keyring-daemon >/dev/null 2>&1 || {
+	log "gnome-keyring-daemon not installed, nothing to do"
+	exit 0
+}
+
+KEYRING_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/keyrings"
+
+# --- Why this does not just write the `default` file ------------------------
+# gnome-keyring records the default collection in a one-line file called
+# `default` next to the keyrings. It is tempting to just write it. DO NOT: it was
+# tried on a live installed system (2026-08-23) and the keychain writes kept
+# failing afterwards with the same error --
+#
+#   Couldn't access platform storage: SS error: result not returned from SS API
+#
+# The alias only counts when the daemon establishes the collection through the
+# Secret Service API; a file dropped beside it is not picked up. What finally
+# worked on that machine was an API-level write (secret-tool), which made
+# gnome-keyring create the collection properly -- and it PROMPTED for a password
+# to protect it, which is exactly what an autologin appliance cannot answer.
+#
+# So the only safe automated path is the one below: hand the daemon an empty
+# password up front so it creates AND aliases the collection itself, no prompt.
+
+# Already have a login keyring? Then it is either unlocked by PAM or the operator
+# owns it. Never touch an existing one -- rewriting it would orphan its contents.
+# The alias, however, still has to be right.
+if [ -f "$KEYRING_DIR/login.keyring" ]; then
+	log "login keyring already exists, leaving it alone"
+	exit 0
+fi
+
+# Only auto-create where the account genuinely has no password to unlock with.
+# `passwd -S` prints "<user> P ..." for a usable password, "L" locked, "NP" none.
+# A real operator account (P) must not get an empty-password keyring behind their
+# back -- that would silently weaken a system that has a password to offer.
+state="$(passwd -S "$(id -un)" 2>/dev/null | awk '{print $2}' || true)"
+if [ "$state" = "P" ]; then
+	log "account has a real password; leaving keyring creation to pam_gnome_keyring"
+	exit 0
+fi
+
+mkdir -p "$KEYRING_DIR"
+chmod 0700 "$KEYRING_DIR"
+
+log "no login keyring and no password to unlock with -- creating an empty-password one"
+# `timeout` is not optional: if the daemon ever blocks on a prompt this runs
+# before the compositor, and a hang here is a machine that never reaches a
+# desktop. Failing is survivable; hanging is not.
+if printf '\n' | timeout 10 gnome-keyring-daemon --unlock --components=secrets >/dev/null 2>&1; then
+	log "login keyring created and unlocked (daemon sets the default alias)"
+else
+	log "WARNING: could not initialise the keyring; Sanctuary vault enrolment will fail" 
+fi
+exit 0

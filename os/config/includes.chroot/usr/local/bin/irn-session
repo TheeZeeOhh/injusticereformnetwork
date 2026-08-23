@@ -1,0 +1,73 @@
+#!/bin/sh
+# Show or change which desktop session this user gets at login.
+#
+# Writes $HOME/.config/irn/session, which irn-kiosk reads ahead of the system
+# default in /etc/irn/session. The change takes effect on the NEXT login — the
+# running compositor is never killed out from under the operator, who may well
+# have an unsaved vault open in it.
+set -eu
+
+USER_PREF="${HOME}/.config/irn/session"
+SYSTEM_PREF=/etc/irn/session
+VALID='cinnamon labwc plasma'
+
+usage() {
+	cat <<'USAGE'
+Usage: irn-session [SESSION]
+       irn-session --show     print the session that will be used next login
+       irn-session --clear    drop the per-user choice, fall back to system default
+
+SESSION is one of:
+  cinnamon   X11 desktop — Cinnamon, its Settings app, conky      (system default)
+  labwc      Wayland — minimal hardened shell (waybar, fuzzel, swaylock)
+
+With no argument, prints the current setting and exits.
+A change applies at the NEXT login; the running session is left alone.
+USAGE
+}
+
+# Same parse irn-kiosk uses: strip comments and whitespace, first non-empty wins.
+read_pref() {
+	[ -r "$1" ] || return 1
+	sed -e 's/#.*//' -e 's/[[:space:]]//g' "$1" | grep -m1 . || return 1
+}
+
+effective() {
+	if v="$(read_pref "$USER_PREF")"; then
+		echo "$v (per-user: $USER_PREF)"
+	elif v="$(read_pref "$SYSTEM_PREF")"; then
+		echo "$v (system default: $SYSTEM_PREF)"
+	else
+		echo "cinnamon (built-in default)"
+	fi
+}
+
+case "${1:-}" in
+	''|--show|-s)
+		echo "Next login: $(effective)"
+		exit 0
+		;;
+	-h|--help)
+		usage
+		exit 0
+		;;
+	--clear)
+		rm -f "$USER_PREF"
+		echo "Per-user choice cleared. Next login: $(effective)"
+		exit 0
+		;;
+esac
+
+want="$1"
+for v in $VALID; do
+	if [ "$want" = "$v" ]; then
+		mkdir -p "$(dirname "$USER_PREF")"
+		printf '%s\n' "$want" > "$USER_PREF"
+		echo "Session set to '$want'. Log out and back in to switch."
+		exit 0
+	fi
+done
+
+echo "irn-session: unknown session '$want' (expected one of: $VALID)" >&2
+usage >&2
+exit 1

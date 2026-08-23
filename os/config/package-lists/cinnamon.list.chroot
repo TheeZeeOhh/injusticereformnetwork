@@ -1,0 +1,89 @@
+# Cinnamon (X11) desktop for IRN OS — the DEFAULT session.
+#
+# WHY a second session at all: conky and the Cinnamon settings tools are X11
+# programs. labwc is Wayland, and conky's desktop-window modes do not work
+# there even under XWayland. So the image ships both: Cinnamon on X11 as the
+# default, labwc/Wayland kept as a selectable alternate (see irn-kiosk).
+#
+# The build sets --apt-recommends false (auto/config), so anything Cinnamon
+# lists as a Recommends is NOT pulled in. Several of those are the difference
+# between "a desktop" and "a desktop that feels broken", so they are named
+# explicitly below rather than left to chance.
+#
+# Two dependency alternatives are already satisfied by what the image ships,
+# which is why this does NOT drag in a second display manager or terminal:
+#   cinnamon-core: slick-greeter | lightdm | x-display-manager  <- greetd provides
+#   cinnamon-core: gnome-terminal | x-terminal-emulator         <- foot provides
+
+# --- Cinnamon core (pulls cinnamon, cinnamon-control-center = the Settings app,
+# --- cinnamon-session, cinnamon-settings-daemon, cinnamon-screensaver, muffin,
+# --- nemo, xserver-xorg, desktop-base) ---
+cinnamon-core
+
+# --- X server plumbing for startx (greetd execs startx; see irn-kiosk) ---
+# xinit provides /usr/bin/startx and depends on xauth outright.
+# xserver-xorg-legacy provides Xorg.wrap so a non-root user on a console VT can
+# start X; see includes.chroot/etc/X11/Xwrapper.config.
+xinit
+xserver-xorg-legacy
+x11-xserver-utils
+
+# --- System monitor widget (dual-panel HUD, see /etc/skel/.config/conky) ---
+# NOTE: the binary package is conky-all (or conky-std). Plain "conky" is a
+# virtual package and apt will not install it by name here.
+conky-all
+# The HUD's NOW PLAYING row reads MPRIS via playerctl. Absent, that row just
+# prints "Silence..." forever, which looks like a broken widget rather than an
+# idle one.
+playerctl
+
+# --- Cinnamon Recommends that --apt-recommends false would otherwise drop ---
+cinnamon-l10n
+gnome-themes-extra
+gvfs-fuse
+xapp-sn-watcher
+libxapp-gtk3-module
+xdg-desktop-portal-xapp
+xdg-desktop-portal-gtk
+gstreamer1.0-plugins-good
+alsa-utils
+blueman
+xdg-user-dirs-gtk
+fonts-liberation
+
+# nemo Recommends: without gvfs-backends the file manager loses trash, network
+# shares and removable-media mounting — it looks installed but behaves broken.
+gvfs-backends
+# cinnamon-control-center Recommends: country/language names in Settings.
+iso-codes
+# cinnamon Recommends: routes UI event sounds through PipeWire's pulse shim.
+libcanberra-pulse
+
+# --- Secret service (org.freedesktop.secrets) ---
+# NOT optional for this image. Sanctuary's get_vault_salts Tauri command reads the
+# per-install vault salts from the OS keychain via libsecret; with no secret
+# service on the bus that call has nothing to answer it and the vault unlock
+# FREEZES with no error message (observed on the Garuda box, 2026-08-23).
+#
+# Both of these are only Recommends of cinnamon-screensaver, so --apt-recommends
+# false drops them -- which is exactly how the previous ISO shipped without any
+# secret service at all.
+#
+# OPEN QUESTION (needs Aziza's call, see the notes): on an autologin kiosk with no
+# user password there is no passphrase to unlock the login keyring with. Installing
+# these makes the service DBus-activatable; it does NOT by itself settle how the
+# login keyring gets unlocked without prompting.
+gnome-keyring
+libpam-gnome-keyring
+
+# --- System & disks ---
+gnome-system-monitor
+gnome-disk-utility
+baobab
+
+# --- Everyday accessories ---
+gnome-calculator
+gnome-screenshot
+gnome-text-editor
+eog
+evince

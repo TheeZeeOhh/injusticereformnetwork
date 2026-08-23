@@ -8,6 +8,67 @@ echo "P: IRN OS — enabling kiosk services and hardening"
 # --- Session wiring ---
 chmod 0755 /usr/local/bin/irn-kiosk /usr/local/bin/sanctuary /usr/local/bin/irn-greetd-config /usr/local/sbin/irn-vpn
 chmod 0755 /etc/skel/.config/labwc/autostart   # labwc requires autostart executable
+
+# --- Cinnamon (X11) session, the DEFAULT ---
+# irn-kiosk execs the wrapper by absolute path, so a missing exec bit here is a
+# black screen that greetd retries forever. Set it explicitly rather than trusting
+# includes.chroot to have carried the mode across.
+chmod 0755 /usr/local/libexec/irn-cinnamon-session /usr/local/bin/irn-session
+
+# conky HUD: the panels call these helpers through ${execpi}/${execi}, and a
+# helper that is not executable renders as an empty block rather than an error.
+chmod 0755 /usr/local/bin/irn-conky /usr/local/libexec/irn-conky-*
+
+# Sanctuary launch wrapper + keyring bootstrap, both exec'd by path.
+chmod 0755 /usr/local/libexec/irn-sanctuary-session /usr/local/libexec/irn-keyring-init
+
+# The greetd stack names pam_gnome_keyring EXPLICITLY rather than trusting
+# common-auth/common-session, because on this image pam-auth-update does NOT
+# enable the gnome-keyring profile -- verified on an installed system 2026-08-23,
+# where both files had zero references to it. A stack that relies on the include
+# authenticates fine and silently never unlocks a keyring, which is how the vault
+# enrolment failure hid for so long. Fail the build loudly if the module is gone.
+find /usr/lib /lib -name pam_gnome_keyring.so -print -quit 2>/dev/null | grep -q . \
+	|| echo "W: pam_gnome_keyring.so missing — the vault keychain will not work." >&2
+grep -q pam_gnome_keyring /etc/pam.d/greetd \
+	|| echo "W: /etc/pam.d/greetd does not name pam_gnome_keyring explicitly." >&2
+
+# Confirm the session can actually start, here at build time. irn-kiosk falls back
+# to labwc when these are missing, so the failure is survivable but silent — and a
+# silent fallback to the WRONG desktop is exactly the kind of thing that ships.
+for b in /usr/bin/cinnamon-session /usr/bin/startx /usr/bin/conky; do
+	[ -x "$b" ] || echo "W: $b missing — Cinnamon session will fall back to labwc." >&2
+done
+
+# Secret service: Sanctuary's get_vault_salts talks to org.freedesktop.secrets via
+# libsecret. If gnome-keyring or the PAM module is missing, the daemon never starts
+# and the vault unlock freezes on screen with no error -- so fail LOUDLY here, at
+# build time, rather than shipping that. `optional` in /etc/pam.d/greetd means a
+# missing module will not block login; it just silently means no keyring.
+[ -x /usr/bin/gnome-keyring-daemon ] \
+	|| echo "W: gnome-keyring-daemon missing — no secret service; vault unlock will hang." >&2
+# NB: find, not a glob. An unmatched shell glob stays LITERAL, so a `[ -e ]` test
+# on it both fails and prints the raw pattern — a false warning on any layout
+# where the module sits under a different multiarch directory.
+find /usr/lib /lib -name pam_gnome_keyring.so -print -quit 2>/dev/null | grep -q . \
+	|| echo "W: pam_gnome_keyring.so not found — greetd cannot start/unlock the keyring." >&2
+grep -q pam_gnome_keyring /etc/pam.d/greetd \
+	|| echo "W: /etc/pam.d/greetd does not reference pam_gnome_keyring." >&2
+
+# Installer password dictionary: no dict means Calamares cannot create the
+# operator account at all ("no dictionary for the password"). The dict is built by
+# cracklib-runtime's postinst, so check the ARTIFACT, not just the package.
+ls /var/cache/cracklib/cracklib_dict.* >/dev/null 2>&1 \
+	|| echo "W: /var/cache/cracklib/cracklib_dict.* missing — the installer will refuse to set a password." >&2
+
+# Xorg.wrap policy gates whether the unprivileged session user may start X at all.
+[ -f /etc/X11/Xwrapper.config ] || echo "W: /etc/X11/Xwrapper.config missing — startx will be refused." >&2
+# Admin-route backstop for INSTALLED systems. Inert on the live image and inert
+# whenever anyone can already escalate; it exists only so the combination of
+# `passwd -l root` below + Calamares not granting sudo cannot brick a machine.
+chmod 0755 /usr/local/sbin/irn-ensure-admin
+systemctl enable irn-ensure-admin.service
+
 systemctl enable seatd.service
 systemctl enable greetd.service
 systemctl set-default graphical.target

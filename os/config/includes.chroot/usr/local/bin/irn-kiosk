@@ -1,14 +1,111 @@
 #!/bin/sh
-# IRN OS kiosk entrypoint. Runs as the unprivileged `irn` user via greetd.
-# Starts a Wayland session (labwc) inside a fresh D-Bus session; labwc's
-# autostart then launches the Sanctuary app. If the compositor ever exits,
-# greetd relaunches this script, so the kiosk self-heals.
+# IRN OS session entrypoint. Runs as the unprivileged session user via greetd.
+#
+# The image ships TWO desktops and this script picks between them:
+#
+#   cinnamon  (DEFAULT)  X11. Cinnamon + its Settings app + conky. conky is an
+#                        X11 program whose desktop-window modes do not work on
+#                        Wayland, so anything conky-shaped needs this session.
+#   labwc                Wayland. The hardened minimal shell (waybar, fuzzel,
+#                        swaylock). Lighter; kept as a selectable alternate.
+#   plasma               Wayland. KDE Plasma, for operators who want a full
+#                        conventional desktop. Only selectable where the packages
+#                        are actually installed -- the image does not ship them by
+#                        default, so this branch is a no-op on a stock build and
+#                        falls back rather than dying.
+#
+# Preference is read from, in order:
+#   1. $HOME/.config/irn/session   per-user  (written by `irn-session`)
+#   2. /etc/irn/session            system default
+#   3. the built-in default below
+#
+# If the chosen session's binary is missing, fall back to the other one rather
+# than exiting: greetd would just relaunch this script in a tight loop and the
+# operator would meet a black screen with no explanation. A desktop that is not
+# the one you asked for is a far better failure than no desktop.
 set -eu
+
+DEFAULT_SESSION=cinnamon
 
 # pam_systemd (libpam-systemd) sets XDG_RUNTIME_DIR on login; fall back just in case.
 : "${XDG_RUNTIME_DIR:=/run/user/$(id -u)}"
 export XDG_RUNTIME_DIR
-export XDG_SESSION_TYPE=wayland
-export WLR_LIBINPUT_NO_DEVICES=1   # don't fail to start if no input device is present yet
 
-exec dbus-run-session -- labwc
+read_pref() {
+	[ -r "$1" ] || return 1
+	# First non-empty, non-comment word. Ignores stray whitespace/CRLF.
+	sed -e 's/#.*//' -e 's/[[:space:]]//g' "$1" | grep -m1 . || return 1
+}
+
+SESSION="$(read_pref "$HOME/.config/irn/session" \
+	|| read_pref /etc/irn/session \
+	|| echo "$DEFAULT_SESSION")"
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+case "$SESSION" in
+	cinnamon|labwc|plasma) ;;
+	*)
+		echo "irn-kiosk: unknown session '$SESSION', using $DEFAULT_SESSION" >&2
+		SESSION="$DEFAULT_SESSION"
+		;;
+esac
+
+if [ "$SESSION" = cinnamon ] && ! { have cinnamon-session && have startx; }; then
+	echo "irn-kiosk: cinnamon-session/startx missing, falling back to labwc" >&2
+	SESSION=labwc
+fi
+if [ "$SESSION" = labwc ] && ! have labwc; then
+	echo "irn-kiosk: labwc missing, falling back to cinnamon" >&2
+	SESSION=cinnamon
+fi
+if [ "$SESSION" = plasma ] && ! have startplasma-wayland; then
+	echo "irn-kiosk: startplasma-wayland missing, falling back to $DEFAULT_SESSION" >&2
+	SESSION="$DEFAULT_SESSION"
+fi
+
+# Make sure the secret service has an unlocked DEFAULT collection before the
+# desktop starts. Sanctuary writes its per-install vault salts to the OS keychain
+# as soon as onboarding runs, and with no default collection that write fails
+# with "SS error: result not returned from SS API" -- a vault that will not enrol
+# (observed on an installed system, 2026-08-23). The script is a no-op wherever
+# PAM already did the job, carries its own timeout so it cannot wedge the
+# session, and its failure must never stop a desktop from starting.
+if [ -x /usr/local/libexec/irn-keyring-init ]; then
+	/usr/local/libexec/irn-keyring-init || true
+fi
+
+case "$SESSION" in
+labwc)
+	export XDG_SESSION_TYPE=wayland
+	export XDG_CURRENT_DESKTOP=labwc
+	export WLR_LIBINPUT_NO_DEVICES=1  # don't fail to start if no input device is present yet
+	exec dbus-run-session -- labwc
+	;;
+plasma)
+	export XDG_SESSION_TYPE=wayland
+	export XDG_CURRENT_DESKTOP=KDE
+	# Reuse the bus pam_systemd already set up; only spawn a private one if there
+	# genuinely is none. Wrapping an existing session in a SECOND bus strands the
+	# desktop away from the systemd user units and the portals -- see the long
+	# note in irn-cinnamon-session for what that failure looks like.
+	if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -S "${XDG_RUNTIME_DIR}/bus" ]; then
+		DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+		export DBUS_SESSION_BUS_ADDRESS
+	fi
+	if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+		exec startplasma-wayland
+	fi
+	exec dbus-run-session -- startplasma-wayland
+	;;
+cinnamon)
+	export XDG_SESSION_TYPE=x11
+	export XDG_CURRENT_DESKTOP=X-Cinnamon
+	# greetd already owns vt1, so hand X that same VT and -keeptty so it does
+	# not try to allocate another one and land the desktop on a VT nobody is
+	# looking at. The session command is a wrapper script rather than an inline
+	# `dbus-run-session -- cinnamon-session` because startx splits its own
+	# arguments on the FIRST `--`, which would swallow dbus-run-session's.
+	exec startx /usr/local/libexec/irn-cinnamon-session -- :0 vt1 -keeptty
+	;;
+esac

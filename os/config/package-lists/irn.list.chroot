@@ -93,11 +93,44 @@ cryptsetup
 cryptsetup-initramfs
 calamares
 calamares-settings-debian
+# Password-strength dictionary for the installer's user page. Without these the
+# installer reports "no dictionary for the password" on the account screen
+# (observed 2026-08-23). The install can still be completed past it, so this is a
+# broken-looking installer rather than a hard block -- but an installer that
+# announces a missing dictionary while asking for the disk-encryption-adjacent
+# operator password is not something to ship.
+#
+# The chain is another --apt-recommends false casualty:
+#   calamares        Depends:    libpwquality1        (installed)
+#   libpwquality1    Depends:    libcrack2            (installed)
+#   libcrack2        Recommends: cracklib-runtime     <- dropped
+#   cracklib-runtime Recommends: wamerican | wordlist <- dropped
+# cracklib-runtime's postinst is what builds /var/cache/cracklib/cracklib_dict.*
+# out of /usr/share/dict/words, which wamerican provides. libcrack2 without that
+# dictionary cannot check anything, so pwquality errors out instead of scoring.
+cracklib-runtime
+wamerican
 
 # --- Firmware so it actually boots on real hardware ---
 firmware-linux-free
 firmware-misc-nonfree
 firmware-iwlwifi
+
+# --- VM guest integration (clipboard + display resize) ---
+# Host<->guest clipboard and automatic display resizing when IRN OS runs as a
+# guest. Without it you cannot paste into the VM at all, which makes testing and
+# any recovery work needlessly painful (learned the hard way, 2026-08-23).
+#
+# On the hardening question: this DOES open a host<->guest channel, but it is
+# inert on bare metal -- spice-vdagent only activates when the SPICE virtio port
+# exists, i.e. only under a hypervisor. And under a hypervisor the host already
+# owns guest memory outright, so the clipboard adds no exposure that the threat
+# model did not already concede. It buys real convenience where it applies and
+# costs nothing where it does not.
+#
+# NOT included: qemu-guest-agent. That one lets the host execute commands inside
+# the guest, which is a genuinely different proposition and is not needed here.
+spice-vdagent
 
 # --- Minimal diagnostics (no network clients, no browser) ---
 pciutils

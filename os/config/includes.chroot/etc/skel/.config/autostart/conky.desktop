@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=IRN HUD (conky)
+Comment=Dual-panel cyberpunk HUD: System Core + Infrastructure
+OnlyShowIn=X-Cinnamon;
+# conky draws into the desktop window, so it must start AFTER nemo has painted
+# the desktop — otherwise it either dies or ends up behind the wallpaper.
+X-GNOME-Autostart-Delay=8
+Exec=irn-conky
+Terminal=false
+X-GNOME-Autostart-enabled=true

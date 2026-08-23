@@ -1,0 +1,33 @@
+#!/bin/sh
+# Dual-panel HUD launcher: System Core (right) + Infrastructure (left).
+# Ported from start-conky.sh on the origin box.
+#
+# Restarting is safe to run at any time -- it clears only THIS user's conky
+# instances first (`pkill -u`, not a bare `killall`, which on a multi-user box
+# would try to kill everyone's).
+set -eu
+
+CONF="${XDG_CONFIG_HOME:-$HOME/.config}/conky"
+
+if ! command -v conky >/dev/null 2>&1; then
+	echo "irn-conky: conky is not installed" >&2
+	exit 1
+fi
+
+pkill -x -u "$(id -u)" conky 2>/dev/null || true
+# Give the old instances time to release their windows; conky drawing into a
+# desktop window that is still being torn down renders as corruption.
+sleep 2
+
+started=0
+for panel in conky.conf conky-infra.conf; do
+	if [ -f "$CONF/$panel" ]; then
+		conky --daemonize --pause=1 --config="$CONF/$panel" >/dev/null 2>&1 || true
+		started=$((started+1))
+		sleep 1
+	else
+		echo "irn-conky: $CONF/$panel not found, skipping" >&2
+	fi
+done
+
+[ "$started" -gt 0 ] || { echo "irn-conky: no panels found in $CONF" >&2; exit 1; }

@@ -1,0 +1,49 @@
+#!/bin/bash
+# GPU stats helper for conky (and mirrored in Zee Zee's ai_twin_widget.py).
+# Reads amdgpu's own sysfs counters directly — no root, no radeontop/rocm-smi.
+# Card index can shift across reboots, so identify by driver name, not card0/1.
+
+d=""
+for uevent in /sys/class/drm/card[0-9]/device/uevent; do
+  [ -r "$uevent" ] || continue
+  if grep -q "DRIVER=amdgpu" "$uevent" 2>/dev/null; then
+    d="$(dirname "$uevent")"
+    break
+  fi
+done
+
+if [ -z "$d" ]; then
+  case "$1" in
+    text) echo "no amdgpu device" ;;
+    *)    echo 0 ;;
+  esac
+  exit 0
+fi
+
+case "$1" in
+  busy)
+    cat "$d/gpu_busy_percent" 2>/dev/null || echo 0
+    ;;
+  vram_pct)
+    u=$(cat "$d/mem_info_vram_used" 2>/dev/null || echo 0)
+    t=$(cat "$d/mem_info_vram_total" 2>/dev/null || echo 1)
+    [ "$t" -gt 0 ] 2>/dev/null && echo $(( u * 100 / t )) || echo 0
+    ;;
+  vram_text)
+    u=$(cat "$d/mem_info_vram_used" 2>/dev/null || echo 0)
+    t=$(cat "$d/mem_info_vram_total" 2>/dev/null || echo 0)
+    awk -v u="$u" -v t="$t" 'BEGIN{printf "%.0f MiB / %.0f MiB", u/1048576, t/1048576}'
+    ;;
+  temp)
+    t="$(cat "$d"/hwmon/hwmon*/temp1_input 2>/dev/null | head -1)"
+    if [ -n "$t" ]; then
+      c=$(( t / 1000 ))
+      echo $(( c * 9 / 5 + 32 ))
+    else
+      echo 0
+    fi
+    ;;
+  *)
+    echo 0
+    ;;
+esac

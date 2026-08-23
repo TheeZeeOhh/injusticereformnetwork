@@ -1,0 +1,21 @@
+#!/bin/sh
+# Emits the POWER CELL block, or an AC-only line on a machine with no battery.
+# Hardcoding BAT1 (as the origin config did) renders blank on the many machines
+# that name it BAT0, and renders nonsense on a desktop.
+set -eu
+bat=""
+for d in /sys/class/power_supply/BAT*; do
+	[ -d "$d" ] || continue
+	bat="$(basename "$d")"
+	break
+done
+
+if [ -z "$bat" ]; then
+	printf '${color2}POWER CELL ${alignr}${color4}AC${color}\n'
+	printf '${color1}State:${color} ${alignr}no battery present\n'
+	exit 0
+fi
+
+printf '${color2}POWER CELL ${alignr}${battery_percent %s}%%\n' "$bat"
+printf '${color1}${battery_bar 5 %s}\n' "$bat"
+printf '${color1}State:${color} ${alignr}${battery %s}\n' "$bat"

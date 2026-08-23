@@ -2,34 +2,70 @@
 #
 # IRN OS override of the stock greetd PAM stack.
 #
-# WHY THIS EXISTS: greetd here only ever AUTOLOGINS the fixed, unprivileged user
-# `irn` (see /etc/greetd/config.toml -> [initial_session]). There is no
-# interactive greeter and no password is ever typed, so greetd's job is to start
-# one known session, not to guard a login.
+# This file serves TWO different machines and that is the whole difficulty:
 #
-# The stock file does `@include login`, whose auth stack is `pam_unix.so nullok`.
-# An [initial_session] has no greeter to answer PAM's password conversation, so
-# pam_unix gets nothing to check and the session never starts. Permit auth for
-# this autologin-only service, but keep the normal account/session handling so
-# pam_systemd still registers the seat and exports XDG_RUNTIME_DIR (the session
-# script relies on it — see /usr/local/bin/irn-kiosk).
+#   LIVE IMAGE     greetd autologins the fixed user `irn` via [initial_session].
+#                  live-config deliberately disables that account's password, and
+#                  there is no greeter to type one into. pam_unix would fail, so
+#                  `irn` must be permitted without authentication.
+#
+#   INSTALLED      Calamares creates the operator's own account and there is no
+#                  `irn`, so irn-greetd-config omits [initial_session] entirely.
+#                  agreety then shows a REAL login prompt and a REAL password is
+#                  typed.
+#
+# The previous version of this file used a blanket `auth required pam_permit.so`.
+# That was correct for the live image and WRONG for an installed one, where it
+# meant agreety accepted ANY password for ANY user -- an authentication bypass on
+# exactly the machines that hold real client data. Fixed 2026-08-23.
+#
+# The `[success=done default=ignore]` control below reads as: if the user really
+# is the live autologin account, finish the stack successfully right here; for
+# anybody else ignore this line and fall through to the normal Debian stack.
 #
 # NOT the same bug as the "could not authenticate" black console: that one was
 # the `irn` user not existing at all, because the `user-setup` package was
 # missing and live-config's user-setup component silently no-ops without it.
-# See config/package-lists/live.list.chroot. This file alone does not fix that —
-# greetd cannot log in a user that does not exist.
-#
-# SECURITY NOTE: `auth required pam_permit.so` means greetd performs no password
-# check. That is acceptable ONLY because this service exclusively autologins the
-# unprivileged desktop user on a machine whose real boundary is LUKS + the
-# Sanctuary vaults, not the session login. Do NOT copy this stack to any greetd
-# instance that offers an interactive login.
+# See config/package-lists/live.list.chroot.
 
-auth       required   pam_permit.so
-account    required   pam_permit.so
+# --- auth -------------------------------------------------------------------
+# The live autologin account, and ONLY that account, gets in without a password.
+auth       [success=done default=ignore]  pam_succeed_if.so user = irn quiet
+# Everyone else authenticates properly. common-auth is also where Debian's
+# pam-auth-update puts `auth optional pam_gnome_keyring.so`, which captures the
+# typed password so the session stack below can unlock the login keyring with it.
+@include common-auth
+# Named EXPLICITLY, and deliberately AFTER common-auth so pam_unix has already
+# set PAM_AUTHTOK for it to capture. Do not assume pam-auth-update put this in
+# common-auth: on this image it does NOT (verified on an installed system,
+# 2026-08-23 -- common-auth and common-session both had zero references). A stack
+# that relies on the include authenticates correctly and then silently never
+# unlocks a keyring, which is precisely how the vault-enrolment failure hid.
+auth       optional   pam_gnome_keyring.so
 
+# --- account ----------------------------------------------------------------
+account    [success=done default=ignore]  pam_succeed_if.so user = irn quiet
+@include common-account
+
+# --- session ----------------------------------------------------------------
 session    required   pam_limits.so
 session    optional   pam_env.so readenv=1
 session    optional   pam_env.so readenv=1 envfile=/etc/default/locale
+# common-session carries `session optional pam_gnome_keyring.so auto_start`
+# (added by pam-auth-update when libpam-gnome-keyring is installed). It starts
+# gnome-keyring and unlocks the login keyring using the password captured above.
+#
+# That works for a real login. It CANNOT work for the live autologin, where no
+# password is ever captured -- which is precisely why the keychain writes failed
+# with "SS error: result not returned from SS API" until irn-keyring-init was
+# added. That script creates an empty-password keyring for the passwordless case
+# and does nothing at all here, where PAM has a real password to use.
+#
+# The build-time check in hooks/live/0100-irn-harden.hook.chroot fails loudly if
+# pam-auth-update has not put the keyring module into common-auth/common-session.
 @include common-session
+# Explicit for the same reason as the auth line above. auto_start launches
+# gnome-keyring and unlocks the login keyring with the captured password.
+# For the passwordless live autologin there is nothing to capture -- that case is
+# handled by irn-keyring-init, which creates an empty-password keyring instead.
+session    optional   pam_gnome_keyring.so auto_start

@@ -1,0 +1,76 @@
+#!/bin/sh
+# Guarantee that an INSTALLED IRN OS has some route to root.
+#
+# WHY THIS EXISTS (observed 2026-08-23):
+# Three separate, individually-reasonable settings combine into a system nobody
+# can administer:
+#   1. hooks/live/0100-irn-harden.hook.chroot runs `passwd -l root`
+#   2. Calamares is configured setRootPassword: false -- no root password is set
+#   3. Calamares added the new user to every group in its defaultGroups list
+#      EXCEPT `sudo`, so `sudo` reported "zee is not in the sudoers file"
+# Any two of those are survivable. All three leave a machine whose only way back
+# in is editing the GRUB cmdline to init=/bin/bash. On an operator's laptop that
+# is a brick.
+#
+# This unit is the backstop: it does NOT try to fix Calamares, it just refuses to
+# let the combination stand. If root is locked and nobody at all can sudo, the
+# first real human account gets added to the sudo group.
+#
+# SECURITY NOTE: this grants sudo without asking, which is only defensible
+# because of the exact preconditions below -- it fires ONLY when the alternative
+# is a system with no administrator whatsoever. It is deliberately inert if
+# anyone can already escalate, and inert on the live image (where live-config
+# already gives the live user passwordless sudo).
+set -eu
+
+log() { echo "irn-ensure-admin: $*"; }
+
+# --- Never touch the live image. Its user already has passwordless sudo, and
+# --- "fixing" it would be meaningless (the filesystem is a tmpfs overlay).
+if grep -qw 'boot=live' /proc/cmdline 2>/dev/null || [ -d /run/live/medium ]; then
+	log "live system, nothing to do"
+	exit 0
+fi
+
+# --- Is root usable? `passwd -S` prints "<user> P ..." usable, "L" locked,
+# --- "NP" no password. Only a usable password counts as a route in.
+root_state="$(passwd -S root 2>/dev/null | awk '{print $2}' || true)"
+if [ "$root_state" = "P" ]; then
+	log "root has a usable password; leaving groups alone"
+	exit 0
+fi
+
+# --- Can anyone already sudo? Group members plus anyone whose PRIMARY group is
+# --- sudo (getent's member list does not include those).
+sudo_gid="$(getent group sudo 2>/dev/null | cut -d: -f3 || true)"
+if [ -z "$sudo_gid" ]; then
+	log "no sudo group on this system; refusing to invent one"
+	exit 0
+fi
+
+members="$(getent group sudo | cut -d: -f4)"
+if [ -n "$members" ]; then
+	log "sudo group already has members ($members); nothing to do"
+	exit 0
+fi
+primary="$(getent passwd | awk -F: -v g="$sudo_gid" '$4==g {print $1}' | head -1)"
+if [ -n "$primary" ]; then
+	log "$primary already has sudo as its primary group; nothing to do"
+	exit 0
+fi
+
+# --- Pick the first real human account: uid >= 1000, below nobody, and holding
+# --- a login shell. Sorted by uid so the choice is deterministic across boots.
+target="$(getent passwd | awk -F: '
+	$3 >= 1000 && $3 < 65534 && $7 !~ /(nologin|false)$/ { print $3 ":" $1 }
+' | sort -t: -k1,1n | head -1 | cut -d: -f2)"
+
+if [ -z "$target" ]; then
+	log "no human account found yet; nothing to do"
+	exit 0
+fi
+
+log "root is locked and NOBODY can sudo -- adding '$target' to the sudo group"
+log "(this is the admin-route backstop; see /usr/local/sbin/irn-ensure-admin)"
+usermod -aG sudo "$target"
+log "done: groups now $(id -nG "$target" 2>/dev/null || echo unknown)"

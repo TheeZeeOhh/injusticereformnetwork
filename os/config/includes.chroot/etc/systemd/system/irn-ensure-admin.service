@@ -1,0 +1,21 @@
+[Unit]
+Description=IRN OS: guarantee the installed system has an admin route
+Documentation=file:/usr/local/sbin/irn-ensure-admin
+# Must finish before anyone can log in, so the group is in place for the very
+# first session -- supplementary groups are read at login and never refreshed
+# for an already-running session.
+After=local-fs.target
+Before=greetd.service display-manager.service
+# Belt and braces with the script's own check: never run on the live image.
+ConditionKernelCommandLine=!boot=live
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/irn-ensure-admin
+# A failure here must never block boot -- a machine that will not start is worse
+# than one that needs a GRUB edit.
+SuccessExitStatus=0 1
+
+[Install]
+WantedBy=multi-user.target

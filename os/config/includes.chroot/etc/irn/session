@@ -1,0 +1,12 @@
+# System-wide default desktop session for IRN OS.
+#
+# Read by /usr/local/bin/irn-kiosk when the user has no personal preference in
+# $HOME/.config/irn/session. Parsing is deliberately forgiving: comments and all
+# whitespace are stripped, and the first non-empty token wins.
+#
+# Valid values:
+#   cinnamon   X11. Cinnamon + Settings + conky. The default.
+#   labwc      Wayland. The minimal hardened shell (waybar, fuzzel, swaylock).
+#
+# Per-user override: `irn-session labwc` (writes ~/.config/irn/session).
+cinnamon

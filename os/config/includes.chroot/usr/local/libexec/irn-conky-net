@@ -1,0 +1,47 @@
+#!/bin/sh
+# Emits the WIFI LINK / IP / NET STREAM blocks with the REAL interface names.
+#
+# The origin config hardcoded wlo1 (this laptop's name) and tailscale0. Interface
+# names are firmware- and slot-dependent — wlan0, wlp2s0, enp3s0 — so a hardcoded
+# name renders every network field blank on any other machine. Emitted through
+# ${execpi}, which re-parses conky variables in this output.
+#
+# Tailscale is NOT shipped on IRN OS (no third-party mesh, no account, nothing
+# phoning out), so the mesh row reports the WireGuard tunnel that irn-vpn manages.
+set -eu
+
+route_line() { ip route show default 2>/dev/null | head -1; }
+iface="$(route_line | cut -d' ' -f5)"
+[ -n "$iface" ] || iface="$(ls /sys/class/net 2>/dev/null | grep -v '^lo$' | head -1 || true)"
+
+if [ -z "$iface" ]; then
+	printf '${color1}Link:${color} ${alignr}${color3}NO INTERFACE${color}\n'
+	exit 0
+fi
+
+# A wireless interface has a wireless/ node in sysfs; a wired one does not.
+if [ -d "/sys/class/net/$iface/wireless" ]; then
+	printf '${color2}WIFI LINK ${alignr}${wireless_link_qual_perc %s}%%\n' "$iface"
+	printf '${color1}SSID:${color} ${alignr}${wireless_essid %s}\n' "$iface"
+	printf '${color1}${wireless_link_bar 5 %s}\n' "$iface"
+else
+	printf '${color2}WIRED LINK ${alignr}%s\n' "$iface"
+fi
+
+printf '${color3}${hr 1}\n'
+printf '${color1}Local IP:${color} ${alignr}${addr %s}\n' "$iface"
+
+# WireGuard tunnel, if irn-vpn has one up.
+wg="$(ls /sys/class/net 2>/dev/null | grep -m1 '^wg' || true)"
+if [ -n "$wg" ]; then
+	printf '${color4}VPN IP:${color} ${alignr}${addr %s}\n' "$wg"
+	printf '${color1}WireGuard:${color} ${alignr}${if_up %s}${color4}ONLINE${color}${else}${color3}OFFLINE${color}${endif}\n' "$wg"
+else
+	printf '${color1}WireGuard:${color} ${alignr}${color3}NOT CONFIGURED${color}\n'
+fi
+
+printf '${color1}TCP Sessions:${color} ${alignr}${tcp_portmon 1 65535 count}\n'
+printf '${color3}${hr 1}\n'
+printf '${color2}NET STREAM ${alignr}%s\n' "$iface"
+printf '${color1}Down:${color} ${color4}${downspeed %s}${color} ${alignr}${color1}Up:${color} ${color2}${upspeed %s}\n' "$iface" "$iface"
+printf '${color1}${downspeedgraph %s 22,145 00f3ff 00ff66 -t} ${alignr}${color2}${upspeedgraph %s 22,145 c9a84c 9d00ff -t}\n' "$iface" "$iface"

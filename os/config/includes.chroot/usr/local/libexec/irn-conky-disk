@@ -1,0 +1,20 @@
+#!/bin/sh
+# Emits the DISK I/O block for the device that actually backs / .
+# The origin config hardcoded nvme0n1; on a SATA or USB-booted machine that
+# name does not exist and both graphs sit flat at zero forever. --nofsroot drops
+# the btrfs subvolume suffix (/dev/nvme0n1p7[/@]), which is not a real path.
+set -eu
+src="$(findmnt -no SOURCE --nofsroot / 2>/dev/null || true)"
+dev=""
+if [ -n "$src" ]; then
+	name="$(lsblk -no PKNAME "$src" 2>/dev/null | head -1 || true)"
+	[ -n "$name" ] || name="$(basename "$src" | sed -e 's/p\?[0-9]*$//')"
+	if [ -b "/dev/$name" ]; then dev="$name"; fi
+fi
+
+if [ -z "$dev" ]; then
+	printf '${color1}Read/Write:${color} ${alignr}${diskio}\n'
+	exit 0
+fi
+printf '${color1}Read: ${color}${diskio_read %s} ${alignr}${color1}Write: ${color}${diskio_write %s}\n' "$dev" "$dev"
+printf '${color1}${diskiograph_read %s 22,145 00f3ff 00ff66 -t} ${alignr}${color2}${diskiograph_write %s 22,145 c9a84c 9d00ff -t}\n' "$dev" "$dev"
