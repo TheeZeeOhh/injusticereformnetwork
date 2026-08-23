@@ -2,26 +2,29 @@
 #
 # IRN OS override of the stock greetd PAM stack.
 #
-# WHY THIS EXISTS: greetd here only ever AUTOLOGINS the fixed, unprivileged kiosk
-# user `irn` (see /etc/greetd/config.toml -> [initial_session]). There is no
-# interactive greeter, root is locked, ssh is masked, and the image is an
-# amnesiac live appliance — so greetd's job is to start one known session, not to
-# guard a login.
+# WHY THIS EXISTS: greetd here only ever AUTOLOGINS the fixed, unprivileged user
+# `irn` (see /etc/greetd/config.toml -> [initial_session]). There is no
+# interactive greeter and no password is ever typed, so greetd's job is to start
+# one known session, not to guard a login.
 #
 # The stock file does `@include login`, whose auth stack is `pam_unix.so nullok`.
-# live-config creates `irn` at boot with a DISABLED password (`*` in shadow) and
-# only wires passwordless autologin for display managers it recognises — greetd is
-# not one of them. `pam_unix` accepts an EMPTY password but rejects a disabled one,
-# so autologin failed with "could not authenticate" (post-GRUB, post-kernel).
+# An [initial_session] has no greeter to answer PAM's password conversation, so
+# pam_unix gets nothing to check and the session never starts. Permit auth for
+# this autologin-only service, but keep the normal account/session handling so
+# pam_systemd still registers the seat and exports XDG_RUNTIME_DIR (the session
+# script relies on it — see /usr/local/bin/irn-kiosk).
 #
-# Permit auth for this autologin-only service, but keep the normal account/session
-# handling so pam_systemd still registers the seat and exports XDG_RUNTIME_DIR
-# (the kiosk relies on it — see /usr/local/bin/irn-kiosk).
+# NOT the same bug as the "could not authenticate" black console: that one was
+# the `irn` user not existing at all, because the `user-setup` package was
+# missing and live-config's user-setup component silently no-ops without it.
+# See config/package-lists/live.list.chroot. This file alone does not fix that —
+# greetd cannot log in a user that does not exist.
 #
 # SECURITY NOTE: `auth required pam_permit.so` means greetd performs no password
 # check. That is acceptable ONLY because this service exclusively autologins the
-# unprivileged kiosk user on a login-less appliance. Do NOT copy this stack to any
-# greetd instance that offers an interactive login.
+# unprivileged desktop user on a machine whose real boundary is LUKS + the
+# Sanctuary vaults, not the session login. Do NOT copy this stack to any greetd
+# instance that offers an interactive login.
 
 auth       required   pam_permit.so
 account    required   pam_permit.so

@@ -1,0 +1,38 @@
+#!/bin/sh
+# Generate greetd's runtime config at /run/greetd/config.toml.
+#
+# WHY: /etc/greetd/config.toml autologins the user `irn`, which exists only on
+# the live image (live-config creates it at boot). An installed system has the
+# account Calamares made instead — so a fixed [initial_session] would point
+# greetd at a nonexistent user on every installed machine. greetd would fail the
+# initial session and the operator would meet the same black screen the live
+# image used to show.
+#
+# So: emit [default_session] always, and add [initial_session] only when `irn`
+# is really there. Run from greetd.service's ExecStartPre.
+set -eu
+
+OUT_DIR=/run/greetd
+OUT="$OUT_DIR/config.toml"
+mkdir -p "$OUT_DIR"
+
+{
+	echo "# Generated at boot by irn-greetd-config. Edits here do not survive a"
+	echo "# reboot — change /etc/greetd/config.toml and this script instead."
+	echo
+	echo "[terminal]"
+	echo "vt = 1"
+	echo
+	echo "[default_session]"
+	echo 'command = "/usr/sbin/agreety --cmd /usr/local/bin/irn-kiosk"'
+	echo 'user = "_greetd"'
+
+	if id -u irn >/dev/null 2>&1; then
+		echo
+		echo "[initial_session]"
+		echo 'command = "/usr/local/bin/irn-kiosk"'
+		echo 'user = "irn"'
+	fi
+} > "$OUT"
+
+chmod 0644 "$OUT"

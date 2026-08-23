@@ -35,4 +35,15 @@ install -Dm644 "$SRC/mozilla.cfg" "$FFDIR/mozilla.cfg"
 # 3. Launcher wrapper executable (used by irn-browser.desktop + $BROWSER).
 chmod 0755 /usr/local/bin/irn-browser || true
 
+# 4. Home page. policies.json and mozilla.cfg both point the start page at
+#    file://$SRC/newtab.html; if that file is missing the browser opens on a
+#    "file not found" error, which looks like a broken image. On IRN OS the page
+#    is a flat, offline HTML file (no python3 in the image, so the irn-newtab
+#    generator used on the Garuda daily driver is not applicable here).
+if [ -f "$SRC/newtab.html" ]; then
+	chmod 0644 "$SRC/newtab.html"
+else
+	echo "W: $SRC/newtab.html is missing — the browser home page will 404." >&2
+fi
+
 echo "P: hardened Firefox wired (add-ons enabled, telemetry/tracking off, DoH + HTTPS-only)"

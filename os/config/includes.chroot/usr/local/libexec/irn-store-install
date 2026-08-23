@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Root helper for the IRN Store. Invoked through pkexec; never run directly.
+
+WHY THIS EXISTS AS A SEPARATE, TINY PROGRAM: the store UI runs as the desktop
+user, but installing a package needs root. Handing a GUI a root shell is how you
+get a privilege-escalation bug, so root work is confined to this file, and this
+file will only touch packages that appear in the shipped catalog.
+
+THE ALLOWLIST IS THE SECURITY BOUNDARY. Arguments are compared against the
+package names in /usr/local/share/irn-store/catalog.json. Anything else is
+refused before apt is invoked, so a compromised or misbehaving UI cannot use
+this to install an arbitrary package as root.
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+
+CATALOG = "/usr/local/share/irn-store/catalog.json"
+
+# Debian policy for package names, applied as a second gate: even a catalog that
+# somehow contained something odd cannot smuggle shell metacharacters through.
+VALID_NAME = re.compile(r"^[a-z0-9][a-z0-9+.-]+$")
+
+
+def allowed_packages():
+    with open(CATALOG, encoding="utf-8") as fh:
+        catalog = json.load(fh)
+    names = set()
+    for category in catalog.get("categories", []):
+        for app in category.get("apps", []):
+            pkg = app.get("package")
+            if pkg and VALID_NAME.match(pkg):
+                names.add(pkg)
+    return names
+
+
+def main():
+    if len(sys.argv) != 3 or sys.argv[1] not in ("install", "remove"):
+        print("usage: irn-store-install {install|remove} <package>", file=sys.stderr)
+        return 2
+
+    action, package = sys.argv[1], sys.argv[2]
+
+    if not VALID_NAME.match(package):
+        print(f"refused: {package!r} is not a valid package name", file=sys.stderr)
+        return 3
+
+    if package not in allowed_packages():
+        print(f"refused: {package} is not in the IRN Store catalog", file=sys.stderr)
+        return 3
+
+    env = dict(os.environ, DEBIAN_FRONTEND="noninteractive")
+    if action == "install":
+        cmd = ["apt-get", "install", "-y", "--no-install-recommends", package]
+    else:
+        cmd = ["apt-get", "remove", "-y", package]
+
+    # No shell: argv straight to apt.
+    try:
+        return subprocess.call(cmd, env=env)
+    except OSError as exc:
+        # e.g. apt-get missing. The UI surfaces the last stderr line, so make it
+        # a sentence rather than a traceback.
+        print(f"could not run apt-get: {exc}", file=sys.stderr)
+        return 4
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -103,6 +103,42 @@ instead of unlocking, indistinguishably. Spec:
 This step touches the auth engine, so it wants its own review pass — say the word
 and I'll implement it against the spec with the tests above.
 
+## 3. On-device AI — what it is, and the risk it carries
+
+The image ships **Zee Zee** (the AI twin) with a **local Ollama runtime** and the
+`ai-twin-custom` model baked in. The privacy story is the point: prompts,
+documents and conversation are answered by a model on the disk, and
+`ollama.service` binds **127.0.0.1 only**, so nothing on the network can reach
+it and no prompt leaves the machine. The service runs as an unprivileged
+`ollama` user under systemd confinement (`ProtectSystem=strict`, `ProtectHome`,
+`NoNewPrivileges`, loopback-restricted address families).
+
+> **Zee Zee can execute shell commands, and its sandbox does not work.**
+>
+> `sandbox_runner.py` is named like a sandbox but is not one: Landlock
+> enforcement is dead, two of its three exec stacks are non-functional, and the
+> deny-list leaks. It ships here **with command execution enabled**, a deliberate
+> choice by Aziza (2026-08-22) for parity with the Garuda setup.
+>
+> What that means concretely: anything that can steer Zee Zee — a prompt you
+> paste, a document it reads, a plugin it loads — can run commands as the desktop
+> user. That user has passwordless `sudo` on the live image. Zee Zee is therefore
+> the largest privilege surface on this OS, larger than the browser.
+>
+> It does **not** weaken the Sanctuary vaults (client PHI is encrypted with keys
+> that live in Sanctuary's RAM, not the desktop's), and it does not open a
+> network path inward. But treat an unattended, unlocked desktop running Zee Zee
+> as a machine someone can run code on. Lock the screen; do not paste untrusted
+> text into it while a vault is open.
+>
+> To ship it inert instead, remove `Exec=zee-zee` reachability by deleting
+> `/usr/local/bin/zee-zee` from the image, or drop `zee-zee` from
+> `config/includes.chroot` and `config/hooks/live/0600-zee-zee.hook.chroot`.
+
+**Sanctuary Terminal** ships alongside it (`sanctuary-terminal`) — a PyQt5
+terminal over a pty. It is an ordinary terminal: same privileges as `foot`,
+no additional exposure beyond what a shell already gives you.
+
 ## Files
 
 - `usr/local/sbin/irn-panic-wipe` — the wipe.

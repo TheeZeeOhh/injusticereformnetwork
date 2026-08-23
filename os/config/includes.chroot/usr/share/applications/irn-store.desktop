@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=IRN Store
+GenericName=App Store
+Comment=Curated apps for IRN work, installed from the Debian archive
+Exec=irn-store
+Icon=system-software-install
+Terminal=false
+Categories=System;PackageManager;
+Keywords=Store;Apps;Install;Software;
+StartupNotify=true

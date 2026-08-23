@@ -20,6 +20,21 @@
     <windowRule identifier="Sanctuary" serverDecoration="no">
       <action name="Maximize" />
     </windowRule>
+    <!-- Match on app_id glob as well: Tauri passes app_id=None unless
+         `enableGtkAppId` is set, so GTK falls back to the program name, and a
+         packaged build can surface as the bundle identifier instead
+         (com.injusticereformnetwork.sanctuary). Case-insensitive glob covers both. -->
+    <windowRule identifier="*sanctuary*" serverDecoration="no">
+      <action name="Maximize" />
+    </windowRule>
+    <!-- Belt and braces: match the window TITLE, which is set explicitly in
+         src-tauri/tauri.conf.json ("Sanctuary v7") and is therefore knowable
+         without depending on how the toolkit derives app_id. The 2026-08-22
+         boot test showed the app mapping un-maximized WITH a titlebar, i.e. the
+         identifier rules above were not matching. -->
+    <windowRule title="Sanctuary*" serverDecoration="no">
+      <action name="Maximize" />
+    </windowRule>
   </windowRules>
 
   <keyboard>

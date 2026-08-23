@@ -1,0 +1,34 @@
+#!/bin/sh
+# Launch Zee Zee (the AI twin widget) on IRN OS.
+#
+# Python deps come from two places: Debian packages for everything it ships
+# (PyQt5, numpy, psutil, PIL, pydantic, pypdf, pyaudio), and a venv at
+# /opt/zee-zee/.venv --system-site-packages for the three that Debian does not
+# package at all (anthropic, openwakeword, speech_recognition). The venv is
+# built at image build time by hooks/live/0600-zee-zee.hook.chroot.
+#
+# The brain is the local Ollama service on 127.0.0.1:11434 (ollama.service), so
+# no prompt leaves the machine. If that service is down, Zee Zee still starts —
+# it just has nothing to think with, which is the honest failure mode.
+set -eu
+
+APP=/opt/zee-zee/ai_twin_widget.py
+VENV_PY=/opt/zee-zee/.venv/bin/python3
+
+if [ ! -f "$APP" ]; then
+	echo "Zee Zee is not installed ($APP missing)." >&2
+	echo "It is staged into the image by os/stage-extras.sh before the build." >&2
+	exit 1
+fi
+
+# Warn, don't block: a missing brain is a degraded Zee Zee, not a broken one.
+if ! curl -sf -m 2 http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+	echo "note: ollama is not answering on 127.0.0.1:11434 — Zee Zee will start" >&2
+	echo "      without a local model. Try: systemctl start ollama" >&2
+fi
+
+PY=/usr/bin/python3
+[ -x "$VENV_PY" ] && PY="$VENV_PY"
+
+cd /opt/zee-zee
+exec "$PY" "$APP" "$@"

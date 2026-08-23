@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Zee Zee
+GenericName=AI Twin
+Comment=Local AI twin — runs against the on-device Ollama model, nothing leaves the machine
+Exec=zee-zee
+Icon=utilities-terminal
+Terminal=false
+Categories=Utility;
+Keywords=AI;Assistant;Twin;Zee;
+StartupNotify=true

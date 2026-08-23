@@ -1,0 +1,12 @@
+#!/bin/sh
+# Launch the IRN Store.
+#
+# Uses the system interpreter with Debian's python3-pyqt5 (already in the image
+# for Sanctuary Terminal and Zee Zee), so the store adds no dependency of its own.
+# Root work happens only in /usr/local/libexec/irn-store-install, reached through
+# pkexec, and that helper refuses any package not in the shipped catalog.
+set -eu
+
+APP=/usr/local/share/irn-store/irn_store.py
+[ -f "$APP" ] || { echo "IRN Store is not installed ($APP missing)." >&2; exit 1; }
+exec /usr/bin/python3 "$APP" "$@"

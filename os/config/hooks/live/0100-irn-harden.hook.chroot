@@ -6,11 +6,17 @@ set -eu
 echo "P: IRN OS — enabling kiosk services and hardening"
 
 # --- Session wiring ---
-chmod 0755 /usr/local/bin/irn-kiosk /usr/local/bin/sanctuary /usr/local/sbin/irn-vpn
+chmod 0755 /usr/local/bin/irn-kiosk /usr/local/bin/sanctuary /usr/local/bin/irn-greetd-config /usr/local/sbin/irn-vpn
 chmod 0755 /etc/skel/.config/labwc/autostart   # labwc requires autostart executable
 systemctl enable seatd.service
 systemctl enable greetd.service
 systemctl set-default graphical.target
+
+# greetd runs on vt1 (etc/greetd/config.toml). live-config also points an
+# autologin getty at tty1, and the two overwrite each other on the console —
+# that is the boot showing "irn-os login: irn (automatic login)" on top of the
+# session. Give greetd sole ownership; text consoles stay on Ctrl+Alt+F2..F6.
+systemctl mask getty@tty1.service
 
 # --- Sanctuary app ---
 # live-build already installed anything from config/packages.chroot/ before this
@@ -19,10 +25,37 @@ systemctl set-default graphical.target
 # Warn rather than fail: the launcher shows a visible error at runtime if the app
 # is missing, which is easier to diagnose than a build that dies here.
 apt-get -y --fix-broken install || true
-if ! ls /usr/bin/Sanctuary /usr/bin/sanctuary /usr/bin/app >/dev/null 2>&1; then
+# NB: test each path separately. `ls a b c` exits non-zero if ANY operand is
+# missing, so a single `ls` of all three warned on every build even when the app
+# was installed — a false alarm that made the real "app missing" case unreadable.
+app_found=""
+for candidate in /usr/bin/Sanctuary /usr/bin/sanctuary /usr/bin/app; do
+	if [ -x "$candidate" ]; then app_found="$candidate"; break; fi
+done
+if [ -n "$app_found" ]; then
+	echo "P: Sanctuary app binary present: $app_found"
+else
 	echo "W: no Sanctuary app binary found in /usr/bin. Did you stage the .deb into" >&2
 	echo "W: config/packages.chroot/? The image will boot to the desktop but the app" >&2
 	echo "W: launcher will report the binary missing." >&2
+fi
+
+# --- Sanctuary Terminal ---
+# Staged into /opt by os/stage-extras.sh before the build. Warn (don't fail) if
+# it is absent: the image is still usable, and the wrapper says so at runtime.
+if [ -f /opt/sanctuary-terminal/sanctuary_term.py ]; then
+	chmod 0755 /usr/local/bin/sanctuary-terminal
+	# Confirm the interpreter can actually import what the app needs, here at
+	# build time — a missing python3-pyte only shows up as a traceback on the
+	# user's screen otherwise.
+	if python3 -c "import PyQt5.QtWidgets, pyte" 2>/dev/null; then
+		echo "P: Sanctuary Terminal staged, PyQt5 + pyte import OK"
+	else
+		echo "W: Sanctuary Terminal is staged but PyQt5/pyte do not import —" >&2
+		echo "W: check python3-pyqt5 and python3-pyte in the package list." >&2
+	fi
+else
+	echo "W: /opt/sanctuary-terminal missing — run os/stage-extras.sh before building." >&2
 fi
 
 # --- Baseline hardening ---

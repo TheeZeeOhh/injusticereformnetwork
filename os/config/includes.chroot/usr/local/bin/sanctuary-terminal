@@ -1,0 +1,22 @@
+#!/bin/sh
+# Launch Sanctuary Terminal on IRN OS.
+#
+# The upstream `sanctuary` launcher runs the app from a project-local .venv. That
+# venv is deliberately NOT staged into the image (it is built against another
+# distro's Python and would point at an interpreter that does not exist here), so
+# this wrapper uses the system interpreter with Debian's python3-pyqt5 and
+# python3-pyte instead. Both are in config/package-lists/irn.list.chroot.
+#
+# sanctuary_term.py resolves its own directory for sanctuary.bashrc and the logo,
+# so running it by absolute path is all that is required.
+set -eu
+
+APP=/opt/sanctuary-terminal/sanctuary_term.py
+
+if [ ! -f "$APP" ]; then
+	echo "Sanctuary Terminal is not installed ($APP missing)." >&2
+	echo "It is staged into the image by os/stage-extras.sh before the build." >&2
+	exit 1
+fi
+
+exec /usr/bin/python3 "$APP" "$@"

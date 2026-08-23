@@ -1,0 +1,16 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Sanctuary Terminal
+GenericName=Terminal Emulator
+Comment=Local-first Sanctuary terminal (branded shell + Reading Room search)
+Exec=sanctuary-terminal
+Icon=/opt/sanctuary-terminal/sanctuary-icon.png
+Terminal=false
+# Utility alone already satisfies TerminalEmulator (an additional category that
+# needs one main category beside it). Adding System too would give the entry two
+# MAIN categories and it can then appear twice in the menu.
+Categories=Utility;TerminalEmulator;
+Keywords=Terminal;Shell;Sanctuary;Console;
+StartupNotify=true
+StartupWMClass=Sanctuary

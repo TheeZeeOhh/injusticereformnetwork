@@ -1,0 +1,65 @@
+#!/bin/sh
+# Wire Zee Zee (the AI twin) and its local Ollama brain into the image.
+# Runs inside the chroot at build time, after packages are installed.
+set -eu
+
+echo "P: IRN OS — wiring Zee Zee + local Ollama"
+
+if [ ! -f /opt/zee-zee/ai_twin_widget.py ]; then
+	echo "W: /opt/zee-zee missing — run os/stage-extras.sh before building." >&2
+	exit 0
+fi
+
+chmod 0755 /usr/local/bin/zee-zee
+
+# --- Ollama service account -------------------------------------------------
+# The model store ships in the squashfs under /usr/share/ollama; the service
+# runs as this unprivileged user, which owns the store and its state dir.
+if ! getent passwd ollama >/dev/null; then
+	adduser --system --group --no-create-home --home /var/lib/ollama ollama
+fi
+mkdir -p /var/lib/ollama
+chown -R ollama:ollama /var/lib/ollama /usr/share/ollama 2>/dev/null || true
+
+if [ -x /usr/local/bin/ollama ]; then
+	chmod 0755 /usr/local/bin/ollama
+	systemctl enable ollama.service
+	echo "P: ollama enabled (loopback only). Models present:"
+	ls -1 /usr/share/ollama/.ollama/models/manifests/registry.ollama.ai/library 2>/dev/null | sed 's/^/P:   /' || \
+		echo "W: no model manifests found — Zee Zee will boot with no local model." >&2
+else
+	echo "W: /usr/local/bin/ollama missing — Zee Zee will have no local brain." >&2
+fi
+
+# --- Python deps Debian does not package ------------------------------------
+# --system-site-packages so the venv reuses Debian's PyQt5/numpy/PIL rather than
+# rebuilding them (which would need a compiler and hundreds of MB). Best-effort:
+# a missing wheel must not fail the whole image build, and the wrapper falls back
+# to the system interpreter.
+if command -v python3 >/dev/null && [ -x /usr/bin/pip3 ] || command -v pip3 >/dev/null; then
+	python3 -m venv --system-site-packages /opt/zee-zee/.venv 2>/dev/null || true
+	if [ -x /opt/zee-zee/.venv/bin/pip ]; then
+		for pkg in anthropic SpeechRecognition openwakeword; do
+			if /opt/zee-zee/.venv/bin/pip install --no-input --quiet "$pkg" 2>/dev/null; then
+				echo "P:   pip installed $pkg"
+			else
+				echo "W:   pip could NOT install $pkg — the features using it will be inert." >&2
+			fi
+		done
+	else
+		echo "W: could not create /opt/zee-zee/.venv — falling back to system python." >&2
+	fi
+fi
+
+# --- Import smoke test ------------------------------------------------------
+# Catch a broken dependency set here, in the build log, instead of on a black
+# widget at runtime. Import-only: no GUI, no network.
+PY=/usr/bin/python3
+[ -x /opt/zee-zee/.venv/bin/python3 ] && PY=/opt/zee-zee/.venv/bin/python3
+if "$PY" -c "import PyQt5.QtWidgets, psutil, numpy" 2>/dev/null; then
+	echo "P: Zee Zee core imports OK (PyQt5, psutil, numpy)"
+else
+	echo "W: Zee Zee core imports FAILED — check python3-pyqt5/psutil/numpy." >&2
+fi
+
+echo "P: Zee Zee wired"

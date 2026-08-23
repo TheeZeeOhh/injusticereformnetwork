@@ -44,6 +44,35 @@ network-manager-openvpn
 # and tracking off, DoH + HTTPS-only, sponsored content off, add-ons ENABLED.
 firefox-esr
 
+# --- Sanctuary Terminal (staged from its own repo by stage-extras.sh) ---
+# A PyQt5 terminal emulator over a pty. Debian ships both dependencies, so the
+# image uses those rather than the project's .venv, which is built against
+# another distro's Python and would not resolve here.
+python3-pyqt5
+python3-pyte
+
+# --- Zee Zee (AI twin) + local Ollama brain ---
+# Staged from their own trees by stage-extras.sh. Everything Debian packages is
+# taken from Debian; only anthropic / SpeechRecognition / openwakeword go through
+# pip into /opt/zee-zee/.venv (see hooks/live/0600-zee-zee.hook.chroot), because
+# Debian ships none of the three.
+python3-psutil
+python3-numpy
+python3-pil
+python3-pydantic
+python3-pypdf
+python3-pyaudio
+python3-cryptography
+python3-venv
+python3-pip
+yt-dlp
+# curl: the zee-zee wrapper uses it to check whether the local model is up.
+curl
+# Vulkan userspace so Ollama's vulkan backend can use an AMD/Intel GPU. Without
+# these it silently falls back to CPU inference, which works but is slow.
+libvulkan1
+mesa-vulkan-drivers
+
 # --- System-wide audio equalizer (PipeWire) ---
 # Also the browser's EQ: EasyEffects sits below Firefox and equalizes ALL its
 # audio (any origin, the Reading Room radio included) — an in-browser EQ can't,

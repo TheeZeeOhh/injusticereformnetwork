@@ -19,3 +19,7 @@ config/includes.chroot/etc/wireguard/irn.conf
 .claude/
 .mcp.json
 .cc-writes/
+
+# Python bytecode — never overlay this into the image
+__pycache__/
+*.pyc

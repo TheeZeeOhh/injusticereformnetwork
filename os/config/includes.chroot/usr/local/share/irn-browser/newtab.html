@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IRN Command Center</title>
+<!--
+  The IRN Browser home page for IRN OS. Deliberately STATIC and fully offline —
+  no scripts, no fonts, no images, no external requests of any kind, so opening a
+  new tab never touches the network.
+
+  On the Garuda daily driver, install-irn-browser.sh installs a generator
+  (irn-newtab, from irn-newtab.py) that rebuilds this page each launch with the
+  day's Reading Room passage and a live security-posture panel. IRN OS ships this
+  flat file instead: it has no python3 (every package is attack surface) and
+  neither the Reading Room library nor sable-posture.sh lives on the image, so
+  those two panels would render empty anyway.
+
+  Edit the links below and rebuild the ISO to change them.
+-->
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: #0c1016; color: #c9d1d9;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex; flex-direction: column; align-items: center; padding: 8vh 24px; gap: 34px; }
+  header { text-align: center; }
+  h1 { font-size: 26px; margin: 0; letter-spacing: 3px; color: #7ab8ff; font-weight: 600; }
+  .sub { color: #6b7684; font-size: 13px; margin-top: 6px; }
+  .tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; width: min(760px, 92vw); }
+  .tool { display: block; padding: 16px 18px; background: #131a24; border: 1px solid #1f2a37;
+    border-radius: 12px; color: #d7dee6; text-decoration: none; font-size: 15px; transition: .12s; }
+  .tool:hover { border-color: #7ab8ff; color: #fff; background: #16202c; }
+  .posture { width: min(680px, 92vw); border-top: 1px solid #1f2a37; padding-top: 26px; }
+  .posture h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px;
+    color: #6b7684; margin: 0 0 10px; }
+  .prow { display: flex; align-items: center; gap: 10px; padding: 3px 0; font-size: 13px; }
+  .plabel { min-width: 150px; color: #9aa4b0; }
+  .dot { font-size: 10px; color: #7ad38a; }
+  .pval { color: #7ad38a; }
+  .note { color: #6b7684; font-size: 12px; margin-top: 14px; line-height: 1.6; }
+</style></head>
+<body>
+  <header>
+    <h1>IRN COMMAND CENTER</h1>
+    <div class="sub">hardened Firefox &middot; telemetry off &middot; HTTPS-only &middot; encrypted DNS</div>
+  </header>
+
+  <nav class="tools">
+    <a class="tool" href="https://www.notion.so">Notion back office</a>
+    <a class="tool" href="https://theezeeohh.github.io">IRN site</a>
+    <a class="tool" href="https://www.muckrock.com">MuckRock &mdash; FOIA</a>
+    <a class="tool" href="https://www.vacourts.gov">VA Courts</a>
+    <a class="tool" href="https://pacer.uscourts.gov">PACER &mdash; dockets</a>
+    <a class="tool" href="https://www.courtlistener.com">CourtListener</a>
+    <a class="tool" href="https://www.law.cornell.edu">Cornell LII</a>
+    <a class="tool" href="https://transequality.org">NCTE</a>
+  </nav>
+
+  <section class="posture">
+    <h2>browser posture</h2>
+    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Telemetry</span><span class="pval">off (policy-locked)</span></div>
+    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Transport</span><span class="pval">HTTPS-only</span></div>
+    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">DNS</span><span class="pval">DoH &rarr; Quad9, locked</span></div>
+    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Tracking protection</span><span class="pval">strict + fingerprinting</span></div>
+    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Disk cache</span><span class="pval">RAM only</span></div>
+    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Accounts / sync</span><span class="pval">disabled</span></div>
+    <p class="note">
+      Client records never belong in this browser. PHI lives in Sanctuary, encrypted,
+      with the keys in RAM. For a session that leaves nothing behind at all, launch
+      <code>irn-browser --ephemeral</code> &mdash; a throwaway profile in RAM, erased on exit.
+      Verify the hardening any time at <code>about:policies</code>.
+    </p>
+  </section>
+</body></html>

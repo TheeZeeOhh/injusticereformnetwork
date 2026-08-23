@@ -1,0 +1,168 @@
+{
+  "_comment": [
+    "IRN Store catalog. This file is the ALLOWLIST: the root helper",
+    "(/usr/local/libexec/irn-store-install) refuses any package name that does",
+    "not appear here, so the store cannot be talked into installing something",
+    "arbitrary. Everything listed is packaged by Debian — no third-party apt",
+    "sources, no Flathub, no new trust relationships.",
+    "To add an app: put it in a section below and rebuild the ISO."
+  ],
+  "categories": [
+    {
+      "name": "IRN tools",
+      "note": "Built into the image. Listed so the store is a complete map of what is here.",
+      "apps": [
+        {
+          "name": "Sanctuary",
+          "package": "sanctuary",
+          "summary": "Encrypted health & legal records. Vault A/B, keys in RAM.",
+          "launch": "sanctuary",
+          "builtin": true
+        },
+        {
+          "name": "Sanctuary Terminal",
+          "package": null,
+          "path": "/opt/sanctuary-terminal/sanctuary_term.py",
+          "summary": "Branded local-first terminal with Reading Room search.",
+          "launch": "sanctuary-terminal",
+          "builtin": true
+        },
+        {
+          "name": "Zee Zee",
+          "package": null,
+          "path": "/opt/zee-zee/ai_twin_widget.py",
+          "summary": "AI twin running on the on-device model. Nothing leaves the machine.",
+          "launch": "zee-zee",
+          "builtin": true
+        },
+        {
+          "name": "IRN Browser",
+          "package": "firefox-esr",
+          "summary": "Hardened Firefox: telemetry off, HTTPS-only, encrypted DNS.",
+          "launch": "irn-browser",
+          "builtin": true
+        }
+      ]
+    },
+    {
+      "name": "Casework & documents",
+      "apps": [
+        {
+          "name": "LibreOffice Writer",
+          "package": "libreoffice-writer",
+          "summary": "Word processor for filings, letters and reports."
+        },
+        {
+          "name": "LibreOffice Calc",
+          "package": "libreoffice-calc",
+          "summary": "Spreadsheets for grant budgets and case tracking."
+        },
+        {
+          "name": "Okular",
+          "package": "okular",
+          "summary": "PDF reader with annotation — good for discovery documents."
+        },
+        {
+          "name": "Scribus",
+          "package": "scribus",
+          "summary": "Layout for zines, know-your-rights handouts and reports."
+        },
+        {
+          "name": "Xournal++",
+          "package": "xournalpp",
+          "summary": "Handwrite and sign PDFs."
+        }
+      ]
+    },
+    {
+      "name": "Security & privacy",
+      "apps": [
+        {
+          "name": "KeePassXC",
+          "package": "keepassxc",
+          "summary": "Offline password vault. No cloud account."
+        },
+        {
+          "name": "OnionShare",
+          "package": "onionshare",
+          "summary": "Share files over Tor without a middleman."
+        },
+        {
+          "name": "GnuPG (Kleopatra)",
+          "package": "kleopatra",
+          "summary": "Manage GPG keys, sign and encrypt files."
+        },
+        {
+          "name": "Metadata Cleaner",
+          "package": "mat2",
+          "summary": "Strip EXIF and document metadata before you send anything."
+        },
+        {
+          "name": "GParted",
+          "package": "gparted",
+          "summary": "Partition editor — used when installing to disk."
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "apps": [
+        {
+          "name": "GIMP",
+          "package": "gimp",
+          "summary": "Image editing and redaction."
+        },
+        {
+          "name": "Inkscape",
+          "package": "inkscape",
+          "summary": "Vector graphics for flyers and signage."
+        },
+        {
+          "name": "VLC",
+          "package": "vlc",
+          "summary": "Plays anything, including body-cam and court audio."
+        },
+        {
+          "name": "Audacity",
+          "package": "audacity",
+          "summary": "Audio editing — clean up interview recordings."
+        },
+        {
+          "name": "Kdenlive",
+          "package": "kdenlive",
+          "summary": "Video editing for campaign and testimony footage."
+        },
+        {
+          "name": "OBS Studio",
+          "package": "obs-studio",
+          "summary": "Screen recording and streaming."
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "apps": [
+        {
+          "name": "Synaptic",
+          "package": "synaptic",
+          "summary": "Full Debian package manager, for anything not in this catalog."
+        },
+        {
+          "name": "htop",
+          "package": "htop",
+          "summary": "Process and resource monitor."
+        },
+        {
+          "name": "Disk Usage Analyzer",
+          "package": "baobab",
+          "summary": "See what is filling the disk."
+        },
+        {
+          "name": "Timeshift",
+          "package": "timeshift",
+          "summary": "Filesystem snapshots and rollback."
+        }
+      ]
+    }
+  ]
+}

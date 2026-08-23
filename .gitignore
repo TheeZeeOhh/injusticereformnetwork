@@ -59,6 +59,21 @@ os/config/hooks/live/0050-disable-sysvinit-tmpfs.hook.chroot
 os/binary.modified_timestamps
 os/chroot.packages.*
 os/live-image-*
+# build mutex (os/build-in-container.sh)
+os/.build.lock
+# live-build's own lock file
+os/.lock
+# staged by os/stage-extras.sh from the Sanctuary Terminal repo (not vendored here)
+os/config/includes.chroot/opt/sanctuary-terminal/
+os/config/includes.chroot/opt/zee-zee/
+os/config/includes.chroot/usr/share/ollama/
+os/config/includes.chroot/usr/local/lib/ollama/
+os/config/includes.chroot/usr/local/bin/ollama
+os/staging/
+# qemu boot-test evidence (screenshots/logs) — regenerate with os/boot-test.sh.
+# Globbed so a run with a custom --out (e.g. boot-test-out-uefi/) is covered too.
+os/boot-test-out*/
+boot-test-out*/
 
 # Sandbox stub dotfiles: 0-byte, mode 444 placeholders the agent sandbox drops in
 # the repo root. Anchored with / so a real dotfile shipped inside the OS image

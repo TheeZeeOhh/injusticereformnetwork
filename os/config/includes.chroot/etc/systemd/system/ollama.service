@@ -1,0 +1,41 @@
+# Local LLM runtime for Zee Zee. Bound to loopback ONLY.
+#
+# The whole reason Ollama is on this image is so the AI twin has a brain that
+# does not phone anyone: prompts, documents and conversation stay on the device.
+# That property depends on this unit staying local — OLLAMA_HOST is 127.0.0.1,
+# not 0.0.0.0, so nothing on the network can reach the model, and the hardening
+# hook's "nothing is listening" check stays true from outside.
+[Unit]
+Description=Ollama local model runtime (loopback only)
+After=network-online.target
+
+[Service]
+Type=simple
+User=ollama
+Group=ollama
+# Loopback bind. Do not change this to 0.0.0.0 — see above.
+Environment="OLLAMA_HOST=127.0.0.1:11434"
+Environment="OLLAMA_MODELS=/usr/share/ollama/.ollama/models"
+Environment="HOME=/var/lib/ollama"
+# No usage analytics, no update pings.
+Environment="OLLAMA_NOPRUNE=1"
+Environment="DO_NOT_TRACK=1"
+ExecStart=/usr/local/bin/ollama serve
+Restart=on-failure
+RestartSec=3
+
+# Least privilege: it needs to read models and listen on loopback, nothing else.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/ollama
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target

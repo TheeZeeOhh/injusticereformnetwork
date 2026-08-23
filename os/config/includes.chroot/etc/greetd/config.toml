@@ -1,8 +1,38 @@
-# greetd autologin straight into the kiosk — no greeter, no login prompt.
-# The live user `irn` is created by live-config from the `username=irn` boot arg.
+# greetd configuration for IRN OS.
+#
+# greetd has TWO session slots, and the distinction matters (greetd.5):
+#
+#   [default_session]  the GREETER. Required — greetd exits 1 with "no
+#                      default_session specified" if it is absent, restarts five
+#                      times, and systemd gives up. That is a black screen with
+#                      no explanation on the console, so: do not remove it.
+#                      It runs at startup when there is no initial session, and
+#                      again every time a session ends (logout, compositor exit).
+#
+#   [initial_session]  optional AUTOLOGIN, run exactly once per boot (greetd
+#                      tracks this with its runfile). This is what gets the live
+#                      image to a desktop without a password prompt.
+#
+# NOTE: on a running system this file is not what greetd reads. The service
+# drop-in (etc/systemd/system/greetd.service.d/irn-vt1.conf) points greetd at
+# /run/greetd/config.toml, generated at boot by irn-greetd-config, which includes
+# the [initial_session] block ONLY if the `irn` user actually exists. That keeps
+# an installed system — where Calamares creates the operator's own account and
+# there is no `irn` — from autologging into a user that isn't there. This file is
+# the documented fallback and the source of truth for the settings themselves.
+
 [terminal]
 vt = 1
 
+# The greeter. agreety is greetd's minimal text greeter, shipped in the same
+# package; on successful login it execs the session script.
+[default_session]
+command = "/usr/sbin/agreety --cmd /usr/local/bin/irn-kiosk"
+user = "_greetd"
+
+# Autologin for the live image. The live user `irn` is created at boot by
+# live-config from the `username=irn` boot arg (which needs the `user-setup`
+# package — see config/package-lists/live.list.chroot).
 [initial_session]
 command = "/usr/local/bin/irn-kiosk"
 user = "irn"

@@ -1,4 +1,26 @@
+# Debian Live runtime. These are what turn a plain chroot into a live system.
+
 live-boot
 live-config
 live-config-systemd
 systemd-sysv
+
+# --- Live user creation (DO NOT DROP) ---
+# live-config's 0030-user-setup component is a no-op unless the `user-setup`
+# PACKAGE is installed — it literally starts with:
+#     if ! pkg_is_installed "user-setup" ...; then exit 0; fi
+# Without it the `irn` user named by `username=irn` in --bootappend-live is
+# never created, so tty1's autologin getty and greetd BOTH die at boot with
+# "Authentication failure" / "could not authenticate" — a black console instead
+# of a desktop. Verified by boot-testing an image built without it
+# (./boot-test.sh). The user is created at BOOT, not at build time, on purpose:
+# that keeps it out of the squashfs, so Calamares-installed systems get only the
+# account the operator creates in the installer.
+user-setup
+
+# `sudo` is required by two things: live-config's 0040-sudo component (grants
+# the live user passwordless sudo, without which nothing in the live session can
+# gain root) and Debian's own Calamares wrapper /usr/bin/calamares-install-debian,
+# which shells out to `sudo` twice and then `pkexec calamares`. No sudo, no
+# installer — and the LUKS-at-install story dies with it.
+sudo

@@ -8,13 +8,42 @@
 # PREREQUISITE: stage the Sanctuary .deb first (built with the Tauri toolchain,
 # which lives on the host, not in this minimal container):
 #     npm ci && npm run tauri build
-#     cp src-tauri/target/release/bundle/deb/*.deb os/config/packages.chroot/sanctuary.deb
+#     cp src-tauri/target/release/bundle/deb/Sanctuary_*_amd64.deb os/config/packages.chroot/
+#     (keep the bundler's filename — see the naming trap below)
 #
 # Then:  ./os/build-in-container.sh   → os/live-image-amd64.hybrid.iso
 set -eu
 
 cd "$(dirname "$0")/.."          # repo root
 REPO="$(pwd)"
+
+# Only ONE build at a time. Every run starts with `lb clean --purge`, so a second
+# invocation deletes the first one's chroot and package cache out from under it —
+# which surfaces as a baffling mid-debootstrap "E: Couldn't download packages: <x>"
+# rather than anything that says "you started this twice".
+#
+# flock -E 99 gives the lock-contention case its own exit code, so it is
+# distinguishable from the build itself failing.
+#
+# The lock lives in os/, NOT /tmp: this script runs under sudo, and on a hardened
+# kernel (fs.protected_regular=1) root cannot open a file it does not own inside a
+# sticky world-writable directory like /tmp — so a lock left there by an earlier
+# non-root run makes every later sudo run die with "cannot open lock file".
+LOCK="$REPO/os/.build.lock"
+if [ -z "${IRN_BUILD_LOCKED:-}" ] && command -v flock >/dev/null 2>&1; then
+  IRN_BUILD_LOCKED=1
+  export IRN_BUILD_LOCKED
+  # `|| status=$?` and not a bare call: under `set -e` a non-zero exit here would
+  # kill the script before it could explain itself.
+  status=0
+  flock -n -E 99 "$LOCK" "$0" "$@" || status=$?
+  if [ "$status" -eq 99 ]; then
+    echo "An IRN OS build is already running (lock: $LOCK)." >&2
+    echo "Not starting a second one: every run does 'lb clean --purge', so two" >&2
+    echo "concurrent builds delete each other's chroot mid-debootstrap." >&2
+  fi
+  exit "$status"
+fi
 
 # Pick a container engine.
 if command -v podman >/dev/null 2>&1; then ENGINE=podman
@@ -54,12 +83,36 @@ if [ "$ENGINE" = podman ]; then
   fi
 fi
 
-# Warn (don't fail) if the app .deb isn't staged — the in-image harden hook will
-# flag a missing kiosk binary, but the ISO can still build for config testing.
-if ! ls os/config/packages.chroot/*.deb >/dev/null 2>&1; then
+# Check the staged app .deb — and check it the way live-build actually does.
+#
+# THE TRAP: live-build's chroot_archives only picks up local packages matching
+#     config/packages.chroot/*_${ARCH}.deb   or   *_all.deb
+# A .deb renamed to something tidy like `sanctuary.deb` is silently ignored — no
+# error, no mention in the log, and you get an ISO that boots to a desktop with
+# no app on it. Keep the bundler's own filename (Sanctuary_0.1.0_amd64.deb).
+staged_any=""
+staged_usable=""
+for f in os/config/packages.chroot/*.deb; do
+  [ -e "$f" ] || continue
+  staged_any="yes"
+  case "$f" in
+    *_amd64.deb|*_all.deb) staged_usable="yes" ;;
+  esac
+done
+
+if [ -n "$staged_any" ] && [ -z "$staged_usable" ]; then
+  echo "ERROR: os/config/packages.chroot/ has a .deb, but none matching live-build's" >&2
+  echo "       glob (*_amd64.deb or *_all.deb), so it would be SILENTLY IGNORED:" >&2
+  ls -1 os/config/packages.chroot/*.deb >&2
+  echo "       Restage it under the bundler's original name, e.g." >&2
+  echo "         cp src-tauri/target/release/bundle/deb/Sanctuary_*_amd64.deb os/config/packages.chroot/" >&2
+  exit 1
+fi
+
+if [ -z "$staged_any" ]; then
   echo "WARNING: no Sanctuary .deb in os/config/packages.chroot/ — build the .deb"
-  echo "         first (see the header of this script) or the kiosk will boot"
-  echo "         to a blank compositor."
+  echo "         first (see the header of this script) or the desktop will come up"
+  echo "         with no app installed."
   printf "Continue anyway? [y/N] "
   read -r ans; [ "$ans" = y ] || [ "$ans" = Y ] || exit 1
 fi

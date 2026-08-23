@@ -1,0 +1,43 @@
+#!/bin/sh
+# Wire the IRN Store into the image and validate its catalog at build time.
+set -eu
+
+echo "P: IRN OS — wiring the IRN Store"
+
+chmod 0755 /usr/local/bin/irn-store /usr/local/libexec/irn-store-install
+
+# The catalog is the store's allowlist, so a syntax error in it is a broken
+# store. Parse it here rather than discovering that at runtime.
+if ! python3 -c "import json; json.load(open('/usr/local/share/irn-store/catalog.json'))" 2>/dev/null; then
+	echo "W: IRN Store catalog is not valid JSON — the store will not start." >&2
+	exit 0
+fi
+
+# Every catalog entry names a Debian package. A typo would surface as an install
+# that fails in front of the user, so check each name against the archive now,
+# while apt still has the package lists. Warn only: a package that has moved
+# between releases should not fail the whole image build.
+missing=""
+for pkg in $(python3 - <<'PY'
+import json
+with open("/usr/local/share/irn-store/catalog.json", encoding="utf-8") as fh:
+    catalog = json.load(fh)
+for category in catalog.get("categories", []):
+    for app in category.get("apps", []):
+        if app.get("package") and not app.get("builtin"):
+            print(app["package"])
+PY
+); do
+	if ! apt-cache show "$pkg" >/dev/null 2>&1; then
+		missing="$missing $pkg"
+	fi
+done
+
+if [ -n "$missing" ]; then
+	echo "W: IRN Store catalog names packages not in the archive:$missing" >&2
+	echo "W: those entries will fail to install. Fix catalog.json." >&2
+else
+	echo "P: IRN Store catalog OK — every listed package exists in the archive"
+fi
+
+echo "P: IRN Store wired"
