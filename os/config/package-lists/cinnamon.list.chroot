@@ -76,6 +76,16 @@ libcanberra-pulse
 gnome-keyring
 libpam-gnome-keyring
 
+# secret-tool: the ONLY thing that gave a straight answer when the vault keychain
+# was failing (2026-08-23). Sanctuary collapses every secret-service fault into
+# one string -- "Couldn't access platform storage: SS error: result not returned
+# from SS API" -- which reads identically for a missing daemon, a locked keyring
+# and a missing default collection. `secret-tool store` performs the same write
+# and reports which of those it actually is; an API-level write through this tool
+# is what finally established the default collection on that machine.
+# 46 KB, and libsecret-1-0 is already present, so it adds no new dependencies.
+libsecret-tools
+
 # --- System & disks ---
 gnome-system-monitor
 gnome-disk-utility
