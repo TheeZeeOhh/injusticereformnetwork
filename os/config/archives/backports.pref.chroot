@@ -1,0 +1,39 @@
+# --- Backports is opt-in only, never a blanket upgrade ---
+#
+# Building on stable is the point: we want a small, audited, predictable base.
+# Pulling the whole desktop from backports would quietly turn IRN OS into a
+# testing spin. So backports defaults to priority -1 (apt will not install from
+# it at all) and we raise only what the target GPU actually needs.
+#
+# NOTE ON THE PIN FIELD: backports' Release file says `Suite: stable-backports`
+# but `Codename: trixie-backports`. Pinning with `a=trixie-backports` matches
+# NOTHING and fails silently -- the build succeeds and you ship the old kernel
+# anyway. Use `n=` (codename). Verified against the live Release file 2026-08-30.
+#
+# NOTE ON THE GLOB: this MUST be the whole `linux-*` family, not an enumerated
+# list of packages. Kernel 7.x splits into far more binary packages than trixie's
+# 6.12 did -- linux-image-amd64 pulls linux-base-amd64, which pulls
+# linux-base-<ver>-amd64, linux-binary-<ver>-amd64 and linux-modules-<ver>-amd64.
+# Naming them one at a time leaves whichever you forgot sitting at priority -1,
+# and the build dies mid-install with:
+#     linux-image-amd64 : Depends: linux-base-amd64 (= 7.1.8-1~bpo13+1)
+#                         but it is not installable
+#     E: Unable to correct problems, you have held broken packages.
+# (That failure cost a full build run on 2026-08-31. `apt-cache policy` does NOT
+# catch it -- policy only resolves a *candidate version*. Verify a pin change with
+# `apt-get install -s linux-image-amd64`, which actually solves dependencies.)
+#
+# Audited with that simulation: 7 of 79 packages come from backports (the six
+# linux-* kernel packages plus firmware-amd-graphics). wpasupplicant and the rest
+# of the desktop still resolve to stable, which is exactly the intent.
+
+Package: *
+Pin: release n=trixie-backports
+Pin-Priority: -1
+
+# The whole kernel family, plus all firmware in lockstep (they share the one
+# `firmware-nonfree` source, so mixing a backports firmware-amd-graphics with
+# stable siblings gives an unsatisfiable version skew at install time).
+Package: linux-* firmware-*
+Pin: release n=trixie-backports
+Pin-Priority: 600

@@ -1,0 +1,17 @@
+# --- trixie-backports: strictly for hardware too new for stable's kernel ---
+#
+# Debian trixie ships kernel 6.12 LTS, whose amdgpu driver knows GC 11.5.0,
+# 11.5.1 and 11.5.2 only. The IRN target laptop (HP OmniBook, AMD Krackan2,
+# PCI 1002:1902) reports **GC 11.5.3** -- read straight off the hardware at
+# /sys/.../ip_discovery/die/0/GC/0. 6.12 therefore cannot bring the display
+# engine up and X falls back to an unaccelerated framebuffer at the wrong
+# resolution. Stable's firmware-amd-graphics (20250410) is also missing every
+# gc_11_5_3_*.bin blob, so the kernel alone would not be enough.
+#
+# Backports carries linux-image-amd64 7.1.8 (GC 11.5.0-11.5.4) and
+# firmware-amd-graphics 20260622 (ships the 7 gc_11_5_3 blobs). 7.1.8 is the
+# exact kernel version verified working against this GPU on 2026-08-30.
+#
+# This is deliberately NOT a general upgrade channel -- see backports.pref.chroot,
+# which makes everything here un-installable except the explicit opt-in list.
+deb http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware

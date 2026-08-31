@@ -24,6 +24,18 @@ slurp
 wl-clipboard
 brightnessctl
 network-manager
+# NetworkManager only *Recommends* wpasupplicant, and auto/config builds with
+# --apt-recommends false, so it was silently dropped from the image: the radio
+# and firmware came up fine but NM could not authenticate to ANY WPA/WPA2/WPA3
+# network. Symptom is "no wifi" with a perfectly healthy card. Name it
+# explicitly -- do not rely on Recommends while recommends are off.
+wpasupplicant
+# Wireless diagnostics. On a box with no network these are the difference
+# between "I can see the problem" and "I am guessing": iw reads the link and
+# signal, rfkill shows soft/hard blocks.
+iw
+rfkill
+wireless-tools
 # audio for the waybar pulseaudio module (wpctl comes from wireplumber)
 wireplumber
 pipewire-pulse
