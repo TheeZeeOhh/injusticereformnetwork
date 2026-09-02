@@ -1,0 +1,117 @@
+# irn.irn — THE canonical IRN system definition.
+#
+# This file is the single source of truth for IRN's invariants. Every rule here
+# was previously prose scattered across CLAUDE.md, memory files, system prompts
+# and code comments, and was re-implemented by hand in each codebase. Prose
+# drifts silently. This file does not: src/irnl/conformance.test.js asserts the
+# running code agrees with it, so weakening an invariant breaks the commit gate.
+#
+# Changing MIN cell size, vault recovery, or any deny in the phi boundary
+# requires Aziza's explicit sign-off (see CLAUDE.md).
+
+# ---------------------------------------------------------------------------
+# Vaults
+# ---------------------------------------------------------------------------
+
+vault A {
+  label      "General health & legal records"
+  recovery   passphrase
+  opens      on_unlock
+}
+
+vault B {
+  label      "42 CFR Part 2 / HRT / sensitive"
+  # Unrecoverable BY DESIGN. No reset, no escrow. Do not add one casually.
+  recovery   none
+  opens      explicit_only
+}
+
+# ---------------------------------------------------------------------------
+# Entities — the shared nouns. Codegen emits these to TS, Rust and Python so
+# the six codebases cannot disagree about their shape.
+# ---------------------------------------------------------------------------
+
+entity Client {
+  id            Ulid    @identity
+  alias         Text    @pii
+  jurisdiction  Text    @quasi_identifier
+  demographic   Text    @quasi_identifier
+  timeframe     Text    @quasi_identifier
+}
+
+entity Record {
+  id       Ulid
+  client   Ref(Client)
+  kind     Enum(health, legal, part2, hrt)
+  body     Ciphertext  @phi @aad(client.id)
+  vault    Enum(A, B)
+}
+
+entity Aggregate {
+  cell_key  Text
+  n         Int   @count
+}
+
+# ---------------------------------------------------------------------------
+# Boundaries — where data may and may not travel.
+# ---------------------------------------------------------------------------
+
+boundary phi {
+  never_leaves  device
+  deny   sink(cloud, p2p, telemetry, sms, analytics)
+  allow  sink(local_disk) when encrypted
+  allow  sink(operational_db) when non_phi
+  require encryption(aes_256_gcm)
+  require aad(identity)
+}
+
+boundary keys {
+  # Derived keys and passphrases live in RAM only — never disk, logs, or state.
+  never_leaves  memory
+  deny  sink(disk, log, state, backup)
+  require kdf(pbkdf2_sha256, 600000)
+}
+
+# ---------------------------------------------------------------------------
+# Policies — the rules enforced in code.
+# ---------------------------------------------------------------------------
+
+policy aggregation {
+  # k-anonymity floor. Applies to the COMBINATION of quasi-identifiers, not to
+  # any single column. Suppression, never rounding.
+  min_cell_size    5
+  group_by         quasi_identifiers
+  on_below_floor   suppress
+  on_uncertain     suppress
+  deny             rounding
+  sign_off         required
+}
+
+policy vault_separation {
+  forbid   cross_key(A, B)
+  forbid   cache_passphrase(B)
+  require  independent_passphrase
+  require  closed_until_unlocked(B)
+}
+
+policy hive_admission {
+  # The replicated store never receives person-level data at all. This is a
+  # stricter gate than `aggregation`, not the same one.
+  deny     person_identifying
+  require  source_count >= 5
+  on_uncertain  silence
+}
+
+policy outbound_sms {
+  deny     phi
+  require  generic_body
+  on_uncertain  block
+}
+
+policy assistant_gates {
+  # Deterministic, enforced in code — never left to a model's prompt-following.
+  precedence     [crisis, escalation, routing]
+  on_crisis      block_hosted
+  on_escalation  block_hosted
+  read_signals   generously
+}

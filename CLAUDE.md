@@ -64,6 +64,28 @@ explicit, deliberate request from Aziza:
 - Crypto/vault behavior is safety-critical: **changes here must keep the existing
   tests green**, and prefer adding tests over loosening them.
 
+## IRNL — the invariant source of truth (always on)
+
+IRN's guardrails are declared once, in [`src/irnl/spec/irn.irn`](src/irnl/spec/irn.irn),
+and enforced by tests. Read invariants from there; do not re-type the constants.
+
+- **Never hardcode a guardrail value.** Use `src/irnl/evaluate.js` —
+  `cellEmittable`, `sinkAllowed`, `quasiIdentifiersOf`, `meetsThreshold`,
+  `policyForbids`. Everything defaults **closed**: an unknown boundary, unknown
+  sink, undeclared policy, or non-finite count all deny.
+- **Generated types are not hand-edited.** `src/types/irn.generated.ts`,
+  `src-tauri/src/irn_generated.rs`, `src/irnl/generated/irn_types.py` come from
+  `npm run irnl:build`; a stale one fails the suite.
+- **Two severities.** An *error* is malformed IRNL (typo'd verb, dangling `Ref`).
+  A *warning* means an invariant was **weakened** — floor below 5, vault B given
+  a recovery path, `phi` reaching a network sink. `src/irnl/conformance.test.js`
+  asserts zero of both and cross-checks `src/utils/guardrails.js` against the spec.
+- **Changing an invariant:** edit the spec, `npm run irnl:build`, `npm test`, and
+  if you genuinely intend to weaken a guardrail, edit the conformance test
+  deliberately with Aziza's sign-off. That edit is the audit trail.
+- New IRN codebases consume the generated types rather than redefining shapes.
+  See [`src/irnl/README.md`](src/irnl/README.md).
+
 ## Verification-first (always on)
 
 Never trust a reported result you did not cause to run. This is the discipline

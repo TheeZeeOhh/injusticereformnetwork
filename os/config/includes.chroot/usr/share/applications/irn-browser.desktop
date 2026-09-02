@@ -12,9 +12,9 @@ Categories=Network;WebBrowser;
 MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
 StartupWMClass=firefox-esr
 StartupNotify=true
-Keywords=browser;web;internet;privacy;irn;firefox;
+Keywords=browser;web;internet;privacy;irn;firefox;tor;burner;foia;
 
-Actions=new-window;private-window;
+Actions=new-window;private-window;burner;tor;command-center;doctor;
 
 [Desktop Action new-window]
 Name=New Window
@@ -23,3 +23,22 @@ Exec=irn-browser --new-window %U
 [Desktop Action private-window]
 Name=New Private Window
 Exec=irn-browser --private-window %U
+
+[Desktop Action burner]
+Name=Burner Session (RAM only)
+Exec=irn-browser --ephemeral %U
+
+[Desktop Action tor]
+Name=Tor Session
+Exec=irn-browser --tor %U
+
+[Desktop Action command-center]
+Name=Command Center
+Exec=irn-browser file:///usr/local/share/irn-browser/newtab.html
+
+# Terminal=true inside an action is honoured by GNOME, KDE and most launchers;
+# where it is not, run `irn-browser --doctor` from a shell instead.
+[Desktop Action doctor]
+Name=Check Hardening (doctor)
+Exec=sh -c 'irn-browser --doctor; printf "\\nPress Enter to close..."; read x'
+Terminal=true

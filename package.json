@@ -10,7 +10,10 @@
     "test": "vitest run",
     "preview": "vite preview",
     "tauri": "tauri",
-    "pet": "node pet.js"
+    "pet": "node pet.js",
+    "irnl": "node src/irnl/cli.js",
+    "irnl:check": "node src/irnl/cli.js check",
+    "irnl:build": "node src/irnl/cli.js build"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

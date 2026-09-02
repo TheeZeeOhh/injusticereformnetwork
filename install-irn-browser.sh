@@ -22,6 +22,8 @@ APPS="$HOME/.local/share/applications"
 ICONS="$HOME/.local/share/icons/hicolor/scalable/apps"
 BIN="$HOME/.local/bin"
 AUTOSTART="$HOME/.config/autostart"
+USER_SHARE="$HOME/.local/share/irn-browser"
+COMPDIR="$HOME/.local/share/bash-completion/completions"
 EE_PRESETS="$HOME/.config/easyeffects/output"
 LABWC_MENU="$HOME/.config/labwc/menu.xml"
 DOCK_JSONC="$HOME/.config/waybar/dock.jsonc"
@@ -53,11 +55,28 @@ esac
 install -Dm644 "$INC/usr/share/applications/irn-browser.desktop" "$APPS/irn-browser.desktop"
 install -Dm644 "$INC/usr/share/icons/hicolor/scalable/apps/irn-browser.svg" "$ICONS/irn-browser.svg"
 install -Dm755 "$INC/usr/local/bin/irn-browser" "$BIN/irn-browser"
+# Zee Zee bridge: --ask, --capture --zee, and the command center's Zee Zee panel.
+install -Dm755 "$INC/usr/local/bin/irn-zee" "$BIN/irn-zee"
+# The wrapper resolves its shared assets at /usr/local/share/irn-browser and
+# falls back to ~/.local/share/irn-browser. On a daily driver we do not own
+# /usr/local, so put the stylesheets and the page template in the fallback —
+# without this the theme silently never applies.
+install -Dm644 "$SHARE/userChrome.css"  "$USER_SHARE/userChrome.css"
+install -Dm644 "$SHARE/userContent.css" "$USER_SHARE/userContent.css"
+install -Dm644 "$SHARE/newtab.html"     "$USER_SHARE/newtab.html.template"
+say "installed the Zee Zee bridge + IRN stylesheets -> $USER_SHARE"
+# Shell completion for irn-browser and irn-zee.
+install -Dm644 "$INC/usr/share/bash-completion/completions/irn-browser" \
+               "$COMPDIR/irn-browser"
+say "installed bash completion -> $COMPDIR/irn-browser"
 # Command-center generator: bake this repo's path so it finds reading-room-daily.py
 # and sable-posture.sh for the start page's passage + posture panels.
 if [ -f "$REPO/irn-newtab.py" ]; then
   sed "s#__REPO__#$REPO#g" "$REPO/irn-newtab.py" > "$BIN/irn-newtab"
   chmod 755 "$BIN/irn-newtab"
+  # Point the generator at the template we just installed, so a later repo move
+  # doesn't leave it filling slots in a file that no longer exists.
+  export IRN_NEWTAB_TEMPLATE="$USER_SHARE/newtab.html.template"
   "$BIN/irn-newtab" >/dev/null 2>&1 || true   # build the home page now so it exists
   say "installed command-center generator + built the home page -> $BIN/irn-newtab"
 fi
@@ -185,12 +204,24 @@ pidof labwc  >/dev/null 2>&1 && kill -HUP "$(pidof labwc)"          && say "relo
 pidof waybar >/dev/null 2>&1 && killall -SIGUSR2 waybar 2>/dev/null && say "reloaded waybar" || true
 
 echo "Done. IRN Browser (hardened Firefox) is in the launcher, menu, and dock."
-echo "  - Home page: the IRN command center (links + today's passage + posture),"
-echo "               rebuilt each launch. Run 'irn-newtab' to refresh it by hand."
-echo "  - Bundled add-ons: uBlock Origin + Dark Reader force-installed; you can"
-echo "                     still install anything else from addons.mozilla.org."
-echo "  - Amnesiac mode: 'irn-browser --ephemeral' — a RAM profile that leaves no"
-echo "                   trace (resistFingerprinting on, erased on exit/poweroff)."
-echo "  - Dark mode on by default; EQ via EasyEffects with the IRN preset at login."
-echo "  - Camera/mic/location default-deny; WebRTC local-IP leak closed; no disk cache."
-[ -n "$FF_BIN" ] && echo "  - Verify hardening at: about:policies (and about:config for prefs)."
+echo
+echo "  Sessions:   irn-browser                  everyday profile"
+echo "              irn-browser -P foia          named profile, separate cookie jar"
+echo "              irn-browser --ephemeral      burner in RAM (amber rail)"
+echo "              irn-browser --tor            burner over Tor SOCKS5 (violet rail)"
+echo "              irn-browser --kiosk URL      fullscreen, chrome stripped"
+echo "  Evidence:   irn-browser --capture URL [--zee]"
+echo "              full-page render + raw response + SHA256SUMS + manifest.json"
+echo "  Zee Zee:    irn-browser --ask \"...\"       local model, nothing leaves the box"
+echo "  Safety:     irn-browser --panic          kill browsers, scrub burner residue"
+echo "  Home page:  the IRN command center — links, keyword search (cl/foia/lii/...),"
+echo "              today's passage, live posture. Rebuilt each launch; 'irn-newtab'"
+echo "              refreshes it by hand."
+echo "  Add-ons:    uBlock Origin + Dark Reader force-installed; Multi-Account"
+echo "              Containers, ClearURLs and SingleFile offered."
+echo
+echo "Verifying the install..."
+"$BIN/irn-browser" --doctor || true
+echo
+echo "The doctor checks files on disk. The real proof is about:policies in a"
+echo "running IRN Browser — open it and confirm the policies list as Active."

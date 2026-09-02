@@ -1,0 +1,58 @@
+/* =============================================================================
+ * IRN Browser — content theme (about: pages, PDFs, plaintext, error pages).
+ *
+ * Enabled by toolkit.legacyUserProfileCustomizations.stylesheets (mozilla.cfg);
+ * copied into each profile's chrome/ by the irn-browser wrapper.
+ *
+ * Scope note: this styles Firefox's OWN pages and the raw-document viewers. It
+ * deliberately does NOT restyle arbitrary websites — that is Dark Reader's job,
+ * and blanket !important rules on the open web break court portals in ways that
+ * are very hard to debug at a filing deadline.
+ * ========================================================================== */
+
+@-moz-document url-prefix("about:blank"), url-prefix("about:newtab"),
+               url-prefix("about:home"), url-prefix("about:privatebrowsing") {
+  :root, body { background: #0c1016 !important; }
+}
+
+/* --- Plain-text documents (statutes, transcripts, .txt exhibits) ----------- */
+/* Firefox renders text/plain in a monospace pre with no margins. Court and
+ * agency plaintext runs the full window width, which is unreadable at 27". */
+@-moz-document url-prefix("data:text/plain"), media-document(all) {
+  body pre {
+    max-width: 100ch;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #d7dee6;
+  }
+}
+
+/* --- pdf.js: court filings arrive as PDFs all day -------------------------- */
+@-moz-document url-prefix("resource://pdf.js") {
+  #outerContainer { --toolbar-bg-color: #0b1a2b !important; }
+  #viewerContainer { background: #081524 !important; }
+  .toolbar, #toolbarContainer, #sidebarContainer {
+    background: #0b1a2b !important;
+    border-color: #1c2f47 !important;
+  }
+}
+
+/* --- Reader mode: long-document legibility -------------------------------- */
+@-moz-document url-prefix("about:reader") {
+  body { --main-background: #0c1016 !important; }
+  .container { max-width: 42em !important; }
+  .moz-reader-content p { line-height: 1.7 !important; }
+}
+
+/* --- Error pages ---------------------------------------------------------- */
+/* HTTPS-only mode is force-enabled, so the "Secure Site Not Available" page is
+ * a page this browser shows on purpose and often. Make it read as a policy
+ * decision rather than as a broken browser. */
+@-moz-document url-prefix("about:neterror"), url-prefix("about:certerror"),
+               url-prefix("about:httpsonlyerror") {
+  body { background: #0c1016 !important; color: #c9d1d9 !important; }
+  .title-text { color: #ffcc66 !important; }
+}

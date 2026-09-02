@@ -1,9 +1,9 @@
 #!/bin/sh
 # Wire the IRN-hardened Firefox into the image. firefox-esr is installed from
 # Debian (via the package list), so unlike the old Brave hook this needs NO
-# third-party apt repo or signing key. This hook only places the enterprise
-# policy + autoconfig into firefox-esr's install dirs (which exist by now: hooks
-# run after packages are installed) and marks the launcher executable.
+# third-party apt repo or signing key. This hook places the enterprise policy +
+# autoconfig into firefox-esr's install dirs (which exist by now: hooks run
+# after packages are installed) and marks the launchers executable.
 #
 # PRIVACY NOTE: a full browser is a data-egress path on an otherwise local-first,
 # no-network-clients appliance. It's here because a daily-driver browser was
@@ -37,13 +37,55 @@ chmod 0755 /usr/local/bin/irn-browser || true
 
 # 4. Home page. policies.json and mozilla.cfg both point the start page at
 #    file://$SRC/newtab.html; if that file is missing the browser opens on a
-#    "file not found" error, which looks like a broken image. On IRN OS the page
-#    is a flat, offline HTML file (no python3 in the image, so the irn-newtab
-#    generator used on the Garuda daily driver is not applicable here).
+#    "file not found" error, which looks like a broken image. IRN OS ships the
+#    FLAT page: python3 is on the image, but the two live panels the irn-newtab
+#    generator adds (the Reading Room passage and sable-posture.sh) are not, and
+#    pointing the policy at a per-user generated path risks a 404 home page on
+#    first boot. The page keeps the static defaults inside its IRN:SLOT markers,
+#    which is exactly what those defaults are for.
 if [ -f "$SRC/newtab.html" ]; then
 	chmod 0644 "$SRC/newtab.html"
 else
 	echo "W: $SRC/newtab.html is missing — the browser home page will 404." >&2
+fi
+
+# 5. Stylesheets. userChrome.css themes the browser UI and — the part that
+#    matters — paints a coloured rail for burner/Tor sessions so a throwaway
+#    window can never be mistaken for the everyday one. userContent.css styles
+#    Firefox's own pages, pdf.js and plaintext documents. The wrapper copies
+#    both into each profile's chrome/ at launch.
+for css in userChrome.css userContent.css; do
+	if [ -f "$SRC/$css" ]; then
+		chmod 0644 "$SRC/$css"
+	else
+		echo "W: $SRC/$css missing — the IRN theme will not apply." >&2
+	fi
+done
+
+# 6. Shell completion for irn-browser / irn-zee.
+if [ -f /usr/share/bash-completion/completions/irn-browser ]; then
+	chmod 0644 /usr/share/bash-completion/completions/irn-browser
+fi
+
+# 7. Zee Zee bridge. The image DOES ship the twin: python3 + the /opt/zee-zee
+#    code (staged by stage-extras.sh) + the local Ollama service. So --ask and
+#    --capture --zee work here, entirely on-device. The bridge searches
+#    /opt/zee-zee for zee_brain.py, which is where this image puts it.
+#    Guard anyway: without an interpreter the shebang would produce a confusing
+#    "bad interpreter" error the first time someone tried --ask.
+if [ -f /usr/local/bin/irn-zee ]; then
+	if command -v python3 >/dev/null 2>&1; then
+		chmod 0755 /usr/local/bin/irn-zee
+		if [ -f /opt/zee-zee/zee_brain.py ]; then
+			echo "P: Zee Zee bridge installed (python3 + /opt/zee-zee present)"
+		else
+			echo "P: Zee Zee bridge installed; /opt/zee-zee/zee_brain.py not staged —" \
+			     "chat still works, vision/recall will not" >&2
+		fi
+	else
+		rm -f /usr/local/bin/irn-zee
+		echo "P: no python3 in the image — Zee Zee bridge not installed" >&2
+	fi
 fi
 
 echo "P: hardened Firefox wired (add-ons enabled, telemetry/tracking off, DoH + HTTPS-only)"

@@ -33,11 +33,9 @@ fn pack_vid_pid(vid: u16, pid: u16) -> u32 {
 // enumerable on the bus. Enumeration only — we never open or read the device.
 fn usb_present(vid: u16, pid: u16) -> bool {
     match rusb::devices() {
-        Ok(list) => list.iter().any(|d| {
-            match d.device_descriptor() {
-                Ok(desc) => desc.vendor_id() == vid && desc.product_id() == pid,
-                Err(_) => false,
-            }
+        Ok(list) => list.iter().any(|d| match d.device_descriptor() {
+            Ok(desc) => desc.vendor_id() == vid && desc.product_id() == pid,
+            Err(_) => false,
         }),
         // If the bus can't be read at all, treat as "not present" so an armed
         // switch fails safe (locks) rather than silently ignoring removal.
@@ -112,13 +110,17 @@ fn arm_deadmans_switch(
         ));
     }
 
-    state.watched.store(pack_vid_pid(vid, pid), Ordering::SeqCst);
+    state
+        .watched
+        .store(pack_vid_pid(vid, pid), Ordering::SeqCst);
     state.is_armed.store(true, Ordering::SeqCst);
 
     // Reuse this same token as the insertion trigger, and persist it, so a later
     // re-insertion offers to start/unlock the app. Best-effort: never fail arming
     // if persistence hiccups.
-    state.trigger_token.store(pack_vid_pid(vid, pid), Ordering::SeqCst);
+    state
+        .trigger_token
+        .store(pack_vid_pid(vid, pid), Ordering::SeqCst);
     if let Ok(entry) = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_TRIGGER_ACCOUNT) {
         let _ = entry.set_password(&format!("{vid:04x}:{pid:04x}"));
     }
@@ -147,7 +149,8 @@ fn parse_vid_pid(s: &str) -> Result<(u16, u16), String> {
         .split_once(':')
         .ok_or_else(|| "vid_pid must be in 'vid:pid' hex form, e.g. 1050:0407".to_string())?;
     let vid = u16::from_str_radix(vid_s.trim(), 16).map_err(|_| "invalid vendor id".to_string())?;
-    let pid = u16::from_str_radix(pid_s.trim(), 16).map_err(|_| "invalid product id".to_string())?;
+    let pid =
+        u16::from_str_radix(pid_s.trim(), 16).map_err(|_| "invalid product id".to_string())?;
     Ok((vid, pid))
 }
 
@@ -160,13 +163,17 @@ fn set_usb_trigger_token(
     vid_pid: String,
 ) -> Result<String, String> {
     let (vid, pid) = parse_vid_pid(&vid_pid)?;
-    state.trigger_token.store(pack_vid_pid(vid, pid), Ordering::SeqCst);
+    state
+        .trigger_token
+        .store(pack_vid_pid(vid, pid), Ordering::SeqCst);
     let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_TRIGGER_ACCOUNT)
         .map_err(|e| format!("keychain entry error: {e}"))?;
     entry
         .set_password(&format!("{vid:04x}:{pid:04x}"))
         .map_err(|e| format!("keychain write error: {e}"))?;
-    Ok(format!("USB start-trigger set to token {vid:04x}:{pid:04x}."))
+    Ok(format!(
+        "USB start-trigger set to token {vid:04x}:{pid:04x}."
+    ))
 }
 
 /// Clears the persisted insertion-trigger token.
@@ -249,11 +256,7 @@ where
 /// Split out from `keychain_op` so the deadline behaviour is unit-testable
 /// without standing up a tauri runtime -- see the tests at the bottom of this
 /// file. Blocking, so callers must already be off the main thread.
-fn run_with_deadline<T, F>(
-    what: &str,
-    deadline: std::time::Duration,
-    f: F,
-) -> Result<T, String>
+fn run_with_deadline<T, F>(what: &str, deadline: std::time::Duration, f: F) -> Result<T, String>
 where
     F: FnOnce() -> Result<T, String> + Send + 'static,
     T: Send + 'static,
@@ -347,8 +350,7 @@ fn write_duress_trigger(base: &std::path::Path) -> Result<(), String> {
             base.display()
         ));
     }
-    std::fs::write(base.join("panic"), b"1")
-        .map_err(|e| format!("failed to arm duress wipe: {e}"))
+    std::fs::write(base.join("panic"), b"1").map_err(|e| format!("failed to arm duress wipe: {e}"))
 }
 
 /// Duress panic wipe. Fires the OS-level irreversible LUKS destruction by
@@ -573,7 +575,10 @@ async fn hosted_assistant_ask(question: String, system_prompt: String) -> Result
     let text = data
         .get("content")
         .and_then(|c| c.as_array())
-        .and_then(|arr| arr.iter().find_map(|b| b.get("text").and_then(|t| t.as_str())))
+        .and_then(|arr| {
+            arr.iter()
+                .find_map(|b| b.get("text").and_then(|t| t.as_str()))
+        })
         .map(|s| s.to_string())
         .ok_or_else(|| "hosted response had no text".to_string())?;
 
@@ -616,7 +621,9 @@ async fn send_sms_reminder(to: String, body: String) -> Result<String, String> {
         return Err("refused: empty destination number".to_string());
     }
     if !is_e164(&to) {
-        return Err("refused: destination is not a valid E.164 number (e.g. +15551234567)".to_string());
+        return Err(
+            "refused: destination is not a valid E.164 number (e.g. +15551234567)".to_string(),
+        );
     }
     if body.trim().is_empty() {
         return Err("refused: empty message body".to_string());
@@ -626,9 +633,7 @@ async fn send_sms_reminder(to: String, body: String) -> Result<String, String> {
         return Err("refused: message too long for a reminder".to_string());
     }
 
-    let url = format!(
-        "https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
-    );
+    let url = format!("https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json");
 
     let form = [
         ("To", to.as_str()),
@@ -697,7 +702,98 @@ struct HiveBridgeState {
 }
 
 const KEYCHAIN_HIVE_TOKEN_ACCOUNT: &str = "hive_bridge_token_v1";
+use std::io::{BufRead, BufReader, Write};
 #[cfg(unix)]
+use std::process::{ChildStdin, Command, Stdio};
+
+struct ZeeBridgeState {
+    stdin: Arc<Mutex<Option<ChildStdin>>>,
+}
+
+#[tauri::command]
+fn zee_bridge_request(
+    state: tauri::State<'_, ZeeBridgeState>,
+    request: serde_json::Value,
+) -> Result<(), String> {
+    let mut stdin_guard = state.stdin.lock().unwrap();
+    if let Some(stdin) = stdin_guard.as_mut() {
+        let mut bytes = serde_json::to_vec(&request).map_err(|e| e.to_string())?;
+        bytes.push(b'\n');
+        stdin.write_all(&bytes).map_err(|e| e.to_string())?;
+        stdin.flush().map_err(|e| e.to_string())?;
+        Ok(())
+    } else {
+        Err("Zee bridge sidecar is not running".into())
+    }
+}
+
+fn spawn_zee_bridge(app: &tauri::App) {
+    let app_handle = app.handle().clone();
+
+    // Find the python script
+    let paths = [
+        "/opt/zee-zee/zee_bridge.py",
+        &format!(
+            "{}/Desktop/code/zee_bridge.py",
+            std::env::var("HOME").unwrap_or_default()
+        ),
+        &format!(
+            "{}/vault/Desktop/code/zee_bridge.py",
+            std::env::var("HOME").unwrap_or_default()
+        ),
+    ];
+
+    let mut script_path = None;
+    for p in paths {
+        if std::path::Path::new(p).exists() {
+            script_path = Some(p.to_string());
+            break;
+        }
+    }
+
+    let script_path = match script_path {
+        Some(p) => p,
+        None => {
+            eprintln!("zee_bridge.py not found, sidecar disabled");
+            return;
+        }
+    };
+
+    match Command::new("python3")
+        .arg(&script_path)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+    {
+        Ok(mut child) => {
+            let stdin = child.stdin.take().unwrap();
+            let stdout = child.stdout.take().unwrap();
+
+            // store stdin in app state
+            let state = app_handle.state::<ZeeBridgeState>();
+            *state.stdin.lock().unwrap() = Some(stdin);
+
+            // read stdout
+            std::thread::spawn(move || {
+                let reader = BufReader::new(stdout);
+                for line in reader.lines() {
+                    match line {
+                        Ok(l) => {
+                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&l) {
+                                let _ = app_handle.emit("zee-bridge-response", json);
+                            }
+                        }
+                        Err(_) => break,
+                    }
+                }
+                println!("Zee bridge sidecar exited");
+            });
+        }
+        Err(e) => {
+            eprintln!("Failed to spawn zee_bridge.py: {}", e);
+        }
+    }
+}
 const HIVE_BRIDGE_SOCKET_NAME: &str = "hive_bridge.sock";
 #[cfg(unix)]
 const HIVE_BRIDGE_MAX_REQUEST_BYTES: usize = 16 * 1024; // candidates are short text
@@ -960,7 +1056,10 @@ fn spawn_hive_bridge(app: &tauri::App) {
         .app_data_dir()
         .unwrap_or_else(|_| std::env::temp_dir());
     if let Err(e) = std::fs::create_dir_all(&data_dir) {
-        eprintln!("hive bridge disabled: could not create {}: {e}", data_dir.display());
+        eprintln!(
+            "hive bridge disabled: could not create {}: {e}",
+            data_dir.display()
+        );
         return;
     }
     let socket_path = data_dir.join(HIVE_BRIDGE_SOCKET_NAME);
@@ -975,8 +1074,7 @@ fn spawn_hive_bridge(app: &tauri::App) {
             return;
         }
     };
-    if let Err(e) = std::fs::set_permissions(&socket_path, std::fs::Permissions::from_mode(0o600))
-    {
+    if let Err(e) = std::fs::set_permissions(&socket_path, std::fs::Permissions::from_mode(0o600)) {
         eprintln!("hive bridge disabled: could not restrict socket permissions: {e}");
         let _ = std::fs::remove_file(&socket_path);
         return;
@@ -1012,7 +1110,9 @@ pub fn run() {
     if let Ok(entry) = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_TRIGGER_ACCOUNT) {
         if let Ok(saved) = entry.get_password() {
             if let Ok((vid, pid)) = parse_vid_pid(&saved) {
-                usb_state.trigger_token.store(pack_vid_pid(vid, pid), Ordering::SeqCst);
+                usb_state
+                    .trigger_token
+                    .store(pack_vid_pid(vid, pid), Ordering::SeqCst);
             }
         }
     }
@@ -1021,6 +1121,9 @@ pub fn run() {
     let watched_clone = usb_state.watched.clone();
     let trigger_clone = usb_state.trigger_token.clone();
 
+    let zee_bridge_state = ZeeBridgeState {
+        stdin: Arc::new(Mutex::new(None)),
+    };
     let hive_bridge_state = HiveBridgeState {
         pending: Arc::new(Mutex::new(HashMap::new())),
     };
@@ -1029,6 +1132,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(usb_state)
         .manage(hive_bridge_state)
+        .manage(zee_bridge_state)
         .invoke_handler(tauri::generate_handler![
             arm_deadmans_switch,
             disarm_deadmans_switch,
@@ -1048,6 +1152,7 @@ pub fn run() {
             send_sms_reminder,
             trigger_duress_wipe,
             get_hive_bridge_token,
+            zee_bridge_request,
             hive_bridge_respond
         ])
         .setup(move |app| {
@@ -1155,6 +1260,7 @@ pub fn run() {
 
             #[cfg(unix)]
             spawn_hive_bridge(app);
+            spawn_zee_bridge(app);
 
             Ok(())
         })
@@ -1195,7 +1301,10 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir); // ensure it does NOT exist
 
         let res = write_duress_trigger(&dir);
-        assert!(res.is_err(), "must refuse when the IRN OS trigger dir is absent");
+        assert!(
+            res.is_err(),
+            "must refuse when the IRN OS trigger dir is absent"
+        );
         assert!(!dir.join("panic").exists(), "must not create anything");
     }
 
@@ -1236,10 +1345,12 @@ mod tests {
             Err(_) => return, // no keychain backend available in this environment
         };
         let second = get_or_create_hive_bridge_token().expect("second read should succeed");
-        assert_eq!(first, second, "token must be stable across calls, not rotated");
+        assert_eq!(
+            first, second,
+            "token must be stable across calls, not rotated"
+        );
     }
 }
-
 
 #[cfg(test)]
 mod keychain_deadline_tests {
@@ -1248,14 +1359,17 @@ mod keychain_deadline_tests {
 
     #[test]
     fn returns_value_when_the_call_completes_in_time() {
-        let r = run_with_deadline("read", Duration::from_secs(5), || Ok::<_, String>(Some("ok".to_string())));
+        let r = run_with_deadline("read", Duration::from_secs(5), || {
+            Ok::<_, String>(Some("ok".to_string()))
+        });
         assert_eq!(r.unwrap(), Some("ok".to_string()));
     }
 
     #[test]
     fn propagates_the_inner_error_unchanged() {
-        let r: Result<(), String> =
-            run_with_deadline("write", Duration::from_secs(5), || Err("keychain write error: nope".into()));
+        let r: Result<(), String> = run_with_deadline("write", Duration::from_secs(5), || {
+            Err("keychain write error: nope".into())
+        });
         assert_eq!(r.unwrap_err(), "keychain write error: nope");
     }
 
@@ -1273,7 +1387,13 @@ mod keychain_deadline_tests {
 
         let err = r.expect_err("a hanging keychain call must return Err, not Ok");
         assert!(err.contains("timed out"), "unhelpful message: {err}");
-        assert!(err.contains("keyring daemon"), "message should name the likely cause: {err}");
-        assert!(waited < Duration::from_secs(5), "gave up too late: {waited:?}");
+        assert!(
+            err.contains("keyring daemon"),
+            "message should name the likely cause: {err}"
+        );
+        assert!(
+            waited < Duration::from_secs(5),
+            "gave up too late: {waited:?}"
+        );
     }
 }

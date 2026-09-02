@@ -1,77 +1,775 @@
 #!/bin/sh
-# Launch the IRN-hardened Firefox. Picks the binary across distros:
-# firefox-esr (Debian / IRN OS) or firefox (Arch / Garuda). The hardening is the
-# enterprise policy (policies.json) + autoconfig (mozilla.cfg) installed
-# system-wide by the IRN OS build hook or install-irn-browser.sh.
+# =============================================================================
+# irn-browser — the IRN Browser launcher.
 #
-#   irn-browser [URL...]        normal launch; with no URL, opens the IRN
-#                               command center (irn-newtab).
-#   irn-browser --ephemeral     amnesiac session in a throwaway RAM profile:
-#     (--amnesiac, --burner)    resistFingerprinting on, nothing written to disk,
-#                               erased on exit and on any poweroff/panic.
+# The IRN Browser is Firefox hardened by an enterprise policy (policies.json)
+# and an autoconfig (mozilla.cfg) installed system-wide, plus this wrapper. The
+# wrapper is what turns a hardened browser into a *tool*: session modes that are
+# separated by more than good intentions, an evidence capture that produces
+# something you can hand to a lawyer, and a doctor that proves the hardening
+# actually took.
 #
-# This wrapper picks the right binary, seeds the dark userChrome, builds the
-# command center, and forwards args (URLs).
+# Run `irn-browser --help` for the full surface.
+# =============================================================================
 set -eu
 
-CHROME_SRC="/usr/local/share/irn-browser/userChrome.css"
+IRN_VERSION="2.0"
+SHARE_DIR="/usr/local/share/irn-browser"
+[ -d "$SHARE_DIR" ] || SHARE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/irn-browser"
+CHROME_SRC="$SHARE_DIR/userChrome.css"
+CONTENT_SRC="$SHARE_DIR/userContent.css"
 
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/irn-browser"
+PROFILE_ROOT="$DATA_DIR/profiles"
+CAPTURE_ROOT="${IRN_CAPTURE_DIR:-$HOME/IRN-Captures}"
+TOR_HOST="127.0.0.1"
+TOR_PORT="${IRN_TOR_PORT:-9050}"
+VPN_IFACE="${IRN_VPN_IFACE:-irn-vpn}"
+
+say()  { printf '%s\n' "$*"; }
+warn() { printf 'irn-browser: %s\n' "$*" >&2; }
+die()  { printf 'irn-browser: %s\n' "$*" >&2; exit 1; }
+
+# -----------------------------------------------------------------------------
+# Firefox discovery. Debian/IRN OS ships firefox-esr; Arch/Garuda ships firefox.
+# -----------------------------------------------------------------------------
 pick_firefox() {
   for b in firefox-esr firefox; do
     if command -v "$b" >/dev/null 2>&1; then echo "$b"; return 0; fi
   done
   return 1
 }
+need_firefox() {
+  pick_firefox || die "no Firefox binary found (looked for firefox-esr, firefox)"
+}
 
-# Best-effort: drop userChrome.css into any existing default profile so the
-# dark-UI polish applies. Non-fatal; the compact-dark theme works without it.
+# Where this Firefox keeps its policy/autoconfig, for --doctor.
+ff_libdir() {
+  case "$1" in
+    firefox-esr) echo /usr/lib/firefox-esr ;;
+    *)           for d in /usr/lib/firefox /usr/lib64/firefox /opt/firefox; do
+                   [ -d "$d" ] && { echo "$d"; return; }
+                 done; echo /usr/lib/firefox ;;
+  esac
+}
+ff_etcdir() { case "$1" in firefox-esr) echo /etc/firefox-esr ;; *) echo /etc/firefox ;; esac; }
+
+# -----------------------------------------------------------------------------
+# Seed the IRN stylesheets into a profile directory.
+# -----------------------------------------------------------------------------
+seed_chrome_into() {
+  d="$1"
+  [ -d "$d" ] || return 0
+  mkdir -p "$d/chrome" 2>/dev/null || return 0
+  [ -f "$CHROME_SRC" ]  && cp -f "$CHROME_SRC"  "$d/chrome/userChrome.css"  2>/dev/null || true
+  [ -f "$CONTENT_SRC" ] && cp -f "$CONTENT_SRC" "$d/chrome/userContent.css" 2>/dev/null || true
+}
+
+# Best-effort for the everyday profile, which Firefox manages under ~/.mozilla.
 seed_userchrome() {
   [ -f "$CHROME_SRC" ] || return 0
-  ini="$HOME/.mozilla/firefox/profiles.ini"
-  [ -f "$ini" ] || return 0
-  for d in "$HOME"/.mozilla/firefox/*.default* "$HOME"/.mozilla/firefox/*.default-esr*; do
-    [ -d "$d" ] || continue
-    mkdir -p "$d/chrome" 2>/dev/null || continue
-    [ -f "$d/chrome/userChrome.css" ] || cp "$CHROME_SRC" "$d/chrome/userChrome.css" 2>/dev/null || true
+  [ -f "$HOME/.mozilla/firefox/profiles.ini" ] || return 0
+  for d in "$HOME"/.mozilla/firefox/*.default*; do
+    [ -d "$d" ] && seed_chrome_into "$d"
   done
 }
 
-# --- Ephemeral / amnesiac mode ----------------------------------------------
-# A throwaway profile in RAM (XDG_RUNTIME_DIR / /dev/shm are tmpfs). Nothing
-# hits disk; the profile is deleted on exit and, being in RAM, is gone after any
-# poweroff or duress panic. resistFingerprinting is seeded per-profile so the
-# everyday persistent profile stays usable (RFP breaks some sites).
+# -----------------------------------------------------------------------------
+# Guards
+# -----------------------------------------------------------------------------
+# Is a TCP port listening locally? Tries ss, then netstat, then nc. If none of
+# them exist we return "unknown" (2) rather than claiming the port is closed —
+# refusing to launch because a diagnostic tool is missing is the wrong failure.
+port_open() {
+  host="$1"; port="$2"
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn 2>/dev/null | grep -qE "[[:space:]]($host|0\.0\.0\.0|\*|\[::\]):$port[[:space:]]" && return 0 || return 1
+  elif command -v netstat >/dev/null 2>&1; then
+    netstat -ltn 2>/dev/null | grep -qE "[[:space:]]($host|0\.0\.0\.0|\*):$port[[:space:]]" && return 0 || return 1
+  elif command -v nc >/dev/null 2>&1; then
+    nc -z -w1 "$host" "$port" >/dev/null 2>&1 && return 0 || return 1
+  fi
+  return 2
+}
+
+vpn_up() {
+  if command -v wg >/dev/null 2>&1 && wg show "$VPN_IFACE" >/dev/null 2>&1; then return 0; fi
+  if command -v ip >/dev/null 2>&1; then
+    ip link show "$VPN_IFACE" 2>/dev/null | grep -q 'state UNKNOWN\|state UP\|UP,LOWER_UP' && return 0
+  fi
+  [ -d "/sys/class/net/$VPN_IFACE" ] && return 0
+  return 1
+}
+
+require_vpn_guard() {
+  vpn_up && { say "VPN: $VPN_IFACE is up."; return 0; }
+  die "--require-vpn: interface '$VPN_IFACE' is not up. Bring the tunnel up first (irn-vpn up), or drop --require-vpn."
+}
+
+# -----------------------------------------------------------------------------
+# Profile prelude — the prefs every wrapper-managed profile gets.
+# $1 = profile dir, $2 = session mode label
+# -----------------------------------------------------------------------------
+write_user_js() {
+  prof="$1"; mode="$2"
+  {
+    echo "// IRN Browser — generated per launch. Do not hand-edit; rewritten each run."
+    echo "// Session mode: $mode"
+    echo 'user_pref("browser.shell.checkDefaultBrowser", false);'
+    echo 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);'
+    case "$mode" in
+      ephemeral)
+        # Armored + amnesiac. resistFingerprinting is seeded HERE and not in the
+        # everyday profile on purpose: RFP breaks video calls, timezone display
+        # and some court portals, which is a fine trade for a burner and a bad
+        # one for the profile you do casework in.
+        echo 'user_pref("irn.session.ephemeral", true);'
+        echo 'user_pref("privacy.resistFingerprinting", true);'
+        echo 'user_pref("privacy.resistFingerprinting.letterboxing", true);'
+        echo 'user_pref("browser.privatebrowsing.autostart", true);'
+        echo 'user_pref("browser.cache.disk.enable", false);'
+        echo 'user_pref("privacy.sanitize.sanitizeOnShutdown", true);'
+        echo 'user_pref("privacy.clearOnShutdown.cache", true);'
+        echo 'user_pref("privacy.clearOnShutdown.cookies", true);'
+        echo 'user_pref("privacy.clearOnShutdown.history", true);'
+        echo 'user_pref("privacy.clearOnShutdown.sessions", true);'
+        echo 'user_pref("privacy.clearOnShutdown.offlineApps", true);'
+        echo 'user_pref("signon.rememberSignons", false);'
+        echo 'user_pref("browser.formfill.enable", false);'
+        ;;
+      tor)
+        echo 'user_pref("irn.session.tor", true);'
+        echo 'user_pref("privacy.resistFingerprinting", true);'
+        echo 'user_pref("privacy.resistFingerprinting.letterboxing", true);'
+        echo 'user_pref("browser.privatebrowsing.autostart", true);'
+        echo 'user_pref("network.proxy.type", 1);'
+        echo "user_pref(\"network.proxy.socks\", \"$TOR_HOST\");"
+        echo "user_pref(\"network.proxy.socks_port\", $TOR_PORT);"
+        echo 'user_pref("network.proxy.socks_version", 5);'
+        echo 'user_pref("network.proxy.socks_remote_dns", true);'
+        echo 'user_pref("network.proxy.allow_hijacking_localhost", false);'
+        echo 'user_pref("network.dns.disabled", true);'   # DNS via the SOCKS proxy only
+        echo 'user_pref("media.peerconnection.enabled", false);'
+        echo 'user_pref("privacy.sanitize.sanitizeOnShutdown", true);'
+        ;;
+      kiosk)
+        echo 'user_pref("irn.session.kiosk", true);'
+        echo 'user_pref("browser.tabs.warnOnClose", false);'
+        ;;
+      named)
+        echo 'user_pref("irn.session.named", true);'
+        ;;
+      capture)
+        echo 'user_pref("privacy.resistFingerprinting", false);'
+        echo 'user_pref("browser.cache.disk.enable", false);'
+        echo 'user_pref("browser.privatebrowsing.autostart", true);'
+        ;;
+    esac
+  } > "$prof/user.js"
+}
+
+# A profile directory in RAM (tmpfs), erased on exit and on any poweroff/panic.
+make_ram_profile() {
+  base="${XDG_RUNTIME_DIR:-/dev/shm}"
+  [ -d "$base" ] && [ -w "$base" ] || base="/dev/shm"
+  [ -d "$base" ] && [ -w "$base" ] || base="/tmp"
+  mktemp -d "$base/irn-ff.XXXXXX"
+}
+
+# =============================================================================
+# Modes
+# =============================================================================
+
+# --- Ephemeral / burner ------------------------------------------------------
 run_ephemeral() {
-  shift # drop the mode flag
-  ff="$(pick_firefox)" || { echo "IRN Browser: no Firefox binary found" >&2; exit 1; }
-  base="${XDG_RUNTIME_DIR:-/dev/shm}"; [ -d "$base" ] || base="/tmp"
-  prof="$(mktemp -d "$base/irn-ff.XXXXXX")"
+  ff="$(need_firefox)"
+  prof="$(make_ram_profile)"
   trap 'rm -rf "$prof" 2>/dev/null || true' EXIT INT TERM
-  cat > "$prof/user.js" <<'JS'
-// Ephemeral IRN profile — armored + amnesiac, seeded fresh each launch.
-user_pref("privacy.resistFingerprinting", true);
-user_pref("privacy.resistFingerprinting.letterboxing", true);
-user_pref("browser.cache.disk.enable", false);
-user_pref("browser.privatebrowsing.autostart", true);
-user_pref("privacy.sanitize.sanitizeOnShutdown", true);
-user_pref("privacy.clearOnShutdown.cache", true);
-user_pref("privacy.clearOnShutdown.cookies", true);
-user_pref("privacy.clearOnShutdown.history", true);
-user_pref("privacy.clearOnShutdown.sessions", true);
-user_pref("privacy.clearOnShutdown.offlineApps", true);
-user_pref("signon.rememberSignons", false);
-user_pref("browser.formfill.enable", false);
-JS
-  [ -f "$CHROME_SRC" ] && { mkdir -p "$prof/chrome"; cp "$CHROME_SRC" "$prof/chrome/userChrome.css" 2>/dev/null || true; }
+  write_user_js "$prof" ephemeral
+  seed_chrome_into "$prof"
+  say "IRN Browser: burner session — profile in RAM at $prof, erased on exit."
   "$ff" --no-remote --new-instance --profile "$prof" "$@"
 }
 
-case "${1:-}" in
-  --ephemeral|--amnesiac|--burner) run_ephemeral "$@"; exit $? ;;
+# --- Tor ---------------------------------------------------------------------
+run_tor() {
+  ff="$(need_firefox)"
+  st=0; port_open "$TOR_HOST" "$TOR_PORT" || st=$?
+  case "$st" in
+    1) die "--tor: nothing is listening on $TOR_HOST:$TOR_PORT. Start Tor first (systemctl start tor), or set IRN_TOR_PORT." ;;
+    2) warn "could not check $TOR_HOST:$TOR_PORT (no ss/netstat/nc). Proceeding — if Tor is down, pages will simply fail to load rather than leak." ;;
+  esac
+  prof="$(make_ram_profile)"
+  trap 'rm -rf "$prof" 2>/dev/null || true' EXIT INT TERM
+  write_user_js "$prof" tor
+  seed_chrome_into "$prof"
+  say "IRN Browser: Tor session via SOCKS5 $TOR_HOST:$TOR_PORT — profile in RAM, erased on exit."
+  say "  Note: this is Firefox over Tor, NOT the Tor Browser. It does not give you"
+  say "  the Tor Browser's anonymity set. Use it to avoid tying a lookup to this"
+  say "  network, not to be unidentifiable to a determined adversary."
+  "$ff" --no-remote --new-instance --profile "$prof" "$@"
+}
+
+# --- Named persistent profiles ----------------------------------------------
+run_named() {
+  name="$1"; shift
+  case "$name" in
+    ""|*/*|.|..) die "--profile: bad profile name '$name'" ;;
+  esac
+  ff="$(need_firefox)"
+  prof="$PROFILE_ROOT/$name"
+  mkdir -p "$prof"
+  write_user_js "$prof" named
+  seed_chrome_into "$prof"
+  say "IRN Browser: profile '$name' ($prof)"
+  "$ff" --no-remote --new-instance --profile "$prof" "$@"
+}
+
+list_profiles() {
+  say "Managed profiles under $PROFILE_ROOT:"
+  if [ -d "$PROFILE_ROOT" ]; then
+    found=0
+    for d in "$PROFILE_ROOT"/*; do
+      [ -d "$d" ] || continue
+      found=1
+      sz="$(du -sh "$d" 2>/dev/null | cut -f1)"
+      printf '  %-20s %s\n' "$(basename "$d")" "${sz:-?}"
+    done
+    [ "$found" = 1 ] || say "  (none yet — create one with: irn-browser --profile <name>)"
+  else
+    say "  (none yet — create one with: irn-browser --profile <name>)"
+  fi
+  say ""
+  say "Firefox's own profiles (the everyday one lives here):"
+  if [ -f "$HOME/.mozilla/firefox/profiles.ini" ]; then
+    grep -E '^(Name|Path)=' "$HOME/.mozilla/firefox/profiles.ini" 2>/dev/null | sed 's/^/  /'
+  else
+    say "  (no ~/.mozilla/firefox/profiles.ini yet)"
+  fi
+}
+
+# --- Kiosk -------------------------------------------------------------------
+run_kiosk() {
+  [ $# -ge 1 ] || die "--kiosk needs a URL"
+  ff="$(need_firefox)"
+  prof="$(make_ram_profile)"
+  trap 'rm -rf "$prof" 2>/dev/null || true' EXIT INT TERM
+  write_user_js "$prof" kiosk
+  seed_chrome_into "$prof"
+  say "IRN Browser: kiosk on $1 (Ctrl+W / Alt+F4 to exit)"
+  "$ff" --no-remote --new-instance --profile "$prof" --kiosk "$@"
+}
+
+# =============================================================================
+# Evidence capture
+#
+# Takes a URL and produces a directory you can hand to a lawyer: a full-page
+# render, the raw response body and headers, and a manifest with a SHA-256 of
+# every artifact so tampering after the fact is detectable.
+#
+# HONESTY, because this is the part that would get torn apart on the stand:
+# this is a LOCAL, UNNOTARIZED capture. It attests that this machine received
+# this content at this time. It is not a third-party timestamp, it does not
+# prove the content was served to anyone else, and the render and the raw body
+# are two SEPARATE fetches which a server can answer differently. The manifest
+# says all of this in writing so the capture is never oversold by accident.
+# =============================================================================
+json_escape() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'; }
+
+# --- Zee Zee ------------------------------------------------------------------
+# The local AI twin. Resolved next to this wrapper first, because a .desktop
+# launcher often runs with a PATH that has no ~/.local/bin.
+zee_bin() {
+  z="$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")/irn-zee"
+  [ -x "$z" ] || z="$(command -v irn-zee 2>/dev/null || true)"
+  [ -n "$z" ] && [ -x "$z" ] && { echo "$z"; return 0; }
+  return 1
+}
+
+ZEE_PORT="${IRN_ZEE_PORT:-8788}"
+
+# Start the Zee Zee sidebar server if it is not already listening. Best-effort
+# and non-blocking: a browser launch must never wait on, or fail because of, the
+# AI sidebar. If this does nothing the sidebar just shows a connection error.
+zee_serve_start() {
+  z="$(zee_bin)" || return 0
+  port_open 127.0.0.1 "$ZEE_PORT" && return 0   # already up (or unknowable)
+  [ $? = 2 ] && return 0                        # cannot probe — do not double-start
+  "$z" serve --port "$ZEE_PORT" --quiet >/dev/null 2>&1 || true
+}
+
+zee_serve_stop() {
+  z="$(zee_bin)" || return 0
+  "$z" serve --stop >/dev/null 2>&1 || true
+}
+
+run_sidebar() {
+  z="$(zee_bin)" || die "--sidebar needs irn-zee, which is not installed"
+  say "Starting the Zee Zee sidebar server on 127.0.0.1:$ZEE_PORT"
+  say "  Open it in the browser with Ctrl+Alt+X, or the sidebar button."
+  "$z" serve --port "$ZEE_PORT"
+}
+
+run_ask() {
+  z="$(zee_bin)" || die "--ask needs irn-zee, which is not installed next to this wrapper or on PATH"
+  [ $# -ge 1 ] || die "--ask needs a question (or pipe one in on stdin)"
+  "$z" ask "$@"
+}
+
+capture_evidence() {
+  url=""; outdir="$CAPTURE_ROOT"; want_zee=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --out) outdir="${2:?--out needs a directory}"; shift 2 ;;
+      --zee|--ask) want_zee=1; shift ;;
+      -*)    die "--capture: unknown option '$1'" ;;
+      *)     [ -z "$url" ] && url="$1" || die "--capture takes one URL"; shift ;;
+    esac
+  done
+  [ -n "$url" ] || die "--capture needs a URL"
+  case "$url" in
+    http://*|https://*) : ;;
+    *) die "--capture: URL must start with http:// or https:// (got '$url')" ;;
+  esac
+
+  ff="$(need_firefox)"
+  command -v sha256sum >/dev/null 2>&1 || die "--capture needs sha256sum (coreutils)"
+
+  stamp_file="$(date -u +%Y%m%d-%H%M%SZ)"
+  stamp_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  slug="$(printf '%s' "$url" | sed -e 's#^https\{0,1\}://##' -e 's#[^A-Za-z0-9._-]#-#g' | cut -c1-60)"
+  dir="$outdir/$stamp_file-$slug"
+  mkdir -p "$dir" || die "--capture: cannot create $dir"
+
+  say "IRN Browser: capturing $url"
+  say "  -> $dir"
+
+  # 1. Full-page render, from a throwaway RAM profile so the capture leaves no
+  #    residue and carries no cookies from your logged-in sessions.
+  prof="$(make_ram_profile)"
+  write_user_js "$prof" capture
+  shot_status="ok"
+  "$ff" --headless --no-remote --profile "$prof" \
+        --window-size=1400,2400 \
+        --screenshot "$dir/render.png" "$url" >"$dir/render.log" 2>&1 || shot_status="failed"
+  [ -s "$dir/render.png" ] || shot_status="failed"
+  rm -rf "$prof" 2>/dev/null || true
+
+  # 2. Raw response body + headers. A separate fetch — see the honesty note.
+  fetch_status="skipped (curl not installed)"
+  fetch_tool="none"
+  if command -v curl >/dev/null 2>&1; then
+    fetch_tool="curl $(curl --version 2>/dev/null | head -1 | awk '{print $2}')"
+    if curl -sSL --compressed --max-time 60 \
+            -D "$dir/headers.txt" -o "$dir/page.html" "$url" 2>"$dir/fetch.log"; then
+      fetch_status="ok"
+    else
+      fetch_status="failed"
+    fi
+  fi
+
+  # 3. Optional: have Zee Zee read the capture. Runs on the local model, so the
+  #    page never leaves the box. Done BEFORE hashing so the summary is covered
+  #    by SHA256SUMS like every other artifact in the directory.
+  zee_status="not requested"
+  if [ "$want_zee" = 1 ]; then
+    if z="$(zee_bin)"; then
+      if [ -s "$dir/page.html" ]; then
+        say "  asking Zee Zee to read the capture (local model, nothing leaves the box)..."
+        if "$z" page "$dir/page.html" > "$dir/zee-summary.txt" 2>"$dir/zee.log"; then
+          zee_status="ok — see zee-summary.txt (a local model's reading, NOT evidence)"
+        else
+          zee_status="failed — see zee.log"
+        fi
+      else
+        zee_status="skipped — no page.html to read"
+      fi
+    else
+      zee_status="skipped — irn-zee not installed"
+    fi
+  fi
+
+  # 4. Hash every artifact, then hash the hash file itself into the manifest.
+  ( cd "$dir" && sha256sum -- * > SHA256SUMS 2>/dev/null || true )
+  sums_hash="$(sha256sum "$dir/SHA256SUMS" 2>/dev/null | awk '{print $1}')"
+
+  ff_ver="$("$ff" --version 2>/dev/null | head -1)"
+  cat > "$dir/manifest.json" <<JSON
+{
+  "tool": "irn-browser --capture",
+  "toolVersion": "$IRN_VERSION",
+  "url": "$(json_escape "$url")",
+  "capturedAtUTC": "$stamp_iso",
+  "capturedBy": "$(json_escape "${IRN_CAPTURE_OPERATOR:-unset — set IRN_CAPTURE_OPERATOR to record a custodian}")",
+  "renderer": "$(json_escape "$ff_ver") (headless, 1400x2400, throwaway RAM profile, no cookies)",
+  "renderStatus": "$shot_status",
+  "fetchTool": "$(json_escape "$fetch_tool")",
+  "fetchStatus": "$(json_escape "$fetch_status")",
+  "zeeSummary": "$(json_escape "$zee_status")",
+  "artifactDigests": "SHA256SUMS",
+  "sha256OfSHA256SUMS": "${sums_hash:-unavailable}",
+  "limitations": [
+    "This is a local, unnotarized capture. It attests that this machine received this content at this time; it is not a third-party or cryptographic timestamp.",
+    "render.png and page.html are two SEPARATE requests. A server may legitimately or deliberately answer them differently.",
+    "The render is what this Firefox drew, including any client-side JavaScript; page.html is the raw response body before scripting.",
+    "No cookies or logged-in session were used, so content behind a login is NOT captured.",
+    "SHA256SUMS detects tampering only if this manifest is preserved somewhere the tamperer cannot also edit.",
+    "zee-summary.txt, if present, is a local language model's reading of page.html. It is a research aid, not evidence, and it may be wrong. The evidence is render.png and page.html."
+  ]
+}
+JSON
+
+  say ""
+  say "  render.png     $shot_status"
+  say "  page.html      $fetch_status"
+  [ "$want_zee" = 1 ] && say "  zee-summary.txt $zee_status"
+  say "  manifest.json  written (read the limitations section before citing this)"
+  say "  SHA256SUMS     ${sums_hash:+sha256 = $sums_hash}"
+  say ""
+  say "  Verify later with:  cd '$dir' && sha256sum -c SHA256SUMS"
+  [ "$shot_status" = failed ] && warn "the render failed — see $dir/render.log"
+  return 0
+}
+
+# =============================================================================
+# Doctor — prove the hardening actually took
+# =============================================================================
+DOC_PASS=0; DOC_WARN=0; DOC_FAIL=0
+ok()   { printf '  \033[32mPASS\033[0m  %s\n' "$*"; DOC_PASS=$((DOC_PASS+1)); }
+wrn()  { printf '  \033[33mWARN\033[0m  %s\n' "$*"; DOC_WARN=$((DOC_WARN+1)); }
+bad()  { printf '  \033[31mFAIL\033[0m  %s\n' "$*"; DOC_FAIL=$((DOC_FAIL+1)); }
+info() { printf '        %s\n' "$*"; }
+
+# Is this policies.json OURS? The SupportMenu title is the marker; a stock or
+# third-party policy file will not carry it.
+is_irn_policy() { grep -q 'IRN Browser — posture & help' "$1" 2>/dev/null; }
+# An IRN policy from before v2.0 predates the SupportMenu marker. Recognise it so
+# the doctor says "stale, re-run the installer" instead of "some stranger's file".
+is_legacy_irn_policy() {
+  grep -q 'dns.quad9.net' "$1" 2>/dev/null && grep -q 'DisableTelemetry' "$1" 2>/dev/null
+}
+
+run_doctor() {
+  say "IRN Browser doctor (v$IRN_VERSION)"
+  say ""
+
+  say "Browser"
+  if ff="$(pick_firefox)"; then
+    ok "$ff found — $("$ff" --version 2>/dev/null | head -1)"
+  else
+    bad "no Firefox binary (looked for firefox-esr, firefox)"
+    say ""; say "Nothing else can be checked without a browser."; return 1
+  fi
+  LIB="$(ff_libdir "$ff")"; ETC="$(ff_etcdir "$ff")"
+  info "install dir: $LIB"
+
+  say ""
+  say "Enterprise policy"
+  policy_found=0
+  for p in "$LIB/distribution/policies.json" "$ETC/policies/policies.json"; do
+    if [ -f "$p" ]; then
+      policy_found=1
+      if is_irn_policy "$p"; then
+        ok "IRN policy (current) present: $p"
+      elif is_legacy_irn_policy "$p"; then
+        wrn "$p is an IRN policy from BEFORE v2.0 — no bookmarks, search keywords or cert hardening. Re-run install-irn-browser.sh"
+      else
+        wrn "a policies.json is at $p but it is not an IRN one — it will shadow or conflict"
+      fi
+      if command -v python3 >/dev/null 2>&1; then
+        python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$p" 2>/dev/null \
+          && ok "valid JSON: $(basename "$(dirname "$p")")/policies.json" \
+          || bad "INVALID JSON: $p — Firefox will ignore the whole file (check about:policies > Errors)"
+      fi
+    fi
+  done
+  [ "$policy_found" = 1 ] || bad "no policies.json in $LIB/distribution/ or $ETC/policies/ — the browser is NOT hardened"
+
+  say ""
+  say "Autoconfig"
+  if [ -f "$LIB/defaults/pref/local-settings.js" ]; then
+    grep -q 'mozilla.cfg' "$LIB/defaults/pref/local-settings.js" 2>/dev/null \
+      && ok "loader present and points at mozilla.cfg" \
+      || bad "local-settings.js present but does not reference mozilla.cfg"
+  else
+    bad "missing $LIB/defaults/pref/local-settings.js — mozilla.cfg will never load"
+  fi
+  if [ -f "$LIB/mozilla.cfg" ]; then
+    head -1 "$LIB/mozilla.cfg" | grep -q '^//' \
+      && ok "mozilla.cfg present, first line is a comment (required)" \
+      || bad "mozilla.cfg's first line is NOT a comment — Firefox silently drops the first pref"
+    n=$(grep -c '^\(lockPref\|defaultPref\)' "$LIB/mozilla.cfg" 2>/dev/null || echo 0)
+    info "$n prefs declared"
+  else
+    bad "missing $LIB/mozilla.cfg"
+  fi
+
+  say ""
+  say "Start page"
+  home_path="$SHARE_DIR/newtab.html"
+  if [ -f "$home_path" ]; then ok "command center present: $home_path"
+  else wrn "no newtab.html at $home_path — the home page will show a file-not-found"; fi
+  if [ "$policy_found" = 1 ]; then
+    ref="$(grep -o 'file://[^"]*newtab.html' "$LIB/distribution/policies.json" 2>/dev/null | head -1)"
+    if [ -n "$ref" ]; then
+      target="${ref#file://}"
+      [ -f "$target" ] && ok "policy home page resolves: $target" \
+                       || bad "policy points the home page at $target, which does not exist"
+    fi
+  fi
+
+  say ""
+  say "Stylesheets"
+  [ -f "$CHROME_SRC" ]  && ok "userChrome.css available at $CHROME_SRC"  || wrn "no userChrome.css at $CHROME_SRC"
+  [ -f "$CONTENT_SRC" ] && ok "userContent.css available at $CONTENT_SRC" || wrn "no userContent.css at $CONTENT_SRC"
+  seeded=0
+  for d in "$HOME"/.mozilla/firefox/*.default*; do
+    [ -f "$d/chrome/userChrome.css" ] && seeded=$((seeded+1))
+  done
+  [ "$seeded" -gt 0 ] && ok "$seeded everyday profile(s) have userChrome.css seeded" \
+                      || wrn "no everyday profile has userChrome.css yet (launch irn-browser once)"
+
+  say ""
+  say "Session modes"
+  [ -d "$PROFILE_ROOT" ] && ok "managed profile root: $PROFILE_ROOT" \
+                         || info "no managed profiles yet ($PROFILE_ROOT)"
+  ram="${XDG_RUNTIME_DIR:-/dev/shm}"
+  if [ -d "$ram" ] && [ -w "$ram" ]; then
+    if command -v findmnt >/dev/null 2>&1 && findmnt -no FSTYPE "$ram" 2>/dev/null | grep -q tmpfs; then
+      ok "burner profiles land on tmpfs ($ram) — RAM only, gone on poweroff"
+    else
+      wrn "$ram is writable but could not be confirmed as tmpfs — burner profiles may touch disk"
+    fi
+  else
+    wrn "no writable \$XDG_RUNTIME_DIR or /dev/shm — burner mode will fall back to /tmp (may be on disk)"
+  fi
+  ts=0; port_open "$TOR_HOST" "$TOR_PORT" || ts=$?
+  case "$ts" in
+    0) ok "Tor SOCKS5 reachable on $TOR_HOST:$TOR_PORT — --tor is available" ;;
+    1) info "Tor not listening on $TOR_HOST:$TOR_PORT — --tor will refuse to launch" ;;
+    2) info "cannot probe $TOR_HOST:$TOR_PORT (no ss/netstat/nc)" ;;
+  esac
+  vpn_up && ok "VPN interface '$VPN_IFACE' is up" \
+         || info "VPN interface '$VPN_IFACE' is down — --require-vpn would refuse to launch"
+
+  say ""
+  say "Zee Zee (local AI twin)"
+  if z="$(zee_bin)"; then
+    ok "bridge present: $z"
+    zs="$("$z" brief --json 2>/dev/null || echo '{}')"
+    if printf '%s' "$zs" | grep -q '"available": *true'; then
+      ok "Zee Zee is answering — $(printf '%s' "$zs" | sed -n 's/.*"model": *"\([^"]*\)".*/\1/p')"
+      printf '%s' "$zs" | grep -q '"cloudModel": *true' \
+        && wrn "the selected model is a CLOUD model — prompts would leave the device"
+    else
+      info "Zee Zee is offline (no Ollama). --ask and --capture --zee will say so and stop."
+    fi
+    zp=0; port_open 127.0.0.1 "$ZEE_PORT" || zp=$?
+    case "$zp" in
+      0) ok "sidebar server listening on 127.0.0.1:$ZEE_PORT" ;;
+      1) info "sidebar server not running — the wrapper starts it on launch" ;;
+      2) info "cannot probe 127.0.0.1:$ZEE_PORT (no ss/netstat/nc)" ;;
+    esac
+  else
+    info "irn-zee not installed — --ask and --capture --zee unavailable"
+  fi
+
+  say ""
+  say "Capture"
+  command -v sha256sum >/dev/null 2>&1 && ok "sha256sum available — --capture can digest artifacts" \
+                                       || bad "no sha256sum — --capture cannot produce a manifest"
+  command -v curl >/dev/null 2>&1 && ok "curl available — --capture will save the raw response too" \
+                                  || wrn "no curl — --capture will save only the render, not page.html"
+
+  say ""
+  printf 'Summary: %d pass, %d warn, %d fail\n' "$DOC_PASS" "$DOC_WARN" "$DOC_FAIL"
+  say ""
+  say "This checks the FILES on disk. It cannot see what Firefox actually applied —"
+  say "for that, open about:policies (Active tab, and Errors tab) in a running"
+  say "IRN Browser. Nothing here is proof until that page has been read."
+  [ "$DOC_FAIL" -gt 0 ] && return 1
+  return 0
+}
+
+# =============================================================================
+# Panic — close everything and scrub the residue
+# =============================================================================
+run_panic() {
+  say "IRN Browser: panic — closing browsers and scrubbing session residue."
+  for b in firefox-esr firefox; do
+    pkill -x "$b" 2>/dev/null || true
+  done
+  sleep 1
+  for b in firefox-esr firefox; do
+    pkill -9 -x "$b" 2>/dev/null || true
+  done
+  zee_serve_stop
+  n=0
+  for base in "${XDG_RUNTIME_DIR:-}" /dev/shm /tmp; do
+    [ -n "$base" ] && [ -d "$base" ] || continue
+    for d in "$base"/irn-ff.*; do
+      [ -d "$d" ] || continue
+      rm -rf "$d" 2>/dev/null && n=$((n+1)) || true
+    done
+  done
+  say "  killed browser processes; stopped the Zee Zee sidebar server;"
+  say "  removed $n burner profile(s)."
+  say ""
+  say "  NOT touched: the everyday profile (~/.mozilla) and managed profiles"
+  say "  ($PROFILE_ROOT). Those are your working history — a panic button that"
+  say "  silently deletes casework bookmarks is a footgun, not a safety feature."
+  say "  To wipe those too:  rm -rf ~/.mozilla '$PROFILE_ROOT'"
+  say ""
+  say "  This is the BROWSER panic. The disk-level duress wipe is separate —"
+  say "  see SECURITY-FEATURES.md."
+}
+
+# =============================================================================
+# Help
+# =============================================================================
+show_help() {
+  cat <<'EOF'
+irn-browser — the IRN Browser (hardened Firefox)
+
+USAGE
+  irn-browser [URL...]                  everyday session (persistent profile)
+  irn-browser -P NAME [URL...]          named work profile, kept between runs
+  irn-browser --ephemeral [URL...]      burner: throwaway profile in RAM
+  irn-browser --tor [URL...]            burner routed through Tor's SOCKS5
+  irn-browser --kiosk URL               fullscreen, chrome stripped
+  irn-browser --capture URL [--out DIR] evidence capture with hashes
+  irn-browser --ask "question"           ask Zee Zee (local model, on-device)
+  irn-browser --zee                      is Zee Zee reachable, on what model
+  irn-browser --sidebar                  run the sidebar server in the foreground
+  irn-browser --doctor                  verify the hardening actually took
+  irn-browser --panic                   kill browsers, scrub burner residue
+  irn-browser --list-profiles           what profiles exist and how big
+
+MODIFIERS
+  --require-vpn        refuse to launch unless the WireGuard interface is up
+                       (default 'irn-vpn'; override with IRN_VPN_IFACE)
+
+SESSION MODES — pick by what must not survive
+  everyday    History, logins and bookmarks are kept. This is where casework
+              research lives, because losing your tab of open dockets every
+              evening is how people stop using the hardened browser at all.
+  -P NAME     Same durability, separate cookie jar and history. One per matter,
+              agency or persona: `-P foia`, `-P personal`. They cannot see each
+              other's sessions.
+  --ephemeral Profile lives in tmpfs. resistFingerprinting and letterboxing on,
+              permanent private browsing, everything cleared at shutdown, and
+              the directory is deleted on exit — so it is also gone after any
+              poweroff or duress wipe. The window wears an amber rail.
+  --tor       Ephemeral, plus SOCKS5 through a local Tor daemon with remote DNS
+              and WebRTC off. Violet rail. NOT the Tor Browser — see below.
+  --kiosk     Ephemeral with the chrome collapsed. For a screen someone else
+              stands in front of.
+
+WHAT --tor IS AND IS NOT
+  It is Firefox over Tor. Your traffic leaves via a Tor exit, so a lookup is not
+  tied to this network or this address. It is NOT the Tor Browser: you do not
+  get the Tor Browser's anonymity set, and a site fingerprinting hard can tell
+  you apart from Tor Browser users. Use it to break the link between a search
+  and this office. Do not use it as identity protection against an adversary
+  who is specifically hunting you.
+
+EVIDENCE CAPTURE
+  irn-browser --capture https://example.gov/notice
+  Writes a timestamped directory containing render.png (headless full-page
+  render, no cookies), page.html + headers.txt (raw response), SHA256SUMS, and
+  manifest.json. The manifest states its own limitations in writing — read them
+  before citing a capture. Set IRN_CAPTURE_OPERATOR to record a custodian.
+  Verify a capture later with: sha256sum -c SHA256SUMS
+
+ZEE ZEE — the local twin, in the browser
+  irn-browser --ask "what does 42 CFR Part 2 say about court orders?"
+  irn-browser --capture URL --zee
+
+  --ask sends the question to Zee Zee running on local Ollama. Nothing leaves
+  the device: the bridge calls Ollama directly and REFUSES a claude-* or
+  gemini-* model, because Brain.chat() would otherwise route those to Anthropic
+  or Google. It also never exposes Brain.operate() — the browser gets chat,
+  vision and read-only recall, never the filesystem agent tools.
+
+  Zee Zee also gets a REAL Firefox sidebar. Firefox's native AI-chatbot sidebar
+  is just a browser pointed at a provider URL, so `irn-zee serve` answers on
+  127.0.0.1:8788 and mozilla.cfg points the sidebar at it — no extension, no
+  Mozilla signing, no patched binary. Open it with Ctrl+Alt+X. Select text and
+  use the AI shortcut, or right-click, and the prompt arrives there. The wrapper
+  starts the server on launch; --panic stops it.
+
+  --capture --zee has Zee Zee read the captured page.html and writes
+  zee-summary.txt into the capture directory, hashed alongside everything else.
+  That summary is a research aid, NOT evidence: a local model can be wrong, and
+  the manifest says so. The evidence is render.png and page.html.
+
+  NO PHI in prompts. Zee Zee shares the desktop twin's memory store, which is
+  not the encrypted vault. Client records belong in Sanctuary.
+
+ENVIRONMENT
+  IRN_CAPTURE_DIR       where captures go (default ~/IRN-Captures)
+  IRN_ZEE_MODEL         Ollama model Zee Zee answers with
+  IRN_ZEE_ALLOW_CLOUD   set to 1 to permit a cloud model (sends data off-box)
+  IRN_CAPTURE_OPERATOR  custodian name recorded in a capture manifest
+  IRN_TOR_PORT          Tor SOCKS port (default 9050)
+  IRN_VPN_IFACE         interface --require-vpn checks (default irn-vpn)
+
+VERIFY THE HARDENING
+  irn-browser --doctor   checks the files on disk
+  about:policies         what Firefox actually applied — the only real proof
+  about:config           spot-check locked prefs
+
+Any option not listed above is passed straight through to Firefox, so
+--private-window, --new-window and --search all work as usual.
+EOF
+}
+
+# =============================================================================
+# Main
+# =============================================================================
+MODE=""
+PROFILE_NAME=""
+REQUIRE_VPN=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --require-vpn)   REQUIRE_VPN=1; shift ;;
+    -h|--help)       show_help; exit 0 ;;
+    -V|--version)    say "irn-browser $IRN_VERSION"
+                     ffv="$(pick_firefox || true)"
+                     [ -n "$ffv" ] && say "  on $("$ffv" --version 2>/dev/null | head -1)"
+                     exit 0 ;;
+    --doctor)        shift; run_doctor; exit $? ;;
+    --panic)         run_panic; exit 0 ;;
+    --list-profiles) list_profiles; exit 0 ;;
+    --capture)       shift; capture_evidence "$@"; exit $? ;;
+    --ask)           shift; run_ask "$@"; exit $? ;;
+    --sidebar)       shift; run_sidebar "$@"; exit $? ;;
+    --zee)           shift; z="$(zee_bin)" || die "irn-zee is not installed"
+                     "$z" status; exit $? ;;
+    --ephemeral|--amnesiac|--burner) shift; MODE=ephemeral; break ;;
+    --tor)           shift; MODE=tor; break ;;
+    --kiosk)         shift; MODE=kiosk; break ;;
+    -P|--profile)
+      [ $# -ge 2 ] || die "$1 needs a profile name (try --list-profiles)"
+      PROFILE_NAME="$2"; shift 2; MODE=named; break ;;
+    *) break ;;
+  esac
+done
+
+[ "$REQUIRE_VPN" = 1 ] && require_vpn_guard
+
+case "$MODE" in
+  ephemeral) run_ephemeral "$@"; exit $? ;;
+  tor)       run_tor       "$@"; exit $? ;;
+  kiosk)     run_kiosk     "$@"; exit $? ;;
+  named)     run_named "$PROFILE_NAME" "$@"; exit $? ;;
 esac
 
+# --- Everyday session --------------------------------------------------------
 seed_userchrome
-ff="$(pick_firefox)" || { echo "IRN Browser: no Firefox binary found (looked for firefox-esr, firefox)" >&2; exit 1; }
+zee_serve_start
+ff="$(need_firefox)"
 
 # Refresh the command center (the configured home page) so its passage + posture
 # are current, then launch. Resolve the generator next to this wrapper first —

@@ -8,29 +8,45 @@
     "DisableFormHistory": true,
     "DisableDefaultBrowserAgent": true,
     "DisableSetDesktopBackground": true,
+    "DisableProfileImport": true,
+    "DisableAppUpdate": true,
     "PasswordManagerEnabled": false,
     "OfferToSaveLogins": false,
     "SearchSuggestEnabled": false,
     "NetworkPrediction": false,
     "PromptForDownloadLocation": true,
-
+    "DisableDeveloperTools": false,
+    "TranslateEnabled": true,
     "HttpsOnlyMode": "force_enabled",
     "DNSOverHTTPS": {
       "Enabled": true,
       "ProviderURL": "https://dns.quad9.net/dns-query",
+      "Fallback": false,
       "Locked": true
     },
-
+    "Certificates": {
+      "ImportEnterpriseRoots": false
+    },
+    "EncryptedMediaExtensions": {
+      "Enabled": false,
+      "Locked": false
+    },
+    "PDFjs": {
+      "Enabled": true,
+      "EnablePermissions": false
+    },
     "EnableTrackingProtection": {
       "Value": true,
       "Locked": true,
       "Cryptomining": true,
-      "Fingerprinting": true
+      "Fingerprinting": true,
+      "EmailTracking": true
     },
     "Cookies": {
-      "Behavior": "reject-tracker-and-partition-foreign"
+      "Behavior": "reject-tracker-and-partition-foreign",
+      "BehaviorPrivateBrowsing": "reject-tracker-and-partition-foreign",
+      "Locked": false
     },
-
     "ExtensionUpdate": true,
     "InstallAddonsPermission": {
       "Default": true
@@ -46,9 +62,20 @@
       "addon@darkreader.org": {
         "installation_mode": "force_installed",
         "install_url": "https://addons.mozilla.org/firefox/downloads/latest/darkreader/latest.xpi"
+      },
+      "@testpilot-containers": {
+        "installation_mode": "normal_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/multi-account-containers/latest.xpi"
+      },
+      "{74145f27-f039-47ce-a470-a662b129930a}": {
+        "installation_mode": "normal_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/clearurls/latest.xpi"
+      },
+      "{531906d3-e22f-4a6c-a102-8057b88a1a63}": {
+        "installation_mode": "normal_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/single-file/latest.xpi"
       }
     },
-
     "FirefoxHome": {
       "Search": true,
       "TopSites": true,
@@ -74,12 +101,257 @@
       "ImproveSuggest": false,
       "Locked": true
     },
-
     "SearchEngines": {
       "Default": "DuckDuckGo",
-      "PreventInstalls": false
+      "PreventInstalls": false,
+      "Add": [
+        {
+          "Name": "CourtListener",
+          "Alias": "cl",
+          "Description": "Free case law, dockets and oral argument (Free Law Project)",
+          "Method": "GET",
+          "URLTemplate": "https://www.courtlistener.com/?q={searchTerms}"
+        },
+        {
+          "Name": "RECAP Dockets",
+          "Alias": "recap",
+          "Description": "Federal dockets mirrored from PACER — search before you pay",
+          "Method": "GET",
+          "URLTemplate": "https://www.courtlistener.com/?type=r&q={searchTerms}"
+        },
+        {
+          "Name": "Cornell LII",
+          "Alias": "lii",
+          "Description": "US Code, CFR and Supreme Court opinions",
+          "Method": "GET",
+          "URLTemplate": "https://www.law.cornell.edu/search/site/{searchTerms}"
+        },
+        {
+          "Name": "Google Scholar — case law",
+          "Alias": "scholar",
+          "Description": "Case law search, opinions only",
+          "Method": "GET",
+          "URLTemplate": "https://scholar.google.com/scholar?as_sdt=2006&q={searchTerms}"
+        },
+        {
+          "Name": "MuckRock",
+          "Alias": "foia",
+          "Description": "Filed FOIA requests and released documents",
+          "Method": "GET",
+          "URLTemplate": "https://www.muckrock.com/search/?q={searchTerms}"
+        },
+        {
+          "Name": "Virginia Courts CIS",
+          "Alias": "va",
+          "Description": "Virginia general district / circuit court case information",
+          "Method": "GET",
+          "URLTemplate": "https://eapps.courts.state.va.us/gdcourts/searchLanding.do?q={searchTerms}"
+        },
+        {
+          "Name": "Federal Register",
+          "Alias": "fedreg",
+          "Description": "Rules, proposed rules and notices — comment deadlines",
+          "Method": "GET",
+          "URLTemplate": "https://www.federalregister.gov/documents/search?conditions%5Bterm%5D={searchTerms}"
+        },
+        {
+          "Name": "Wayback Machine",
+          "Alias": "wb",
+          "Description": "Archived copies of a URL — the page as it was",
+          "Method": "GET",
+          "URLTemplate": "https://web.archive.org/web/*/{searchTerms}"
+        },
+        {
+          "Name": "Movement Advancement Project",
+          "Alias": "map",
+          "Description": "State-by-state LGBTQ+ policy tallies",
+          "Method": "GET",
+          "URLTemplate": "https://www.lgbtmap.org/search?q={searchTerms}"
+        }
+      ]
     },
-
+    "DisplayBookmarksToolbar": "newtab",
+    "ShowHomeButton": true,
+    "ManagedBookmarks": [
+      {
+        "toplevel_name": "IRN"
+      },
+      {
+        "name": "Courts & dockets",
+        "children": [
+          {
+            "name": "CourtListener",
+            "url": "https://www.courtlistener.com"
+          },
+          {
+            "name": "PACER",
+            "url": "https://pacer.uscourts.gov"
+          },
+          {
+            "name": "Virginia Courts",
+            "url": "https://www.vacourts.gov"
+          },
+          {
+            "name": "VA case information (CIS)",
+            "url": "https://eapps.courts.state.va.us/gdcourts"
+          },
+          {
+            "name": "Maryland Judiciary Case Search",
+            "url": "https://casesearch.courts.state.md.us/casesearch/"
+          },
+          {
+            "name": "US Supreme Court docket",
+            "url": "https://www.supremecourt.gov/docket/docket.aspx"
+          }
+        ]
+      },
+      {
+        "name": "Records & FOIA",
+        "children": [
+          {
+            "name": "MuckRock",
+            "url": "https://www.muckrock.com"
+          },
+          {
+            "name": "FOIA.gov",
+            "url": "https://www.foia.gov"
+          },
+          {
+            "name": "Virginia FOIA Council",
+            "url": "https://foiacouncil.dls.virginia.gov"
+          },
+          {
+            "name": "DocumentCloud",
+            "url": "https://www.documentcloud.org"
+          },
+          {
+            "name": "Wayback Machine",
+            "url": "https://web.archive.org"
+          }
+        ]
+      },
+      {
+        "name": "Legal research",
+        "children": [
+          {
+            "name": "Cornell LII",
+            "url": "https://www.law.cornell.edu"
+          },
+          {
+            "name": "Code of Virginia",
+            "url": "https://law.lis.virginia.gov/vacode/"
+          },
+          {
+            "name": "eCFR",
+            "url": "https://www.ecfr.gov"
+          },
+          {
+            "name": "Federal Register",
+            "url": "https://www.federalregister.gov"
+          },
+          {
+            "name": "Google Scholar — case law",
+            "url": "https://scholar.google.com/?as_sdt=2006"
+          },
+          {
+            "name": "42 CFR Part 2",
+            "url": "https://www.ecfr.gov/current/title-42/chapter-I/subchapter-A/part-2"
+          }
+        ]
+      },
+      {
+        "name": "Advocacy & referral",
+        "children": [
+          {
+            "name": "Advocates for Trans Equality",
+            "url": "https://transequality.org"
+          },
+          {
+            "name": "Movement Advancement Project",
+            "url": "https://www.lgbtmap.org"
+          },
+          {
+            "name": "Lambda Legal",
+            "url": "https://lambdalegal.org"
+          },
+          {
+            "name": "National Center for Lesbian Rights",
+            "url": "https://www.nclrights.org"
+          },
+          {
+            "name": "Virginia Legal Aid",
+            "url": "https://www.valegalaid.org"
+          },
+          {
+            "name": "SAMHSA treatment locator",
+            "url": "https://findtreatment.gov"
+          }
+        ]
+      },
+      {
+        "name": "IRN internal",
+        "children": [
+          {
+            "name": "Sanctuary (local)",
+            "url": "http://localhost:5173"
+          },
+          {
+            "name": "IRN site",
+            "url": "https://theezeeohh.github.io/injusticereformnetwork/"
+          },
+          {
+            "name": "Notion back office",
+            "url": "https://www.notion.so"
+          },
+          {
+            "name": "Command center",
+            "url": "file:///usr/local/share/irn-browser/newtab.html"
+          }
+        ]
+      },
+      {
+        "name": "Published sites (GitHub Pages)",
+        "children": [
+          {
+            "name": "IRN — public site",
+            "url": "https://theezeeohh.github.io/injusticereformnetwork/"
+          },
+          {
+            "name": "IRN Criminal Injustice",
+            "url": "https://theezeeohh.github.io/irn-criminal-injustice/"
+          },
+          {
+            "name": "IRN Prompt Library",
+            "url": "https://theezeeohh.github.io/irn-prompt-library/"
+          },
+          {
+            "name": "Sanctuary v21",
+            "url": "https://theezeeohh.github.io/sanctuary/"
+          }
+        ]
+      },
+      {
+        "name": "Verify this browser",
+        "children": [
+          {
+            "name": "about:policies — what took effect",
+            "url": "about:policies"
+          },
+          {
+            "name": "Cover Your Tracks",
+            "url": "https://coveryourtracks.eff.org"
+          },
+          {
+            "name": "DNS leak test",
+            "url": "https://www.dnsleaktest.com"
+          },
+          {
+            "name": "Quad9 connectivity check",
+            "url": "https://on.quad9.net"
+          }
+        ]
+      }
+    ],
     "OverrideFirstRunPage": "",
     "OverridePostUpdatePage": "",
     "Homepage": {
@@ -88,13 +360,30 @@
       "Locked": false
     },
     "NewTabPage": true,
-
+    "SupportMenu": {
+      "Title": "IRN Browser — posture & help",
+      "URL": "file:///usr/local/share/irn-browser/newtab.html",
+      "AccessKey": "I"
+    },
     "Permissions": {
-      "Camera": { "BlockNewRequests": true },
-      "Microphone": { "BlockNewRequests": true },
-      "Location": { "BlockNewRequests": true },
-      "Notifications": { "BlockNewRequests": true },
-      "Autoplay": { "Default": "block-audio-video" }
+      "Camera": {
+        "BlockNewRequests": true
+      },
+      "Microphone": {
+        "BlockNewRequests": true
+      },
+      "Location": {
+        "BlockNewRequests": true
+      },
+      "Notifications": {
+        "BlockNewRequests": true
+      },
+      "VirtualReality": {
+        "BlockNewRequests": true
+      },
+      "Autoplay": {
+        "Default": "block-audio-video"
+      }
     }
   }
 }

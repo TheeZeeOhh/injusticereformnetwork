@@ -1,29 +1,180 @@
-/* IRN Browser — dark-UI polish. Enabled via
- * toolkit.legacyUserProfileCustomizations.stylesheets (set in mozilla.cfg).
- * Copied into each profile's chrome/userChrome.css by the irn-browser wrapper
- * on first launch. Deliberately minimal: the built-in compact-dark theme does
- * the heavy lifting; this just deepens the palette to IRN's blue-black. */
+/* =============================================================================
+ * IRN Browser — chrome theme.
+ *
+ * Enabled by toolkit.legacyUserProfileCustomizations.stylesheets (mozilla.cfg).
+ * The irn-browser wrapper copies this into each profile's chrome/ on launch.
+ * The built-in compact-dark theme does the heavy lifting; this deepens the
+ * palette to IRN blue-black and — the part that actually matters — makes the
+ * session MODE unmistakable at a glance.
+ *
+ * Mode indicator: the wrapper sets a boolean pref per session mode, and
+ * userChrome.css can branch on prefs via @media (-moz-bool-pref: ...). So a
+ * burner session does not merely behave differently, it LOOKS different, and
+ * you cannot mistake it for the everyday profile at 2am.
+ *
+ *   irn.session.ephemeral  -> amber rail + "BURNER / RAM ONLY" badge
+ *   irn.session.tor        -> violet rail + "TOR" badge
+ *   irn.session.kiosk      -> chrome stripped down
+ * ========================================================================== */
 
 :root {
-  --irn-bg: #0b1a2b;
-  --irn-bg-elev: #10233a;
-  --irn-accent: #7ab8ff;
+  --irn-bg:         #0b1a2b;
+  --irn-bg-elev:    #10233a;
+  --irn-bg-sunken:  #081524;
+  --irn-border:     #1c2f47;
+  --irn-accent:     #7ab8ff;
+  --irn-accent-dim: #4d86c8;
+  --irn-text:       #d7dee6;
+  --irn-text-dim:   #8a99ab;
+  --irn-amber:      #ffcc66;
+  --irn-violet:     #b98cff;
+  --irn-green:      #7ad38a;
 }
 
-/* Toolbar + tab strip in IRN blue-black rather than Firefox grey. */
+/* --- Toolbars ------------------------------------------------------------- */
 #navigator-toolbox,
 #nav-bar,
 #TabsToolbar,
 #PersonalToolbar {
   background-color: var(--irn-bg) !important;
+  background-image: none !important;
 }
+#navigator-toolbox { border-bottom: 1px solid var(--irn-border) !important; }
+#nav-bar { box-shadow: none !important; }
 
-/* Active tab a touch lighter so it reads as raised. */
+/* --- Tabs ---------------------------------------------------------------- */
+/* Active tab a touch lighter so it reads as raised, with an accent underline. */
 .tabbrowser-tab[selected] .tab-background {
   background-color: var(--irn-bg-elev) !important;
+  background-image: none !important;
+  border-radius: 8px 8px 0 0 !important;
+  box-shadow: inset 0 -2px 0 0 var(--irn-accent) !important;
+}
+.tabbrowser-tab:not([selected]):hover .tab-background {
+  background-color: #0e1f33 !important;
+}
+.tab-label { color: var(--irn-text) !important; }
+.tabbrowser-tab:not([selected]) .tab-label { color: var(--irn-text-dim) !important; }
+
+/* Container tabs: widen the identity stripe. A one-pixel line is not enough
+ * when the whole point is knowing which cookie jar you are typing into. */
+.tabbrowser-tab[usercontextid] .tab-context-line {
+  height: 3px !important;
+  margin: 0 6px !important;
+  border-radius: 2px !important;
 }
 
-/* URL bar accent on focus. */
+/* --- URL bar ------------------------------------------------------------- */
+#urlbar,
+#searchbar {
+  background-color: var(--irn-bg-sunken) !important;
+  border: 1px solid var(--irn-border) !important;
+}
 #urlbar[focused="true"] {
   outline: 1px solid var(--irn-accent) !important;
+  outline-offset: -1px;
+  border-color: var(--irn-accent) !important;
+}
+/* The domain in full strength, the rest dimmed — read the host first. */
+#urlbar-input::selection { background-color: var(--irn-accent-dim) !important; }
+#identity-box[pageproxystate="valid"].notSecureText #identity-icon-label,
+#identity-box[pageproxystate="valid"].httpsOnlyErrorPage #identity-icon-label {
+  color: var(--irn-amber) !important;
+}
+
+/* --- Panels, menus, findbar, sidebar ------------------------------------- */
+panel, menupopup, .panel-arrowcontent {
+  --panel-background: var(--irn-bg-elev) !important;
+  --panel-border-color: var(--irn-border) !important;
+}
+findbar { background-color: var(--irn-bg) !important;
+          border-top: 1px solid var(--irn-border) !important; }
+#sidebar-box, #sidebar-header {
+  background-color: var(--irn-bg) !important;
+  color: var(--irn-text) !important;
+}
+#PersonalToolbar .bookmark-item { color: var(--irn-text-dim) !important; }
+#PersonalToolbar .bookmark-item:hover { color: var(--irn-accent) !important; }
+
+/* =============================================================================
+ * Session-mode rails
+ *
+ * A 3px rail across the very top of the window plus a badge in the tab strip.
+ * ::before on #navigator-toolbox is used for the rail so it sits above every
+ * toolbar regardless of which ones are visible.
+ * ========================================================================== */
+
+#navigator-toolbox::before {
+  content: "";
+  display: none;
+  height: 3px;
+  width: 100%;
+  order: -1;
+}
+
+/* Firefox's own private-browsing windows (irn-browser --private-window). */
+:root[privatebrowsingmode="temporary"] #navigator-toolbox::before {
+  display: block;
+  background: linear-gradient(90deg, var(--irn-violet), var(--irn-accent));
+}
+
+/* --- Burner / ephemeral: amber -------------------------------------------- */
+@media (-moz-bool-pref: "irn.session.ephemeral") {
+  #navigator-toolbox::before {
+    display: block;
+    background: repeating-linear-gradient(
+      135deg, var(--irn-amber) 0 12px, #a8801f 12px 24px);
+  }
+  #TabsToolbar::after {
+    content: "BURNER · RAM ONLY";
+    color: #1a1204;
+    background: var(--irn-amber);
+    font: 600 9px/1 system-ui, sans-serif;
+    letter-spacing: 1.4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    align-self: center;
+    margin: 0 8px;
+    white-space: nowrap;
+  }
+  #urlbar[focused="true"] { border-color: var(--irn-amber) !important;
+                            outline-color: var(--irn-amber) !important; }
+}
+
+/* --- Tor: violet ---------------------------------------------------------- */
+@media (-moz-bool-pref: "irn.session.tor") {
+  #navigator-toolbox::before {
+    display: block;
+    background: linear-gradient(90deg, var(--irn-violet), #6f42c1);
+  }
+  #TabsToolbar::after {
+    content: "TOR · SOCKS5";
+    color: #14081f;
+    background: var(--irn-violet);
+    font: 600 9px/1 system-ui, sans-serif;
+    letter-spacing: 1.4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    align-self: center;
+    margin: 0 8px;
+    white-space: nowrap;
+  }
+  #urlbar[focused="true"] { border-color: var(--irn-violet) !important;
+                            outline-color: var(--irn-violet) !important; }
+}
+
+/* --- Named work profile: show which one ----------------------------------- */
+/* The wrapper writes the profile name into a pref it also mirrors as a bool so
+ * the rail turns on; the name itself is shown in the window title (-P sets it). */
+@media (-moz-bool-pref: "irn.session.named") {
+  #navigator-toolbox::before {
+    display: block;
+    background: linear-gradient(90deg, var(--irn-green), var(--irn-accent-dim));
+  }
+}
+
+/* --- Kiosk: strip the chrome ---------------------------------------------- */
+@media (-moz-bool-pref: "irn.session.kiosk") {
+  #TabsToolbar, #PersonalToolbar, #back-button, #forward-button,
+  #urlbar-container, #PanelUI-button { visibility: collapse !important; }
 }

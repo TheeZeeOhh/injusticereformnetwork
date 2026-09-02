@@ -1,0 +1,58 @@
+import re
+
+with open("/home/aziza/vault/Desktop/code/zee_bridge.py", "r") as f:
+    lines = f.readlines()
+
+new_methods = """
+_approvals = {}
+_approvals_lock = threading.Lock()
+import uuid
+
+def m_operate(req, params):
+    prompt = params.get("prompt", "")
+    if not prompt:
+        raise ValueError("operate requires a prompt")
+    brain = get_brain(params.get("model"))
+    
+    def on_step(s):
+        _send({"id": req["id"], "type": "token", "text": s + "\\n"})
+
+    def approve_fn(cmd, args):
+        action_id = str(uuid.uuid4())
+        evt = threading.Event()
+        with _approvals_lock:
+            _approvals[action_id] = {"event": evt, "approved": False}
+            
+        _send({"id": req["id"], "type": "approval_request", "action_id": action_id, "cmd": cmd, "args": args})
+        
+        evt.wait() # Block until frontend replies
+        
+        with _approvals_lock:
+            res = _approvals.pop(action_id)
+            return res["approved"]
+
+    return brain.operate(prompt, approve_fn, on_step=on_step)
+
+def m_approve(req, params):
+    action_id = params.get("action_id")
+    approved = bool(params.get("approved"))
+    with _approvals_lock:
+        if action_id in _approvals:
+            _approvals[action_id]["approved"] = approved
+            _approvals[action_id]["event"].set()
+            return True
+    return False
+"""
+
+for i, line in enumerate(lines):
+    if "def m_chat" in line:
+        lines.insert(i, new_methods + "\n")
+        break
+
+for i, line in enumerate(lines):
+    if '"chat": m_chat,' in line:
+        lines.insert(i, '    "operate": m_operate,\n    "approve": m_approve,\n')
+        break
+
+with open("/home/aziza/vault/Desktop/code/zee_bridge.py", "w") as f:
+    f.writelines(lines)

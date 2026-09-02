@@ -3,72 +3,287 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>IRN Command Center</title>
 <!--
-  The IRN Browser home page for IRN OS. Deliberately STATIC and fully offline —
-  no scripts, no fonts, no images, no external requests of any kind, so opening a
-  new tab never touches the network.
+  The IRN Browser home page.
 
-  On the Garuda daily driver, install-irn-browser.sh installs a generator
-  (irn-newtab, from irn-newtab.py) that rebuilds this page each launch with the
-  day's Reading Room passage and a live security-posture panel. IRN OS ships this
-  flat file instead: it has no python3 (every package is attack surface) and
-  neither the Reading Room library nor sable-posture.sh lives on the image, so
-  those two panels would render empty anyway.
+  FULLY OFFLINE. No fonts, no images, no analytics, no external requests of any
+  kind — opening a new tab touches nothing. The one <script> below is inline and
+  local: it dispatches searches and filters the link list. It makes no network
+  calls and writes NO storage (no localStorage, no cookies) — deliberately, so
+  that a burner session's home page remembers nothing either.
 
-  Edit the links below and rebuild the ISO to change them.
+  Two builds share this file:
+    * IRN OS ships it flat, exactly as it is here.
+    * The Garuda daily driver runs irn-newtab (from irn-newtab.py), which fills
+      the IRN:SLOT markers below with the day's Reading Room passage, a live
+      security-posture panel, and Zee Zee's status. The defaults inside each
+      slot are what the flat file shows when the generator is not installed.
+
+  Edit the links here and rebuild the ISO to change them.
 -->
 <style>
-  :root { color-scheme: dark; }
+  :root {
+    color-scheme: dark;
+    --bg: #0c1016; --panel: #131a24; --panel-hi: #16202c;
+    --line: #1f2a37; --text: #d7dee6; --dim: #6b7684; --mid: #9aa4b0;
+    --accent: #7ab8ff; --green: #7ad38a; --amber: #ffcc66; --gold: #b89b6e;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; background: #0c1016; color: #c9d1d9;
+  body {
+    margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    display: flex; flex-direction: column; align-items: center; padding: 8vh 24px; gap: 34px; }
+    display: flex; flex-direction: column; align-items: center;
+    padding: 6vh 24px 10vh; gap: 30px;
+  }
   header { text-align: center; }
-  h1 { font-size: 26px; margin: 0; letter-spacing: 3px; color: #7ab8ff; font-weight: 600; }
-  .sub { color: #6b7684; font-size: 13px; margin-top: 6px; }
-  .tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px; width: min(760px, 92vw); }
-  .tool { display: block; padding: 16px 18px; background: #131a24; border: 1px solid #1f2a37;
-    border-radius: 12px; color: #d7dee6; text-decoration: none; font-size: 15px; transition: .12s; }
-  .tool:hover { border-color: #7ab8ff; color: #fff; background: #16202c; }
-  .posture { width: min(680px, 92vw); border-top: 1px solid #1f2a37; padding-top: 26px; }
-  .posture h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px;
-    color: #6b7684; margin: 0 0 10px; }
-  .prow { display: flex; align-items: center; gap: 10px; padding: 3px 0; font-size: 13px; }
-  .plabel { min-width: 150px; color: #9aa4b0; }
-  .dot { font-size: 10px; color: #7ad38a; }
-  .pval { color: #7ad38a; }
-  .note { color: #6b7684; font-size: 12px; margin-top: 14px; line-height: 1.6; }
+  h1 { font-size: 26px; margin: 0; letter-spacing: 3px; color: var(--accent); font-weight: 600; }
+  .sub { color: var(--dim); font-size: 13px; margin-top: 6px; }
+
+  /* --- search ------------------------------------------------------------ */
+  .searchwrap { width: min(760px, 92vw); }
+  #q {
+    width: 100%; padding: 14px 16px; font-size: 15px; color: var(--text);
+    background: #0a121c; border: 1px solid var(--line); border-radius: 12px;
+    font-family: inherit; outline: none;
+  }
+  #q:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(122,184,255,.12); }
+  #q::placeholder { color: #55606e; }
+  .hint { margin-top: 8px; font-size: 12px; color: var(--dim); line-height: 1.7; }
+  .hint code {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 1px 5px; color: var(--mid); font-size: 11px;
+  }
+  #engine { color: var(--accent); }
+
+  /* --- links -------------------------------------------------------------- */
+  .groups { width: min(880px, 94vw); display: flex; flex-direction: column; gap: 22px; }
+  .group h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--dim); margin: 0 0 10px; font-weight: 600;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+  .tool {
+    display: block; padding: 13px 15px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px; color: var(--text);
+    text-decoration: none; font-size: 14px; transition: .12s;
+  }
+  .tool:hover, .tool.sel { border-color: var(--accent); color: #fff; background: var(--panel-hi); }
+  .tool.sel { box-shadow: 0 0 0 2px rgba(122,184,255,.25); }
+  .tool .k { display: block; font-size: 11px; color: var(--dim); margin-top: 3px; }
+  .hidden { display: none !important; }
+  .noresults { color: var(--dim); font-size: 13px; padding: 6px 2px; }
+
+  /* --- panels ------------------------------------------------------------- */
+  .panels { width: min(880px, 94vw); display: grid; gap: 22px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            border-top: 1px solid var(--line); padding-top: 24px; }
+  .panel h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+              color: var(--dim); margin: 0 0 10px; font-weight: 600; }
+  .prow { display: flex; align-items: center; gap: 9px; padding: 3px 0; font-size: 13px; }
+  .plabel { min-width: 132px; color: var(--mid); }
+  .dot { font-size: 9px; color: var(--green); }
+  .pval { color: var(--green); }
+  .q { font-family: Georgia, serif; font-style: italic; font-size: 16px;
+       line-height: 1.65; color: #e8e2d0; }
+  .cite { color: var(--gold); margin-top: 10px; font-size: 12px; }
+  .note { width: min(880px, 94vw); color: var(--dim); font-size: 12px; line-height: 1.7; }
+  .note code { color: var(--mid); }
+  .note strong { color: var(--amber); font-weight: 600; }
 </style></head>
 <body>
   <header>
     <h1>IRN COMMAND CENTER</h1>
-    <div class="sub">hardened Firefox &middot; telemetry off &middot; HTTPS-only &middot; encrypted DNS</div>
+    <div class="sub"><!--IRN:SLOT:DATE-->hardened Firefox &middot; telemetry off &middot; HTTPS-only &middot; encrypted DNS<!--/IRN:SLOT:DATE--></div>
   </header>
 
-  <nav class="tools">
-    <a class="tool" href="https://www.notion.so">Notion back office</a>
-    <a class="tool" href="https://theezeeohh.github.io">IRN site</a>
-    <a class="tool" href="https://www.muckrock.com">MuckRock &mdash; FOIA</a>
-    <a class="tool" href="https://www.vacourts.gov">VA Courts</a>
-    <a class="tool" href="https://pacer.uscourts.gov">PACER &mdash; dockets</a>
-    <a class="tool" href="https://www.courtlistener.com">CourtListener</a>
-    <a class="tool" href="https://www.law.cornell.edu">Cornell LII</a>
-    <a class="tool" href="https://transequality.org">NCTE</a>
-  </nav>
+  <div class="searchwrap">
+    <input id="q" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+           placeholder="Search, or type a prefix — press / to focus">
+    <div class="hint">
+      <span id="engine">DuckDuckGo</span> &middot;
+      <code>cl</code> CourtListener &middot;
+      <code>recap</code> dockets &middot;
+      <code>lii</code> Cornell LII &middot;
+      <code>scholar</code> case law &middot;
+      <code>foia</code> MuckRock &middot;
+      <code>fedreg</code> Federal Register &middot;
+      <code>wb</code> Wayback &middot;
+      <code>va</code> VA courts
+      <br>Typing also filters the links below &mdash; <code>&uarr;&darr;</code> to pick, <code>Enter</code> to open.
+    </div>
+  </div>
 
-  <section class="posture">
-    <h2>browser posture</h2>
-    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Telemetry</span><span class="pval">off (policy-locked)</span></div>
-    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Transport</span><span class="pval">HTTPS-only</span></div>
-    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">DNS</span><span class="pval">DoH &rarr; Quad9, locked</span></div>
-    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Tracking protection</span><span class="pval">strict + fingerprinting</span></div>
-    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Disk cache</span><span class="pval">RAM only</span></div>
-    <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Accounts / sync</span><span class="pval">disabled</span></div>
-    <p class="note">
-      Client records never belong in this browser. PHI lives in Sanctuary, encrypted,
-      with the keys in RAM. For a session that leaves nothing behind at all, launch
-      <code>irn-browser --ephemeral</code> &mdash; a throwaway profile in RAM, erased on exit.
-      Verify the hardening any time at <code>about:policies</code>.
-    </p>
-  </section>
+  <div class="groups" id="groups">
+    <section class="group"><h2>Courts &amp; dockets</h2><div class="grid">
+      <a class="tool" href="https://www.courtlistener.com">CourtListener<span class="k">opinions, dockets, oral argument</span></a>
+      <a class="tool" href="https://pacer.uscourts.gov">PACER<span class="k">federal dockets (paid)</span></a>
+      <a class="tool" href="https://www.vacourts.gov">Virginia Courts<span class="k">rules, forms, opinions</span></a>
+      <a class="tool" href="https://eapps.courts.state.va.us/gdcourts">VA Case Information<span class="k">district &amp; circuit lookup</span></a>
+      <a class="tool" href="https://casesearch.courts.state.md.us/casesearch/">Maryland Case Search<span class="k">MD judiciary</span></a>
+      <a class="tool" href="https://www.supremecourt.gov/docket/docket.aspx">SCOTUS docket<span class="k">merits &amp; emergency</span></a>
+    </div></section>
+
+    <section class="group"><h2>Records &amp; FOIA</h2><div class="grid">
+      <a class="tool" href="https://www.muckrock.com">MuckRock<span class="k">file &amp; track FOIA</span></a>
+      <a class="tool" href="https://www.foia.gov">FOIA.gov<span class="k">agency contacts</span></a>
+      <a class="tool" href="https://foiacouncil.dls.virginia.gov">VA FOIA Council<span class="k">state FOIA opinions</span></a>
+      <a class="tool" href="https://www.documentcloud.org">DocumentCloud<span class="k">host &amp; annotate releases</span></a>
+      <a class="tool" href="https://web.archive.org">Wayback Machine<span class="k">the page as it was</span></a>
+    </div></section>
+
+    <section class="group"><h2>Legal research</h2><div class="grid">
+      <a class="tool" href="https://www.law.cornell.edu">Cornell LII<span class="k">US Code, CFR, opinions</span></a>
+      <a class="tool" href="https://law.lis.virginia.gov/vacode/">Code of Virginia<span class="k">state statutes</span></a>
+      <a class="tool" href="https://www.ecfr.gov">eCFR<span class="k">federal regulations</span></a>
+      <a class="tool" href="https://www.ecfr.gov/current/title-42/chapter-I/subchapter-A/part-2">42 CFR Part 2<span class="k">SUD records confidentiality</span></a>
+      <a class="tool" href="https://www.federalregister.gov">Federal Register<span class="k">rules &amp; comment deadlines</span></a>
+      <a class="tool" href="https://scholar.google.com/?as_sdt=2006">Scholar case law<span class="k">citing references</span></a>
+    </div></section>
+
+    <section class="group"><h2>Advocacy &amp; referral</h2><div class="grid">
+      <a class="tool" href="https://transequality.org">A4TE<span class="k">trans equality policy</span></a>
+      <a class="tool" href="https://www.lgbtmap.org">MAP<span class="k">state policy tallies</span></a>
+      <a class="tool" href="https://lambdalegal.org">Lambda Legal<span class="k">impact litigation</span></a>
+      <a class="tool" href="https://www.nclrights.org">NCLR<span class="k">legal help desk</span></a>
+      <a class="tool" href="https://www.valegalaid.org">Virginia Legal Aid<span class="k">civil legal help</span></a>
+      <a class="tool" href="https://findtreatment.gov">SAMHSA locator<span class="k">treatment referral</span></a>
+    </div></section>
+
+    <section class="group"><h2>IRN internal</h2><div class="grid">
+      <a class="tool" href="http://localhost:5173">Sanctuary<span class="k">encrypted records (local)</span></a>
+      <a class="tool" href="https://theezeeohh.github.io/injusticereformnetwork/">IRN site<span class="k">public &middot; GitHub Pages</span></a>
+      <a class="tool" href="https://theezeeohh.github.io/irn-criminal-injustice/">Criminal Injustice<span class="k">GitHub Pages</span></a>
+      <a class="tool" href="https://theezeeohh.github.io/irn-prompt-library/">Prompt Library<span class="k">GitHub Pages</span></a>
+      <a class="tool" href="https://theezeeohh.github.io/sanctuary/">Sanctuary v21<span class="k">GitHub Pages</span></a>
+      <a class="tool" href="https://www.notion.so">Notion back office<span class="k">cases, grants, FOIA</span></a>
+      <a class="tool" href="about:policies">about:policies<span class="k">verify the hardening</span></a>
+    </div></section>
+  </div>
+
+  <div class="panels">
+    <section class="panel">
+      <h2>browser posture</h2>
+      <!--IRN:SLOT:POSTURE-->
+      <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Telemetry</span><span class="pval">off (policy-locked)</span></div>
+      <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Transport</span><span class="pval">HTTPS-only</span></div>
+      <div class="prow"><span class="dot">&#9679;</span><span class="plabel">DNS</span><span class="pval">DoH &rarr; Quad9, locked</span></div>
+      <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Tracking</span><span class="pval">strict + fingerprinting</span></div>
+      <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Disk cache</span><span class="pval">RAM only</span></div>
+      <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Accounts / sync</span><span class="pval">disabled</span></div>
+      <div class="prow"><span class="dot">&#9679;</span><span class="plabel">Enterprise roots</span><span class="pval">not imported</span></div>
+      <!--/IRN:SLOT:POSTURE-->
+    </section>
+
+    <section class="panel">
+      <h2>zee zee</h2>
+      <!--IRN:SLOT:ZEE-->
+      <div class="prow"><span class="dot" style="color:#8a94a0">&#9679;</span><span class="plabel">Local twin</span><span class="pval" style="color:#9aa4b0">status unknown here</span></div>
+      <div class="prow" style="color:#6b7684;font-size:12px;display:block;line-height:1.7;padding-top:6px">
+        Where the bridge and Ollama are installed:<br>
+        <code>irn-browser --ask "&hellip;"</code><br>
+        <code>irn-browser --capture URL --zee</code><br>
+        On-device only. No PHI in prompts.
+      </div>
+      <!--/IRN:SLOT:ZEE-->
+    </section>
+  </div>
+
+  <!--IRN:SLOT:PASSAGE--><!--/IRN:SLOT:PASSAGE-->
+
+  <p class="note">
+    <strong>Client records never belong in this browser.</strong> PHI lives in Sanctuary,
+    encrypted, with the keys in RAM. For a session that leaves nothing behind, launch
+    <code>irn-browser --ephemeral</code> &mdash; a throwaway profile in RAM, erased on exit
+    and on any poweroff. <code>irn-browser --doctor</code> checks the hardening on disk;
+    <code>about:policies</code> is what Firefox actually applied. This page stores nothing:
+    no cookies, no localStorage, no history of what you typed here.
+  </p>
+
+<script>
+// Inline, local, offline. No network calls, no storage — see the header comment.
+(function () {
+  "use strict";
+
+  // Keep these in step with SearchEngines.Add in policies.json. They are
+  // duplicated on purpose: the policy keywords only work on Firefox ESR, and
+  // this box must work on any build.
+  var ENGINES = {
+    cl:      ["CourtListener",      "https://www.courtlistener.com/?q=%s"],
+    recap:   ["RECAP dockets",      "https://www.courtlistener.com/?type=r&q=%s"],
+    lii:     ["Cornell LII",        "https://www.law.cornell.edu/search/site/%s"],
+    scholar: ["Scholar case law",   "https://scholar.google.com/scholar?as_sdt=2006&q=%s"],
+    foia:    ["MuckRock",           "https://www.muckrock.com/search/?q=%s"],
+    fedreg:  ["Federal Register",   "https://www.federalregister.gov/documents/search?conditions%5Bterm%5D=%s"],
+    wb:      ["Wayback Machine",    "https://web.archive.org/web/*/%s"],
+    va:      ["Virginia Courts",    "https://eapps.courts.state.va.us/gdcourts/searchLanding.do?q=%s"],
+    map:     ["MAP policy",         "https://www.lgbtmap.org/search?q=%s"]
+  };
+  var DEFAULT = ["DuckDuckGo", "https://duckduckgo.com/?q=%s"];
+
+  var q       = document.getElementById("q");
+  var engine  = document.getElementById("engine");
+  var links   = Array.prototype.slice.call(document.querySelectorAll(".tool"));
+  var groups  = Array.prototype.slice.call(document.querySelectorAll(".group"));
+  var sel     = -1;
+
+  function parse(raw) {
+    var m = /^(\w+)\s+([\s\S]+)$/.exec(raw.trim());
+    if (m && Object.prototype.hasOwnProperty.call(ENGINES, m[1].toLowerCase())) {
+      return { engine: ENGINES[m[1].toLowerCase()], terms: m[2] };
+    }
+    return { engine: DEFAULT, terms: raw.trim() };
+  }
+
+  function visible() { return links.filter(function (a) { return !a.classList.contains("hidden"); }); }
+
+  function highlight(i) {
+    links.forEach(function (a) { a.classList.remove("sel"); });
+    var v = visible();
+    if (i >= 0 && i < v.length) { v[i].classList.add("sel"); v[i].scrollIntoView({ block: "nearest" }); }
+    sel = i;
+  }
+
+  function filter() {
+    var raw = q.value.trim();
+    var p = parse(raw);
+    engine.textContent = p.engine[0];
+
+    // Filter on the terms, not the prefix — "cl schneider" should still surface
+    // the CourtListener tile rather than matching nothing.
+    var needle = (p.terms || raw).toLowerCase();
+    links.forEach(function (a) {
+      var hit = !needle || a.textContent.toLowerCase().indexOf(needle) !== -1 ||
+                a.getAttribute("href").toLowerCase().indexOf(needle) !== -1;
+      a.classList.toggle("hidden", !hit);
+    });
+    groups.forEach(function (g) {
+      var any = g.querySelectorAll(".tool:not(.hidden)").length > 0;
+      g.classList.toggle("hidden", !any);
+    });
+    highlight(-1);
+  }
+
+  q.addEventListener("input", filter);
+
+  q.addEventListener("keydown", function (e) {
+    var v = visible();
+    if (e.key === "ArrowDown") { e.preventDefault(); highlight(Math.min(sel + 1, v.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); highlight(Math.max(sel - 1, -1)); }
+    else if (e.key === "Escape") { q.value = ""; filter(); q.blur(); }
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      if (sel >= 0 && v[sel]) { window.location.href = v[sel].getAttribute("href"); return; }
+      var p = parse(q.value);
+      if (!p.terms) { return; }
+      window.location.href = p.engine[1].replace("%s", encodeURIComponent(p.terms));
+    }
+  });
+
+  // "/" focuses search from anywhere on the page.
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); q.select(); }
+  });
+
+  q.focus();
+})();
+</script>
 </body></html>

@@ -9,6 +9,7 @@ import {
   smsBlocksPhi,
   MIN_CELL_SIZE
 } from './guardrails';
+import { quasiIdentifiersOf } from '../irnl/evaluate.js';
 
 describe('crisis detection (read generously)', () => {
   it('catches explicit ideation', () => {
@@ -173,5 +174,51 @@ describe('smsPhiCheck — outbound SMS PHI guard (Twilio egress)', () => {
   it('handles empty/nullish safely (not blocked)', () => {
     expect(smsBlocksPhi('')).toBe(false);
     expect(smsBlocksPhi(null)).toBe(false);
+  });
+});
+
+describe('aggregateWithPrivacy — quasi-identifiers default to the IRNL spec', () => {
+  const person = (jurisdiction, demographic, timeframe) => ({ jurisdiction, demographic, timeframe });
+
+  it('groups on the declared QI tuple when the argument is omitted', () => {
+    const rows = [
+      ...Array.from({ length: 5 }, () => person('757', 'trans', 'w1')),
+      ...Array.from({ length: 2 }, () => person('757', 'trans', 'w2'))
+    ];
+    const { cells, suppressed, total } = aggregateWithPrivacy(rows);
+    expect(total).toBe(7);
+    expect(cells).toHaveLength(1);
+    expect(cells[0]).toMatchObject({ jurisdiction: '757', demographic: 'trans', timeframe: 'w1', n: 5 });
+    expect(suppressed).toBe(1);
+  });
+
+  it('uses the same columns IRNL declares, not a hardcoded list', () => {
+    const rows = Array.from({ length: 5 }, () => person('757', 'trans', 'w1'));
+    const declared = quasiIdentifiersOf('Client');
+    expect(aggregateWithPrivacy(rows)).toEqual(aggregateWithPrivacy(rows, declared));
+  });
+
+  it('still enforces the floor when defaulting', () => {
+    const rows = Array.from({ length: 4 }, () => person('757', 'trans', 'w1'));
+    expect(aggregateWithPrivacy(rows).cells).toEqual([]);
+  });
+
+  it('an explicit [] still emits nothing — deliberate is not the same as forgotten', () => {
+    const rows = Array.from({ length: 50 }, () => person('757', 'trans', 'w1'));
+    expect(aggregateWithPrivacy(rows, []).cells).toEqual([]);
+  });
+
+  it('fails closed when rows carry none of the declared columns', () => {
+    // Would otherwise key every row to all-nulls, collapse to one bucket, clear
+    // the floor and emit a single confidently-wrong total.
+    const rows = Array.from({ length: 50 }, (_, i) => ({ colour: 'blue', idx: i }));
+    expect(aggregateWithPrivacy(rows)).toEqual({ cells: [], suppressed: 0, total: 0 });
+  });
+
+  it('an explicit QI list is still honoured verbatim', () => {
+    const rows = Array.from({ length: 5 }, () => person('757', 'trans', 'w1'));
+    const { cells } = aggregateWithPrivacy(rows, ['jurisdiction']);
+    expect(cells).toHaveLength(1);
+    expect(cells[0]).toEqual({ jurisdiction: '757', n: 5 });
   });
 });

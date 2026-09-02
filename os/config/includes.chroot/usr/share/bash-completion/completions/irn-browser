@@ -1,0 +1,40 @@
+# bash completion for irn-browser. Installed to
+# /usr/share/bash-completion/completions/irn-browser (system) or
+# ~/.local/share/bash-completion/completions/ (install-irn-browser.sh).
+_irn_browser() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  opts="--ephemeral --amnesiac --burner --tor --kiosk --profile --list-profiles
+        --capture --out --zee --ask --doctor --panic --require-vpn
+        --private-window --new-window --help --version"
+
+  case "$prev" in
+    -P|--profile)
+      local root="${XDG_DATA_HOME:-$HOME/.local/share}/irn-browser/profiles"
+      [ -d "$root" ] && COMPREPLY=( $(compgen -W "$(command ls "$root" 2>/dev/null)" -- "$cur") )
+      return 0 ;;
+    --out)
+      COMPREPLY=( $(compgen -d -- "$cur") ); return 0 ;;
+    --capture|--kiosk)
+      COMPREPLY=( $(compgen -W "https:// http://" -- "$cur") ); return 0 ;;
+  esac
+
+  if [[ "$cur" == -* ]]; then
+    COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+  fi
+  return 0
+}
+complete -F _irn_browser irn-browser
+
+_irn_zee() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  if [ "$COMP_CWORD" -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "status ask page look brief" -- "$cur") )
+  else
+    COMPREPLY=( $(compgen -f -- "$cur") )
+  fi
+}
+complete -F _irn_zee irn-zee

@@ -96,3 +96,7 @@ boot-test-out*/
 .claude/output-styles
 .claude/routines
 .claude/workflows
+
+# Python bytecode from IRNL codegen consumers
+__pycache__/
+*.pyc
