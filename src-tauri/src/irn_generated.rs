@@ -53,5 +53,41 @@ pub struct Aggregate {
     pub n: i64,
 }
 
+#[derive(Debug, Clone)]
+pub struct Participant {
+    /// identity
+    pub id: Ulid,
+    /// PII
+    pub handle: String,
+    pub circle: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct HourEntry {
+    pub id: Ulid,
+    pub giver: Ulid,
+    pub receiver: Ulid,
+    /// denominated in hours — never converts to another denomination
+    pub units: i64,
+    /// PII
+    pub memo: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AidGrantStatus {
+    Open,
+    Approved,
+    Paid,
+}
+
+#[derive(Debug, Clone)]
+pub struct AidGrant {
+    pub id: Ulid,
+    /// denominated in dollars — never converts to another denomination
+    pub amount: i64,
+    pub category: String,
+    pub status: AidGrantStatus,
+}
+
 /// k-anonymity floor. Cells below this are suppressed, never rounded.
 pub const MIN_CELL_SIZE: i64 = 5;

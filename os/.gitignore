@@ -23,3 +23,11 @@ config/includes.chroot/etc/wireguard/irn.conf
 # Python bytecode — never overlay this into the image
 __pycache__/
 *.pyc
+
+# Staged app sources. Copied in from ten other repos at build time by
+# stage-apps.sh (manifest-driven) and stage-extras.sh (Zee Zee, Ollama).
+# 741M at last count, none of it ours to version: committing it would fork
+# every one of those projects into this history. Rebuild it, don't track it.
+config/includes.chroot/opt/irn-apps/
+config/includes.chroot/opt/zee-zee/
+config/includes.chroot/opt/ollama/

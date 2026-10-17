@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IRN Capital Matrix — Sovereign Revenue & Institutional Funding Engine</title>
+  <meta name="description" content="Active capital acquisition engine for the Injustice Reform Network. Generates CIRN-protocol grant pitches, forensic algorithmic audit retainers, and decentralized mutual aid models.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --panel: #141414;
+      --card: #1c1c1e;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(201, 168, 76, 0.35);
+      --white: #f5f0eb;
+      --dim: #9c9a95;
+      --gold: #c9a84c;
+      --gold-glow: rgba(201, 168, 76, 0.18);
+      --purple: #4a1f6e;
+      --purple-soft: rgba(74, 31, 110, 0.25);
+      --rose: #c2547a;
+      --rose-soft: rgba(194, 84, 122, 0.18);
+      --green: #4ade80;
+      --green-soft: rgba(74, 222, 128, 0.18);
+      --radius: 12px;
+      --radius-sm: 6px;
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      background-color: var(--black);
+      background-image: 
+        radial-gradient(ellipse at 50% 0%, rgba(74, 31, 110, 0.22) 0%, transparent 60%),
+        radial-gradient(circle at 90% 20%, rgba(201, 168, 76, 0.08) 0%, transparent 40%);
+      background-attachment: fixed;
+      color: var(--white);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 80px;
+    }
+
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header Nav */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .badge-sigil {
+      background: linear-gradient(135deg, var(--gold), #f0d080);
+      color: var(--black);
+      font-weight: 800;
+      font-size: 13px;
+      padding: 5px 9px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.1em;
+    }
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      letter-spacing: -0.01em;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pipeline-summary {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .metric-pill {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 13px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .metric-pill strong { color: var(--gold); font-family: var(--font-mono); }
+
+    /* Layout Containers */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .hero-banner {
+      padding: 40px 0 28px;
+      text-align: left;
+    }
+    .tagline {
+      color: var(--rose);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+    h1.hero-heading {
+      font-family: var(--font-serif);
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      line-height: 1.15;
+      margin-bottom: 14px;
+      color: var(--white);
+    }
+    h1.hero-heading span {
+      background: linear-gradient(135deg, var(--gold), #ffde8a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      color: var(--dim);
+      max-width: 820px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    /* Stream Selector Tabs */
+    .stream-nav {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      margin: 32px 0 24px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .stream-btn {
+      background: none;
+      border: none;
+      color: var(--dim);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 12px 20px;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .stream-btn:hover {
+      color: var(--white);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .stream-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+      background: var(--gold-glow);
+    }
+    .stream-btn .stream-badge {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 7px;
+      border-radius: 12px;
+    }
+
+    /* Two-Column Tool Grid */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .tool-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-header h2 {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      color: var(--white);
+    }
+
+    /* Controls & Inputs */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label.form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+    .form-hint {
+      font-size: 12px;
+      color: var(--dim);
+      margin-top: 4px;
+    }
+    select.input-control, input.input-control {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    select.input-control:focus, input.input-control:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold-glow);
+    }
+
+    /* Sliders */
+    .slider-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .slider-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--gold);
+      font-size: 14px;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      background: #2a2a2e;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gold);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--gold-glow);
+    }
+
+    /* Live Output Ledger */
+    .budget-ledger {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin: 20px 0;
+    }
+    .ledger-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 13.5px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+    .ledger-row:last-child {
+      border-bottom: none;
+      padding-top: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--gold);
+    }
+    .ledger-row .ledger-num {
+      font-family: var(--font-mono);
+    }
+
+    /* Pitch Viewport / Document Output */
+    .document-preview {
+      background: #0f0f10;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 24px;
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      line-height: 1.7;
+      max-height: 540px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #e5e5e0;
+      position: relative;
+    }
+    .doc-meta-banner {
+      background: rgba(201, 168, 76, 0.08);
+      border-left: 3px solid var(--gold);
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--gold);
+    }
+
+    /* Action Buttons */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--black);
+    }
+    .btn-primary:hover {
+      background: #dfbe65;
+      box-shadow: 0 4px 14px rgba(201, 168, 76, 0.35);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--white);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .btn-ai {
+      background: linear-gradient(135deg, var(--purple), #632a93);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .btn-ai:hover {
+      background: linear-gradient(135deg, #5b2687, #7633af);
+      box-shadow: 0 4px 14px rgba(99, 42, 147, 0.4);
+    }
+
+    /* Notification Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card);
+      border: 1px solid var(--gold);
+      color: var(--white);
+      padding: 14px 22px;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+      font-weight: 500;
+      display: none;
+      z-index: 1000;
+      font-size: 14px;
+    }
+
+    /* Status indicators */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green-soft); }
+    .dot-gold { background: var(--gold); box-shadow: 0 0 6px var(--gold-glow); }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation & Pipeline Counter -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="badge-sigil">IRN</div>
+      <div>
+        <div class="brand-title">Capital Matrix</div>
+        <div class="brand-sub">Sovereign Revenue & Institutional Foundry</div>
+      </div>
+    </div>
+    <div class="pipeline-summary">
+      <div class="metric-pill">
+        <span>Active Target:</span>
+        <strong id="global-target-ask">$1,485,000</strong>
+      </div>
+      <div class="metric-pill">
+        <span>Protocol:</span>
+        <strong>CIRN Level 4</strong>
+      </div>
+      <div class="metric-pill">
+        <span class="status-dot dot-green"></span>
+        <span>Local Mesh Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero-banner">
+      <div class="tagline">The Money Matrix • Level 4 Financial Sovereignty</div>
+      <h1 class="hero-heading">Generate <span>Sovereign Capital</span> For Injustice Reform</h1>
+      <p class="hero-sub">
+        Reject charity and scarcity models. Build protective civic infrastructure, fund frontline directly impacted organizers, and monetize algorithmic auditing retainers through unapologetic, systemic solutions.
+      </p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="stream-nav">
+      <button class="stream-btn active" data-tab="tab-institutional">
+        <span>Institutional Grants & Foundations</span>
+        <span class="stream-badge">$500k – $3.5M</span>
+      </button>
+      <button class="stream-btn" data-tab="tab-audits">
+        <span>Forensic Algorithmic Audits (Glass House)</span>
+        <span class="stream-badge">$15k – $75k/Retainer</span>
+      </button>
+      <button class="stream-btn" data-tab="tab-mutual-aid">
+        <span>Sovereign Mutual Aid & Bond Pool</span>
+        <span class="stream-badge">Decentralized L4</span>
+      </button>
+    </nav>
+
+    <!-- SECTION 1: Institutional Mega-Grant Foundry (CIRN Protocol) -->
+    <section id="tab-institutional" class="tab-content">
+      <div class="tool-grid">
+        <!-- Configuration & Live Budget Engine -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Grant Architecture & Budget</h2>
+            <span class="metric-pill"><strong>CIRN Spec</strong></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="funder-select">Select Institutional Target</label>
+            <select id="funder-select" class="input-control">
+              <option value="macarthur" selected>MacArthur Foundation (Safety and Justice) — Jail Decarceration</option>
+              <option value="arnold">Arnold Ventures — Data-Driven Supervision & Pretrial Reform</option>
+              <option value="ford">Ford Foundation — Civil Rights & Systemic Legislative Accountability</option>
+              <option value="cji">Criminal Justice Initiative (CJI) — Survivor-Led Grassroots Organizing</option>
+              <option value="andrus">Andrus Family Fund & Akonadi Foundation — Youth Campaign (Grades 6-12)</option>
+              <option value="bja">Bureau of Justice Assistance (BJA) — Federal Reentry Infrastructure</option>
+              <option value="reform">REFORM Alliance — Statewide Supervision Modernization Coalition</option>
+            </select>
+            <p class="form-hint" id="funder-angle-desc">Focus: Local jail decarceration and regional court-watching network.</p>
+          </div>
+
+          <div class="form-group">
+            <div class="slider-row">
+              <label class="form-label">Directly Impacted Lead Organizers (FTE @ $65k/yr)</label>
+              <span class="slider-val" id="val-organizers">6 Organizers</span>
+            </div>
+            <input type="range" id="slider-organizers" min="2" max="20" value="6" step="1">
+          </div>
+
+          <div class="form-group">
+            <div class="slider-row">
+              <label class="form-label">Regional Court Watchers / Field Stewards (@ $25/hr)</label>
+              <span class="slider-val" id="val-watchers">12 Stewards</span>
+            </div>
+            <input type="range" id="slider-watchers" min="4" max="40" value="12" step="2">
+          </div>
+
+          <div class="form-group">
+            <div class="slider-row">
+              <label class="form-label">Audited Municipal Jurisdictions</label>
+              <span class="slider-val" id="val-jurisdictions">4 Districts</span>
+            </div>
+            <input type="range" id="slider-jurisdictions" min="1" max="15" value="4" step="1">
+          </div>
+
+          <div class="form-group">
+            <div class="slider-row">
+              <label class="form-label">Indirect Cost Rate (Federally Approved)</label>
+              <span class="slider-val" id="val-indirect">18% IDC</span>
+            </div>
+            <input type="range" id="slider-indirect" min="10" max="25" value="18" step="1">
+          </div>
+
+          <div class="budget-ledger">
+            <div class="ledger-row">
+              <span>Direct Personnel & Stipends:</span>
+              <span class="ledger-num" id="led-personnel">$510,000</span>
+            </div>
+            <div class="ledger-row">
+              <span>Digital Security, Mesh & Infrastructure:</span>
+              <span class="ledger-num" id="led-tech">$120,000</span>
+            </div>
+            <div class="ledger-row">
+              <span>Community Defense & Direct Relief Reserve:</span>
+              <span class="ledger-num" id="led-reserve">$150,000</span>
+            </div>
+            <div class="ledger-row">
+              <span>Operational Indirect (IDC):</span>
+              <span class="ledger-num" id="led-indirect">$140,400</span>
+            </div>
+            <div class="ledger-row">
+              <span>Total Multi-Year Ask:</span>
+              <span class="ledger-num" id="led-total">$920,400</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generated Proposal & Outreach Dossier -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Executive Pitch & Mandatory CC Dossier</h2>
+            <span class="status-dot dot-gold"></span>
+          </div>
+
+          <div class="doc-meta-banner">
+            <div>MANDATORY CIRN OUTREACH PROTOCOL:</div>
+            <div><strong>SENDER:</strong> Aziza | Strategic Partnerships &amp; Technical Architecture</div>
+            <div><strong>CC:</strong> cirnpresident@gmail.com (BeKura Smith, President)</div>
+          </div>
+
+          <div class="document-preview" id="grant-dossier-preview">Loading dossier...</div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-copy-pitch">
+              <span>📋 Copy Outreach Email</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-download-dossier">
+              <span>📥 Download Markdown Brief</span>
+            </button>
+            <button class="btn btn-ai" id="btn-vulkan-refine">
+              <span>⚡ Refine via Local Vulkan (Qwen2.5)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Operation Glass House Retainer Engine -->
+    <section id="tab-audits" class="tab-content" style="display: none;">
+      <div class="tool-grid">
+        <div class="card">
+          <div class="card-header">
+            <h2>Algorithmic Audit Retainer Estimator</h2>
+            <span class="metric-pill"><strong>Commercial SOW</strong></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="audit-client">Target Client Category</label>
+            <select id="audit-client" class="input-control">
+              <option value="law_firm" selected>Class-Action Civil Rights Law Firm</option>
+              <option value="public_defender">State/Regional Public Defender Coalition</option>
+              <option value="oversight">Municipal Police/Judicial Oversight Board</option>
+              <option value="task_force">Legislative Algorithmic Bias Commission</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="audit-system">Target Risk Assessment Algorithm</label>
+            <select id="audit-system" class="input-control">
+              <option value="compas" selected>Northpointe / equiv COMPAS (Recidivism & Pretrial)</option>
+              <option value="arnold_psa">Arnold Public Safety Assessment (PSA Pretrial Scoring)</option>
+              <option value="oras">Ohio Risk Assessment System (ORAS)</option>
+              <option value="vprai">Virginia Pretrial Risk Assessment Instrument (VPRAI)</option>
+              <option value="custom">Proprietary Municipal Sentencing Predictor</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <div class="slider-row">
+              <label class="form-label">Court Case Docket Records Ingested</label>
+              <span class="slider-val" id="val-cases">3,500 Cases</span>
+            </div>
+            <input type="range" id="slider-cases" min="500" max="25000" value="3500" step="500">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Deliverables Required</label>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <label style="font-size: 13.5px;"><input type="checkbox" id="chk-proxy" checked> Proxy Variable Extraction (Zip Code, Prior Arrest Disparities)</label>
+              <label style="font-size: 13.5px;"><input type="checkbox" id="chk-multiplier" checked> False-Positive Rate Ratio (Four-Fifths Rule Violation Proof)</label>
+              <label style="font-size: 13.5px;"><input type="checkbox" id="chk-affidavit" checked> Expert Witness Technical Affidavit for Evidentiary Hearing</label>
+              <label style="font-size: 13.5px;"><input type="checkbox" id="chk-briefing" checked> Legislative Harm Receipts Briefing for State Assembly</label>
+            </div>
+          </div>
+
+          <div class="budget-ledger">
+            <div class="ledger-row">
+              <span>Ingestion &amp; Vectorization:</span>
+              <span class="ledger-num" id="sow-ingest">$7,500</span>
+            </div>
+            <div class="ledger-row">
+              <span>Statistical Parity &amp; Proxy Modeling:</span>
+              <span class="ledger-num" id="sow-stats">$14,000</span>
+            </div>
+            <div class="ledger-row">
+              <span>Affidavit &amp; Technical Testimony Prep:</span>
+              <span class="ledger-num" id="sow-affidavit">$12,500</span>
+            </div>
+            <div class="ledger-row">
+              <span>Total Retainer Fee:</span>
+              <span class="ledger-num" id="sow-total">$34,000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Statement of Work (SOW) & Retainer Agreement</h2>
+            <span class="metric-pill"><strong>Ready to Issue</strong></span>
+          </div>
+
+          <div class="doc-meta-banner">
+            <div>CONTRACTUAL ENGAGEMENT:</div>
+            <div><strong>PROVIDER:</strong> Injustice Reform Network — Algorithmic Forensics Division</div>
+            <div><strong>TERMS:</strong> 50% Upfront Retainer, 50% Upon Formal Harm Receipt Delivery</div>
+          </div>
+
+          <div class="document-preview" id="audit-sow-preview">Loading Statement of Work...</div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-copy-sow">
+              <span>📋 Copy Retainer Agreement</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-download-sow">
+              <span>📥 Download SOW (.md)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Sovereign Mutual Aid & Bond Pool Engine -->
+    <section id="tab-mutual-aid" class="tab-content" style="display: none;">
+      <div class="tool-grid">
+        <div class="card">
+          <div class="card-header">
+            <h2>Decentralized Liquidity & Mutual Aid</h2>
+            <span class="metric-pill"><strong>Soul Token L4</strong></span>
+          </div>
+
+          <div class="form-group">
+            <div class="slider-row">
+              <label class="form-label">Monthly Grassroots Allies ($25/mo)</label>
+              <span class="slider-val" id="val-allies">250 Allies</span>
+            </div>
+            <input type="range" id="slider-allies" min="50" max="2000" value="250" step="25">
+          </div>
+
+          <div class="form-group">
+            <div class="slider-row">
+              <label class="form-label">Solidarity Circle Patrons ($250/mo)</label>
+              <span class="slider-val" id="val-patrons">40 Patrons</span>
+            </div>
+            <input type="range" id="slider-patrons" min="5" max="200" value="40" step="5">
+          </div>
+
+          <div class="form-group">
+            <div class="slider-row">
+              <label class="form-label">Institutional Angels ($2,500/mo)</label>
+              <span class="slider-val" id="val-angels">6 Angels</span>
+            </div>
+            <input type="range" id="slider-angels" min="1" max="30" value="6" step="1">
+          </div>
+
+          <div class="budget-ledger">
+            <div class="ledger-row">
+              <span>Monthly Recurring Inflow:</span>
+              <span class="ledger-num" id="aid-monthly">$31,250 / mo</span>
+            </div>
+            <div class="ledger-row">
+              <span>Annualized Sovereign Treasury:</span>
+              <span class="ledger-num" id="aid-annual">$375,000 / yr</span>
+            </div>
+            <div class="ledger-row">
+              <span>Estimated Bailouts / Year ($4,000 avg):</span>
+              <span class="ledger-num" id="aid-bailouts">93 People Freed</span>
+            </div>
+            <div class="ledger-row">
+              <span>Carceral Wages Preserved:</span>
+              <span class="ledger-num" id="aid-wages">$1,488,000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>The Liberation Ledger & Direct Funding</h2>
+            <span class="metric-pill"><strong>0% Friction</strong></span>
+          </div>
+
+          <div class="doc-meta-banner">
+            <div>ECONOMIC CORRECTION MANIFESTO:</div>
+            <div>Direct capital routing without charity intermediaries. 100% of emergency bond reserves circulate back upon docket resolution.</div>
+          </div>
+
+          <div class="document-preview" id="mutual-aid-manifesto-preview">Loading Liberation Manifesto...</div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-copy-manifesto">
+              <span>📋 Copy Community Pitch</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-download-manifesto">
+              <span>📥 Export Campaign Package</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast">Copied to clipboard!</div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // ---------------- Tab Navigation ----------------
+      const tabBtns = document.querySelectorAll(".stream-btn");
+      const tabContents = document.querySelectorAll(".tab-content");
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          tabBtns.forEach(b => b.classList.remove("active"));
+          tabContents.forEach(c => c.style.display = "none");
+
+          btn.classList.add("active");
+          const targetId = btn.getAttribute("data-tab");
+          const targetEl = document.getElementById(targetId);
+          if (targetEl) targetEl.style.display = "block";
+        });
+      });
+
+      // ---------------- Target Institutional Profiles ----------------
+      const FUNDERS = {
+        macarthur: {
+          name: "MacArthur Foundation (Safety and Justice Challenge)",
+          angleDesc: "Focus: Local jail decarceration and regional court-watching network.",
+          director: "Safety and Justice Grant Directorate",
+          corePitch: "Over-incarceration in local county jails is driven by opaque pretrial risk scoring and lack of community courtroom oversight. IRN deploys directly impacted court watchers and forensic data infrastructure to systematically reduce jail beds.",
+          deliverables: "1) Regional Court-Watch Network monitoring 10,000+ bail hearings; 2) Zero-Trust digital accountability dashboard; 3) 30% reduction in pretrial detention rates across targeted counties."
+        },
+        arnold: {
+          name: "Arnold Ventures (Criminal Justice Portfolio)",
+          angleDesc: "Focus: Data-driven, research-backed systemic corrections and supervision reform.",
+          director: "Criminal Justice Research & Policy Directorate",
+          corePitch: "Probation and parole systems serve as a primary tributary to prison churn. IRN pairs empirical, data-driven analysis of supervision violations with local algorithmic auditing to safely downsize correctional supervision footprints.",
+          deliverables: "1) Empirical dataset auditing technical probation revocations; 2) Statistical validation of graduated response models; 3) Policy roadmaps delivering measurable fiscal savings for state correctional budgets."
+        },
+        ford: {
+          name: "Ford Foundation (Creativity and Free Expression / Future of Work)",
+          angleDesc: "Focus: High-level systemic accountability, civil rights protection, and legislative lobbying.",
+          director: "Civil Rights and Systemic Governance Program",
+          corePitch: "Digital redlining and automated carceral tools represent the next frontier of civil rights deprivation. IRN operates as a sovereign technical powerhouse protecting Black, Brown, and trans individuals from automated state violence.",
+          deliverables: "1) Statewide civil rights litigation briefings; 2) Direct policy lobbying for statutory algorithmic audits (MD Trans Shield & beyond); 3) Frontline organizer fellowships."
+        },
+        cji: {
+          name: "The Criminal Justice Initiative (CJI)",
+          angleDesc: "Focus: Grassroots, survivor-led, directly impacted organizing (e.g., 'No More Bars Voting Initiative').",
+          director: "Circle of Grassroots Reviewers",
+          corePitch: "Those closest to the pain are closest to the solution. The 'No More Bars Voting Initiative' organizes formerly incarcerated individuals to dismantle felony disenfranchisement, protect voting rights, and build permanent grassroots power.",
+          deliverables: "1) Voter registration and civic rights restoration for 25,000+ justice-impacted citizens; 2) Direct leadership stipends for system survivors; 3) 5 regional political education summits."
+        },
+        andrus: {
+          name: "Andrus Family Fund & Akonadi Foundation",
+          angleDesc: "Focus: Youth Campaign and Policy School (grades 6-12) for juvenile justice reform.",
+          director: "Youth Justice & Movement Building Directorate",
+          corePitch: "The school-to-prison pipeline feeds on the criminalization of adolescent behavior. IRN's Youth Campaign and Policy School trains youth in grades 6-12 in community defense, restorative rituals, and legislative advocacy.",
+          deliverables: "1) 12-month Policy School curriculum graduated by 300 youth leaders; 2) Student-led campaigns repealing zero-tolerance school policing; 3) Intergenerational mentorship labs."
+        },
+        bja: {
+          name: "Bureau of Justice Assistance (BJA - Federal Grant)",
+          angleDesc: "Focus: Federal infrastructure capital for regional advocacy centers and civic stability.",
+          director: "BJA Programs Office",
+          corePitch: "Community safety is built on regional civic stability, peer-led crisis de-escalation, and sustainable reentry infrastructure. IRN establishes permanent regional advocacy hubs delivering measurable public safety improvements.",
+          deliverables: "1) Physical and digital regional community advocacy centers; 2) Standardized peer navigation protocol with 85% recidivism reduction; 3) Federal data reporting and audits."
+        },
+        reform: {
+          name: "REFORM Alliance",
+          angleDesc: "Focus: Coalition building for state-wide probation and parole modernization.",
+          director: "State Policy & Coalition Directorate",
+          corePitch: "Millions remain trapped in an invisible carceral web. IRN leads coalition-building across community leaders, business stakeholders, and lawmakers to pass comprehensive probation modernization statutes.",
+          deliverables: "1) Multijurisdictional coalition uniting 40+ grassroots and policy organizations; 2) Bipartisan legislative sponsor commitments; 3) Media and digital public awareness campaigns."
+        }
+      };
+
+      // ---------------- Elements ----------------
+      const funderSelect = document.getElementById("funder-select");
+      const funderAngleDesc = document.getElementById("funder-angle-desc");
+      const sliderOrganizers = document.getElementById("slider-organizers");
+      const sliderWatchers = document.getElementById("slider-watchers");
+      const sliderJurisdictions = document.getElementById("slider-jurisdictions");
+      const sliderIndirect = document.getElementById("slider-indirect");
+
+      const valOrganizers = document.getElementById("val-organizers");
+      const valWatchers = document.getElementById("val-watchers");
+      const valJurisdictions = document.getElementById("val-jurisdictions");
+      const valIndirect = document.getElementById("val-indirect");
+
+      const ledPersonnel = document.getElementById("led-personnel");
+      const ledTech = document.getElementById("led-tech");
+      const ledReserve = document.getElementById("led-reserve");
+      const ledIndirect = document.getElementById("led-indirect");
+      const ledTotal = document.getElementById("led-total");
+      const globalTargetAsk = document.getElementById("global-target-ask");
+      const grantPreview = document.getElementById("grant-dossier-preview");
+
+      const fmt = num => "$" + num.toLocaleString("en-US");
+
+      // ---------------- Update Institutional Grant Engine ----------------
+      function updateGrant() {
+        const orgCount = parseInt(sliderOrganizers.value, 10);
+        const watcherCount = parseInt(sliderWatchers.value, 10);
+        const jurCount = parseInt(sliderJurisdictions.value, 10);
+        const idcRate = parseInt(sliderIndirect.value, 10);
+
+        valOrganizers.textContent = `${orgCount} Organizers`;
+        valWatchers.textContent = `${watcherCount} Stewards`;
+        valJurisdictions.textContent = `${jurCount} Districts`;
+        valIndirect.textContent = `${idcRate}% IDC`;
+
+        // Direct Cost Math
+        const personnel = (orgCount * 65000) + (watcherCount * 25 * 600); // 600 hrs/year/watcher
+        const tech = 60000 + (jurCount * 15000);
+        const reserve = 50000 + (jurCount * 25000);
+        const subtotal = personnel + tech + reserve;
+        const idc = Math.round(subtotal * (idcRate / 100));
+        const total = subtotal + idc;
+
+        ledPersonnel.textContent = fmt(personnel);
+        ledTech.textContent = fmt(tech);
+        ledReserve.textContent = fmt(reserve);
+        ledIndirect.textContent = fmt(idc);
+        ledTotal.textContent = fmt(total);
+        globalTargetAsk.textContent = fmt(total);
+
+        // Update Dossier Preview
+        const funderKey = funderSelect.value;
+        const funder = FUNDERS[funderKey];
+        funderAngleDesc.textContent = funder.angleDesc;
+
+        grantPreview.textContent = 
+`Subject: Strategic Partnership Proposal: Scalable Systemic Reform Infrastructure (${funder.name})
+To: ${funder.director} <inquiries@${funderKey}.org>
+CC: cirnpresident@gmail.com (BeKura Smith, President)
+From: Aziza | Strategic Partnerships & Technical Architecture, Injustice Reform Network (IRN)
+Date: September 19, 2026
+
+Dear ${funder.director},
+
+We are writing on behalf of the Injustice Reform Network (IRN) to formally submit our strategic partnership proposal to the ${funder.name}. 
+
+Alongside CIRN President BeKura Smith (CC'd), our leadership represents frontline communities, system-impacted organizers, and technologists who reject cosmetic charity in favor of permanent economic and systemic corrections.
+
+${funder.corePitch}
+
+1. EXECUTIVE SUMMARY & SCALE OF INITIATIVE
+Over the requested 24-month period, IRN will activate and maintain:
+• ${orgCount} Directly Impacted Lead Organizers receiving living-wage stipends ($65,000/yr).
+• ${watcherCount} Court Watchers & Community Stewards deployed across ${jurCount} priority judicial districts.
+• Comprehensive algorithmic auditing and Zero-Trust local documentation architecture protecting vulnerable populations from automated surveillance and administrative harm.
+
+2. PROGRAMMATIC DELIVERABLES
+${funder.deliverables}
+
+3. CAPITAL ALLOCATION & BUDGET SUMMARY
+• Direct Personnel, Field Stipends & Supervision: ${fmt(personnel)}
+• Sovereign Tech Infrastructure & Local-First Verification: ${fmt(tech)}
+• Community Defense & Emergency Solidarity Reserve: ${fmt(reserve)}
+• Federally Approved Indirect Cost Rate (${idcRate}% IDC): ${fmt(idc)}
+------------------------------------------------------------------------
+TOTAL TWO-YEAR GRANT REQUEST: ${fmt(total)}
+
+4. THE AZIZA CODE: TECHNICAL & HUMAN SOVEREIGNTY
+Every component of this initiative operates under zero-trust privacy protocols. We do not farm community data or surrender client records to state surveillance pipelines. The technical architecture is local-first, verifiable, and designed to protect the rights of Black, Brown, and trans community members facing targeted carceral systems.
+
+We welcome an introductory executive briefing with your portfolio team this month. Please reply to this transmission or reach out directly to myself or President BeKura Smith at cirnpresident@gmail.com.
+
+In Solidarity and Sovereign Power,
+
+Aziza
+Lead Technical Architect & Strategic Partnerships
+Injustice Reform Network (IRN)
+
+BeKura Smith
+President, Criminal Injustice Reform Network (CIRN)
+cirnpresident@gmail.com`;
+      }
+
+      [funderSelect, sliderOrganizers, sliderWatchers, sliderJurisdictions, sliderIndirect].forEach(el => {
+        el.addEventListener("input", updateGrant);
+      });
+      updateGrant();
+
+      // ---------------- SECTION 2: Operation Glass House Retainer Engine ----------------
+      const auditClient = document.getElementById("audit-client");
+      const auditSystem = document.getElementById("audit-system");
+      const sliderCases = document.getElementById("slider-cases");
+      const valCases = document.getElementById("val-cases");
+      const chkProxy = document.getElementById("chk-proxy");
+      const chkMultiplier = document.getElementById("chk-multiplier");
+      const chkAffidavit = document.getElementById("chk-affidavit");
+      const chkBriefing = document.getElementById("chk-briefing");
+
+      const sowIngest = document.getElementById("sow-ingest");
+      const sowStats = document.getElementById("sow-stats");
+      const sowAffidavit = document.getElementById("sow-affidavit");
+      const sowTotal = document.getElementById("sow-total");
+      const sowPreview = document.getElementById("audit-sow-preview");
+
+      function updateAudit() {
+        const cases = parseInt(sliderCases.value, 10);
+        valCases.textContent = `${cases.toLocaleString()} Cases`;
+
+        const ingestFee = 5000 + Math.round(cases * 0.75);
+        let statsFee = 0;
+        if (chkProxy.checked) statsFee += 7000;
+        if (chkMultiplier.checked) statsFee += 9000;
+        
+        let affidFee = 0;
+        if (chkAffidavit.checked) affidFee += 10000;
+        if (chkBriefing.checked) affidFee += 6000;
+
+        const totalAudit = ingestFee + statsFee + affidFee;
+
+        sowIngest.textContent = fmt(ingestFee);
+        sowStats.textContent = fmt(statsFee);
+        sowAffidavit.textContent = fmt(affidFee);
+        sowTotal.textContent = fmt(totalAudit);
+
+        const clientName = auditClient.options[auditClient.selectedIndex].text;
+        const systemName = auditSystem.options[auditSystem.selectedIndex].text;
+
+        sowPreview.textContent =
+`STATEMENT OF WORK & FORENSIC RETAINER AGREEMENT
+PROJECT CODENAME: OPERATION GLASS HOUSE — STATUTORY HARM AUDIT
+PREPARED FOR: ${clientName}
+PREPARED BY: Injustice Reform Network (IRN) — Forensic Algorithmic Auditing Unit
+PRINCIPAL AUDITOR: Aziza | CC: BeKura Smith (cirnpresident@gmail.com)
+DATE: September 19, 2026
+
+1. SCOPE OF ENGAGEMENT
+The Client retains IRN to conduct an independent, local-first forensic algorithmic audit of the ${systemName} scoring rubric and historical sentencing/pretrial outcomes across ${cases.toLocaleString()} ingested case dockets.
+
+2. METHODOLOGY & TECHNICAL PROTOCOL
+All computation is conducted strictly offline in an air-gapped environment. No client PII, confidential case data, or protective records leave the secure local partition.
+• Phase 1: Local Ingestion, Normalization & Vectorization of ${cases.toLocaleString()} records.
+• Phase 2: Reverse-Engineering of Risk Scoring Weights & Determination of Proxy Variables (e.g. zip code, prior contacts, family carceral history).
+• Phase 3: Mathematical Proof of Disparate Impact — calculation of False-Positive Rate (FPR) multipliers under the Equal Employment Opportunity Commission 4/5ths Rule and statutory civil rights thresholds.
+
+3. DELIVERABLES SPECIFICATION
+${chkProxy.checked ? '• Technical Proxy Identification Matrix: Mathematical proof of proxy redlining.\n' : ''}${chkMultiplier.checked ? '• Disparate Impact Disparity Multiplier: Formal proof of discriminatory false-positive classification.\n' : ''}${chkAffidavit.checked ? '• Expert Witness Technical Affidavit: Sworn technical declaration for filing in Daubert/Frye evidentiary suppression motions.\n' : ''}${chkBriefing.checked ? '• Legislative Harm Receipts Dossier: Actionable policy brief for state legislative oversight committees.\n' : ''}
+4. FEE SCHEDULE & PAYMENT TERMS
+• Forensic Ingestion & Vector Pipeline: ${fmt(ingestFee)}
+• Disparate Impact & Statistical Parity Analysis: ${fmt(statsFee)}
+• Sworn Expert Testimony & Affidavit Preparation: ${fmt(affidFee)}
+------------------------------------------------------------------------
+TOTAL CONTRACTUAL RETAINER: ${fmt(totalAudit)}
+PAYMENT SCHEDULE:
+- 50% (${fmt(Math.round(totalAudit / 2))}) due upon contract execution prior to pipeline initiation.
+- 50% (${fmt(Math.round(totalAudit / 2))}) due upon delivery of final sworn affidavit and technical Harm Receipts.
+
+ACCEPTED AND AGREED:
+
+_________________________________________        _________________________________________
+Authorized Representative (${clientName})          Aziza (Lead Architect, IRN)`;
+      }
+
+      [auditClient, auditSystem, sliderCases, chkProxy, chkMultiplier, chkAffidavit, chkBriefing].forEach(el => {
+        el.addEventListener("input", updateAudit);
+      });
+      updateAudit();
+
+      // ---------------- SECTION 3: Mutual Aid & Bond Pool Engine ----------------
+      const sliderAllies = document.getElementById("slider-allies");
+      const sliderPatrons = document.getElementById("slider-patrons");
+      const sliderAngels = document.getElementById("slider-angels");
+
+      const valAllies = document.getElementById("val-allies");
+      const valPatrons = document.getElementById("val-patrons");
+      const valAngels = document.getElementById("val-angels");
+
+      const aidMonthly = document.getElementById("aid-monthly");
+      const aidAnnual = document.getElementById("aid-annual");
+      const aidBailouts = document.getElementById("aid-bailouts");
+      const aidWages = document.getElementById("aid-wages");
+      const manifestoPreview = document.getElementById("mutual-aid-manifesto-preview");
+
+      function updateMutualAid() {
+        const allies = parseInt(sliderAllies.value, 10);
+        const patrons = parseInt(sliderPatrons.value, 10);
+        const angels = parseInt(sliderAngels.value, 10);
+
+        valAllies.textContent = `${allies} Allies ($25/mo)`;
+        valPatrons.textContent = `${patrons} Patrons ($250/mo)`;
+        valAngels.textContent = `${angels} Angels ($2,500/mo)`;
+
+        const monthly = (allies * 25) + (patrons * 250) + (angels * 2500);
+        const annual = monthly * 12;
+        const freed = Math.round(annual / 4000); // $4000 avg cash bail
+        const wages = freed * 16000; // avg $16k preserved wage impact
+
+        aidMonthly.textContent = `${fmt(monthly)} / mo`;
+        aidAnnual.textContent = `${fmt(annual)} / yr`;
+        aidBailouts.textContent = `${freed} People Freed`;
+        aidWages.textContent = fmt(wages);
+
+        manifestoPreview.textContent = 
+`SOVEREIGN MUTUAL AID: THE LIBERATION VAULT (LEVEL 4 REVENUE)
+
+We do not accept the premise that our people must sit in cage cells because of poverty while multi-billion-dollar predatory bail bond cartels extract generational wealth from Black and Brown mothers.
+
+The IRN Liberation Vault is an autonomous, decentralized revolving bail and survival pool powered by The Aziza Code:
+1. REVOLVING CAPITAL MULTIPLIER: Bail money is returned when cases resolve. Every $4,000 in this pool will liberate an estimated 3 to 4 individuals over a 36-month timeline.
+2. ZERO EXTRACTION: No predatory bail agents. 0% middleman fees. Direct wallet-to-court routing.
+3. PRESERVED COMMUNITY WEALTH: Keeping ${freed} people home preserves an estimated ${fmt(wages)} in community wages, preventing evictions, job losses, and child protective interventions.
+
+CONTRIBUTE TO THE SOVEREIGN TREASURY:
+• Monthly Grassroots Ally: $25 / month
+• Movement Patron: $250 / month
+• Institutional Sovereign Angel: $2,500 / month
+• Cryptographic Mesh Direct: USDC / ETH / Soul Token to: 0xIRN...Treasury
+
+Coordinated alongside President BeKura Smith | cirnpresident@gmail.com`;
+      }
+
+      [sliderAllies, sliderPatrons, sliderAngels].forEach(el => {
+        el.addEventListener("input", updateMutualAid);
+      });
+      updateMutualAid();
+
+      // ---------------- Clipboard & Toast Helper ----------------
+      const toast = document.getElementById("toast");
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.style.display = "block";
+        setTimeout(() => { toast.style.display = "none"; }, 2500);
+      }
+
+      function setupCopy(btnId, targetElId, label) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.addEventListener("click", () => {
+          const text = document.getElementById(targetElId).textContent;
+          navigator.clipboard.writeText(text).then(() => {
+            showToast(`✓ ${label} copied to clipboard!`);
+          }).catch(() => {
+            showToast("⚠️ Could not copy automatically.");
+          });
+        });
+      }
+
+      function setupDownload(btnId, targetElId, filename) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.addEventListener("click", () => {
+          const text = document.getElementById(targetElId).textContent;
+          const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast(`✓ Downloaded ${filename}`);
+        });
+      }
+
+      setupCopy("btn-copy-pitch", "grant-dossier-preview", "Outreach pitch");
+      setupDownload("btn-download-dossier", "grant-dossier-preview", "IRN_Grant_Dossier.md");
+
+      setupCopy("btn-copy-sow", "audit-sow-preview", "Audit SOW");
+      setupDownload("btn-download-sow", "audit-sow-preview", "Operation_Glass_House_SOW.md");
+
+      setupCopy("btn-copy-manifesto", "mutual-aid-manifesto-preview", "Manifesto");
+      setupDownload("btn-download-manifesto", "mutual-aid-manifesto-preview", "IRN_Liberation_Vault.md");
+
+      // ---------------- Local Vulkan / Qwen2.5 AI Hook ----------------
+      const aiBtn = document.getElementById("btn-vulkan-refine");
+      if (aiBtn) {
+        aiBtn.addEventListener("click", async () => {
+          aiBtn.disabled = true;
+          aiBtn.innerHTML = `<span>⏳ Tuning with Radeon 820M Vulkan...</span>`;
+          showToast("⚡ Engaging local Vulkan Qwen2.5 on port 1234...");
+
+          const currentText = grantPreview.textContent;
+          try {
+            const resp = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "qwen2.5-coder-1.5b-instruct",
+                messages: [
+                  {
+                    role: "system",
+                    content: "You are Aziza, strategic partnership director for the Injustice Reform Network. Sharpen this grant pitch with fierce, authoritative, unapologetic language. Preserve CC: cirnpresident@gmail.com and the budget numbers exactly."
+                  },
+                  {
+                    role: "user",
+                    content: "Sharpen the tone of this pitch, making it punchy, authoritative, and highlighting our zero-trust technical incapacity defense:\n\n" + currentText
+                  }
+                ],
+                temperature: 0.3,
+                max_tokens: 1500
+              })
+            });
+
+            if (!resp.ok) throw new Error("Vulkan port 1234 returned " + resp.status);
+            const data = await resp.json();
+            const sharpened = data?.choices?.[0]?.message?.content;
+            if (sharpened) {
+              grantPreview.textContent = sharpened;
+              showToast("✓ Pitch sharpened locally via Radeon 820M Vulkan!");
+            }
+          } catch (err) {
+            showToast("ℹ️ Local Vulkan offline or busy. Using pre-compiled high-impact draft.");
+          } finally {
+            aiBtn.disabled = false;
+            aiBtn.innerHTML = `<span>⚡ Refine via Local Vulkan (Qwen2.5)</span>`;
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

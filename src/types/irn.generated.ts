@@ -33,5 +33,31 @@ export interface Aggregate {
   n: number;
 }
 
+export interface Participant {
+  /** identity */
+  id: Ulid;
+  /** PII */
+  handle: string;
+  circle: string;
+}
+
+export interface HourEntry {
+  id: Ulid;
+  giver: Ulid;
+  receiver: Ulid;
+  /** denominated in hours — never converts to another denomination */
+  units: number;
+  /** PII */
+  memo: string;
+}
+
+export interface AidGrant {
+  id: Ulid;
+  /** denominated in dollars — never converts to another denomination */
+  amount: number;
+  category: string;
+  status: "open" | "approved" | "paid";
+}
+
 /** k-anonymity floor. Cells below this are suppressed, never rounded. */
 export const MIN_CELL_SIZE = 5;

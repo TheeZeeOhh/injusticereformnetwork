@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import DischargeGenerator from './pages/DischargeGenerator';
 import Schedule from './pages/Schedule';
-import ZeeZeePanel from './pages/ZeeZeePanel';
 import Messages from './pages/Messages';
 import Login from './pages/Login';
 import { useAuthStore } from './store/authStore';
@@ -182,7 +181,6 @@ const NAV_GROUPS = [
       { to: '/templates', icon: '📝', labelKey: 'nav.dispatchLog' },
       { to: '/messages', icon: '💬', labelKey: 'nav.messages' },
       { to: '/intelligence', icon: '🧠', labelKey: 'nav.intelligenceLayer' },
-      { to: '/zeezee', icon: '🤖', labelKey: 'nav.zeeZee' },
     ]
   },
   {
@@ -587,7 +585,6 @@ function App() {
             <Routes>
               <Route path="/" element={<DashboardHome />} />
               <Route path="/nexus" element={<Nexus />} />
-              <Route path="/zeezee" element={<ZeeZeePanel />} />
               <Route path="/clients" element={<ClientsModule />} />
               <Route path="/templates" element={<NoteTemplatesLibrary />} />
               <Route path="/note-templates" element={<NoteTemplatesLibrary />} />

@@ -115,3 +115,71 @@ policy assistant_gates {
   on_escalation  block_hosted
   read_signals   generously
 }
+
+# ---------------------------------------------------------------------------
+# Commons — the community rail. Two ledgers that must never become one.
+#
+# Hours are MUTUAL CREDIT: a record of what the commons owes you. They cannot
+# be bought with dollars and cannot be redeemed for dollars. That is not a
+# product preference, it is the entire compliance position. An informal,
+# noncommercial exchange of similar services is not a barter exchange
+# (IRS PLR 9608009, 1995-11-09); a ledger that never touches money is not money
+# transmission, and FinCEN sets NO activity threshold for transmitters — the
+# first transaction counts.
+#
+# Aid is IRN disbursing money IT ALREADY HOLDS. Charitable grantmaking, not
+# transmission: it moves nobody else's money.
+#
+# The wall between the two denominations is what stops the KYC obligations of
+# the hardest feature (P2P, unbuilt, licensed-partner-only) from becoming the
+# floor for the easiest. If hours can become dollars, the rail becomes a money
+# services business, and every participant needs government ID to receive a
+# $200 emergency grant — from a population whose documents frequently do not
+# match who they are. Weakening commons_scope is weakening that.
+# ---------------------------------------------------------------------------
+
+entity Participant {
+  id      Ulid  @identity
+  handle  Text  @pii
+  circle  Text
+}
+
+entity HourEntry {
+  id        Ulid
+  giver     Ref(Participant)
+  receiver  Ref(Participant)
+  units     Int   @denominated(hours)
+  memo      Text  @pii
+}
+
+entity AidGrant {
+  id        Ulid
+  amount    Int   @denominated(dollars)
+  category  Text
+  status    Enum(open, approved, paid)
+}
+
+policy commons_scope {
+  denominations   [hours, dollars]
+
+  # No rate, no purchase, no redemption, in either direction. A single record
+  # carrying both denominations IS a conversion, so the validator rejects that
+  # shape too — see "two denominations" in validate.js.
+  forbid  convert(hours, dollars)
+  forbid  convert(dollars, hours)
+
+  # The CIP four (31 CFR 1020.220 — name, date of birth, address, identification
+  # number) plus the aliases someone would actually type. No IRN entity declares
+  # any of them. That absence is Technical Incapacity applied to the community
+  # rail: what is never collected cannot be subpoenaed, and a name-match failure
+  # cannot lock anyone out of aid.
+  forbid  identity_field(legal_name, full_name, first_name, last_name,
+                         address, street_address,
+                         date_of_birth, dob, birthdate,
+                         ssn, tax_id, identification_number, document_number,
+                         government_id, drivers_license, passport_number)
+
+  require separate_denominations
+  on_uncertain  block
+  sign_off      required
+}

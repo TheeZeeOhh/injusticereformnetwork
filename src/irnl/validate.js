@@ -24,9 +24,19 @@ const KNOWN_VERBS = {
   policy: new Set([
     'min_cell_size', 'group_by', 'on_below_floor', 'on_uncertain', 'deny',
     'forbid', 'require', 'sign_off', 'precedence', 'on_crisis', 'on_escalation',
-    'read_signals'
+    'read_signals', 'denominations'
   ])
 };
+
+// Annotations the language understands. An unknown one is a typo until proven
+// otherwise, and it is an ERROR rather than a warning for the same reason an
+// unknown verb is: `@denominatd(hours)` would silently drop a field out of the
+// convertibility check while the file still read as if it were covered. A
+// guardrail that stops applying without anything failing is the one failure
+// mode this language exists to prevent.
+const KNOWN_ANNOTATIONS = new Set([
+  'identity', 'pii', 'phi', 'quasi_identifier', 'aad', 'count', 'denominated'
+]);
 
 // Field types the codegen knows how to emit. Enum/Ref take arguments.
 const KNOWN_TYPES = new Set(['Ulid', 'Text', 'Int', 'Bool', 'Ciphertext', 'Enum', 'Ref', 'Timestamp']);
@@ -54,13 +64,36 @@ export const REQUIRED_MIN_CELL_SIZE = 5;
 
 const identOf = (value) => (value && value.v === 'ident' ? value.name : null);
 
-/** Flatten a directive's args into plain idents, including inside call args. */
+/**
+ * Fold a field name to the form the forbidden-identity list is written in, so
+ * `dateOfBirth`, `DateOfBirth` and `date_of_birth` are all the same field. The
+ * list is a compliance boundary, not a style guide — spelling must not be a way
+ * around it.
+ * @param {string} name
+ * @returns {string}
+ */
+export const normalizeFieldName = (name) =>
+  String(name).replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+
+/**
+ * Flatten a directive's args into plain idents, reaching inside call args and
+ * list items.
+ *
+ * The braces are load-bearing. Written brace-free, the `else if` for lists
+ * binds to the inner `if` of the call branch instead of to the outer chain, so
+ * list arguments silently flatten to nothing — a boundary that denied
+ * `sink[cloud, p2p]` would have read as denying nothing at all, with no error.
+ */
 function argIdents(directive) {
   const out = [];
   for (const a of directive.args) {
-    if (a.v === 'ident') out.push(a.name);
-    else if (a.v === 'call') for (const inner of a.args) if (inner.v === 'ident') out.push(inner.name);
-    else if (a.v === 'list') for (const inner of a.items) if (inner.v === 'ident') out.push(inner.name);
+    if (a.v === 'ident') {
+      out.push(a.name);
+    } else if (a.v === 'call') {
+      for (const inner of a.args) if (inner.v === 'ident') out.push(inner.name);
+    } else if (a.v === 'list') {
+      for (const inner of a.items) if (inner.v === 'ident') out.push(inner.name);
+    }
   }
   return out;
 }
@@ -86,6 +119,23 @@ export function validate(ast) {
   const entities = new Map(byKind('entity').map((e) => [e.name, e]));
   const vaults = new Map(byKind('vault').map((v) => [v.name, v]));
 
+  // Read up front: the entity loop below needs the declared denominations and
+  // the forbidden identity-field list to check field declarations against.
+  const commons = decls.find((d) => d.kind === 'policy' && d.name === 'commons_scope');
+  const commonsForbids = (commons?.directives ?? []).filter((x) => x.verb === 'forbid');
+  const declaredDenominations = new Set(
+    (commons?.directives ?? [])
+      .filter((x) => x.verb === 'denominations')
+      .flatMap((x) => argIdents(x))
+  );
+  const forbiddenIdentityFields = new Set(
+    commonsForbids
+      .flatMap((d) => callsNamed(d, 'identity_field'))
+      .flatMap((c) => c.args.map(identOf))
+      .filter(Boolean)
+      .map(normalizeFieldName)
+  );
+
   // --- uniqueness -----------------------------------------------------------
   const seen = new Map();
   for (const d of decls) {
@@ -100,6 +150,9 @@ export function validate(ast) {
   // --- entities -------------------------------------------------------------
   for (const entity of entities.values()) {
     const fieldNames = new Set();
+    // Denominations appearing anywhere on this entity. More than one means the
+    // record itself is a conversion — see the check after the field loop.
+    const denominations = new Set();
     for (const f of entity.fields) {
       if (fieldNames.has(f.name)) {
         err(`duplicate field ${JSON.stringify(f.name)} in entity ${entity.name}`, f.line);
@@ -127,6 +180,41 @@ export function validate(ast) {
           }
         }
       }
+      // A KYC-shaped field must not exist anywhere in IRN's declared shapes.
+      // This is checked against every entity, not only the Commons ones: the
+      // rule is "IRN does not collect this", and an identity column is exactly
+      // as re-identifying on a Sanctuary record as on a Participant.
+      if (forbiddenIdentityFields.has(normalizeFieldName(f.name))) {
+        warn(
+          `${entity.name}.${f.name} is a KYC identity field that policy commons_scope forbids; ` +
+          'IRN does not collect it, and what is never collected cannot be produced under subpoena',
+          f.line
+        );
+      }
+
+      // @denominated(x) binds a field to a unit of account. `x` must be one the
+      // spec declares, or the field is silently outside the conversion check.
+      for (const ann of f.annotations) {
+        if (!KNOWN_ANNOTATIONS.has(ann.name)) {
+          err(`unknown annotation @${ann.name} on ${entity.name}.${f.name}`, f.line);
+        }
+        if (ann.name !== 'denominated') continue;
+        const unit = identOf(ann.args[0]);
+        if (!unit) {
+          err(`@denominated on ${entity.name}.${f.name} needs a unit, e.g. @denominated(hours)`, f.line);
+          continue;
+        }
+        if (declaredDenominations.size && !declaredDenominations.has(unit)) {
+          err(
+            `@denominated(${unit}) on ${entity.name}.${f.name} names a unit no policy declares; ` +
+            `known: ${[...declaredDenominations].join(', ')}`,
+            f.line
+          );
+          continue;
+        }
+        denominations.add(unit);
+      }
+
       // @aad(path) must resolve against a declared field of this entity.
       for (const ann of f.annotations) {
         if (ann.name !== 'aad') continue;
@@ -144,6 +232,19 @@ export function validate(ast) {
       if (f.annotations.some((a) => a.name === 'phi') && f.type.name !== 'Ciphertext') {
         warn(`${entity.name}.${f.name} is @phi but typed ${f.type.name}; PHI must be Ciphertext`, f.line);
       }
+    }
+
+    // Two denominations on one record IS a conversion — that record is where a
+    // rate would have to live. Hours are mutual credit precisely because no row
+    // anywhere holds an hours figure and a dollars figure side by side, so this
+    // is the structural form of "hours cannot be bought or redeemed".
+    if (denominations.size > 1) {
+      warn(
+        `entity ${entity.name} carries ${denominations.size} denominations ` +
+        `(${[...denominations].sort().join(', ')}); a record holding both is a conversion, ` +
+        'which commons_scope forbids',
+        entity.line
+      );
     }
   }
 
@@ -222,6 +323,50 @@ export function validate(ast) {
     const action = below ? identOf(below.args[0]) : null;
     if (action && action !== 'suppress') {
       warn(`aggregation on_below_floor is ${JSON.stringify(action)}; small cells must be suppressed, not ${action}ed`, below.line);
+    }
+  }
+
+  // --- commons scope wall ---------------------------------------------------
+  // Hours are mutual credit and aid is IRN's own money. Neither may become the
+  // other, and neither rail collects KYC identity. Deleting this policy is the
+  // cheapest way to lose both, so its absence warns rather than passing quietly.
+  if (!commons) {
+    warn(
+      'no commons_scope policy declared; hours must not be convertible to dollars ' +
+      'and no entity may collect KYC identity fields',
+      0
+    );
+  } else {
+    const converts = new Set(
+      commonsForbids
+        .flatMap((d) => callsNamed(d, 'convert'))
+        .map((c) => c.args.map(identOf).join('->'))
+    );
+    // Both directions, explicitly. Forbidding redemption while leaving purchase
+    // open still makes hours something dollars can buy, which is the same wall
+    // with a door in it.
+    for (const [from, to] of [['hours', 'dollars'], ['dollars', 'hours']]) {
+      if (!converts.has(`${from}->${to}`)) {
+        warn(
+          `commons_scope does not forbid convert(${from}, ${to}); hours are mutual credit ` +
+          'and must be neither purchasable nor redeemable',
+          commons.line
+        );
+      }
+    }
+    if (forbiddenIdentityFields.size === 0) {
+      warn(
+        'commons_scope declares no forbidden identity_field list; KYC-shaped fields ' +
+        'would go unchecked on every entity',
+        commons.line
+      );
+    }
+    // The denominations named in the convert rules must be declared, or the
+    // rules forbid conversions between units nothing in the spec uses.
+    for (const unit of ['hours', 'dollars']) {
+      if (!declaredDenominations.has(unit)) {
+        warn(`commons_scope forbids conversions involving ${JSON.stringify(unit)} but does not declare it as a denomination`, commons.line);
+      }
     }
   }
 

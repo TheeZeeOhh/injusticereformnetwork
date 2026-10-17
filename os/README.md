@@ -157,3 +157,14 @@ Not yet verified — do not claim these:
   foot, right-click menu, `swaylock`, `ss -tlnp` showing nothing listening, and
   the Calamares **Install Debian** path.
 - The encrypted install (`RUNBOOK.md` §7) and the portable-USB flow.
+
+## IRN Apps Ecosystem
+
+The OS now integrates an ecosystem of custom applications via an automated build pipeline. The `apps/manifest.json` defines applications, their locations, and dependencies.
+Types of apps supported:
+- **web-static**: Static web sites (e.g., EquityGuard, School Not Prison). Served locally via a lightweight Python HTTP server.
+- **node-service**: Node.js backends (e.g., IRN Launchpad, IRN OS Console). Served dynamically with output tracing and isolated `node_modules`.
+- **node-cli**: Command-line tools written in Node.js (e.g., Sovereign Hivemind, IRN CLI).
+- **python-cli**: Command-line tools written in Python (e.g., Hermes, QuantumNeuralVM).
+
+During build (`stage-apps.sh`), these apps are synced into `opt/irn-apps/`. The `0080-irn-apps.hook.chroot` script processes dependencies (`deb_deps`), installs NodeJS if needed, and automatically creates standard FreeDesktop `.desktop` entries in the OS menu. All applications are launched via a secure `irn-app` proxy that configures environment variables, manages paths, and spins up local webservers as needed.

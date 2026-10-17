@@ -1,0 +1,232 @@
+#!/bin/sh
+# Fetch Zee Zee's local models on first run — the LITE edition's brain transplant.
+#
+# ===========================================================================
+#  THIS SCRIPT DOWNLOADS ~2.2 GB FROM THE INTERNET. THAT IS THE WHOLE POINT.
+# ===========================================================================
+# IRN OS is built to not phone anyone. This script is the one deliberate,
+# operator-initiated exception in the image, and it is a script rather than a
+# boot-time service precisely so that "IRN OS reached the internet" is always
+# something a human chose, in the open, with the size and the destination on
+# screen first. Nothing here runs unattended, on a timer, or at login.
+#
+# What it talks to, exactly:
+#   registry.ollama.ai   — Ollama's public model registry (HTTPS), for the two
+#                          model blobs below. Nothing else.
+#   127.0.0.1:11434      — the local ollama daemon, which does the actual
+#                          fetching and writing.
+# What it sends: model names. No prompts, no documents, no telemetry, no PHI.
+# It does not read the vaults and has no reason to; keep it that way.
+#
+# Editions:
+#   full — models are baked into the image. This script refuses to run (they are
+#          already present) and that refusal is the correct outcome.
+#   lite — models absent by design; this is how you get a brain.
+set -eu
+
+OLLAMA_API="${OLLAMA_HOST:-127.0.0.1:11434}"
+MODELS_DIR="${IRN_MODELS_DIR:-/var/lib/ollama/models}"
+MODELFILE=/opt/zee-zee/Modelfile.ai-twin
+EDITION_FILE=/usr/local/share/irn-os/edition
+
+# name:tag                  approx download size (for the honesty banner below)
+MODEL_LLM="llama3.2:latest"
+MODEL_LLM_SIZE="1.9 GB"
+MODEL_EMB="nomic-embed-text:latest"
+MODEL_EMB_SIZE="270 MB"
+TOTAL_SIZE="2.2 GB"
+# ai-twin-custom is built LOCALLY from the Modelfile — it is a system prompt and
+# parameter set layered on llama3.2, so it reuses that blob and downloads zero
+# additional bytes. Do not add it to the size banner as if it cost 1.9 GB again.
+
+# Free space needed. The two blobs are ~2.2 GB, but ollama writes each layer to a
+# partial file and then renames it into blobs/, so the peak is above the final
+# size. 3 GB is the honest floor; below that a pull dies mid-blob and leaves a
+# half-written store, which is a worse failure than refusing up front.
+NEED_MB=3072
+
+say() { printf '%s\n' "$*"; }
+die() { printf 'irn-model-pull: %s\n' "$*" >&2; exit 1; }
+
+command -v ollama >/dev/null 2>&1 || \
+	die "the ollama runtime is not installed — this image has no local brain at all."
+
+# --- 1. Is the daemon up? ---------------------------------------------------
+# -m 5, not an unbounded call: a wedged daemon must fail loudly in five seconds,
+# not hang a first-run helper forever with no output.
+if ! curl -sf -m 5 "http://${OLLAMA_API}/api/tags" >/dev/null 2>&1; then
+	say "The local model service is not answering on ${OLLAMA_API}."
+	say ""
+	say "  Start it:   sudo systemctl start ollama"
+	say "  Then:       irn-model-pull"
+	exit 1
+fi
+
+# --- 2. Refuse if models are already here -----------------------------------
+# Idempotence by refusal, not by re-pull: on the full edition the models ship in
+# the image, and silently re-downloading 2.2 GB over a working offline install
+# would be exactly the behaviour this OS is supposed to never have.
+TAGS="$(curl -sf -m 10 "http://${OLLAMA_API}/api/tags" 2>/dev/null || echo '')"
+case "$TAGS" in
+	*'"name"'*)
+		say "Models are already installed. Nothing to download."
+		say ""
+		say "Present now:"
+		# No jq in the image; peel the names out with sed. Cosmetic only — the
+		# decision above was already made on the presence of a "name" key.
+		printf '%s' "$TAGS" | tr ',' '\n' | sed -n 's/.*"name":"\([^"]*\)".*/  - \1/p'
+		say ""
+		say "To re-download one anyway (deliberate, not automatic):"
+		say "  ollama rm <name> && irn-model-pull"
+		exit 0
+		;;
+esac
+
+# --- 3. Where will this land, and does it survive a reboot? -----------------
+# The models directory may not exist yet on a lite image; walk up to the nearest
+# existing ancestor so df/stat have something real to answer about.
+probe="$MODELS_DIR"
+while [ ! -e "$probe" ] && [ "$probe" != "/" ]; do probe="$(dirname "$probe")"; done
+
+FSTYPE="$(stat -f -c %T "$probe" 2>/dev/null || echo unknown)"
+AVAIL_MB="$(df -Pm "$probe" 2>/dev/null | awk 'NR==2 {print $4}')"
+[ -n "${AVAIL_MB:-}" ] || AVAIL_MB=0
+
+EPHEMERAL=""
+case "$FSTYPE" in
+	tmpfs|ramfs|overlayfs|overlay|aufs|unknown*|UNKNOWN*) EPHEMERAL=yes ;;
+esac
+# live-boot unions a tmpfs over the whole root, so on a live USB *every* path
+# reports overlayfs and every byte written is RAM. Check for the live marker too
+# — it is the unambiguous signal, where the fs type is only a good hint.
+#
+# Written as a full `if` and not `[ a ] || [ b ] && EPHEMERAL=yes`: in an AND-OR
+# list the shell evaluates left-to-right, so a machine that is NOT live makes the
+# whole list exit non-zero and `set -eu` kills this script before it prints a
+# single line. The terse form fails exactly on the common path.
+if [ -d /run/live/medium ] || [ -e /run/live/overlay ]; then
+	EPHEMERAL=yes
+fi
+
+say "=========================================================="
+say " IRN OS — first-run model download"
+say "=========================================================="
+say ""
+say "This is the ONE place IRN OS deliberately reaches the internet"
+say "for a large download. Nothing else in the image does this."
+say ""
+say "  Downloading from : registry.ollama.ai  (HTTPS)"
+say "  Total size       : ~${TOTAL_SIZE}"
+say "      ${MODEL_LLM}   ~${MODEL_LLM_SIZE}   (the language model)"
+say "      ${MODEL_EMB}   ~${MODEL_EMB_SIZE}   (document search embeddings)"
+say "      ai-twin-custom          0 bytes   (built locally, reuses the above)"
+say ""
+say "  Landing in       : ${MODELS_DIR}"
+say "  Filesystem       : ${FSTYPE}"
+say "  Free space       : ${AVAIL_MB} MB  (need ${NEED_MB} MB)"
+say ""
+say "  What leaves this machine: the model NAMES above, nothing else."
+say "  No prompts, no documents, no case data, no telemetry."
+say ""
+
+if [ "$AVAIL_MB" -lt "$NEED_MB" ]; then
+	say "REFUSING: not enough room. ${AVAIL_MB} MB free, ${NEED_MB} MB needed."
+	say ""
+	if [ -n "$EPHEMERAL" ]; then
+		say "You are on a LIVE boot, so 'free space' here is free RAM. There is"
+		say "no amount of freeing-up that makes this safe on this machine."
+	fi
+	say "Use the FULL edition ISO instead — its models are already in the image,"
+	say "work offline from the first boot, and need no download at all."
+	exit 1
+fi
+
+if [ -n "$EPHEMERAL" ]; then
+	say "----------------------------------------------------------"
+	say " WARNING — this looks like a LIVE (amnesiac) boot."
+	say "----------------------------------------------------------"
+	say " The writable layer is a tmpfs in RAM, so:"
+	say "   * the ${TOTAL_SIZE} you download is held in RAM, not on disk;"
+	say "   * it is GONE at reboot, and you pay for it again next time;"
+	say "   * on a machine without several GB to spare this can drive the"
+	say "     system into the OOM killer while it downloads."
+	say ""
+	say " If you want a permanent brain, do ONE of these instead:"
+	say "   * boot the FULL edition ISO (models baked in, offline, no download)"
+	say "   * install to disk with Calamares first, then run this there."
+	say ""
+fi
+
+printf 'Download ~%s now? [y/N] ' "$TOTAL_SIZE"
+read -r ans || ans=n
+case "$ans" in
+	y|Y|yes|YES) ;;
+	*) say "Cancelled. Nothing was downloaded."; exit 1 ;;
+esac
+
+# --- 4. Pull ----------------------------------------------------------------
+# `ollama pull` prints its own live progress bar and resumes a partial blob on
+# re-run, so Ctrl-C here is safe and re-running this script picks up where it
+# stopped. That is why we do NOT wrap it, quiet it, or background it — hiding
+# the progress of a 2.2 GB download is how you get a user who force-reboots a
+# machine that was working fine.
+#
+# `set -e` is off around each pull on purpose: a failed embed pull should still
+# report which model failed rather than exiting with a bare status.
+pull_one() {
+	name="$1"
+	say ""
+	say "--- pulling ${name} ---"
+	if ollama pull "$name"; then
+		say "ok: ${name}"
+		return 0
+	fi
+	say "" >&2
+	say "FAILED to pull ${name}." >&2
+	say "Most likely causes, in order:" >&2
+	say "  * no network — this machine reaches nothing outside itself;" >&2
+	say "  * a captive-portal wifi that needs a browser sign-in first;" >&2
+	say "  * registry.ollama.ai blocked by the network you are on." >&2
+	say "Nothing was left half-installed that a re-run cannot resume." >&2
+	return 1
+}
+
+trap 'say ""; say "Interrupted. Re-run irn-model-pull to resume where it stopped."; exit 130' INT
+
+failed=0
+pull_one "$MODEL_LLM" || failed=1
+pull_one "$MODEL_EMB" || failed=1
+
+# --- 5. Build the persona model locally -------------------------------------
+# ai-twin-custom is Zee Zee's voice: a Modelfile layering a system prompt and
+# sampling parameters over llama3.2. `ollama create` is a purely local operation
+# once the base model is here — no further network.
+if [ "$failed" -eq 0 ] && [ -f "$MODELFILE" ]; then
+	say ""
+	say "--- building ai-twin-custom from ${MODELFILE} (local, no download) ---"
+	if ollama create ai-twin-custom -f "$MODELFILE"; then
+		say "ok: ai-twin-custom"
+	else
+		say "note: ai-twin-custom could not be built — Zee Zee falls back to" >&2
+		say "      ${MODEL_LLM} without the persona. Not fatal." >&2
+	fi
+elif [ ! -f "$MODELFILE" ]; then
+	say ""
+	say "note: ${MODELFILE} is not on this image, so the ai-twin-custom persona"
+	say "      model was not built. Zee Zee will use ${MODEL_LLM} directly."
+fi
+
+say ""
+if [ "$failed" -ne 0 ]; then
+	say "Finished with errors — Zee Zee will be partly or wholly brainless."
+	say "Fix the network and re-run: irn-model-pull"
+	exit 1
+fi
+
+say "Done. Zee Zee has a local brain and this machine can go offline again."
+if [ -n "$EPHEMERAL" ]; then
+	say ""
+	say "Reminder: this was a live boot. All of it disappears at poweroff."
+fi
+[ -r "$EDITION_FILE" ] && say "(image edition: $(head -n1 "$EDITION_FILE"))"
+exit 0

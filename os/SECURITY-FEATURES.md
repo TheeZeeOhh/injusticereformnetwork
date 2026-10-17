@@ -139,8 +139,56 @@ it and no prompt leaves the machine. The service runs as an unprivileged
 terminal over a pty. It is an ordinary terminal: same privileges as `foot`,
 no additional exposure beyond what a shell already gives you.
 
+## 4. Kernel hardening — Debian's kernel, locked down
+
+**Why not a custom kernel.** Debian's backports kernel (7.1.8) already compiles in
+nearly every build-time hardening option: stack protector, KASLR, hardened
+usercopy, freelist hardening, FORTIFY_SOURCE, heap/stack zeroing. What it leaves
+switched *off* can be turned on at boot and runtime, which keeps Debian's weekly
+security updates. A hand-built kernel would have to be re-patched by us, forever.
+
+**What is turned on.**
+
+| Layer | File | Does |
+|---|---|---|
+| Boot parameters | `/etc/irn/kernel-cmdline` (single source of truth) | `lockdown=confidentiality` (root can't read kernel memory or load unsigned modules), memory zeroing, `slab_nomerge`, `hibernate=no` (RAM never written to disk), strict IOMMU against DMA attacks through ports, no 32-bit syscalls, no debugfs |
+| Runtime | `/etc/sysctl.d/98-irn-kernel.conf` | kexec syscall off, unprivileged BPF off + JIT hardening, `perf_event_paranoid=3`, unprivileged userfaultfd off, SysRq off, protected FIFOs/files in `/tmp` |
+| Modules | `/etc/modprobe.d/irn-blacklist.conf` | FireWire, SCTP/RDS/TIPC/ATM/CAN, rare filesystems, `vivid` can never load |
+
+Live boots read the parameter file through `auto/config`. **Installed systems** read
+it through `/etc/default/grub.d/99-irn-harden.cfg`: Calamares writes its own GRUB
+config, so before this drop-in an installed system silently got none of these
+parameters, including `init_on_free`.
+
+**Deliberately not done**, each because it breaks something real: disabling user
+namespaces (removes WebKitGTK's bubblewrap sandbox in Sanctuary), `modules_disabled=1`
+(breaks hotplugged USB and the dead-man token), blocking `thunderbolt` (USB-C docks;
+strict IOMMU covers the DMA risk instead), blocking Bluetooth (shipped for audio),
+`amd_iommu=force_isolation` (breaks some AMD laptops).
+
+**Verify on a booted system:** `sudo irn-verify-kernel-hardening`. It reads live
+kernel state (lockdown mode, IOMMU log line, sysctl values, modprobe resolution,
+parameters the kernel rejected) and exits non-zero on any failure.
+
+**Verified so far (2026-09-13).** The real 7.1.8 kernel booted in qemu from the
+existing lite ISO with these parameters: every parameter recognised, lockdown
+engaged in confidentiality mode, IOMMU strict, heap zeroing on alloc and free,
+boot reached greetd with zero failed units. systemd logs refused BPF reads of
+kernel RAM under lockdown and continues. 
+
+**Full verification in progress (2026-10-08).** All hardening files are in place
+(kernel-cmdline, grub.d drop-in, sysctl, modprobe, verify script). Ready for
+three-phase testing: (1) live boot, (2) Calamares install, (3) real hardware.
+See `KERNEL-HARDENING-VERIFICATION.md` for the test plan and success criteria.
+**Not yet verified:** the sysctl and modprobe files on a freshly built image,
+a Calamares install picking up the grub drop-in, and a boot on real hardware
+(IOMMU behaviour varies by board).
+
 ## Files
 
+- `etc/irn/kernel-cmdline`, `etc/default/grub.d/99-irn-harden.cfg`,
+  `etc/sysctl.d/98-irn-kernel.conf`, `etc/modprobe.d/irn-blacklist.conf`,
+  `usr/local/sbin/irn-verify-kernel-hardening` — kernel hardening (section 4).
 - `usr/local/sbin/irn-panic-wipe` — the wipe.
 - `etc/systemd/system/irn-panic-wipe.{service,path}` — watcher + action.
 - `etc/tmpfiles.d/irn.conf` — creates the user-writable `/run/irn` trigger dir.

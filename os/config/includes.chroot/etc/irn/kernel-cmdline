@@ -1,0 +1,45 @@
+# IRN OS kernel hardening parameters: the ONE source of truth.
+#
+# Read by:
+#   os/auto/config                                  live boots (syslinux + grub-efi)
+#   /etc/default/grub.d/99-irn-harden.cfg           installed systems (Calamares/GRUB)
+#   /usr/local/sbin/irn-verify-kernel-hardening      runtime check on a booted system
+# One parameter per line; `#` starts a comment. Never edit the parameters in
+# those consumers directly, or live and installed systems quietly drift apart.
+#
+# Why these and not a custom kernel: Debian's backports kernel already compiles
+# in nearly every build-time hardening option (checked against
+# chroot/boot/config-7.1.8+deb13-amd64 on 2026-09-13). What it leaves OFF can be
+# switched on here, which keeps Debian's weekly security updates.
+
+# Kernel lockdown. `confidentiality` also stops root from reading kernel memory
+# (/proc/kcore, /dev/mem, kprobes, BPF reads), where keys and decrypted PHI live.
+# It forces signed modules, which is safe here: the image ships no DKMS modules.
+lockdown=confidentiality
+
+# Zero memory on allocation and on free: shrinks the data-remanence window.
+init_on_alloc=1
+init_on_free=1
+
+# Keep slab caches separate so a heap overflow can't reach unrelated objects.
+slab_nomerge
+
+# Hibernation writes all of RAM, keys included, to disk. Lockdown blocks it too;
+# this makes the intent explicit.
+hibernate=no
+
+# DMA attacks through Thunderbolt/USB4/FireWire ports: strict IOMMU flushing (the
+# kernel defaults to lazy) and no DMA before the IOMMU is up.
+# NOT amd_iommu=force_isolation: it breaks some AMD laptops, and real-hardware
+# boots are this image's weakest point.
+iommu.strict=1
+iommu.passthrough=0
+intel_iommu=on
+efi=disable_early_pci_dma
+
+# No 32-bit syscall entry: the image ships zero i386 packages, and the compat
+# layer is a recurring source of kernel bugs.
+ia32_emulation=0
+
+# debugfs exposes kernel internals; nothing in the image uses it.
+debugfs=off

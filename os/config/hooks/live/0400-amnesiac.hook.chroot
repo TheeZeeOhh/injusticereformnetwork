@@ -5,7 +5,8 @@ set -eu
 echo "P: IRN OS — enabling amnesiac (no-swap) posture"
 
 # Disable swap on every boot (keys/PHI stay in RAM only). The kernel cmdline
-# adds init_on_alloc/init_on_free (zero memory on alloc+free) via auto/config.
+# adds init_on_alloc/init_on_free (zero memory on alloc+free) and hibernate=no;
+# the list lives in /etc/irn/kernel-cmdline, read by auto/config and grub.d.
 systemctl enable irn-noswap.service
 
 # Belt-and-suspenders: strip any swap entry from the live fstab.

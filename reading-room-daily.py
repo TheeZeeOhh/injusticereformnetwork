@@ -25,6 +25,7 @@ def find_db():
         cands.append(Path(env) / "index.db")
     home = Path.home()
     cands += [
+        home / "vault/Sanctuary/library/index.db",
         home / "Desktop/Folders/Sanctuary/library/index.db",
         home / "Desktop/Sanctuary/library/index.db",
     ]

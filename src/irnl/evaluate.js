@@ -12,6 +12,9 @@
 // Pure module.
 
 import { loadSpec } from './spec.js';
+// One definition of the folding rule, shared with the validator: the forbidden
+// identity list is a compliance boundary, and two copies of it can drift apart.
+import { normalizeFieldName } from './validate.js';
 
 /**
  * The k-anonymity floor declared by the program.
@@ -174,4 +177,94 @@ export function meetsThreshold(policyName, left, actual, program = loadSpec()) {
     case '!=': return actual !== t.right;
     default: return false;
   }
+}
+
+// --- Commons scope wall -------------------------------------------------------
+// Hours are mutual credit; aid is money IRN already holds. Neither denomination
+// may become the other, and neither rail collects KYC identity. These readers
+// exist so no consumer re-types the list — a second copy of a compliance
+// boundary is a second copy that can drift.
+
+/**
+ * Units of account the spec declares, e.g. ['hours', 'dollars'].
+ * @param {object} [program]
+ * @returns {string[]}
+ */
+export function declaredDenominations(program = loadSpec()) {
+  const declared = program.policies?.commons_scope?.settings?.denominations;
+  if (Array.isArray(declared)) return declared.filter((d) => typeof d === 'string');
+  return typeof declared === 'string' ? [declared] : [];
+}
+
+/**
+ * The denomination a field is bound to via @denominated(x), or null.
+ * @param {string} entityName
+ * @param {string} fieldName
+ * @param {object} [program]
+ * @returns {string|null}
+ */
+export function denominationOf(entityName, fieldName, program = loadSpec()) {
+  const field = program.entities?.[entityName]?.fields?.find((f) => f.name === fieldName);
+  const ann = field?.annotations?.find((a) => a.name === 'denominated');
+  const unit = ann?.args?.[0];
+  return typeof unit === 'string' ? unit : null;
+}
+
+/**
+ * Whether value may move from one denomination to another.
+ *
+ * Only ever true for a move within a single declared denomination — hours to
+ * hours, dollars to dollars. Cross-denomination is what makes hours purchasable
+ * or redeemable, which is the line between a ledger and a money services
+ * business, so it is false in both directions and an unknown unit is false too.
+ *
+ * @param {string} from
+ * @param {string} to
+ * @param {object} [program]
+ * @returns {boolean}
+ */
+export function conversionAllowed(from, to, program = loadSpec()) {
+  const known = new Set(declaredDenominations(program));
+  if (!known.has(from) || !known.has(to)) return false; // default-closed
+  return from === to;
+}
+
+/**
+ * Field names IRN must never collect — the CIP four and their aliases, as
+ * declared by `forbid identity_field(...)` on policy commons_scope.
+ *
+ * Empty means the policy is missing or declares nothing, which is a WEAKER
+ * state than "nothing is forbidden": callers must fail closed on an empty list
+ * rather than read it as permission. src/utils/commonsScope.js does exactly
+ * that at import time.
+ *
+ * @param {object} [program]
+ * @returns {string[]}
+ */
+export function forbiddenIdentityFields(program = loadSpec()) {
+  const forbid = program.policies?.commons_scope?.forbid ?? [];
+  const out = new Set();
+  for (const entry of forbid) {
+    if (!entry || typeof entry !== 'object' || entry.call !== 'identity_field') continue;
+    for (const arg of entry.args ?? []) if (typeof arg === 'string') out.add(arg);
+  }
+  return [...out].sort();
+}
+
+/**
+ * True when a field name is one IRN must never collect, matched case- and
+ * style-insensitively so `dateOfBirth` and `date_of_birth` are the same field.
+ *
+ * Default-closed on an undeclared policy is NOT possible here — with no list,
+ * every name would have to be forbidden, which is unusable. The fail-closed
+ * step happens at import in src/utils/commonsScope.js instead, which refuses to
+ * load at all against an empty list.
+ *
+ * @param {string} name
+ * @param {object} [program]
+ * @returns {boolean}
+ */
+export function isForbiddenIdentityField(name, program = loadSpec()) {
+  const target = normalizeFieldName(name);
+  return forbiddenIdentityFields(program).some((f) => normalizeFieldName(f) === target);
 }

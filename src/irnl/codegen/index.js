@@ -56,6 +56,11 @@ function fieldNote(field) {
   if (field.isPhi) notes.push('PHI — encrypted at rest');
   if (field.isPii) notes.push('PII');
   if (field.isQuasiIdentifier) notes.push('quasi-identifier — counts toward the k-anonymity floor');
+  // A denominated field is one half of a wall. Saying so in the generated type
+  // is the point: a consumer reading `units: number` next to `amount: number`
+  // has no way to know that multiplying one into the other is the compliance
+  // failure, and the generated file is where most consumers meet these shapes.
+  if (field.denomination) notes.push(`denominated in ${field.denomination} — never converts to another denomination`);
   if (field.aad) notes.push(`AAD-bound to ${field.aad}`);
   return notes.join('; ');
 }

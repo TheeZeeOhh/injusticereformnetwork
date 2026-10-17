@@ -15,7 +15,31 @@ User=ollama
 Group=ollama
 # Loopback bind. Do not change this to 0.0.0.0 — see above.
 Environment="OLLAMA_HOST=127.0.0.1:11434"
-Environment="OLLAMA_MODELS=/usr/share/ollama/.ollama/models"
+# ONE model path for BOTH editions — do not split this per-edition.
+#
+# The full edition bakes the 2.2G store into the image; the lite edition ships
+# empty and `irn-model-pull` fetches it on first run. Those two only work off the
+# same OLLAMA_MODELS if that path is writable by this service, and the old value
+# (/usr/share/ollama/.ollama/models) was not:
+#
+#   ProtectSystem=strict mounts /usr read-only FOR THIS UNIT, whatever the disk
+#   underneath says. Note the trap — on a live boot people assume the blocker is
+#   the read-only squashfs, but live-boot unions a tmpfs over the whole root, so
+#   /usr is writable to everyone EXCEPT sandboxed units like this one. The pull
+#   would have failed with a bare permission error on an apparently writable
+#   path. `ollama pull` is served by THIS daemon, not by the CLI, so the CLI's
+#   privileges are irrelevant — the daemon's sandbox is what decides.
+#
+# /var/lib/ollama is already in ReadWritePaths below, so models/ under it is
+# writable in every case: baked-in on the full edition (build-time move by
+# hooks/live/0600-zee-zee.hook.chroot), pulled on the lite edition.
+#
+# What that costs, stated plainly: on a LIVE lite boot the writable layer is
+# tmpfs, so a pulled 2.2G store is RAM-resident and dies at poweroff. That is a
+# real hazard on a small machine, not a theoretical one — irn-model-pull detects
+# the overlay, prints the warning and checks free space before it starts. The
+# full edition exists precisely so the USB stick never has to take that bet.
+Environment="OLLAMA_MODELS=/var/lib/ollama/models"
 Environment="HOME=/var/lib/ollama"
 # No usage analytics, no update pings.
 Environment="OLLAMA_NOPRUNE=1"
@@ -29,6 +53,10 @@ NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
 ProtectHome=yes
+# The ONLY writable path. Deliberately still just this one: the model store now
+# lives inside it, so `ollama pull` works without widening the sandbox by a
+# single directory. Do not add /usr/share here to "fix" a pull — that would hand
+# the daemon write access to the system tree to solve a path problem.
 ReadWritePaths=/var/lib/ollama
 ProtectKernelTunables=yes
 ProtectKernelModules=yes

@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baltimore Recovery Network | Affirming Harm Reduction & Liberation</title>
+  <meta name="description" content="Community-led, LGBTQ+ and trans-affirming recovery infrastructure, harm reduction tools, and sovereign mutual aid in Baltimore, MD." />
+  
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --surface: #141414;
+      --surface-elevated: #1c1c1e;
+      --surface-border: #2a2a2e;
+      --white: #f5f0eb;
+      --muted: #a3a09b;
+      --gold: #c9a84c;
+      --gold-glow: rgba(201, 168, 76, 0.25);
+      --purple: #4a1f6e;
+      --purple-light: #9d4edd;
+      --rose: #c2547a;
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --danger: #ef4444;
+      --radius: 12px;
+      --font-display: 'DM Serif Display', Georgia, serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--black);
+      color: var(--white);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Skip Link */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 10px;
+      background: var(--gold);
+      color: var(--black);
+      padding: 8px 16px;
+      font-weight: 700;
+      z-index: 10000;
+      transition: top 0.2s ease;
+      border-radius: 4px;
+      text-decoration: none;
+    }
+    .skip-link:focus {
+      top: 10px;
+    }
+
+    /* Panic Wipe Float Button */
+    .panic-wipe-bar {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-panic {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      color: #fff;
+      border: 1px solid #fda4af;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-panic:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(225, 29, 72, 0.6);
+    }
+    .panic-hint {
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: rgba(10, 10, 10, 0.85);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--surface-border);
+    }
+
+    /* Header & Ticker */
+    header {
+      background: rgba(10, 10, 10, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--surface-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--white);
+    }
+    .logo-orb {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--rose), var(--purple-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #000;
+      font-size: 0.9rem;
+      box-shadow: 0 0 16px var(--gold-glow);
+    }
+    .logo-text {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover {
+      color: var(--gold);
+    }
+
+    /* Neo Ticker */
+    .ticker-bar {
+      background: linear-gradient(90deg, #2b0938 0%, #150824 50%, #0d1e2e 100%);
+      border-bottom: 1px solid rgba(157, 78, 221, 0.3);
+      padding: 8px 24px;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ticker-pill {
+      background: var(--gold);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 12px;
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      padding: 90px 24px 60px;
+      max-width: 1240px;
+      margin: 0 auto;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero-backdrop {
+      position: absolute;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, rgba(157, 78, 221, 0.22) 0%, rgba(201, 168, 76, 0.08) 40%, transparent 75%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+    .tagline-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      background: rgba(201, 168, 76, 0.12);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+      line-height: 1.12;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--white) 30%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      max-width: 680px;
+      margin: 0 auto 36px;
+      font-size: 1.15rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+    }
+    .btn-gold {
+      background: var(--gold);
+      color: var(--black);
+      padding: 12px 28px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      border: 1px solid #dfc377;
+      box-shadow: 0 4px 18px var(--gold-glow);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-gold:hover {
+      background: #dfc377;
+      transform: translateY(-2px);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--white);
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      border: 1px solid var(--surface-border);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-outline:hover {
+      background: var(--surface-elevated);
+      border-color: var(--muted);
+    }
+
+    /* Core Metrics & Statutory Banner */
+    .statute-banner {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-left: 4px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      max-width: 1240px;
+      margin: 20px auto 50px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .statute-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .statute-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 800px;
+    }
+
+    /* Main Grid Layout */
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .section-header {
+      margin-bottom: 32px;
+    }
+    .section-header h2 {
+      font-family: var(--font-display);
+      font-size: 2.1rem;
+      margin-bottom: 8px;
+    }
+    .section-header p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    /* Active Tool: Harm Reduction & Naloxone Protocol */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 28px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .tool-card.featured {
+      border-color: rgba(201, 168, 76, 0.4);
+      background: linear-gradient(180deg, #18151f 0%, #121214 100%);
+    }
+    .tool-badge {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      width: fit-content;
+      margin-bottom: 16px;
+    }
+    .badge-rose {
+      background: rgba(194, 84, 122, 0.2);
+      color: var(--rose);
+      border: 1px solid var(--rose);
+    }
+    .badge-cyan {
+      background: rgba(6, 182, 212, 0.2);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+    }
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--emerald);
+      border: 1px solid var(--emerald);
+    }
+
+    /* Narcan Timer Display */
+    .timer-display {
+      font-family: monospace;
+      font-size: 3rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--rose);
+      margin: 16px 0;
+      background: #000;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #33101d;
+    }
+    .timer-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    /* Test Strip Interpreter */
+    .strip-tester {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .strip-select {
+      background: #0a0a0a;
+      border: 1px solid var(--surface-border);
+      color: var(--white);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .strip-result-box {
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      background: #0f0f12;
+      border: 1px solid var(--surface-border);
+    }
+
+    /* Web Audio Synthesis Suite */
+    .sound-suite {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 60px;
+    }
+    .audio-channels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .channel-box {
+      background: #0d0d0f;
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .channel-box h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--gold);
+    }
+    .visualizer-canvas {
+      width: 100%;
+      height: 60px;
+      background: #000;
+      border-radius: 6px;
+      margin-top: 14px;
+      border: 1px solid #222;
+    }
+
+    /* Real Baltimore Node Directory */
+    .directory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+    }
+    .node-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .node-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+    .node-title {
+      font-size: 1.25rem;
+      font-family: var(--font-display);
+      margin-bottom: 4px;
+      color: var(--white);
+    }
+    .node-subtitle {
+      font-size: 0.82rem;
+      color: var(--gold);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+    .node-info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .node-info-item strong {
+      color: var(--white);
+    }
+    .node-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0;
+    }
+    .node-tag {
+      background: var(--surface-elevated);
+      color: var(--muted);
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--surface-border);
+    }
+    .node-links {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+    .node-links a {
+      flex: 1;
+      text-align: center;
+      font-size: 0.82rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      border: 1px solid var(--surface-border);
+      color: var(--white);
+      background: var(--surface-elevated);
+      transition: background 0.2s ease;
+    }
+    .node-links a:hover {
+      background: var(--gold);
+      color: #000;
+      border-color: var(--gold);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--surface-border);
+      background: #070707;
+      padding: 40px 24px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    .mantra {
+      font-family: var(--font-display);
+      font-style: italic;
+      color: var(--gold);
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .panic-wipe-bar { top: auto; bottom: 16px; right: 16px; }
+      .hero { padding-top: 50px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Skip Navigation -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Panic Button / Safe Quick Exit -->
+  <aside class="panic-wipe-bar" aria-label="Emergency exit controls">
+    <span class="panic-hint">Press <strong>ESC</strong> to wipe & exit</span>
+    <button class="btn-panic" id="panicBtn" title="Instant exit to Google Weather and clear session">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      Safe Exit
+    </button>
+  </aside>
+
+  <!-- Top Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo-badge">
+        <div class="logo-orb">AO</div>
+        <div class="logo-text">Baltimore Recovery Network</div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#tools">Harm Reduction Tools</a></li>
+        <li><a href="#audio">Mindfulness Audio (Offline)</a></li>
+        <li><a href="#nodes">Verified Bmore Nodes</a></li>
+        <li><a href="#legal">Statutory Shield</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Neo Ticker -->
+  <div class="ticker-bar">
+    <div style="display:flex; align-items:center;">
+      <span class="ticker-pill">Live Node</span>
+      <span><strong>TransPower NA Meeting:</strong> Every Tuesday 7:30 PM at LGBTQ Center Baltimore, 2530 N Charles St</span>
+    </div>
+    <div style="color: var(--gold); font-size: 0.75rem; font-weight: 600;">
+      24/7 CRISIS: 988 (Press 3 for LGBTQ+)
+    </div>
+  </div>
+
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-backdrop"></div>
+      <div class="hero-content">
+        <div class="tagline-pill">Protective Infrastructure • Zero-Tracking • Local-First</div>
+        <h1>Your Liberation Is In<br><span>The Recovery & The Ritual</span></h1>
+        <p>
+          A sovereign, affirming harm reduction portal engineered for Baltimore’s Black, trans, and queer family. 
+          Real tools, live synthesizer audio, verified street coordinates, and statutory shields.
+        </p>
+        <div class="hero-actions">
+          <a href="#tools" class="btn-gold">Launch Active Tools</a>
+          <a href="#nodes" class="btn-outline">Find Supplies & Care Near You</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Maryland Statutory Shield Summary -->
+    <section class="container" id="legal">
+      <div class="statute-banner">
+        <div>
+          <div class="statute-title">MARYLAND STATUTORY PROTECTIONS ACTIVE</div>
+          <div class="statute-desc">
+            • <strong>Good Samaritan Law (MD Code Ann., Crim. Proc. § 1-210):</strong> Immunity from arrest and prosecution for possessing personal amounts of controlled substances or paraphernalia when calling 911 or seeking medical help for an overdose.<br>
+            • <strong>Maryland Trans Health Equity & Shield Act (HB691, Effective Oct 1, 2024):</strong> Protects gender-affirming care and shields medical records and providers from out-of-state subpoenas and prosecutions.
+          </div>
+        </div>
+        <button class="btn-outline" style="font-size: 0.8rem; padding: 8px 14px;" onclick="copyLegalScript()">Copy Rights Script</button>
+      </div>
+    </section>
+
+    <!-- Interactive Active Tools Section -->
+    <section class="container" id="tools">
+      <div class="section-header">
+        <h2>Harm Reduction Action Utilities</h2>
+        <p>Client-side software that works directly in your browser without telemetry or remote logging.</p>
+      </div>
+
+      <div class="tool-grid">
+        <!-- Narcan Response Interval Timer -->
+        <article class="tool-card featured">
+          <span class="tool-badge badge-rose">Emergency Utility</span>
+          <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 6px;">Narcan 2-Minute Interval Timer</h3>
+          <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 12px;">
+            Naloxone takes 2 to 3 minutes to take effect. If no response, administer second dose in opposite nostril.
+          </p>
+
+          <div class="timer-display" id="timerDigits">02:00</div>
+          
+          <div id="stepGuidance" style="font-size: 0.82rem; color: var(--gold); margin-bottom: 16px; text-align: center; min-height: 24px;">
+            Ready. Administer 1st dose, lay person on back, and start timer.
+          </div>
+
+          <div class="timer-controls">
+            <button class="btn-gold" id="startTimerBtn" onclick="toggleNarcanTimer()">Start 2-Min Timer</button>
+            <button class="btn-outline" onclick="resetNarcanTimer()">Reset</button>
+          </div>
+        </article>
+
+        <!-- Fentanyl & Xylazine Test Strip Analyzer -->
+        <article class="tool-card">
+          <span class="tool-badge badge-cyan">Test Strip Decider</span>
+          <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 6px;">Test Strip Decider</h3>
+          <p style="font-size: 0.85rem; color: var(--muted);">
+            Calculate exact dilution ratios and interpret 1-line vs 2-line results for rapid fentanyl/xylazine checks.
+          </p>
+
+          <div class="strip-tester">
+            <label style="font-size: 0.8rem; color: var(--muted);">Substance form being tested:</label>
+            <select class="strip-select" id="substanceType" onchange="updateDilutionGuide()">
+              <option value="powders">Powder / Crystals (10mg residue in 5ml water)</option>
+              <option value="pills">Pressed Pill / Tablet (Crush entire pill, 15ml water)</option>
+              <option value="meth_mdma">Methamphetamine / MDMA (Requires higher dilution: 10ml water per 10mg)</option>
+              <option value="xylazine">Xylazine Test Strip (Requires dedicated strip)</option>
+            </select>
+
+            <div class="strip-result-box" id="dilutionBox">
+              <strong>Dilution Rule:</strong> Mix 1 standard micro-scoop (about 10mg) in 1 full measuring cap (5ml) of clean water. Dip strip to MAX line for 15 seconds.
+            </div>
+
+            <div style="background: #000; padding: 12px; border-radius: 6px; font-size: 0.82rem; border: 1px solid var(--surface-border);">
+              <div style="color: #ef4444; font-weight: 700; margin-bottom: 4px;">⚠️ 1 LINE = POSITIVE (Fentanyl Detected)</div>
+              <div style="color: #10b981; font-weight: 700;">✅ 2 LINES = NEGATIVE (Even a faint second line is negative)</div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Safe Exit / Quick Distress Hotline -->
+        <article class="tool-card">
+          <span class="tool-badge badge-emerald">Safe Space Network</span>
+          <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 6px;">Never Use Alone Hotline</h3>
+          <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 16px;">
+            Anonymous operators will stay on the phone with you while you use. If you stop responding, they dispatch medical aid to your exact coordinates.
+          </p>
+          
+          <div style="background: #000; border: 1px solid var(--surface-border); border-radius: 8px; padding: 16px; margin-bottom: 16px; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase;">Toll-Free Nationwide Line</div>
+            <a href="tel:8004843731" style="font-size: 1.4rem; font-weight: 800; color: var(--gold); text-decoration: none; display: block; margin-top: 4px;">1-800-484-3731</a>
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--muted); margin-top: auto;">
+            <strong>Trans Lifeline (Peer Run):</strong> <a href="tel:8775658860" style="color: var(--white); font-weight: 600;">877-565-8860</a> (Zero police dispatch without explicit consent).
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Web Audio API Synthesizer (100% Offline & Private) -->
+    <section class="container" id="audio">
+      <div class="sound-suite">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px;">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 4px;">Sovereign Mindfulness Engine</h2>
+            <p style="color: var(--muted); font-size: 0.9rem;">
+              Synthesized natively via the browser’s Web Audio API. 100% offline, zero server streaming, zero external media leaks.
+            </p>
+          </div>
+          <button class="btn-gold" id="masterAudioBtn" onclick="toggleMasterAudio()">Start Soundscape</button>
+        </div>
+
+        <canvas class="visualizer-canvas" id="audioScope"></canvas>
+
+        <div class="audio-channels">
+          <!-- 432 Hz Healing Tone -->
+          <div class="channel-box">
+            <h4>
+              <span>432 Hz Solfeggio</span>
+              <input type="checkbox" id="tone432Toggle" onchange="updateAudioParams()" checked />
+            </h4>
+            <p style="font-size: 0.75rem; color: var(--muted);">Harmonic sine wave tuned to natural resonance to calm somatic panic.</p>
+            <div class="slider-row">
+              <span>Vol</span>
+              <input type="range" id="tone432Vol" min="0" max="1" step="0.05" value="0.2" oninput="updateAudioParams()" />
+            </div>
+          </div>
+
+          <!-- Binaural Theta 6 Hz Beat -->
+          <div class="channel-box">
+            <h4>
+              <span>6 Hz Theta Beat</span>
+              <input type="checkbox" id="thetaToggle" onchange="updateAudioParams()" checked />
+            </h4>
+            <p style="font-size: 0.75rem; color: var(--muted);">Dual frequencies (200Hz L / 206Hz R) stimulating deep parasympathetic focus.</p>
+            <div class="slider-row">
+              <span>Vol</span>
+              <input type="range" id="thetaVol" min="0" max="1" step="0.05" value="0.15" oninput="updateAudioParams()" />
+            </div>
+          </div>
+
+          <!-- Procedural Pink Noise (Ocean Surf Filter) -->
+          <div class="channel-box">
+            <h4>
+              <span>Ocean Pink Noise</span>
+              <input type="checkbox" id="noiseToggle" onchange="updateAudioParams()" checked />
+            </h4>
+            <p style="font-size: 0.75rem; color: var(--muted);">Synthesized pink noise passed through an oscillating lowpass filter.</p>
+            <div class="slider-row">
+              <span>Vol</span>
+              <input type="range" id="noiseVol" min="0" max="1" step="0.05" value="0.18" oninput="updateAudioParams()" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Verified Baltimore Spatial Nodes (Real Coordinates) -->
+    <section class="container" id="nodes">
+      <div class="section-header">
+        <h2>Verified Baltimore Spatial Nodes</h2>
+        <p>Real community infrastructure, free syringe services, test strips, affirming primary care, and trans peer defense.</p>
+      </div>
+
+      <div class="directory-grid">
+        <!-- Node 1: Pride Center of Maryland -->
+        <article class="node-card">
+          <h3 class="node-title">Pride Center of Maryland (PCOM)</h3>
+          <div class="node-subtitle">Queer & Trans Community Sanctuary</div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span><strong>2530 N Charles St</strong>, Baltimore, MD 21218</span>
+          </div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span><a href="tel:4107778145" style="color:var(--white);">(410) 777-8145</a></span>
+          </div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Tue - Fri: 11:00 AM – 7:00 PM • Sat: 12:00 PM – 5:00 PM</span>
+          </div>
+          <div class="node-tags">
+            <span class="node-tag">TransPower NA Host</span>
+            <span class="node-tag">Drop-in Lounge</span>
+            <span class="node-tag">Free Supplies</span>
+            <span class="node-tag">Peer Counseling</span>
+          </div>
+          <div class="node-links">
+            <a href="https://maps.google.com/?q=2530+N+Charles+St+Baltimore+MD+21218" target="_blank" rel="noopener noreferrer">Directions</a>
+            <a href="tel:4107778145">Call Direct</a>
+          </div>
+        </article>
+
+        <!-- Node 2: Baltimore Harm Reduction Coalition -->
+        <article class="node-card">
+          <h3 class="node-title">Baltimore Harm Reduction Coalition (BHRC)</h3>
+          <div class="node-subtitle">Frontline Mutual Aid & Syringe Access</div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span><strong>2002 Clifton Ave</strong>, Baltimore, MD 21216</span>
+          </div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span><a href="tel:4434783168" style="color:var(--white);">(443) 478-3168</a></span>
+          </div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Mon, Wed, Fri: 12:00 PM – 4:00 PM (Mobile Vans in West/East)</span>
+          </div>
+          <div class="node-tags">
+            <span class="node-tag">Free Narcan / Test Strips</span>
+            <span class="node-tag">Safer Sex Supplies</span>
+            <span class="node-tag">Syringe Exchange</span>
+            <span class="node-tag">SPAN Partner</span>
+          </div>
+          <div class="node-links">
+            <a href="https://maps.google.com/?q=2002+Clifton+Ave+Baltimore+MD+21216" target="_blank" rel="noopener noreferrer">Directions</a>
+            <a href="tel:4434783168">Call Direct</a>
+          </div>
+        </article>
+
+        <!-- Node 3: Chase Brexton Health Care -->
+        <article class="node-card">
+          <h3 class="node-title">Chase Brexton Center for LGBTQ Health</h3>
+          <div class="node-subtitle">Affirming Clinical Recovery & Medical Care</div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span><strong>1111 N Charles St</strong>, Baltimore, MD 21201</span>
+          </div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span><a href="tel:4108372050" style="color:var(--white);">(410) 837-2050</a></span>
+          </div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Mon – Fri: 8:00 AM – 5:00 PM</span>
+          </div>
+          <div class="node-tags">
+            <span class="node-tag">Suboxone / MAT</span>
+            <span class="node-tag">Gender Affirming Care</span>
+            <span class="node-tag">Trauma-Informed Therapy</span>
+            <span class="node-tag">MD HB691 Shielded</span>
+          </div>
+          <div class="node-links">
+            <a href="https://maps.google.com/?q=1111+N+Charles+St+Baltimore+MD+21201" target="_blank" rel="noopener noreferrer">Directions</a>
+            <a href="tel:4108372050">Call Direct</a>
+          </div>
+        </article>
+
+        <!-- Node 4: Charm City Care Connection -->
+        <article class="node-card">
+          <h3 class="node-title">Charm City Care Connection</h3>
+          <div class="node-subtitle">East Baltimore Harm Reduction Drop-In</div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span><strong>1212 N Wolfe St</strong>, Baltimore, MD 21213</span>
+          </div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span><a href="tel:4434783015" style="color:var(--white);">(443) 478-3015</a></span>
+          </div>
+          <div class="node-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Mon - Thu: 9:00 AM – 3:00 PM</span>
+          </div>
+          <div class="node-tags">
+            <span class="node-tag">Wound Care Clinic</span>
+            <span class="node-tag">Hot Meals & Showers</span>
+            <span class="node-tag">Test Strips & Pipes</span>
+            <span class="node-tag">No ID Required</span>
+          </div>
+          <div class="node-links">
+            <a href="https://maps.google.com/?q=1212+N+Wolfe+St+Baltimore+MD+21213" target="_blank" rel="noopener noreferrer">Directions</a>
+            <a href="tel:4434783015">Call Direct</a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- Sovereign Footer -->
+  <footer>
+    <div class="mantra">"I build what they said couldn't exist. I heal what they tried to kill. I rise."</div>
+    <p>The Injustice Reform Network (IRN) • Level 7 Afro-Futurist Infrastructure • Built for Baltimore</p>
+    <p style="margin-top: 8px; font-size: 0.75rem;">
+      Protected under MD Trans Shield Act (HB691) &amp; MD Good Samaritan Code (CR § 1-210). No cookies. No user tracking. Local state only.
+    </p>
+  </footer>
+
+  <script>
+    // --- SAFE EXIT / PANIC MECHANISM ---
+    function triggerSafeExit() {
+      try {
+        if (window.audioCtx) {
+          window.audioCtx.close();
+        }
+        sessionStorage.clear();
+        localStorage.clear();
+      } catch (e) {
+        console.warn('Wipe intercepted:', e);
+      }
+      window.location.replace("https://forecast.weather.gov/MapClick.php?lat=39.2904&lon=-76.6122");
+    }
+
+    document.getElementById('panicBtn').addEventListener('click', triggerSafeExit);
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        triggerSafeExit();
+      }
+    });
+
+    // --- COPY LEGAL DEFENSE SCRIPT ---
+    function copyLegalScript() {
+      const scriptText = "MD Good Samaritan Law (CR § 1-210): I am seeking emergency medical assistance for an overdose. Maryland law provides immunity from arrest, charge, and prosecution for possession of controlled substances and paraphernalia for anyone seeking help or experiencing an overdose.";
+      navigator.clipboard.writeText(scriptText).then(() => {
+        alert("Legal defense script copied to clipboard: 'MD Good Samaritan Law (CR § 1-210) protects callers and victims.'");
+      });
+    }
+
+    // --- NARCAN 2-MINUTE INTERVAL TIMER ---
+    let timerDuration = 120;
+    let timerRemaining = 120;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function toggleNarcanTimer() {
+      const btn = document.getElementById('startTimerBtn');
+      const digits = document.getElementById('timerDigits');
+      const guidance = document.getElementById('stepGuidance');
+
+      if (!isTimerRunning) {
+        isTimerRunning = true;
+        btn.textContent = "Pause Timer";
+        btn.style.background = "#e11d48";
+        guidance.textContent = "⏱️ Dose 1 given. Check breathing. If no breathing, begin rescue breathing (1 breath every 5 sec).";
+
+        timerInterval = setInterval(() => {
+          timerRemaining--;
+          digits.textContent = formatTime(timerRemaining);
+
+          if (timerRemaining === 60) {
+            guidance.textContent = "⚠️ 1 minute remaining. Prepare second Naloxone dose in opposite nostril if unmoving.";
+          }
+
+          if (timerRemaining <= 0) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            digits.textContent = "00:00";
+            btn.textContent = "Timer Expired";
+            guidance.textContent = "🚨 2 MINUTES PASSED: Administer 2nd dose of Naloxone in the other nostril immediately.";
+            playAlertTone();
+          }
+        }, 1000);
+      } else {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        btn.textContent = "Resume Timer";
+        btn.style.background = "var(--gold)";
+      }
+    }
+
+    function resetNarcanTimer() {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerRemaining = timerDuration;
+      document.getElementById('timerDigits').textContent = "02:00";
+      document.getElementById('startTimerBtn').textContent = "Start 2-Min Timer";
+      document.getElementById('startTimerBtn').style.background = "var(--gold)";
+      document.getElementById('stepGuidance').textContent = "Ready. Administer 1st dose, lay person on back, and start timer.";
+    }
+
+    // --- TEST STRIP DECISION GUIDANCE ---
+    function updateDilutionGuide() {
+      const val = document.getElementById('substanceType').value;
+      const box = document.getElementById('dilutionBox');
+      if (val === 'meth_mdma') {
+        box.innerHTML = "<strong>CRITICAL DILUTION:</strong> Meth and MDMA cause false positives at normal dilution! Dissolve 10mg residue in <strong>10ml (2 full measuring caps)</strong> of water. Fentanyl test strips are ultra-sensitive to stimulants.";
+      } else if (val === 'pills') {
+        box.innerHTML = "<strong>CHOP & CRUSH:</strong> Counterfeit pills have uneven fentanyl hotspots. Crush the entire pill into a fine powder, mix well, and dissolve in <strong>15ml of water</strong> before dipping.";
+      } else if (val === 'xylazine') {
+        box.innerHTML = "<strong>XYLAZINE SPECIFIC STRIP:</strong> Naloxone does NOT reverse xylazine directly, but ALWAYS administer Narcan because xylazine is mixed with fentanyl. Xylazine causes deep sedation and bradycardia.";
+      } else {
+        box.innerHTML = "<strong>STANDARD DILUTION:</strong> Mix 1 standard micro-scoop (about 10mg) in 1 full measuring cap (5ml) of clean water. Dip strip to MAX line for 15 seconds, lay flat for 2 minutes.";
+      }
+    }
+
+    // --- WEB AUDIO API SYNTHESIZER ---
+    let audioCtx = null;
+    let isMasterPlaying = false;
+    let osc432 = null;
+    let gain432 = null;
+    let oscThetaL = null;
+    let oscThetaR = null;
+    let merger = null;
+    let gainTheta = null;
+    let noiseNode = null;
+    let noiseFilter = null;
+    let gainNoise = null;
+    let lfo = null;
+    let lfoGain = null;
+    let analyser = null;
+
+    function initAudio() {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+      window.audioCtx = audioCtx;
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.connect(audioCtx.destination);
+
+      // Channel 1: 432Hz Sine Tone
+      osc432 = audioCtx.createOscillator();
+      osc432.type = 'sine';
+      osc432.frequency.setValueAtTime(432, audioCtx.currentTime);
+      gain432 = audioCtx.createGain();
+      gain432.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      osc432.connect(gain432);
+      gain432.connect(analyser);
+      osc432.start();
+
+      // Channel 2: Binaural Theta Beat (200Hz L / 206Hz R)
+      merger = audioCtx.createChannelMerger(2);
+      oscThetaL = audioCtx.createOscillator();
+      oscThetaR = audioCtx.createOscillator();
+      oscThetaL.type = 'sine';
+      oscThetaR.type = 'sine';
+      oscThetaL.frequency.setValueAtTime(200, audioCtx.currentTime);
+      oscThetaR.frequency.setValueAtTime(206, audioCtx.currentTime);
+      
+      oscThetaL.connect(merger, 0, 0);
+      oscThetaR.connect(merger, 0, 1);
+      gainTheta = audioCtx.createGain();
+      gainTheta.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      merger.connect(gainTheta);
+      gainTheta.connect(analyser);
+      oscThetaL.start();
+      oscThetaR.start();
+
+      // Channel 3: Ocean Pink Noise with LFO sweep
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+        output[i] *= 0.11;
+        b6 = white * 0.115926;
+      }
+
+      noiseNode = audioCtx.createBufferSource();
+      noiseNode.buffer = noiseBuffer;
+      noiseNode.loop = true;
+
+      noiseFilter = audioCtx.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.setValueAtTime(380, audioCtx.currentTime);
+
+      lfo = audioCtx.createOscillator();
+      lfo.frequency.setValueAtTime(0.1, audioCtx.currentTime);
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.setValueAtTime(220, audioCtx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(noiseFilter.frequency);
+      lfo.start();
+
+      gainNoise = audioCtx.createGain();
+      gainNoise.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      noiseNode.connect(noiseFilter);
+      noiseFilter.connect(gainNoise);
+      gainNoise.connect(analyser);
+      noiseNode.start();
+
+      updateAudioParams();
+      drawVisualizer();
+    }
+
+    function toggleMasterAudio() {
+      const btn = document.getElementById('masterAudioBtn');
+      if (!audioCtx) {
+        initAudio();
+        isMasterPlaying = true;
+        btn.textContent = "Stop Soundscape";
+        btn.style.background = "#e11d48";
+      } else if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+        isMasterPlaying = true;
+        btn.textContent = "Stop Soundscape";
+        btn.style.background = "#e11d48";
+      } else if (audioCtx.state === 'running') {
+        audioCtx.suspend();
+        isMasterPlaying = false;
+        btn.textContent = "Start Soundscape";
+        btn.style.background = "var(--gold)";
+      }
+    }
+
+    function updateAudioParams() {
+      if (!audioCtx) return;
+      const t432On = document.getElementById('tone432Toggle').checked;
+      const t432Val = parseFloat(document.getElementById('tone432Vol').value);
+      gain432.gain.setValueAtTime(t432On ? t432Val : 0, audioCtx.currentTime);
+
+      const thetaOn = document.getElementById('thetaToggle').checked;
+      const thetaVal = parseFloat(document.getElementById('thetaVol').value);
+      gainTheta.gain.setValueAtTime(thetaOn ? thetaVal : 0, audioCtx.currentTime);
+
+      const noiseOn = document.getElementById('noiseToggle').checked;
+      const noiseVal = parseFloat(document.getElementById('noiseVol').value);
+      gainNoise.gain.setValueAtTime(noiseOn ? noiseVal : 0, audioCtx.currentTime);
+    }
+
+    function playAlertTone() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.6);
+    }
+
+    function drawVisualizer() {
+      const canvas = document.getElementById('audioScope');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      function render() {
+        requestAnimationFrame(render);
+        if (!isMasterPlaying) {
+          ctx.fillStyle = '#0a0a0a';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+
+        analyser.getByteFrequencyData(dataArray);
+        ctx.fillStyle = 'rgba(10, 10, 10, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const barWidth = (canvas.width / bufferLength) * 2.2;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          const barHeight = (dataArray[i] / 255) * canvas.height;
+          ctx.fillStyle = i % 2 === 0 ? '#c9a84c' : '#9d4edd';
+          ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+          x += barWidth + 2;
+        }
+      }
+      render();
+    }
+  </script>
+</body>
+</html>

@@ -69,7 +69,10 @@ function buildEntity(decl) {
       isPii: f.annotations.some((a) => a.name === 'pii'),
       isIdentity: f.annotations.some((a) => a.name === 'identity'),
       isQuasiIdentifier: f.annotations.some((a) => a.name === 'quasi_identifier'),
-      aad: f.annotations.find((a) => a.name === 'aad')?.args.map(plain)[0] ?? null
+      aad: f.annotations.find((a) => a.name === 'aad')?.args.map(plain)[0] ?? null,
+      // Unit of account this field is measured in, or null. The convertibility
+      // invariant is expressed entirely in terms of this.
+      denomination: f.annotations.find((a) => a.name === 'denominated')?.args.map(plain)[0] ?? null
     }))
   };
 }

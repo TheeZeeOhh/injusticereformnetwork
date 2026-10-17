@@ -1,0 +1,35 @@
+IRN OS KERNEL HARDENING — BUILD-READY STATUS
+===============================================
+
+Date prepared: 2026-10-08
+Previous session: 2026-09-13 (boot-tested in qemu, now ready for full build + install verification)
+
+CONFIGURATION FILES (all staged, uncommitted):
+  ✓ etc/irn/kernel-cmdline                           — Single source of truth for 11 boot parameters
+  ✓ etc/default/grub.d/99-irn-harden.cfg             — Grub integration for installed systems
+  ✓ etc/sysctl.d/98-irn-kernel.conf                  — 9 sysctl hardening rules
+  ✓ etc/modprobe.d/irn-blacklist.conf               — 15 dangerous modules blocked
+  ✓ usr/local/sbin/irn-verify-kernel-hardening      — Runtime verification script
+
+INTEGRATION POINTS (modified):
+  ✓ os/auto/config                                   — Live boot reads kernel-cmdline
+  ✓ os/config/hooks/live/0100-irn-harden.hook.chroot — Chmod verify script + config checks
+  ✓ os/config/hooks/live/0400-amnesiac.hook.chroot   — Updated comments
+  ✓ os/SECURITY-FEATURES.md                          — Documented all hardening decisions
+  ✓ os/KERNEL-HARDENING-VERIFICATION.md              — Comprehensive test plan (NEW)
+
+STAGED DEPENDENCIES:
+  ✓ Sanctuary .deb: os/config/packages.chroot/Sanctuary_0.1.0_amd64.deb
+
+NEXT STEPS:
+  1. Build: sudo bash os/build-in-container.sh
+  2. Test (live): ./os/boot-test.sh → sudo irn-verify-kernel-hardening
+  3. Test (install): Calamares install → verify hardening survives
+  4. Commit: git add os/ && git commit -m "IRN OS kernel hardening: working hardening stack"
+
+VERIFICATION TARGETS:
+  Live boot: All 11 boot params recognized, lockdown=confidentiality, IOMMU strict, sysctl/modprobe active
+  Installed: grub.cfg has params after Calamares, verify script passes
+  Real HW: Deferred (board-specific IOMMU behavior)
+
+For details, see: os/KERNEL-HARDENING-VERIFICATION.md

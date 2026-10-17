@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+import json
+import os
+import sys
+import subprocess
+import threading
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+import socket
+
+def get_free_port():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("127.0.0.1", 0))
+    port = s.getsockname()[1]
+    s.close()
+    return port
+
+if len(sys.argv) < 2:
+    print("Usage: irn-app <app-id>")
+    sys.exit(1)
+
+app_id = sys.argv[1]
+manifest_path = "/opt/irn-apps/manifest.json"
+
+try:
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+except Exception as e:
+    print(f"Failed to read manifest: {e}")
+    sys.exit(1)
+
+app = next((a for a in manifest.get("apps", []) if a["id"] == app_id), None)
+if not app:
+    print(f"App {app_id} not found in manifest")
+    sys.exit(1)
+
+app_dir = f"/opt/irn-apps/{app_id}"
+app_type = app.get("type")
+
+try:
+    os.chdir(app_dir)
+except FileNotFoundError:
+    print(f"App directory {app_dir} not found")
+    sys.exit(1)
+
+if app_type == "web-static":
+    dist_dir = app.get("dist", ".")
+    port = get_free_port()
+    
+    class Handler(SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=os.path.join(app_dir, dist_dir), **kwargs)
+    
+    httpd = HTTPServer(("127.0.0.1", port), Handler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    
+    url = f"http://127.0.0.1:{port}"
+    print(f"Starting {app_id} on {url}")
+    subprocess.run(["firefox", "--new-window", url])
+
+elif app_type == "node-service":
+    dist_dir = app.get("dist", ".")
+    server_file = app.get("server", "server.js")
+    port = get_free_port()
+    
+    env = os.environ.copy()
+    env["PORT"] = str(port)
+    env["HOSTNAME"] = "127.0.0.1"
+    
+    p = subprocess.Popen(["node", os.path.join(dist_dir, server_file)], env=env)
+    
+    url = f"http://127.0.0.1:{port}"
+    print(f"Starting {app_id} on {url}")
+    subprocess.run(["firefox", "--new-window", url])
+    p.terminate()
+
+elif app_type == "node-cli":
+    entry = app.get("entry", "cli.js")
+    subprocess.run(["node", entry])
+
+elif app_type == "python-cli":
+    entry = app.get("entry")
+    if entry:
+        env = os.environ.copy(); env["PYTHONPATH"] = os.path.join(app_dir, "src"); subprocess.run(entry, shell=True, env=env, cwd=os.path.expanduser("~"))
+    else:
+        print("No entry point defined for python-cli")
+
+elif app_type == "python-gui":
+    # A window, not a command. exec replaces this launcher rather than sitting
+    # in front of the app as a parent that nothing ever reaps.
+    entry = app.get("entry")
+    if not entry:
+        print("No entry point defined for python-gui")
+        sys.exit(1)
+    target = os.path.join(app_dir, entry)
+    # Start in the operator's home, not /opt: the install directory is read-only
+    # in the squashfs, and a terminal that opens there is useless anyway.
+    os.chdir(os.path.expanduser("~"))
+    os.execv(sys.executable, [sys.executable, target])
+
+elif app_type == "webext":
+    # Web extensions are usually handled by a policy/hook for firefox.
+    # Launching them here might just be opening firefox.
+    subprocess.run(["firefox"])
+else:
+    print(f"Unknown app type: {app_type}")

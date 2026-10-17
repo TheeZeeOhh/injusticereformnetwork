@@ -2,14 +2,21 @@
 # Stage the companion apps that live in their OWN repos into this image's
 # includes.chroot, the same way the Sanctuary .deb is staged before a build.
 #
-# WHY A SCRIPT AND NOT A VENDORED COPY: Sanctuary Terminal is a separate project
-# with its own repo, venv and test suite. Committing a snapshot of it here would
-# fork it — the copy would drift, and a bug fixed upstream would live on in the
-# ISO. So the source is copied in at build time from wherever it actually lives,
-# and the staged copy is gitignored.
+# WHY A SCRIPT AND NOT A VENDORED COPY: these are separate projects with their
+# own repos and test suites. Committing a snapshot here would fork them — the
+# copy would drift, and a bug fixed upstream would live on in the ISO. So the
+# source is copied in at build time from wherever it actually lives, and the
+# staged copy is gitignored.
+#
+# SANCTUARY TERMINAL IS NO LONGER STAGED HERE. It moved to os/apps/manifest.json
+# and is staged by ./os/stage-apps.sh into /opt/irn-apps/sanctuary-terminal like
+# every other app. This script hardcoded $HOME/vault/Desktop/Folders/Sanctuary/
+# terminal; the project moved to ~/vault/Sanctuary/terminal, and because the
+# check was `exit 1` and came first, the whole script — Zee Zee and Ollama
+# included — had been dying on line one ever since. A src path that five
+# consumers need belongs in the manifest, declared once.
 #
 #   ./os/stage-extras.sh                     # use the default locations
-#   TERMINAL_SRC=/path/to/terminal ./os/stage-extras.sh
 #   ZEEZEE_SRC=/path/to/code ./os/stage-extras.sh
 #   SKIP_OLLAMA=1 ./os/stage-extras.sh       # leave the 2.2G model store out
 #
@@ -19,33 +26,6 @@ set -eu
 cd "$(dirname "$0")"
 OS_DIR="$(pwd -P)"
 DEST_ROOT="$OS_DIR/config/includes.chroot"
-
-TERMINAL_SRC="${TERMINAL_SRC:-$HOME/vault/Desktop/Folders/Sanctuary/terminal}"
-TERMINAL_DEST="$DEST_ROOT/opt/sanctuary-terminal"
-
-if [ ! -f "$TERMINAL_SRC/sanctuary_term.py" ]; then
-	echo "stage-extras: no Sanctuary Terminal at $TERMINAL_SRC" >&2
-	echo "              set TERMINAL_SRC=/path/to/terminal and re-run." >&2
-	exit 1
-fi
-
-echo "staging Sanctuary Terminal from $TERMINAL_SRC"
-rm -rf "$TERMINAL_DEST"
-mkdir -p "$TERMINAL_DEST"
-
-# Copy only what the app needs at runtime. Excluded on purpose:
-#   .venv/       the image uses Debian's python3-pyqt5 + python3-pyte instead of
-#                a venv built against another distro's Python — a venv copied
-#                from Garuda would point at an interpreter that isn't there.
-#   tests/       ~200K of test suite with no runtime role.
-#   __pycache__/ bytecode compiled by a different Python version.
-#   .git/        history does not belong in a squashfs.
-for item in sanctuary_term.py sanctuary.bashrc irn-logo.ans irn-logo.png \
-            sanctuary-icon.png sanctuary-icon-128.png README.md; do
-	[ -e "$TERMINAL_SRC/$item" ] && cp -a "$TERMINAL_SRC/$item" "$TERMINAL_DEST/"
-done
-
-echo "staged -> ${TERMINAL_DEST#"$OS_DIR"/} ($(du -sh "$TERMINAL_DEST" | cut -f1))"
 
 # ---------------------------------------------------------------------------
 # Zee Zee (the AI twin widget) + its local Ollama brain.

@@ -1,0 +1,95 @@
+#!/bin/bash
+# 0080-irn-apps.hook.chroot
+set -e
+export DEBIAN_FRONTEND=noninteractive
+
+MANIFEST="/opt/irn-apps/manifest.json"
+
+if [ ! -f "$MANIFEST" ]; then
+    echo "No manifest found at $MANIFEST. Skipping apps setup."
+    exit 0
+fi
+
+# We need python3 for parsing manifest
+apt-get update
+apt-get install -y python3 rsync
+
+# 1. Install deb_deps for all apps
+DEPS=$(python3 -c '
+import json
+try:
+    with open("'"$MANIFEST"'") as f:
+        m = json.load(f)
+    deps = set()
+    for app in m.get("apps", []):
+        deps.update(app.get("deb_deps", []))
+        
+        # If node app, ensure nodejs is installed
+        if app.get("type") in ["node-service", "node-cli"]:
+            deps.add("nodejs")
+            
+    print(" ".join(deps))
+except Exception as e:
+    pass
+')
+
+if [ ! -z "$DEPS" ]; then
+    echo "Installing app dependencies: $DEPS"
+    apt-get install -y $DEPS
+fi
+
+# 2. Generate .desktop files for all apps in /usr/share/applications/
+python3 -c '
+import json
+import os
+
+manifest_path = "'"$MANIFEST"'"
+with open(manifest_path) as f:
+    manifest = json.load(f)
+
+desktop_dir = "/usr/share/applications"
+os.makedirs(desktop_dir, exist_ok=True)
+
+for app in manifest.get("apps", []):
+    app_id = app["id"]
+    desktop_file = os.path.join(desktop_dir, f"irn-{app_id}.desktop")
+    
+    name = app.get("name", app_id)
+    generic = app.get("generic", "")
+    summary = app.get("summary", "")
+    icon = app.get("icon", "application-default")
+    # A bare name ("utilities-terminal") is a freedesktop icon-theme name and
+    # every compliant theme resolves it. Anything with a path separator or a
+    # file extension is a file shipped inside the app, and a .desktop file will
+    # not resolve that relatively — it just renders a blank icon with no error.
+    if "/" in icon or "." in icon:
+        icon = f"/opt/irn-apps/{app_id}/{icon}"
+    launch = app.get("launch", f"irn-app {app_id}")
+    terminal = str(app.get("terminal", False)).lower()
+    categories = ";".join(app.get("categories", []))
+    if categories:
+        categories += ";"
+        
+    content = f"""[Desktop Entry]
+Version=1.0
+Type=Application
+Name={name}
+GenericName={generic}
+Comment={summary}
+Icon={icon}
+Exec={launch}
+Terminal={terminal}
+Categories={categories}
+StartupNotify=true
+"""
+    # Without this the window manager cannot match the window back to the
+    # launcher, so the app gets a second, generic entry in the dock and the
+    # taskbar instead of lighting up the one that started it.
+    wm_class = app.get("startup_wm_class")
+    if wm_class:
+        content += f"StartupWMClass={wm_class}\n"
+    with open(desktop_file, "w") as out:
+        out.write(content)
+    
+    print(f"Generated {desktop_file}")
+'

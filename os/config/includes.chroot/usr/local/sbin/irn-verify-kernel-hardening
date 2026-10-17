@@ -1,0 +1,131 @@
+#!/bin/sh
+# Check that IRN OS kernel hardening is ACTUALLY in effect on this booted system.
+#
+#   sudo irn-verify-kernel-hardening
+#
+# A config file on disk proves nothing: GRUB may not have been regenerated, a
+# sysctl key may not exist on this kernel, a parameter may be misspelled and
+# silently ignored. So this reads live kernel state. Exit 0 only if every check
+# passes; a check that can't be read counts as a failure, never a skip.
+#
+# Sources of truth it checks against:
+#   /etc/irn/kernel-cmdline               boot parameters
+#   /etc/sysctl.d/98-irn-kernel.conf      runtime sysctls
+#   /etc/modprobe.d/irn-blacklist.conf    blocked modules
+set -u
+
+CMDLINE_FILE=${IRN_CMDLINE_FILE:-/etc/irn/kernel-cmdline}
+SYSCTL_FILE=${IRN_SYSCTL_FILE:-/etc/sysctl.d/98-irn-kernel.conf}
+MODPROBE_FILE=${IRN_MODPROBE_FILE:-/etc/modprobe.d/irn-blacklist.conf}
+
+fails=0
+pass() { printf 'PASS  %s\n' "$1"; }
+fail() { printf 'FAIL  %s\n' "$1"; fails=$((fails + 1)); }
+
+if [ "$(id -u)" -ne 0 ]; then
+	echo "Run as root: the kernel log is hidden from normal users (dmesg_restrict)." >&2
+	exit 2
+fi
+
+cmdline=" $(cat /proc/cmdline) "
+kernel_log="$(dmesg 2>/dev/null)"
+
+# --- Boot parameters reached the kernel ---
+if [ -r "$CMDLINE_FILE" ]; then
+	for param in $(grep -v '^[[:space:]]*#' "$CMDLINE_FILE"); do
+		case "$cmdline" in
+			*" $param "*) pass "boot parameter $param" ;;
+			*) fail "boot parameter $param missing from /proc/cmdline (was update-grub run?)" ;;
+		esac
+	done
+else
+	fail "$CMDLINE_FILE missing"
+fi
+
+# The kernel names parameters it did not recognise; a typo lands here silently.
+# Live-boot's own parameters (boot=live, username=...) always appear, so only
+# IRN's parameters count.
+# The list is quoted ("a b c"), so quotes and commas become spaces before matching,
+# or the first and last names would never match.
+unknown="$(printf '%s\n' "$kernel_log" | grep 'Unknown kernel command line parameters' | tail -1 | tr '",' '  ')"
+rejected=""
+if [ -r "$CMDLINE_FILE" ]; then
+	for param in $(grep -v '^[[:space:]]*#' "$CMDLINE_FILE"); do
+		case " $unknown " in *" $param "*) rejected="$rejected $param" ;; esac
+	done
+fi
+if [ -n "$rejected" ]; then
+	fail "kernel did not recognise:$rejected"
+elif [ -z "$kernel_log" ]; then
+	fail "kernel log unreadable, cannot confirm parameters were recognised"
+else
+	pass "kernel recognised every IRN boot parameter"
+fi
+
+# --- Effects, not just flags ---
+lockdown="$(cat /sys/kernel/security/lockdown 2>/dev/null)"
+case "$lockdown" in
+	*"[confidentiality]"*) pass "lockdown mode is confidentiality" ;;
+	*) fail "lockdown is not confidentiality (got: ${lockdown:-unavailable})" ;;
+esac
+
+if [ ! -r /sys/power/state ]; then
+	fail "/sys/power/state unreadable, cannot confirm hibernation is off"
+elif grep -qw disk /sys/power/state; then
+	fail "hibernation is still offered in /sys/power/state"
+else
+	pass "hibernation unavailable"
+fi
+
+if grep -qw debugfs /proc/filesystems; then
+	fail "debugfs is still registered"
+else
+	pass "debugfs disabled"
+fi
+
+if printf '%s\n' "$kernel_log" | grep -q 'TLB invalidation policy: strict'; then
+	pass "IOMMU in strict mode"
+else
+	fail "IOMMU strict mode not confirmed in kernel log"
+fi
+
+# --- Sysctls hold their values (a missing key is a failure, not a skip) ---
+if [ -r "$SYSCTL_FILE" ]; then
+	sysctl_lines="$(grep -E '^[[:space:]]*[a-z]' "$SYSCTL_FILE" | tr -d ' \t')"
+	for line in $sysctl_lines; do
+		key="${line%%=*}"
+		want="${line#*=}"
+		got="$(sysctl -n "$key" 2>/dev/null)"
+		if [ "$got" = "$want" ]; then
+			pass "sysctl $key = $want"
+		else
+			fail "sysctl $key is '${got:-missing}', want $want"
+		fi
+	done
+else
+	fail "$SYSCTL_FILE missing"
+fi
+
+# --- Blocked modules really are blocked, and none is loaded ---
+if [ -r "$MODPROBE_FILE" ]; then
+	for mod in $(awk '$1 == "install" && $3 == "/bin/false" { print $2 }' "$MODPROBE_FILE"); do
+		name="$(echo "$mod" | tr - _)"
+		if grep -q "^$name " /proc/modules; then
+			fail "module $mod is loaded"
+		elif modprobe -n -v "$mod" 2>/dev/null | grep -q '/bin/false'; then
+			pass "module $mod blocked"
+		else
+			fail "module $mod is not blocked by modprobe"
+		fi
+	done
+else
+	fail "$MODPROBE_FILE missing"
+fi
+
+echo
+if [ "$fails" -eq 0 ]; then
+	echo "All kernel hardening checks passed."
+	exit 0
+fi
+echo "$fails check(s) failed."
+exit 1

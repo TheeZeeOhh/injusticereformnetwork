@@ -37,5 +37,31 @@ class Aggregate:
     cell_key: str
     n: int
 
+@dataclass(frozen=True)
+class Participant:
+    # identity
+    id: Ulid
+    # PII
+    handle: str
+    circle: str
+
+@dataclass(frozen=True)
+class HourEntry:
+    id: Ulid
+    giver: Ulid
+    receiver: Ulid
+    # denominated in hours — never converts to another denomination
+    units: int
+    # PII
+    memo: str
+
+@dataclass(frozen=True)
+class AidGrant:
+    id: Ulid
+    # denominated in dollars — never converts to another denomination
+    amount: int
+    category: str
+    status: Literal["open", "approved", "paid"]
+
 # k-anonymity floor. Cells below this are suppressed, never rounded.
 MIN_CELL_SIZE = 5

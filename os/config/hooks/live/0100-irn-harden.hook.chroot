@@ -161,4 +161,14 @@ EOF
 # Disable core dumps at the limits level too.
 printf '* hard core 0\n' > /etc/security/limits.d/99-irn-nocore.conf
 
+# Kernel hardening (boot parameters, sysctls, blocked modules) ships as plain
+# files in includes.chroot; see /etc/irn/kernel-cmdline. The check script must be
+# executable, and the grub drop-in must be present or installed systems boot
+# without the parameters.
+chmod 0755 /usr/local/sbin/irn-verify-kernel-hardening
+for f in /etc/irn/kernel-cmdline /etc/default/grub.d/99-irn-harden.cfg \
+	/etc/sysctl.d/98-irn-kernel.conf /etc/modprobe.d/irn-blacklist.conf; do
+	[ -f "$f" ] || echo "W: $f missing — kernel hardening will be incomplete." >&2
+done
+
 echo "P: IRN OS hardening complete"

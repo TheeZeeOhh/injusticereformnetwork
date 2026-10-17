@@ -66,7 +66,12 @@ Types: `Ulid`, `Text`, `Int`, `Bool`, `Timestamp`, `Ciphertext`, `Enum(...)`,
 `Ref(Entity)`.
 
 Annotations: `@identity`, `@pii`, `@phi`, `@quasi_identifier`, `@count`,
-`@aad(path)`.
+`@aad(path)`, `@denominated(unit)`.
+
+An **unknown annotation is an error**, not a no-op. `@denominatd(hours)` would
+otherwise leave a field outside the convertibility check while the file still
+read as if it were covered — a guardrail that stops applying with nothing
+failing is the one outcome this language exists to prevent.
 
 ### `boundary` — where data may travel
 
@@ -96,7 +101,24 @@ policy hive_admission {
   deny     person_identifying
   require  source_count >= 5
 }
+
+policy commons_scope {
+  denominations   [hours, dollars]
+  forbid  convert(hours, dollars)
+  forbid  convert(dollars, hours)
+  forbid  identity_field(legal_name, address, date_of_birth, ssn, ...)
+}
 ```
+
+`commons_scope` is the Commons' two-rail wall. Hours are mutual credit and
+dollars are aid IRN already holds; neither converts into the other, and no
+entity may declare a KYC identity field. The validator enforces both
+structurally: an entity carrying two `@denominated` units **is** a conversion
+record, and a field named on the `identity_field` list warns wherever it
+appears — including on Sanctuary entities, because the rule is "IRN does not
+collect this", not "the Commons does not". Runtime enforcement lives in
+[`src/utils/commonsScope.js`](../utils/commonsScope.js), which reads the list
+from here and refuses to load against an empty one.
 
 ## Two severities, on purpose
 
