@@ -14,10 +14,40 @@ on:
   push:
     branches: [sanctuary-app, main]
     tags: ['v*']
+  pull_request:
+    branches: [sanctuary-app, main]
   workflow_dispatch: {}   # allow manual runs from the Actions tab
 
 jobs:
+  # Fast gate: lint, unit tests, and the strict-CSP runtime gauntlet (browser
+  # build only — the native Tauri webview is still verified by hand).
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22   # gauntlet needs the global WebSocket
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: CSP gauntlet (strict CSP, canary PHI must not leave the page)
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          CHROME_NO_SANDBOX: '1'   # runner AppArmor blocks Chrome's userns sandbox
+        run: npm run csp:gauntlet
+
   build:
+    needs: verify
     strategy:
       fail-fast: false
       matrix:

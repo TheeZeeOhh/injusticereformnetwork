@@ -13,7 +13,8 @@
     "pet": "node pet.js",
     "irnl": "node src/irnl/cli.js",
     "irnl:check": "node src/irnl/cli.js check",
-    "irnl:build": "node src/irnl/cli.js build"
+    "irnl:build": "node src/irnl/cli.js build",
+    "csp:gauntlet": "vite build && node scripts/csp-gauntlet.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

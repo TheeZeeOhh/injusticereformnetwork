@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// zod v4 probes for JIT with `Function('')`, which the app CSP (no
+// 'unsafe-eval') blocks and reports as a violation. Opt out explicitly.
+z.config({ jitless: true });
+
 // Client record schema (Vault A). This is the plaintext shape validated at the
 // vault boundary — it does NOT change encryption, only the object that gets
 // encrypted/decrypted.
