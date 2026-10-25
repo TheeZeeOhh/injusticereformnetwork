@@ -8,7 +8,7 @@ _irn_browser() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   opts="--ephemeral --amnesiac --burner --tor --kiosk --profile --list-profiles
-        --capture --out --zee --ask --doctor --panic --require-vpn
+        --capture --out --zee --warc --timestamp --wayback --full --ask --doctor --panic --require-vpn
         --private-window --new-window --help --version"
 
   case "$prev" in

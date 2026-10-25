@@ -32,6 +32,19 @@ install -Dm644 "$SRC/policies.json" /etc/firefox-esr/policies/policies.json
 install -Dm644 "$SRC/local-settings.js" "$FFDIR/defaults/pref/local-settings.js"
 install -Dm644 "$SRC/mozilla.cfg" "$FFDIR/mozilla.cfg"
 
+# 2b. The PHI paste guard. Built here from source so the image ships exactly the
+#     reviewed files, root-owned, at the path policies.json installs it from.
+#     Unsigned: ESR loads it because mozilla.cfg sets xpinstall.signatures.required.
+if [ -d "$SRC/paste-guard" ] && command -v python3 >/dev/null 2>&1; then
+	install -d -m 0755 /usr/local/lib/irn-browser
+	( cd "$SRC/paste-guard" && python3 -m zipfile -c /usr/local/lib/irn-browser/paste-guard.xpi \
+		manifest.json detect.js guard.js schema.json )
+	chmod 0644 /usr/local/lib/irn-browser/paste-guard.xpi
+	echo "P: PHI paste guard built -> /usr/local/lib/irn-browser/paste-guard.xpi"
+else
+	echo "W: paste guard not built (no source or no python3) — Firefox will report a missing add-on." >&2
+fi
+
 # 3. Launcher wrapper executable (used by irn-browser.desktop + $BROWSER).
 chmod 0755 /usr/local/bin/irn-browser || true
 

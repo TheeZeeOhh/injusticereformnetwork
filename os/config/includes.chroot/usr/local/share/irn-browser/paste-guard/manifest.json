@@ -1,0 +1,22 @@
+{
+  "manifest_version": 2,
+  "name": "IRN paste guard",
+  "version": "1.0",
+  "description": "Holds a paste that looks like client information (SSN, date of birth, record numbers, a health detail with who it is about) and asks before it goes to a website. Nothing is sent or stored.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "paste-guard@irn.local",
+      "strict_min_version": "128.0"
+    }
+  },
+  "permissions": ["storage"],
+  "storage": { "managed_schema": "schema.json" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["detect.js", "guard.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ]
+}

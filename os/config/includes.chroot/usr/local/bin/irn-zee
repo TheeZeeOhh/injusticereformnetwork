@@ -34,7 +34,7 @@ Environment:
   IRN_ZEE_TIMEOUT       seconds for a generation (default 120)
   IRN_ZEE_ALLOW_CLOUD   set to 1 to permit claude-*/gemini-* (sends data off-box)
 """
-import os, sys, json, html.parser, urllib.request, argparse, re
+import os, sys, json, html.parser, urllib.request, argparse, re, glob, shutil, subprocess
 
 OLLAMA = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 CONFIG_DIR = os.path.expanduser("~/.config/ai_twin_widget")
@@ -192,6 +192,63 @@ CLOUD_RE = re.compile(r"(:cloud$)|(^(claude|gemini)[-.])", re.I)
 NON_CHAT_RE = re.compile(r"(embed)|(^(moondream|llava|bakllava|clip)\b)", re.I)
 
 
+# Reasoning models print a long <think> block before answering. In a sidebar that
+# reads as the model rambling, so auto-selection passes them over (pin one with
+# IRN_ZEE_MODEL if you want it).
+REASONING_RE = re.compile(r"^(deepseek-r1|qwq|marco-o1)\b", re.I)
+
+# Older families that are big but weaker than a newer model half their size, and
+# code models, which answer prose questions badly. Passed over, not refused.
+LEGACY_RE = re.compile(r"(^(llama2|llama-2|codellama|vicuna|orca-mini|dolphin)\b)|(coder)", re.I)
+
+# Below this a model is a toy for legal questions. A 3B model already got
+# 42 CFR Part 2 backwards in testing; the old "take the smallest" fallback
+# picked a 0.5B one on a box with 4 GB of VRAM free.
+MIN_USEFUL_BYTES = 1_500_000_000
+
+
+def vram_bytes():
+    """Total GPU memory, or 0 if it can't be read. AMD via sysfs, NVIDIA via nvidia-smi."""
+    best = 0
+    for f in glob.glob("/sys/class/drm/card*/device/mem_info_vram_total"):
+        try:
+            with open(f) as fh:
+                best = max(best, int(fh.read().strip()))
+        except Exception:
+            pass
+    if not best and shutil.which("nvidia-smi"):
+        try:
+            out = subprocess.run(["nvidia-smi", "--query-gpu=memory.total",
+                                  "--format=csv,noheader,nounits"],
+                                 capture_output=True, text=True, timeout=3).stdout
+            best = max(int(x) * 1024 * 1024 for x in out.split())
+        except Exception:
+            pass
+    return best
+
+
+def fallback_model(models, vram):
+    """models: [(name, bytes)] of local chat models, biggest first.
+
+    The biggest one that fits in 90% of VRAM and is big enough to be useful.
+    With no VRAM figure, the smallest one that is still big enough to be useful.
+    Only if every model is a toy, the biggest toy."""
+    pool = ([m for m in models if not REASONING_RE.search(m[0]) and not LEGACY_RE.search(m[0])]
+            or [m for m in models if not REASONING_RE.search(m[0])] or models)
+    useful = [m for m in pool if m[1] >= MIN_USEFUL_BYTES]
+    if vram:
+        fits = [m for m in useful if m[1] <= vram * 0.9]
+        if fits:
+            return fits[0][0]
+    if useful:
+        return useful[-1][0]
+    return pool[0][0]
+
+
+def model_bytes(name):
+    return dict(available_models_detailed()).get(name, 0)
+
+
 def is_cloud(model):
     return bool(CLOUD_RE.search(model or ""))
 
@@ -236,8 +293,7 @@ def pick_model():
                     pass
         except Exception:
             pass
-    # No VRAM oracle: take the smallest, which is the one most likely to run.
-    return models[-1][0]
+    return fallback_model(models, vram_bytes())
 
 
 def guard_model(model):
@@ -328,6 +384,7 @@ def cmd_status(args):
         "ollama": OLLAMA,
         "model": model,
         "cloudModel": is_cloud(model or ""),
+        "modelBytes": model_bytes(model) if model else 0,
         "modelsInstalled": len(models),
         "memories": memory_count(),
         "zeeHome": find_zee(),
@@ -406,7 +463,8 @@ def cmd_brief(args):
             model = models[0]
         except Exception:
             model = models[0]
-    b = {"available": bool(models), "model": model, "memories": memory_count()}
+    b = {"available": bool(models), "model": model, "memories": memory_count(),
+         "modelBytes": model_bytes(model) if model else 0}
     if args.json:
         print(json.dumps(b))
     else:
@@ -448,6 +506,8 @@ def cmd_brief(args):
 import secrets, threading, socketserver, http.server, urllib.parse
 
 DEFAULT_PORT = int(os.environ.get("IRN_ZEE_PORT", "8788"))
+# Path to Capital Matrix UI (static HTML) to serve via /capital-matrix
+CAPITAL_MATRIX_PATH = os.path.expanduser("~/injusticereformnetwork/capital_matrix.html")
 RUNTIME_DIR = os.environ.get("XDG_RUNTIME_DIR") or "/tmp"
 TOKEN_FILE = os.path.join(CONFIG_DIR, "irn_zee_sidebar.token")
 PID_FILE = os.path.join(RUNTIME_DIR, "irn-zee-serve.pid")
@@ -666,6 +726,14 @@ class _Handler(http.server.BaseHTTPRequestHandler):
                     model = models[0]
             return self._send(json.dumps({"available": bool(models), "model": model}),
                               "application/json")
+        if path == "/capital-matrix":
+            # Serve the Capital Matrix UI file if it exists
+            try:
+                with open(CAPITAL_MATRIX_PATH, "r", encoding="utf-8") as fh:
+                    content = fh.read()
+                return self._send(content, "text/html; charset=utf-8")
+            except Exception as e:
+                return self._deny(404, f"Capital Matrix not found: {e}")
         return self._deny(404, "not found")
 
     def do_POST(self):

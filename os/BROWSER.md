@@ -25,6 +25,7 @@ Everything ships from `config/includes.chroot/` and is placed by
 | `usr/local/bin/irn-browser` | `/usr/local/bin/` | The launcher — session modes, capture, doctor |
 | `usr/local/bin/irn-zee` | `/usr/local/bin/` | Bridge to Zee Zee, the local AI twin |
 | `bash-completion/completions/irn-browser` | `/usr/share/bash-completion/completions/` | Completion for both commands |
+| `paste-guard/` | built into `/usr/local/lib/irn-browser/paste-guard.xpi` | The PHI paste guard add-on (see below) |
 
 Launch with `irn-browser`, never `firefox-esr` directly: the wrapper picks the
 right binary across distros (`firefox-esr` on Debian, `firefox` on Arch), seeds
@@ -65,8 +66,9 @@ some court portals, which is a fine trade for a burner and a bad one for the
 profile you do casework in.
 
 **Tor mode** is ephemeral plus SOCKS5 to a local Tor daemon, with remote DNS and
-WebRTC off. It refuses to launch if nothing is listening on `127.0.0.1:9050`
-rather than failing open.
+WebRTC off. If nothing is listening on `127.0.0.1:9050` and `tor.service`
+exists, it starts the service (polkit asks for your password) and waits up to 15
+seconds. If Tor still is not up, it refuses to launch rather than failing open.
 
 > **What `--tor` is not.** This is Firefox over Tor, **not the Tor Browser**. Your
 > traffic leaves via a Tor exit, so a lookup is not tied to this network or this
@@ -102,6 +104,8 @@ something into the wrong window.
 irn-browser --capture https://agency.gov/notice
 irn-browser --capture URL --zee          # + a local-model reading of the page
 irn-browser --capture URL --out /media/usb/exhibits
+irn-browser --capture URL --full         # + WARC + RFC 3161 timestamp
+irn-browser --capture URL --wayback      # + a public Wayback Machine copy (opt-in)
 ```
 
 Writes a timestamped directory containing:
@@ -112,17 +116,38 @@ Writes a timestamped directory containing:
 | `page.html` | Raw response body (`curl`) |
 | `headers.txt` | Response headers |
 | `zee-summary.txt` | *Optional* — Zee Zee's reading of `page.html` |
+| `page.warc.gz` | *`--warc`* — the page as a WARC, the web-archive format archives and courts expect (a third request, via `wget`) |
+| `wayback.txt` | *`--wayback`* — the URL of the Wayback Machine's own snapshot |
+| `SHA256SUMS.tsr` | *`--timestamp`* — an RFC 3161 timestamp over `SHA256SUMS` from freetsa.org (`IRN_TSA_URL`), plus `.tsq` and a readable `.tsr.txt` |
 | `SHA256SUMS` | Digest of every artifact above |
 | `manifest.json` | URL, UTC timestamp, tool versions, custodian, and the limitations |
 
 Verify a capture later with `cd <dir> && sha256sum -c SHA256SUMS`. Set
-`IRN_CAPTURE_OPERATOR` to record a custodian name in the manifest.
+`IRN_CAPTURE_OPERATOR` to record a custodian name in the manifest. `--full` is
+`--warc` plus `--timestamp`; it never includes `--wayback`.
+
+**What leaves the machine.** `--timestamp` sends the timestamp authority one
+SHA-512 digest of `SHA256SUMS` — not the page, not the URL. `--wayback` sends the
+URL to archive.org, which fetches the page from its own servers and makes the
+snapshot **public**; use it only for pages that are already public and where a
+public record helps. Verify a timestamp with
+
+```bash
+openssl ts -verify -data SHA256SUMS -in SHA256SUMS.tsr \
+  -CAfile cacert.pem -untrusted tsa.crt
+```
+
+using freetsa's `cacert.pem` and `tsa.crt` obtained independently (from
+freetsa.org, and ideally checked against a copy saved earlier), not from the
+capture directory.
 
 > **Do not oversell a capture.** The manifest states this in writing, and so does
-> this document: it is a **local, unnotarized** capture. It attests that this
-> machine received this content at this time. It is **not** a third-party or
-> cryptographic timestamp. `render.png` and `page.html` are two **separate**
-> requests, which a server may answer differently. Content behind a login is not
+> this document: without `--timestamp` it is a **local, unnotarized** capture. It
+> attests that this machine received this content at this time. A timestamp
+> proves the artifacts existed no later than the stated time; it does **not**
+> prove what the server sent, only what this machine saved. `render.png`,
+> `page.html` and `page.warc.gz` are **separate** requests, which a server may
+> answer differently. Content behind a login is not
 > captured, because no session is used. And `SHA256SUMS` only detects tampering if
 > the manifest is preserved somewhere the tamperer cannot also edit.
 >
@@ -258,7 +283,14 @@ page you visit can try to `POST` to `127.0.0.1:8788/chat` from its own script.
 In order: `IRN_ZEE_MODEL`, else **the model the Zee Zee desktop widget is set to**
 (`selected_model` in `twin_memory.json` — it is the same Zee Zee, so the sidebar
 answering on a different brain than the widget would be a surprise), else the
-largest local chat model that fits in VRAM.
+largest local chat model that fits in 90% of VRAM (read from sysfs on AMD, from
+`nvidia-smi` on NVIDIA) and is at least 1.5 GB. With no VRAM figure, the smallest
+model that is still at least 1.5 GB. Reasoning models (`deepseek-r1`, `qwq`), which
+print a long thinking block first, and older or code-only families (`llama2`,
+`dolphin`, `*coder*`) are passed over, not refused.
+
+The old fallback took the *smallest* model "most likely to run". On a box with
+4 GB of VRAM that was `qwen2.5:0.5b`; it now picks `gemma3:4b`.
 
 Two classes of model are excluded from auto-selection, and refused outright if
 named explicitly:
@@ -283,6 +315,13 @@ Set `IRN_ZEE_ALLOW_CLOUD=1` to override, knowing the prompt leaves the device.
 > footer says *not legal advice · verify every citation* for exactly this reason.
 > Treat her as a reading aid that speeds you up, never as an authority, and pin a
 > larger model with `IRN_ZEE_MODEL` for anything you will rely on.
+>
+> `gemma3:4b` (2026-10-18) got the Part 2 bottom line right — a subpoena alone
+> does not compel disclosure — but called Part 2 "the Privacy Rule" and said a
+> HIPAA authorization was needed, where Part 2 needs the patient's Part 2 consent
+> or a court order under its own rules. Better than backwards, still not
+> citable. A 7B model would not fit this GPU and did not answer within the
+> bridge's two-minute limit.
 
 ## Checking that the hardening took
 
@@ -300,12 +339,52 @@ capture prerequisites. Non-zero exit on any FAIL.
 > `--doctor` checks the **files on disk**. It cannot see what Firefox actually
 > applied. `about:policies` on a running browser is the only real proof.
 
+## The PHI paste guard
+
+A small add-on of our own, `paste-guard@irn.local`, force-installed by policy.
+When you paste (or drop) text into a website, it checks the text for
+identifiers: a Social Security number, a date of birth, a medical record or
+patient number, a Medicare or Medicaid ID, a diagnosis code, or a health detail
+(HIV, Suboxone, estradiol, …) **next to** a phone number, email, address or other
+identifier. If it finds one, the paste is held and a dialog says what it found
+and which site would receive it: **Don't paste** (the default, and Escape) or
+**Paste anyway**.
+
+- It looks for **identifiers, not topics**. "Methadone clinic hours" in a search
+  box is research and goes straight through; "DOB 01/02/1990, on Suboxone" is a
+  record.
+- It never shows the matched text, sends nothing, and stores nothing. The held
+  text lives in memory until the dialog closes.
+- **This machine is always allowed** (`localhost`, `127.0.0.1`, `file://`), because
+  that is where Sanctuary runs. Add other origins where client data belongs to
+  `"3rdparty" → "Extensions" → "paste-guard@irn.local" → "allow"` in
+  `policies.json`. The shipped list is empty.
+- It is a speed bump, not a wall. It sees pastes and drops, not typing, file
+  uploads or screenshots, and it recognises patterns, not meaning.
+
+**It needs Firefox ESR.** The add-on is not signed by Mozilla, and only ESR (and
+Developer Edition/Nightly) honours `xpinstall.signatures.required = false`, which
+`mozilla.cfg` locks. IRN OS ships `firefox-esr`. On Garuda, install it beside
+Firefox (`sudo pacman -S firefox-esr`, from chaotic-aur); `irn-browser` prefers it
+automatically, and ESR keeps its own profile, so your release-Firefox profile is
+untouched. **The cost:** on ESR, Firefox stops checking Mozilla's signature on
+*every* add-on, so an unsigned `.xpi` you install by hand would load too. The
+guard itself is root-owned at `/usr/local/lib/irn-browser/`, so only an admin
+can swap it. The alternative is signing it through Mozilla's add-on site as an
+unlisted add-on, which needs an account there.
+
 Two more safety commands:
 
 ```bash
 irn-browser --panic          # kill browsers, delete every burner profile in RAM
-irn-browser --require-vpn …  # refuse to launch unless the irn-vpn tunnel is up
+irn-browser --require-vpn …  # refuse to launch unless a VPN tunnel is up
 ```
+
+`--require-vpn` accepts `irn-vpn`, Proton VPN (`proton0` for WireGuard, `tun0`
+for OpenVPN) or any `wg*` interface. It does **not** accept Proton's
+`pvpnksintrf0` or `ipv6leakintrf0`: those are the kill switch and the IPv6 leak
+guard, and they stay up while Proton is disconnected. `IRN_VPN_IFACE` pins one
+interface name instead.
 
 `--panic` deliberately does **not** touch the everyday or named profiles. A panic
 button that silently deletes casework bookmarks is a footgun, not a safety
@@ -337,8 +416,9 @@ feature. This is the *browser* panic; the disk-level duress wipe is separate.
 
 ### Search keywords
 
-Type the alias, a space, then the query — in the URL bar (ESR only; the policy
-key is ESR-restricted) or in the command center's search box (every build):
+Type the alias, a space, then the query — in the URL bar or in the command
+center's search box. (The `SearchEngines` policy used to be ESR-only; release
+Firefox has honoured it since 139.)
 
 | Alias | Engine | | Alias | Engine |
 |---|---|---|---|---|
@@ -349,8 +429,8 @@ key is ESR-restricted) or in the command center's search box (every build):
 | `foia` | MuckRock | | | |
 
 They are defined twice — in `policies.json` and in `newtab.html`'s inline script —
-on purpose, because the policy key only works on ESR and the command center has
-to work everywhere. `src/utils/irnBrowser.test.js` fails if the two drift.
+on purpose, because the command center has to work even where the policy did
+not apply. `src/utils/irnBrowser.test.js` fails if the two drift.
 
 ### And what `mozilla.cfg` adds
 
@@ -433,8 +513,12 @@ in the same change; if you relax one by accident, the commit gate stops you.
 
 Common relaxations:
 
-- **Allow HTTP** (some county court sites are still plain HTTP): remove
-  `HttpsOnlyMode` or set it to `enabled` so it can be bypassed per-site.
+- **Allow HTTP for specific sites** (some county court sites are still plain
+  HTTP): put one origin per line in `~/.config/irn-browser/http-allowlist.txt`
+  (e.g. `http://records.example-county.gov`) and re-run `install-irn-browser.sh`.
+  It merges them into the `HttpAllowlist` policy; HTTPS-only stays forced for
+  every other site. The shipped list is empty. Removing `HttpsOnlyMode`
+  altogether is the blunt version.
 - **Different DoH resolver**: change `DNSOverHTTPS.ProviderURL`. Setting
   `Enabled: false` falls back to system DNS, which the VPN or ISP can see.
 - **Lock to specific sites**: add `"WebsiteFilter": {"Block": ["<all_urls>"],
@@ -462,6 +546,19 @@ about:support               # "Profile Directory" — confirms which profile is 
 hardening took. A locked pref from `mozilla.cfg` appears in `about:config` with
 the padlock/"locked" status.
 
+> **Verification status (2026-10-18, v2.1).** Exercised for real on the Garuda
+> box: `--capture --full` against example.com (WARC written; freetsa timestamp
+> granted and verified with `openssl ts -verify` against freetsa's root, and
+> verification fails once `SHA256SUMS` changes by one byte); the paste guard's
+> content script driven in headless Chromium on a non-local origin (held paste,
+> page never sees it, dialog name and description, focus, Tab trap, Escape,
+> Paste anyway into an input, textarea and contenteditable, localhost never
+> held, 320px); `--require-vpn` against a fake sysfs including Proton's kill
+> switch; model selection on the real model list. **Not yet confirmed:** the
+> paste guard inside Firefox ESR (it needs `firefox-esr` installed and the
+> installer's sudo step), `--wayback` against archive.org, and `--tor`'s
+> start-the-service path (it opens the polkit window).
+>
 > **Verification status (2026-08-28).** The assets are syntax-checked and covered
 > by 29 unit tests in the `npm test` gate (mutation-checked — they bite). Exercised
 > end to end on the Garuda box: `--doctor`, `--list-profiles`, `--version`,

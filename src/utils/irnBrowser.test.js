@@ -12,7 +12,11 @@
  * browser can, which is why BROWSER.md marks that as a separate step.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const share = (f) =>
   readFileSync(new URL(`../../os/config/includes.chroot/usr/local/share/irn-browser/${f}`, import.meta.url), 'utf8');
@@ -72,12 +76,31 @@ describe('policies.json — the posture we publish', () => {
     expect(policies.OverridePostUpdatePage).toBe('');
   });
 
-  it('only ever fetches add-ons from addons.mozilla.org', () => {
+  it('only ever fetches add-ons from addons.mozilla.org, except our own root-owned guard', () => {
+    // The one exception is deliberate (2026-10-18): the IRN paste guard is ours,
+    // unsigned, and installed from a path only root can write. Nothing else may
+    // come from anywhere but AMO.
     for (const [id, v] of Object.entries(policies.ExtensionSettings)) {
-      if (v.install_url) {
+      if (!v.install_url) continue;
+      if (id === 'paste-guard@irn.local') {
+        expect(v.install_url).toBe('file:///usr/local/lib/irn-browser/paste-guard.xpi');
+      } else {
         expect(v.install_url, id).toMatch(/^https:\/\/addons\.mozilla\.org\//);
       }
     }
+  });
+
+  it('says in writing what turning off add-on signatures costs', () => {
+    const at = cfg.indexOf('lockPref("xpinstall.signatures.required", false);');
+    expect(at).toBeGreaterThan(0);
+    expect(cfg.slice(Math.max(0, at - 700), at)).toMatch(/EVERY add-on/);
+  });
+
+  it('keeps the HTTPS-only exception list empty in the shipped policy', () => {
+    // Per-box exceptions come from ~/.config/irn-browser/http-allowlist.txt at
+    // install time; the image itself trusts no plain-HTTP origin.
+    expect(policies.HttpAllowlist).toEqual([]);
+    expect(policies.HttpsOnlyMode).toBe('force_enabled');
   });
 
   it('ships every bundled search engine over https', () => {
@@ -265,6 +288,117 @@ describe('irn-browser / irn-zee — the launcher contract', () => {
     expect(zee).toContain('IRN_ZEE_ALLOW_CLOUD');
     // The guard must actually be called on every generation path.
     expect((zee.match(/guard_model\(/g) || []).length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+const browserPath = fileURLToPath(new URL('../../os/config/includes.chroot/usr/local/bin/irn-browser', import.meta.url));
+const zeePath = fileURLToPath(new URL('../../os/config/includes.chroot/usr/local/bin/irn-zee', import.meta.url));
+
+describe('--require-vpn counts real tunnels only', () => {
+  // A fake /sys/class/net: one directory per interface with an operstate file.
+  const vpn = (ifaces, env = {}) => {
+    const net = mkdtempSync(join(tmpdir(), 'irn-net-'));
+    for (const [name, state] of Object.entries(ifaces)) {
+      mkdirSync(join(net, name));
+      writeFileSync(join(net, name, 'operstate'), state + '\n');
+    }
+    const r = spawnSync('sh', ['-c', `. "${browserPath}"; vpn_up && echo "$VPN_FOUND"`], {
+      env: { PATH: process.env.PATH, HOME: tmpdir(), IRN_BROWSER_LIB: '1', IRN_SYS_NET: net, ...env },
+      encoding: 'utf8',
+    });
+    return r.status === 0 ? r.stdout.trim() : null;
+  };
+
+  it('does not mistake Proton\'s kill switch or leak guard for a tunnel', () => {
+    expect(vpn({ lo: 'unknown', wlo1: 'up', pvpnksintrf0: 'unknown', ipv6leakintrf0: 'unknown' })).toBe(null);
+  });
+
+  it('accepts Proton WireGuard, OpenVPN, irn-vpn and other wg tunnels', () => {
+    expect(vpn({ wlo1: 'up', proton0: 'unknown' })).toBe('proton0');
+    expect(vpn({ tun0: 'unknown' })).toBe('tun0');
+    expect(vpn({ 'irn-vpn': 'unknown' })).toBe('irn-vpn');
+    expect(vpn({ wg0: 'up' })).toBe('wg0');
+  });
+
+  it('treats a tunnel that is down as no tunnel', () => {
+    expect(vpn({ proton0: 'down' })).toBe(null);
+  });
+
+  it('accepts only the pinned interface when IRN_VPN_IFACE is set', () => {
+    expect(vpn({ proton0: 'unknown' }, { IRN_VPN_IFACE: 'work0' })).toBe(null);
+    expect(vpn({ work0: 'unknown' }, { IRN_VPN_IFACE: 'work0' })).toBe('work0');
+  });
+});
+
+describe('Zee Zee picks a model that can answer', () => {
+  const hasPython = spawnSync('python3', ['--version']).status === 0;
+  const pick = (models, vram) => execFileSync('python3', ['-c', `
+import importlib.machinery, importlib.util, json, sys
+loader = importlib.machinery.SourceFileLoader("irnzee", sys.argv[1])
+spec = importlib.util.spec_from_loader("irnzee", loader)
+z = importlib.util.module_from_spec(spec); loader.exec_module(z)
+print(z.fallback_model(json.loads(sys.argv[2]), int(sys.argv[3])))
+`, zeePath, JSON.stringify(models), String(vram)], { encoding: 'utf8' }).trim();
+  const GB = 1e9;
+  // As on the box this was found on: biggest first, as pick_model sorts them.
+  const box = [['qwen2.5:7b', 4.7 * GB], ['llama2:latest', 3.8 * GB], ['gemma3:4b', 3.3 * GB],
+               ['qwen3:4b', 2.5 * GB], ['llama3.2:latest', 2.0 * GB], ['deepseek-r1:1.5b', 1.1 * GB],
+               ['qwen2.5:0.5b', 0.4 * GB]];
+
+  it.skipIf(!hasPython)('takes the biggest current model that fits in VRAM, not the smallest', () => {
+    expect(pick(box, 4.29 * GB)).toBe('gemma3:4b');
+  });
+
+  it.skipIf(!hasPython)('with no VRAM figure, takes the smallest model that is still useful', () => {
+    expect(pick(box, 0)).toBe('llama3.2:latest');
+  });
+
+  it.skipIf(!hasPython)('passes over reasoning and legacy models', () => {
+    expect(pick([['deepseek-r1:7b', 4.7 * GB], ['llama2:latest', 3.8 * GB], ['llama3.2', 2 * GB]], 8 * GB)).toBe('llama3.2');
+  });
+
+  it.skipIf(!hasPython)('falls back to the biggest toy only when every model is a toy', () => {
+    expect(pick([['b:1b', 0.9 * GB], ['a:0.5b', 0.4 * GB]], 4 * GB)).toBe('b:1b');
+  });
+});
+
+describe('evidence capture — the outside services are opt-in', () => {
+  const wrapper = bin('irn-browser');
+  const capture = wrapper.slice(wrapper.indexOf('capture_evidence() {'), wrapper.indexOf('# Doctor'));
+
+  it('sends the timestamp authority a digest of SHA256SUMS and nothing else', () => {
+    expect(capture).toContain('openssl ts -query -data "$dir/SHA256SUMS"');
+    expect(capture).toMatch(/--data-binary "@\$dir\/SHA256SUMS\.tsq"/);
+    // The timestamp is taken after the artifacts are hashed, so it covers them.
+    expect(capture.indexOf('sha256sum -- * > SHA256SUMS')).toBeLessThan(capture.indexOf('openssl ts -query'));
+  });
+
+  it('never contacts the Wayback Machine unless asked, not even with --full', () => {
+    expect(capture).toMatch(/--full\)\s+want_warc=1; want_tsa=1; shift ;;/);
+    expect(capture).toContain('want_wb=0');
+    expect(capture).toMatch(/if \[ "\$want_wb" = 1 \]; then/);
+  });
+
+  it('states what a timestamp and a Wayback copy do and do not prove', () => {
+    expect(capture).toMatch(/does not prove what the server sent/);
+    expect(capture).toMatch(/independent of this machine and can differ/);
+  });
+});
+
+describe('install-irn-browser.sh', () => {
+  const inst = readFileSync(new URL('../../install-irn-browser.sh', import.meta.url), 'utf8');
+
+  it('hardens every Firefox on the box, not just the first one found', () => {
+    expect(inst).toMatch(/for cand in firefox-esr firefox; do/);
+    expect(inst).toMatch(/for ff in \$FF_ALL; do/);
+  });
+
+  it('installs the paste guard root-owned at the path the policy names', () => {
+    expect(inst).toContain('sudo install -Dm644 "$TMP_XPI" /usr/local/lib/irn-browser/paste-guard.xpi');
+  });
+
+  it('makes IRN Browser the default browser', () => {
+    expect(inst).toContain('xdg-settings set default-web-browser irn-browser.desktop');
   });
 });
 

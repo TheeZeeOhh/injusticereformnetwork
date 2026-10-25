@@ -13,7 +13,7 @@
 # =============================================================================
 set -eu
 
-IRN_VERSION="2.0"
+IRN_VERSION="2.1"
 SHARE_DIR="/usr/local/share/irn-browser"
 [ -d "$SHARE_DIR" ] || SHARE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/irn-browser"
 CHROME_SRC="$SHARE_DIR/userChrome.css"
@@ -25,6 +25,10 @@ CAPTURE_ROOT="${IRN_CAPTURE_DIR:-$HOME/IRN-Captures}"
 TOR_HOST="127.0.0.1"
 TOR_PORT="${IRN_TOR_PORT:-9050}"
 VPN_IFACE="${IRN_VPN_IFACE:-irn-vpn}"
+# The PHI paste guard, built and installed root-owned by install-irn-browser.sh
+# (or the image hook). policies.json installs it from this exact path.
+PASTE_XPI="/usr/local/lib/irn-browser/paste-guard.xpi"
+TSA_URL="${IRN_TSA_URL:-https://freetsa.org/tsr}"
 
 say()  { printf '%s\n' "$*"; }
 warn() { printf 'irn-browser: %s\n' "$*" >&2; }
@@ -65,13 +69,26 @@ seed_chrome_into() {
   [ -f "$CONTENT_SRC" ] && cp -f "$CONTENT_SRC" "$d/chrome/userContent.css" 2>/dev/null || true
 }
 
-# Best-effort for the everyday profile, which Firefox manages under ~/.mozilla.
+# Where Firefox keeps its own profiles. Older builds use ~/.mozilla/firefox;
+# newer ones follow XDG and use ~/.config/mozilla/firefox. Checking only the
+# first is why the theme silently never reached the everyday profile on a box
+# running a current Firefox.
+ff_profile_roots() {
+  for r in "${XDG_CONFIG_HOME:-$HOME/.config}/mozilla/firefox" "$HOME/.mozilla/firefox"; do
+    [ -f "$r/profiles.ini" ] && echo "$r"
+  done
+  return 0
+}
+
+# Best-effort for the everyday profile, which Firefox manages itself.
 seed_userchrome() {
   [ -f "$CHROME_SRC" ] || return 0
-  [ -f "$HOME/.mozilla/firefox/profiles.ini" ] || return 0
-  for d in "$HOME"/.mozilla/firefox/*.default*; do
-    [ -d "$d" ] && seed_chrome_into "$d"
+  for r in $(ff_profile_roots); do
+    for d in "$r"/*.default*; do
+      [ -d "$d" ] && seed_chrome_into "$d"
+    done
   done
+  return 0
 }
 
 # -----------------------------------------------------------------------------
@@ -92,18 +109,43 @@ port_open() {
   return 2
 }
 
+SYS_NET="${IRN_SYS_NET:-/sys/class/net}"
+
+# WireGuard and tun devices report operstate "unknown" while carrying traffic,
+# so unknown counts as up; "down" and "dormant" do not.
+iface_up() {
+  [ -d "$SYS_NET/$1" ] || return 1
+  case "$(cat "$SYS_NET/$1/operstate" 2>/dev/null)" in
+    up|unknown) return 0 ;;
+  esac
+  return 1
+}
+
+# A tunnel that actually carries traffic: the IRN WireGuard interface, Proton's
+# WireGuard (proton0) or OpenVPN (tun0), or any other wg*. NOT Proton's
+# pvpnksintrf0 or ipv6leakintrf0: those are the kill switch and the IPv6 leak
+# guard, and they stay up while Proton is DISCONNECTED. Counting them would make
+# --require-vpn wave a browser through with no tunnel at all.
+VPN_FOUND=""
 vpn_up() {
-  if command -v wg >/dev/null 2>&1 && wg show "$VPN_IFACE" >/dev/null 2>&1; then return 0; fi
-  if command -v ip >/dev/null 2>&1; then
-    ip link show "$VPN_IFACE" 2>/dev/null | grep -q 'state UNKNOWN\|state UP\|UP,LOWER_UP' && return 0
+  VPN_FOUND=""
+  if [ -n "${IRN_VPN_IFACE:-}" ]; then
+    iface_up "$IRN_VPN_IFACE" && VPN_FOUND="$IRN_VPN_IFACE" && return 0
+    return 1
   fi
-  [ -d "/sys/class/net/$VPN_IFACE" ] && return 0
+  for i in "$SYS_NET"/*; do
+    n="${i##*/}"
+    case "$n" in
+      "$VPN_IFACE"|proton[0-9]*|tun[0-9]*|wg*)
+        iface_up "$n" && { VPN_FOUND="$n"; return 0; } ;;
+    esac
+  done
   return 1
 }
 
 require_vpn_guard() {
-  vpn_up && { say "VPN: $VPN_IFACE is up."; return 0; }
-  die "--require-vpn: interface '$VPN_IFACE' is not up. Bring the tunnel up first (irn-vpn up), or drop --require-vpn."
+  vpn_up && { say "VPN: tunnel $VPN_FOUND is up."; return 0; }
+  die "--require-vpn: no VPN tunnel is up (looked for $VPN_IFACE, proton*, tun*, wg*). Connect Proton VPN or run irn-vpn up, or drop --require-vpn."
 }
 
 # -----------------------------------------------------------------------------
@@ -195,6 +237,18 @@ run_ephemeral() {
 run_tor() {
   ff="$(need_firefox)"
   st=0; port_open "$TOR_HOST" "$TOR_PORT" || st=$?
+  if [ "$st" = 1 ] && [ "$TOR_PORT" = 9050 ] && command -v systemctl >/dev/null 2>&1 \
+     && systemctl cat tor.service >/dev/null 2>&1; then
+    # Offer to start the daemon rather than just refusing. polkit shows the
+    # system password window; closing it leaves Tor off and we still refuse.
+    say "IRN Browser: Tor is not running. Starting tor.service (your system password may be asked for)..."
+    if systemctl start tor.service 2>/dev/null; then
+      for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+        port_open "$TOR_HOST" "$TOR_PORT" && { st=0; break; }
+        sleep 1
+      done
+    fi
+  fi
   case "$st" in
     1) die "--tor: nothing is listening on $TOR_HOST:$TOR_PORT. Start Tor first (systemctl start tor), or set IRN_TOR_PORT." ;;
     2) warn "could not check $TOR_HOST:$TOR_PORT (no ss/netstat/nc). Proceeding — if Tor is down, pages will simply fail to load rather than leak." ;;
@@ -317,11 +371,15 @@ run_ask() {
 }
 
 capture_evidence() {
-  url=""; outdir="$CAPTURE_ROOT"; want_zee=0
+  url=""; outdir="$CAPTURE_ROOT"; want_zee=0; want_warc=0; want_tsa=0; want_wb=0
   while [ $# -gt 0 ]; do
     case "$1" in
       --out) outdir="${2:?--out needs a directory}"; shift 2 ;;
       --zee|--ask) want_zee=1; shift ;;
+      --warc)      want_warc=1; shift ;;
+      --timestamp) want_tsa=1; shift ;;
+      --wayback)   want_wb=1; shift ;;
+      --full)      want_warc=1; want_tsa=1; shift ;;
       -*)    die "--capture: unknown option '$1'" ;;
       *)     [ -z "$url" ] && url="$1" || die "--capture takes one URL"; shift ;;
     esac
@@ -368,6 +426,44 @@ capture_evidence() {
     fi
   fi
 
+  # 2b. Optional: a WARC, the web-archive format archives and courts expect.
+  #     A third request, so it can differ from the other two like they can.
+  warc_status="not requested"
+  if [ "$want_warc" = 1 ]; then
+    if command -v wget >/dev/null 2>&1; then
+      if wget -q --warc-file="$dir/page" --no-warc-keep-log --timeout=60 -O /dev/null "$url" 2>"$dir/warc.log" \
+         && [ -s "$dir/page.warc.gz" ]; then
+        warc_status="ok — page.warc.gz ($(wget --version 2>/dev/null | head -1 | awk '{print $1" "$3}'))"
+      else
+        warc_status="failed — see warc.log"
+      fi
+    else
+      warc_status="skipped — wget not installed"
+    fi
+  fi
+
+  # 2c. Optional: ask the Wayback Machine to keep its own copy. A third party's
+  #     copy is the strongest answer to "you could have edited this", but it
+  #     sends the URL to archive.org and makes the snapshot public. Opt-in only.
+  wb_status="not requested"
+  if [ "$want_wb" = 1 ]; then
+    if command -v curl >/dev/null 2>&1; then
+      say "  asking the Wayback Machine to save a public copy (sends the URL to archive.org)..."
+      loc="$(curl -sS -o /dev/null --max-time 120 -D - "https://web.archive.org/save/$url" 2>"$dir/wayback.log" \
+             | tr -d '\r' | sed -n 's/^[Cc]ontent-[Ll]ocation: *//p; s/^[Ll]ocation: *//p' | head -1)"
+      case "$loc" in
+        /web/*) loc="https://web.archive.org$loc" ;;
+      esac
+      case "$loc" in
+        https://web.archive.org/web/*) printf '%s\n' "$loc" > "$dir/wayback.txt"
+                                       wb_status="ok — $loc" ;;
+        *) wb_status="failed or rate-limited — see wayback.log; try again later" ;;
+      esac
+    else
+      wb_status="skipped — curl not installed"
+    fi
+  fi
+
   # 3. Optional: have Zee Zee read the capture. Runs on the local model, so the
   #    page never leaves the box. Done BEFORE hashing so the summary is covered
   #    by SHA256SUMS like every other artifact in the directory.
@@ -393,6 +489,30 @@ capture_evidence() {
   ( cd "$dir" && sha256sum -- * > SHA256SUMS 2>/dev/null || true )
   sums_hash="$(sha256sum "$dir/SHA256SUMS" 2>/dev/null | awk '{print $1}')"
 
+  # 5. Optional: an RFC 3161 timestamp over SHA256SUMS from an outside
+  #    timestamp authority. Only the SHA-512 digest of SHA256SUMS is sent —
+  #    never the page, the URL or any artifact. This is what turns "this
+  #    machine says it had this at this time" into a third party saying so.
+  tsa_status="not requested"
+  if [ "$want_tsa" = 1 ]; then
+    if command -v openssl >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
+      say "  timestamping SHA256SUMS at $TSA_URL (sends only a digest)..."
+      if openssl ts -query -data "$dir/SHA256SUMS" -sha512 -cert -no_nonce -out "$dir/SHA256SUMS.tsq" 2>"$dir/timestamp.log" \
+         && curl -sS --max-time 60 -H 'Content-Type: application/timestamp-query' \
+                 --data-binary "@$dir/SHA256SUMS.tsq" -o "$dir/SHA256SUMS.tsr" "$TSA_URL" 2>>"$dir/timestamp.log" \
+         && openssl ts -reply -in "$dir/SHA256SUMS.tsr" -text >"$dir/SHA256SUMS.tsr.txt" 2>>"$dir/timestamp.log" \
+         && grep -q 'Status: Granted' "$dir/SHA256SUMS.tsr.txt"; then
+        tsa_when="$(sed -n 's/^Time stamp: //p' "$dir/SHA256SUMS.tsr.txt" | head -1)"
+        tsa_status="ok — $TSA_URL, $tsa_when; verify with the command in manifest.json"
+      else
+        tsa_status="failed — see timestamp.log (the capture is still valid, just not third-party timestamped)"
+        rm -f "$dir/SHA256SUMS.tsr" "$dir/SHA256SUMS.tsr.txt"
+      fi
+    else
+      tsa_status="skipped — needs openssl and curl"
+    fi
+  fi
+
   ff_ver="$("$ff" --version 2>/dev/null | head -1)"
   cat > "$dir/manifest.json" <<JSON
 {
@@ -406,11 +526,17 @@ capture_evidence() {
   "fetchTool": "$(json_escape "$fetch_tool")",
   "fetchStatus": "$(json_escape "$fetch_status")",
   "zeeSummary": "$(json_escape "$zee_status")",
+  "warc": "$(json_escape "$warc_status")",
+  "wayback": "$(json_escape "$wb_status")",
+  "timestamp": "$(json_escape "$tsa_status")",
+  "verifyTimestamp": "openssl ts -verify -data SHA256SUMS -in SHA256SUMS.tsr -CAfile <the TSA's CA certificate, obtained independently> -untrusted <the TSA's signing certificate>",
   "artifactDigests": "SHA256SUMS",
   "sha256OfSHA256SUMS": "${sums_hash:-unavailable}",
   "limitations": [
-    "This is a local, unnotarized capture. It attests that this machine received this content at this time; it is not a third-party or cryptographic timestamp.",
-    "render.png and page.html are two SEPARATE requests. A server may legitimately or deliberately answer them differently.",
+    "Unless the timestamp field says ok, this is a local, unnotarized capture. It attests that this machine received this content at this time; it is not a third-party or cryptographic timestamp.",
+    "A timestamp (SHA256SUMS.tsr) proves SHA256SUMS, and so every artifact it lists, existed no later than the stated time. It does not prove what the server sent, only what this machine saved.",
+    "render.png, page.html and page.warc.gz are SEPARATE requests. A server may legitimately or deliberately answer them differently.",
+    "A Wayback snapshot (wayback.txt) is archive.org's own fetch, made from their servers at roughly the same time. It is independent of this machine and can differ from it.",
     "The render is what this Firefox drew, including any client-side JavaScript; page.html is the raw response body before scripting.",
     "No cookies or logged-in session were used, so content behind a login is NOT captured.",
     "SHA256SUMS detects tampering only if this manifest is preserved somewhere the tamperer cannot also edit.",
@@ -423,6 +549,9 @@ JSON
   say "  render.png     $shot_status"
   say "  page.html      $fetch_status"
   [ "$want_zee" = 1 ] && say "  zee-summary.txt $zee_status"
+  [ "$want_warc" = 1 ] && say "  page.warc.gz   $warc_status"
+  [ "$want_wb" = 1 ]   && say "  wayback.txt    $wb_status"
+  [ "$want_tsa" = 1 ]  && say "  timestamp      $tsa_status"
   say "  manifest.json  written (read the limitations section before citing this)"
   say "  SHA256SUMS     ${sums_hash:+sha256 = $sums_hash}"
   say ""
@@ -500,6 +629,9 @@ run_doctor() {
       || bad "mozilla.cfg's first line is NOT a comment — Firefox silently drops the first pref"
     n=$(grep -c '^\(lockPref\|defaultPref\)' "$LIB/mozilla.cfg" 2>/dev/null || echo 0)
     info "$n prefs declared"
+    grep -q 'browser.ml.chat.provider' "$LIB/mozilla.cfg" 2>/dev/null \
+      && ok "Zee Zee sidebar prefs present" \
+      || wrn "mozilla.cfg predates the Zee Zee sidebar (no browser.ml.chat.provider). Re-run install-irn-browser.sh"
   else
     bad "missing $LIB/mozilla.cfg"
   fi
@@ -523,8 +655,10 @@ run_doctor() {
   [ -f "$CHROME_SRC" ]  && ok "userChrome.css available at $CHROME_SRC"  || wrn "no userChrome.css at $CHROME_SRC"
   [ -f "$CONTENT_SRC" ] && ok "userContent.css available at $CONTENT_SRC" || wrn "no userContent.css at $CONTENT_SRC"
   seeded=0
-  for d in "$HOME"/.mozilla/firefox/*.default*; do
-    [ -f "$d/chrome/userChrome.css" ] && seeded=$((seeded+1))
+  for r in $(ff_profile_roots); do
+    for d in "$r"/*.default*; do
+      [ -f "$d/chrome/userChrome.css" ] && seeded=$((seeded+1))
+    done
   done
   [ "$seeded" -gt 0 ] && ok "$seeded everyday profile(s) have userChrome.css seeded" \
                       || wrn "no everyday profile has userChrome.css yet (launch irn-browser once)"
@@ -549,8 +683,25 @@ run_doctor() {
     1) info "Tor not listening on $TOR_HOST:$TOR_PORT — --tor will refuse to launch" ;;
     2) info "cannot probe $TOR_HOST:$TOR_PORT (no ss/netstat/nc)" ;;
   esac
-  vpn_up && ok "VPN interface '$VPN_IFACE' is up" \
-         || info "VPN interface '$VPN_IFACE' is down — --require-vpn would refuse to launch"
+  vpn_up && ok "VPN tunnel $VPN_FOUND is up" \
+         || info "no VPN tunnel up ($VPN_IFACE, proton*, tun*, wg*) — --require-vpn would refuse to launch"
+
+  say ""
+  say "PHI paste guard"
+  if [ -f "$PASTE_XPI" ]; then
+    ok "paste guard built: $PASTE_XPI"
+  else
+    wrn "no paste guard at $PASTE_XPI — re-run install-irn-browser.sh"
+  fi
+  case "$ff" in
+    firefox-esr) ok "$ff loads the unsigned IRN add-on (ESR honours xpinstall.signatures.required)" ;;
+    *) wrn "$ff is a release build: it will not load the unsigned paste guard. Install firefox-esr (sudo pacman -S firefox-esr) and irn-browser uses it automatically" ;;
+  esac
+  if command -v xdg-settings >/dev/null 2>&1; then
+    db="$(xdg-settings get default-web-browser 2>/dev/null || true)"
+    [ "$db" = irn-browser.desktop ] && ok "IRN Browser is the default browser" \
+      || wrn "default browser is '${db:-unknown}', so links from other apps skip the IRN wrapper (xdg-settings set default-web-browser irn-browser.desktop)"
+  fi
 
   say ""
   say "Zee Zee (local AI twin)"
@@ -558,7 +709,11 @@ run_doctor() {
     ok "bridge present: $z"
     zs="$("$z" brief --json 2>/dev/null || echo '{}')"
     if printf '%s' "$zs" | grep -q '"available": *true'; then
-      ok "Zee Zee is answering — $(printf '%s' "$zs" | sed -n 's/.*"model": *"\([^"]*\)".*/\1/p')"
+      zm="$(printf '%s' "$zs" | sed -n 's/.*"model": *"\([^"]*\)".*/\1/p')"
+      ok "Zee Zee is answering — $zm"
+      zsize="$(printf '%s' "$zs" | sed -n 's/.*"modelBytes": *\([0-9]*\).*/\1/p')"
+      [ -n "$zsize" ] && [ "$zsize" -gt 0 ] && [ "$zsize" -lt 2000000000 ] \
+        && wrn "$zm is a small model ($((zsize / 1000000)) MB). Small models misstate law; pin a bigger one with IRN_ZEE_MODEL"
       printf '%s' "$zs" | grep -q '"cloudModel": *true' \
         && wrn "the selected model is a CLOUD model — prompts would leave the device"
     else
@@ -580,6 +735,10 @@ run_doctor() {
                                        || bad "no sha256sum — --capture cannot produce a manifest"
   command -v curl >/dev/null 2>&1 && ok "curl available — --capture will save the raw response too" \
                                   || wrn "no curl — --capture will save only the render, not page.html"
+  command -v wget >/dev/null 2>&1 && ok "wget available — --capture --warc can write a WARC" \
+                                  || info "no wget — --capture --warc unavailable"
+  command -v openssl >/dev/null 2>&1 && ok "openssl available — --capture --timestamp can get an RFC 3161 timestamp" \
+                                     || info "no openssl — --capture --timestamp unavailable"
 
   say ""
   printf 'Summary: %d pass, %d warn, %d fail\n' "$DOC_PASS" "$DOC_WARN" "$DOC_FAIL"
@@ -638,6 +797,7 @@ USAGE
   irn-browser --tor [URL...]            burner routed through Tor's SOCKS5
   irn-browser --kiosk URL               fullscreen, chrome stripped
   irn-browser --capture URL [--out DIR] evidence capture with hashes
+        [--warc] [--timestamp] [--wayback] [--full]
   irn-browser --ask "question"           ask Zee Zee (local model, on-device)
   irn-browser --zee                      is Zee Zee reachable, on what model
   irn-browser --sidebar                  run the sidebar server in the foreground
@@ -646,8 +806,9 @@ USAGE
   irn-browser --list-profiles           what profiles exist and how big
 
 MODIFIERS
-  --require-vpn        refuse to launch unless the WireGuard interface is up
-                       (default 'irn-vpn'; override with IRN_VPN_IFACE)
+  --require-vpn        refuse to launch unless a VPN tunnel is up: irn-vpn,
+                       Proton (proton0/tun0) or any wg*. Proton's kill-switch
+                       interface does not count. IRN_VPN_IFACE pins one name.
 
 SESSION MODES — pick by what must not survive
   everyday    History, logins and bookmarks are kept. This is where casework
@@ -661,7 +822,9 @@ SESSION MODES — pick by what must not survive
               the directory is deleted on exit — so it is also gone after any
               poweroff or duress wipe. The window wears an amber rail.
   --tor       Ephemeral, plus SOCKS5 through a local Tor daemon with remote DNS
-              and WebRTC off. Violet rail. NOT the Tor Browser — see below.
+              and WebRTC off. Violet rail. Starts tor.service if it is off
+              (asks for your password), and refuses if Tor still is not up.
+              NOT the Tor Browser — see below.
   --kiosk     Ephemeral with the chrome collapsed. For a screen someone else
               stands in front of.
 
@@ -680,6 +843,13 @@ EVIDENCE CAPTURE
   manifest.json. The manifest states its own limitations in writing — read them
   before citing a capture. Set IRN_CAPTURE_OPERATOR to record a custodian.
   Verify a capture later with: sha256sum -c SHA256SUMS
+
+  --warc       also write page.warc.gz, the web-archive format (needs wget)
+  --timestamp  RFC 3161 timestamp over SHA256SUMS from a timestamp authority
+               (default freetsa.org; IRN_TSA_URL). Sends ONLY a digest.
+  --wayback    ask the Wayback Machine to keep its own public copy. Sends the
+               URL to archive.org and the snapshot is public. Opt-in only.
+  --full       --warc and --timestamp (not --wayback, which publishes)
 
 ZEE ZEE — the local twin, in the browser
   irn-browser --ask "what does 42 CFR Part 2 say about court orders?"
@@ -712,7 +882,8 @@ ENVIRONMENT
   IRN_ZEE_ALLOW_CLOUD   set to 1 to permit a cloud model (sends data off-box)
   IRN_CAPTURE_OPERATOR  custodian name recorded in a capture manifest
   IRN_TOR_PORT          Tor SOCKS port (default 9050)
-  IRN_VPN_IFACE         interface --require-vpn checks (default irn-vpn)
+  IRN_VPN_IFACE         the one interface --require-vpn accepts (default: any tunnel)
+  IRN_TSA_URL           RFC 3161 timestamp authority (default https://freetsa.org/tsr)
 
 VERIFY THE HARDENING
   irn-browser --doctor   checks the files on disk
@@ -723,6 +894,9 @@ Any option not listed above is passed straight through to Firefox, so
 --private-window, --new-window and --search all work as usual.
 EOF
 }
+
+# The tests source this file for its functions; stop before launching anything.
+[ "${IRN_BROWSER_LIB:-}" = 1 ] && return 0
 
 # =============================================================================
 # Main

@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "allow": {
+      "type": "array",
+      "description": "Origins where pasting client information is expected, e.g. https://ehr.example.org. This machine (localhost) is always allowed.",
+      "items": { "type": "string" }
+    }
+  }
+}

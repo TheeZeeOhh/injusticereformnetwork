@@ -8,6 +8,10 @@
 #   ./install-irn-browser.sh            # user launcher + system policy (uses sudo)
 #   ./install-irn-browser.sh --no-sudo  # skip the system-wide policy/autoconfig
 #
+# Installs into EVERY Firefox present (firefox and firefox-esr). irn-browser
+# prefers firefox-esr, which is the one that loads the unsigned PHI paste guard:
+#   sudo pacman -S firefox-esr          # chaotic-aur; sits beside firefox
+#
 # Add-on installs stay ENABLED (daily-driver requirement). Dark mode is on by
 # default (built-in dark theme + forced dark page rendering); install Dark Reader
 # from addons.mozilla.org for full page darkening. EQ is EasyEffects (system EQ),
@@ -38,18 +42,24 @@ backup(){ [ -f "$1" ] && cp -n "$1" "$1.bak" && say "backed up $1 -> $1.bak" || 
 echo "IRN Browser installer (hardened Firefox + EasyEffects EQ)"
 
 # --- 0. Locate Firefox ----------------------------------------------------
-FF_BIN=""; FF_LIB=""; FF_ETC=""
-for cand in firefox firefox-esr; do
-  if command -v "$cand" >/dev/null 2>&1; then FF_BIN="$cand"; break; fi
+# Every Firefox on the box gets the policy, not just the first one found:
+# irn-browser launches firefox-esr when it exists, and a hardened release build
+# beside an unhardened ESR (or the reverse) is the gap this used to leave.
+FF_ALL=""
+for cand in firefox-esr firefox; do
+  command -v "$cand" >/dev/null 2>&1 && FF_ALL="$FF_ALL $cand"
 done
+FF_BIN="$(printf '%s\n' $FF_ALL | head -1)"
 if [ -z "$FF_BIN" ]; then
-  warn "no Firefox found. Install it first:  sudo pacman -S firefox"
+  warn "no Firefox found. Install it first:  sudo pacman -S firefox-esr"
   warn "continuing with the launcher/EQ; re-run after installing Firefox for the policy."
 fi
-case "$FF_BIN" in
-  firefox-esr) FF_LIB=/usr/lib/firefox-esr; FF_ETC=/etc/firefox-esr ;;
-  firefox)     FF_LIB=/usr/lib/firefox;     FF_ETC=/etc/firefox ;;
-esac
+ff_dirs() {   # $1 = binary -> "LIBDIR ETCDIR"
+  case "$1" in
+    firefox-esr) echo "/usr/lib/firefox-esr /etc/firefox-esr" ;;
+    firefox)     echo "/usr/lib/firefox /etc/firefox" ;;
+  esac
+}
 
 # --- 1. Launcher, icon, wrapper (user-level) ------------------------------
 install -Dm644 "$INC/usr/share/applications/irn-browser.desktop" "$APPS/irn-browser.desktop"
@@ -82,6 +92,13 @@ if [ -f "$REPO/irn-newtab.py" ]; then
 fi
 # On Arch the WM class is "firefox" (not firefox-esr) — fix the .desktop hint.
 [ "$FF_BIN" = "firefox" ] && sed -i 's/^StartupWMClass=.*/StartupWMClass=firefox/' "$APPS/irn-browser.desktop"
+# Make IRN Browser the default, so links opened from other apps go through the
+# wrapper (and its sidebar, theme and session rails) instead of bare Firefox.
+if command -v xdg-settings >/dev/null 2>&1; then
+  xdg-settings set default-web-browser irn-browser.desktop 2>/dev/null \
+    && say "IRN Browser is now the default browser" \
+    || warn "could not set the default browser (xdg-settings set default-web-browser irn-browser.desktop)"
+fi
 say "installed launcher, icon, and wrapper into ~/.local"
 command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" 2>/dev/null || true
 command -v gtk-update-icon-cache   >/dev/null 2>&1 && gtk-update-icon-cache -f "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
@@ -107,17 +124,55 @@ fi
 # --- 2. Hardened Firefox: enterprise policy + autoconfig (system, sudo) ----
 if [ -n "$FF_BIN" ] && [ "$DO_SUDO" = 1 ]; then
   say "installing hardened Firefox policy + autoconfig (sudo)..."
-  sudo install -Dm644 "$SHARE/policies.json"      "$FF_LIB/distribution/policies.json"
-  sudo install -Dm644 "$SHARE/policies.json"      "$FF_ETC/policies/policies.json"
-  sudo install -Dm644 "$SHARE/local-settings.js"  "$FF_LIB/defaults/pref/local-settings.js"
-  sudo install -Dm644 "$SHARE/mozilla.cfg"        "$FF_LIB/mozilla.cfg"
-  # Point the home page at THIS user's generated command center (the policy ships
-  # a /usr/local system path for the IRN OS image; rewrite it for the daily driver).
+  # Build the policy once, for this user: the home page points at THIS user's
+  # generated command center (the image ships a /usr/local path), and the
+  # HTTP allowlist picks up ~/.config/irn-browser/http-allowlist.txt — one
+  # origin per line, for the county court sites that still have no HTTPS.
   USER_NEWTAB="$HOME/.local/share/irn-browser/newtab.html"
-  sudo sed -i "s#file:///usr/local/share/irn-browser/newtab.html#file://$USER_NEWTAB#g" \
-    "$FF_LIB/distribution/policies.json" "$FF_ETC/policies/policies.json" "$FF_LIB/mozilla.cfg" 2>/dev/null || true
-  say "policy + autoconfig installed; home page -> $USER_NEWTAB"
-  say "restart Firefox, verify at about:policies"
+  HTTP_LIST="$HOME/.config/irn-browser/http-allowlist.txt"
+  TMP_POL="$(mktemp)"
+  python3 - "$SHARE/policies.json" "$HTTP_LIST" "file://$USER_NEWTAB" > "$TMP_POL" <<'PY'
+import json, sys, os
+pol_path, allow_path, home = sys.argv[1:4]
+raw = open(pol_path, encoding="utf-8").read().replace(
+    "file:///usr/local/share/irn-browser/newtab.html", home)
+d = json.loads(raw)
+extra = []
+if os.path.exists(allow_path):
+    for line in open(allow_path, encoding="utf-8"):
+        line = line.split("#", 1)[0].strip()
+        if line.startswith("http://") or line.startswith("https://"):
+            extra.append(line.rstrip("/"))
+d["policies"]["HttpAllowlist"] = sorted(set(d["policies"].get("HttpAllowlist", []) + extra))
+print(json.dumps(d, indent=2, ensure_ascii=False))
+PY
+  n_http="$(python3 -c 'import json,sys;print(len(json.load(open(sys.argv[1]))["policies"]["HttpAllowlist"]))' "$TMP_POL")"
+  # The paste guard: zipped from the reviewed source, installed root-owned at the
+  # path policies.json names. Root ownership is what makes an unsigned add-on
+  # acceptable here: only an admin can swap it.
+  TMP_XPI="$(mktemp -d)/paste-guard.xpi"
+  ( cd "$SHARE/paste-guard" && python3 -m zipfile -c "$TMP_XPI" manifest.json detect.js guard.js schema.json )
+  sudo install -Dm644 "$TMP_XPI" /usr/local/lib/irn-browser/paste-guard.xpi
+  say "PHI paste guard -> /usr/local/lib/irn-browser/paste-guard.xpi"
+  for ff in $FF_ALL; do
+    set -- $(ff_dirs "$ff"); FF_LIB="$1"; FF_ETC="$2"
+    sudo install -Dm644 "$TMP_POL"                  "$FF_LIB/distribution/policies.json"
+    sudo install -Dm644 "$TMP_POL"                  "$FF_ETC/policies/policies.json"
+    sudo install -Dm644 "$SHARE/local-settings.js"  "$FF_LIB/defaults/pref/local-settings.js"
+    sudo install -Dm644 "$SHARE/mozilla.cfg"        "$FF_LIB/mozilla.cfg"
+    sudo sed -i "s#file:///usr/local/share/irn-browser/newtab.html#file://$USER_NEWTAB#g" "$FF_LIB/mozilla.cfg"
+    say "$ff: policy + autoconfig installed ($FF_LIB)"
+  done
+  # Arch's Firefox ESR also reads /etc/firefox/policies; keep it identical.
+  case " $FF_ALL " in *" firefox-esr "*) sudo install -Dm644 "$TMP_POL" /etc/firefox/policies/policies.json ;; esac
+  rm -f "$TMP_POL" "$TMP_XPI"
+  say "home page -> $USER_NEWTAB; $n_http origin(s) allowed over plain HTTP"
+  case " $FF_ALL " in
+    *" firefox-esr "*) : ;;
+    *) say "NOTE: no firefox-esr. Release Firefox will not load the unsigned paste guard."
+       say "      Install it beside firefox:  sudo pacman -S firefox-esr   then re-run this." ;;
+  esac
+  say "restart the browser, verify at about:policies"
 elif [ -n "$FF_BIN" ]; then
   say "skipping system policy (--no-sudo). Dark mode + hardening won't apply globally."
 fi

@@ -18,6 +18,7 @@
     "DisableDeveloperTools": false,
     "TranslateEnabled": true,
     "HttpsOnlyMode": "force_enabled",
+    "HttpAllowlist": [],
     "DNSOverHTTPS": {
       "Enabled": true,
       "ProviderURL": "https://dns.quad9.net/dns-query",
@@ -54,6 +55,10 @@
     "ExtensionSettings": {
       "*": {
         "installation_mode": "allowed"
+      },
+      "paste-guard@irn.local": {
+        "installation_mode": "force_installed",
+        "install_url": "file:///usr/local/lib/irn-browser/paste-guard.xpi"
       },
       "uBlock0@raymondhill.net": {
         "installation_mode": "force_installed",
@@ -383,6 +388,13 @@
       },
       "Autoplay": {
         "Default": "block-audio-video"
+      }
+    },
+    "3rdparty": {
+      "Extensions": {
+        "paste-guard@irn.local": {
+          "allow": []
+        }
       }
     }
   }
