@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
 import { putRawRecord, loadSecureRecord, getAllRecords } from './storageEngine';
 import { migrateRecordsToV2 } from './migrationEngine';
+import { bindVaultBIdKey } from './cryptoEngine';
 
 // End-to-end migration through REAL IndexedDB + REAL WebCrypto: seed a legacy v1
 // record (no magic, no AAD), run the migration, and prove the upgraded record is
@@ -42,6 +43,9 @@ describe('v1->v2 migration (real IndexedDB + WebCrypto)', () => {
     // also proves the vault routing picks the right one.
     keyA = await makeKey();
     keyB = await makeKey();
+    // A Vault B key always travels with its HMAC id key (deriveVaultBKey binds
+    // one); a generated test key needs one bound by hand.
+    bindVaultBIdKey(keyB, await crypto.subtle.generateKey({ name: 'HMAC', hash: 'SHA-256' }, false, ['sign']));
   });
 
   it('upgrades a legacy Vault A record so it reads back with AAD', async () => {
@@ -70,7 +74,11 @@ describe('v1->v2 migration (real IndexedDB + WebCrypto)', () => {
     expect(await loadSecureRecord(keyB, 'hrt_client7', 'B')).toEqual({
       regimen: 'sensitive'
     });
-    await expect(loadSecureRecord(keyA, 'hrt_client7', 'A')).rejects.toThrow();
+    expect(await loadSecureRecord(keyA, 'hrt_client7', 'A')).toBeNull();
+    // ...and the readable id, which names the client, is gone from the store.
+    const ids = (await getAllRecords()).map((r) => r.id);
+    expect(ids).toHaveLength(1);
+    expect(ids[0]).toMatch(/^vb_[A-Za-z0-9_-]{22}$/);
   });
 
   it('is idempotent: a second pass migrates nothing', async () => {

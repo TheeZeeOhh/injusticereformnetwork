@@ -18,11 +18,25 @@
 // holds WITHOUT any plaintext: integrity does not require readability.
 
 import { deriveAuditKey } from './cryptoEngine';
+import { rebuildDatabase, recoverInterruptedRebuild } from './dbRebuild';
 
 const DB_NAME = 'SanctuaryAudit';
 const STORE_NAME = 'auditLog';
 const DB_VERSION = 1;
 const GENESIS_HASH = '0'.repeat(64);
+const DB_SPEC = { name: DB_NAME, version: DB_VERSION, store: STORE_NAME, keyPath: 'seq', autoIncrement: true };
+
+// Opens wait on recovery of an interrupted rebuild, and on a rebuild in
+// progress (rewriteVaultBEntryIds compacts the log after re-sealing).
+let gate = null;
+function awaitGate() {
+  if (!gate) {
+    gate = recoverInterruptedRebuild(DB_SPEC).catch((err) => {
+      console.warn('Interrupted audit log rebuild could not be recovered yet:', err);
+    });
+  }
+  return gate;
+}
 
 // RAM-only key set at login, cleared at logout / panic. Never written to disk.
 let auditKey = null;
@@ -37,11 +51,16 @@ export function clearAuditKey() {
   auditKey = null;
 }
 
-function initDB() {
+async function initDB() {
+  await awaitGate();
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onerror = (e) => reject(e.target.error);
-    request.onsuccess = (e) => resolve(e.target.result);
+    request.onsuccess = (e) => {
+      const db = e.target.result;
+      db.onversionchange = () => db.close(); // never block a rebuild or delete
+      resolve(db);
+    };
     request.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -144,6 +163,97 @@ export function appendEntry(meta) {
   // Keep the queue alive regardless of this entry's outcome.
   appendChain = next.then(() => undefined, () => undefined);
   return next;
+}
+
+function getAllRows(db) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([STORE_NAME], 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+// Recomputes the chain over `rows` (in order). Returns the seq of the first bad
+// link, or null if every link holds.
+async function firstBrokenSeq(rows) {
+  let prevHash = GENESIS_HASH;
+  for (const row of rows) {
+    if (row.prevHash !== prevHash) return row.seq;
+    if ((await sha256Hex(prevHash + row.ts + row.sealed)) !== row.hash) return row.seq;
+    prevHash = row.hash;
+  }
+  return null;
+}
+
+// Vault B read/write/delete entries written before opaque storage ids name the
+// record by its readable id ('hrt_PT-1234'). The audit key comes from
+// passphrase A, so those entries disclosed Vault B's client refs to anyone
+// holding only passphrase A. This re-seals each such entry with the id mapped
+// through `mapId` (logical id -> opaque id) and rebuilds the chain, keeping
+// every seq and timestamp.
+//
+// Rewriting history is a deliberate act, so it is guarded and recorded:
+//   - it refuses to run on a chain that already fails verification (it must
+//     never launder tampering into a valid-looking chain);
+//   - the rewrite is ONE IndexedDB transaction, so it lands whole or not at all;
+//   - it appends a sealed marker entry carrying the pre-rewrite head hash, so
+//     the change itself is on the record.
+// Entries the current audit key cannot open are left untouched and counted.
+// Returns { rewritten, unreadable } or { rewritten: 0, refused: 'chain broken' }.
+export function rewriteVaultBEntryIds(mapId) {
+  const next = appendChain.then(() => doRewrite(mapId));
+  appendChain = next.then(() => undefined, () => undefined);
+  return next;
+}
+
+async function doRewrite(mapId) {
+  if (!auditKey) return { rewritten: 0, unreadable: 0 };
+  const db = await initDB();
+  const rows = await getAllRows(db);
+  if ((await firstBrokenSeq(rows)) !== null) return { rewritten: 0, refused: 'chain broken' };
+
+  let rewritten = 0;
+  let unreadable = 0;
+  const sealedOut = [];
+  for (const row of rows) {
+    const fields = await unseal(row.sealed);
+    if (fields === null) { unreadable += 1; sealedOut.push(row.sealed); continue; }
+    const needs = fields.vaultTag === 'B' && fields.action !== 'admin' &&
+      typeof fields.recordId === 'string' && !fields.recordId.startsWith('vb_') &&
+      fields.recordId !== '*ALL*';
+    if (!needs) { sealedOut.push(row.sealed); continue; }
+    sealedOut.push(await seal({ ...fields, recordId: await mapId(fields.recordId) }));
+    rewritten += 1;
+  }
+  if (rewritten === 0) return { rewritten, unreadable };
+
+  const oldHead = rows[rows.length - 1].hash;
+  let prevHash = GENESIS_HASH;
+  const out = [];
+  for (let i = 0; i < rows.length; i++) {
+    const { seq, ts } = rows[i];
+    const sealed = sealedOut[i];
+    const hash = await sha256Hex(prevHash + ts + sealed);
+    out.push({ seq, ts, prevHash, sealed, hash });
+    prevHash = hash;
+  }
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction([STORE_NAME], 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    for (const row of out) store.put(row);
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+    tx.onabort = (e) => reject(e.target.error || new Error('audit rewrite aborted'));
+  });
+  await doAppend({ action: 'admin', recordId: `audit_vaultB_ids_rewritten:${rewritten}:prevHead:${oldHead}`, vaultTag: 'B' });
+  // The replaced entries are still openable with passphrase A, and SQLite keeps
+  // their bytes after an overwrite. Rebuild the log so they are gone from disk.
+  // Runs inside the append queue, so no entry can land mid-rebuild.
+  const run = rebuildDatabase(DB_SPEC);
+  gate = run.then(() => undefined, () => undefined);
+  await run;
+  return { rewritten, unreadable, compacted: true };
 }
 
 /**

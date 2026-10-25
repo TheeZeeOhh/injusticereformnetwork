@@ -55,8 +55,9 @@ below concern how those primitives are composed into a system.
 | L1 | LOW | `btoa(String.fromCharCode(...bytes))` can throw on large blobs | No (correctness) |
 | L2 | LOW | Corrupt-salt fallback silently orphans all prior records | No (data loss) |
 | L3 | LOW | `JSON.stringify` used as canonical form for HMAC | No (fragility) |
+| D1 | HIGH | Vault B record ids (`hrt_<clientRef>`) stored and audit-logged in readable form | Yes: Vault A / B separation |
 
-## Remediation status (updated 2026-07-12)
+## Remediation status (updated 2026-10-17)
 
 - **C2 — REMEDIATED.** Records now bind (vaultTag, recordId) as AES-GCM AAD via a
   versioned envelope; legacy records auto-upgrade on login. Substitution/
@@ -68,6 +69,24 @@ below concern how those primitives are composed into a system.
   re-key. Vault B is unrecoverable by design (no escrow). Model 2 (hardware
   binding) remains a later hardening milestone.
 - **M1 — REMEDIATED** as part of C1 (Vault B now has its own verifier).
+- **D1 — REMEDIATED (2026-10-17).** Found by the cold-seizure subpoena drill
+  (`docs/subpoena-drill-2026-10-17.md`). IndexedDB keys are plaintext, so Vault B
+  records keyed `hrt_<clientRef>`, `consent_<clientRef>_<ts>` and
+  `bam_history_<clientId>` disclosed which clients have HRT / Part 2 records to
+  anyone with the disk, and the audit log (sealed under a passphrase-A key)
+  repeated those ids to any passphrase-A holder. Vault B records are now stored
+  under `vb_` + HMAC(id key, logical id), where the id key is a separate
+  non-extractable key derived from passphrase B; the audit log records only the
+  opaque id. On Vault B unlock, legacy records move to opaque ids (crash-safe:
+  write, verify, then delete), past audit entries are re-sealed with opaque ids
+  (refused if the chain is already broken; a sealed marker records the old chain
+  head), and both databases are rebuilt so the deleted bytes are gone from the
+  SQLite files and WAL. Verified by unit tests and by the drill's
+  `--upgrade-from` run against the pre-fix binary (leak visible before, clean
+  after). **Still exposed:** backups made before the fix carry the readable ids
+  (make fresh backups and destroy old ones); filesystem blocks freed by the
+  rebuild are a raw-disk matter for full-disk encryption; record counts and
+  audit timestamps remain visible by design.
 - **H3 — REMEDIATED.** zxcvbn-based strength policy (length >= 12 and score >= 3)
   enforced at every enrollment point, with a live strength meter at first login.
 - **H2 — DEFERRED (intentionally).** Strengthening the KDF (Argon2id, or raising

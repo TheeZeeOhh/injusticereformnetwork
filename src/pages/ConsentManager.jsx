@@ -6,7 +6,8 @@ import { useLanguage } from '../i18n/LanguageContext';
 // Vault B — 42 CFR Part 2 consent management. Consent records are real,
 // persisted, encrypted under the Vault B key, and enumerable via an index so a
 // consent actually gates access to the corresponding sensitive record class.
-// Index is stored under 'consent_index'; each record under 'consent_<id>'.
+// Index is stored under 'consent_index'; each record under 'consent_<id>'
+// (logical ids: the storage engine maps Vault B ids to opaque 'vb_…' ids).
 const INDEX_ID = 'consent_index';
 
 export default function ConsentManager() {

@@ -5,12 +5,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const saveCalls = [];
 let fixtureRecords = [];
 
+const deleteCalls = [];
 vi.mock('./storageEngine', () => ({
   getAllRecords: async () => fixtureRecords,
   saveSecureRecord: async (key, id, data, vaultTag) => {
     saveCalls.push({ key, id, data, vaultTag });
     return true;
-  }
+  },
+  // Reads back whatever was last saved under (key, id, tag); null before that.
+  loadSecureRecord: async (key, id, vaultTag) => {
+    const hit = [...saveCalls].reverse().find((c) => c.key === key && c.id === id && c.vaultTag === vaultTag);
+    return hit ? hit.data : null;
+  },
+  deleteRawRecord: async (id) => { deleteCalls.push(id); }
+}));
+
+vi.mock('./auditLog', () => ({
+  appendEntry: async () => null,
+  rewriteVaultBEntryIds: async () => ({ rewritten: 0 })
 }));
 
 // Encrypt/decrypt: we only need decryptRecord to turn a fixture blob back into
@@ -18,6 +30,9 @@ vi.mock('./storageEngine', () => ({
 // tests don't depend on real WebCrypto here (the crypto itself is covered by the
 // envelope/AAD suites).
 vi.mock('./cryptoEngine', () => ({
+  isVaultBStorageId: (id) => id.startsWith('vb_'),
+  buildRecordAad: (tag, id) => new TextEncoder().encode(`sanctuaryv2|${tag}|${id}`),
+  vaultBStorageId: async (_key, id) => `vb_${id.length}`,
   // A "v2" blob is any Uint8Array starting with the magic; "v1" otherwise.
   isV2Payload: (payload) =>
     payload[0] === 0x53 && payload[1] === 0x41 &&
@@ -51,10 +66,18 @@ describe('vaultTagForId', () => {
     expect(vaultTagForId('consent_abc_123')).toBe('B');
     expect(vaultTagForId('hrt_client7')).toBe('B');
   });
+  it('routes opaque ids and the formerly misclassified B ids to Vault B', () => {
+    expect(vaultTagForId('vb_AbC-_x')).toBe('B');
+    expect(vaultTagForId('bam_history_client_PT-1')).toBe('B');
+    expect(vaultTagForId('med_index_b')).toBe('B');
+    expect(vaultTagForId('saved_resources')).toBe('B');
+  });
   it('routes everything else to Vault A', () => {
     expect(vaultTagForId('client_directory')).toBe('A');
     expect(vaultTagForId('evidence_blob_EV-1')).toBe('A');
     expect(vaultTagForId('vouchers')).toBe('A');
+    expect(vaultTagForId('med_index_a')).toBe('A');
+    expect(vaultTagForId('client_PT-1')).toBe('A');
   });
 });
 
@@ -64,6 +87,7 @@ describe('migrateRecordsToV2', () => {
 
   beforeEach(() => {
     saveCalls.length = 0;
+    deleteCalls.length = 0;
     fixtureRecords = [];
   });
 
@@ -83,6 +107,8 @@ describe('migrateRecordsToV2', () => {
     expect(a.data).toEqual({ n: 1 });
     expect(b.vaultTag).toBe('B');
     expect(b.key).toBe(keyB);
+    // The Vault B record also leaves its readable id; the A record keeps its id.
+    expect(deleteCalls).toEqual(['hrt_client7']);
   });
 
   it('skips already-v2 records (idempotent)', async () => {

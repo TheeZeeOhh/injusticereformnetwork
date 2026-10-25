@@ -13,6 +13,15 @@ import { saveSecureRecord, loadSecureRecord } from '../utils/storageEngine';
 import { deriveVaultAKey, deriveVaultBKey } from '../utils/cryptoEngine';
 import { appendBamScore, bamRecordId } from './IntelligenceLayer';
 
+// A wrong key must disclose nothing. Vault B ids are opaque per key, so a wrong
+// key either fails authentication or derives an id that holds no record (null).
+// Both are non-disclosure; returning the data is the only failure.
+async function expectUnreadable(promise) {
+  let value;
+  try { value = await promise; } catch { return; }
+  expect(value).toBeNull();
+}
+
 function installLocalStorage() {
   const store = new Map();
   globalThis.localStorage = {
@@ -86,8 +95,8 @@ describe('BAM history lives in Vault B only (42 CFR Part 2)', () => {
   it('is UNREADABLE with the Vault A key (crypto separation is real)', async () => {
     const rid = bamRecordId('client_PT-1001');
     await saveSecureRecord(bKey, rid, appendBamScore([], 14).history, 'B');
-    await expect(loadSecureRecord(aKey, rid, 'B')).rejects.toThrow();
-    await expect(loadSecureRecord(aKey, rid, 'A')).rejects.toThrow();
+    await expectUnreadable(loadSecureRecord(aKey, rid, 'B'));
+    await expectUnreadable(loadSecureRecord(aKey, rid, 'A'));
   });
 
   it('keeps two clients\u2019 histories independent', async () => {

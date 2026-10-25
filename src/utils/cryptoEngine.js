@@ -213,6 +213,9 @@ export async function verifyData(hmacKey, dataString, signatureB64) {
 // device seizure the audit log is ciphertext with no key on disk. This is what
 // keeps the log from disclosing which clients had (e.g. Vault B / 42 CFR Part 2)
 // access, while the hash chain still runs over the sealed payload.
+// It is derived from passphrase A, so it does NOT protect Vault B against a
+// passphrase-A holder: Vault B entries therefore name only opaque storage ids
+// (vaultBStorageId), never a readable client ref.
 export async function deriveAuditKey(passphrase) {
   const enc = new TextEncoder();
   const { saltA } = await getOrCreateSalts();
@@ -269,7 +272,71 @@ export async function deriveVaultAKey(passphraseA) {
 // is permanently inaccessible.
 export async function deriveVaultBKey(passphraseB) {
   const { saltB } = await getOrCreateSalts();
-  return deriveKeyFromPassphrase(passphraseB, saltB);
+  const [vaultBKey, idKey] = await Promise.all([
+    deriveKeyFromPassphrase(passphraseB, saltB),
+    deriveVaultBIdKey(passphraseB, saltB),
+  ]);
+  bindVaultBIdKey(vaultBKey, idKey);
+  return vaultBKey;
+}
+
+// --- Opaque Vault B storage ids (subpoena drill 2026-10-17, finding 1) ---
+//
+// IndexedDB stores record keys in PLAINTEXT. A Vault B record saved under
+// 'hrt_<clientRef>' therefore told anyone holding only passphrase A (or no
+// passphrase at all) WHICH client has an HRT / 42 CFR Part 2 record, while
+// Vault B stayed closed. Vault B records are now stored under
+// 'vb_' + HMAC(idKey, logicalId): stable for lookup, meaningless without
+// passphrase B, and it hides which KIND of Vault B record exists.
+//
+// The id key is an independent HMAC key (PBKDF2 over saltB + a context label,
+// the same domain separation as the audit and backup keys), non-extractable,
+// RAM-only. It is bound to its Vault B AES key object in a WeakMap, so it lives
+// exactly as long as that key: panic-close and logout drop the AES key reference
+// and the id key goes with it. A Vault B key with no bound id key fails closed.
+const VAULT_B_ID_CONTEXT = 'VAULT_B_ID_CTX';
+const VAULT_B_ID_LABEL = 'sanctuary-vb-id-v1|';
+export const VAULT_B_ID_PREFIX = 'vb_';
+const vaultBIdKeys = new WeakMap();
+
+async function deriveVaultBIdKey(passphraseB, saltB) {
+  const enc = new TextEncoder();
+  const idSalt = new Uint8Array([...saltB, ...enc.encode(VAULT_B_ID_CONTEXT)]);
+  const keyMaterial = await window.crypto.subtle.importKey(
+    'raw', enc.encode(passphraseB), { name: 'PBKDF2' }, false, ['deriveKey']
+  );
+  return window.crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: idSalt, iterations: CRYPTO_CONFIG.KDF_ITERATIONS, hash: CRYPTO_CONFIG.HASH_ALGO },
+    keyMaterial,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+}
+
+// Associates an HMAC id key with a Vault B AES key. deriveVaultBKey does this;
+// exported so tests can pair a generated key with a generated id key.
+export function bindVaultBIdKey(vaultBKey, idKey) {
+  vaultBIdKeys.set(vaultBKey, idKey);
+}
+
+export function isVaultBStorageId(id) {
+  return typeof id === 'string' && id.startsWith(VAULT_B_ID_PREFIX);
+}
+
+// Maps a logical Vault B record id ('hrt_PT-1234') to the id it is stored under.
+// Deterministic per install + passphrase B. Throws if the key has no id key.
+export async function vaultBStorageId(vaultBKey, logicalId) {
+  const idKey = vaultBKey && vaultBIdKeys.get(vaultBKey);
+  if (!idKey) throw new Error('Vault B id key missing: refusing to store under a readable id.');
+  if (typeof logicalId !== 'string' || logicalId.length === 0) {
+    throw new Error('recordId must be a non-empty string.');
+  }
+  const mac = await window.crypto.subtle.sign(
+    'HMAC', idKey, new TextEncoder().encode(VAULT_B_ID_LABEL + logicalId)
+  );
+  const b64 = toBase64(new Uint8Array(mac).subarray(0, 16));
+  return VAULT_B_ID_PREFIX + b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 // Hive-mind salt: DERIVED from saltA rather than stored, on purpose.

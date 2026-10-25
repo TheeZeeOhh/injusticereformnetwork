@@ -3,6 +3,15 @@ import { IDBFactory } from 'fake-indexeddb';
 import { saveSecureRecord, loadSecureRecord, getAllRecords } from '../utils/storageEngine';
 import { deriveVaultBKey, deriveVaultAKey } from '../utils/cryptoEngine';
 
+// A wrong key must disclose nothing. Vault B ids are opaque per key, so a wrong
+// key either fails authentication or derives an id that holds no record (null).
+// Both are non-disclosure; returning the data is the only failure.
+async function expectUnreadable(promise) {
+  let value;
+  try { value = await promise; } catch { return; }
+  expect(value).toBeNull();
+}
+
 // Resource Navigator: the directory is static, non-PHI. The per-client SAVED
 // list is sensitive and must persist ENCRYPTED in Vault B ('B' tag).
 const SAVED_ID = 'saved_resources';
@@ -43,6 +52,6 @@ describe('Resource Navigator saved list (Vault B)', () => {
   it('is NOT readable with the Vault A key (belongs to Vault B)', async () => {
     await saveSecureRecord(bKey, SAVED_ID, ['Trans Lifeline'], 'B');
     const aKey = await deriveVaultAKey(STRONG_A);
-    await expect(loadSecureRecord(aKey, SAVED_ID, 'A')).rejects.toThrow();
+    await expectUnreadable(loadSecureRecord(aKey, SAVED_ID, 'A'));
   });
 });

@@ -13,6 +13,7 @@ import { triggerDuressWipe } from '../utils/duressBridge';
 import { hiveMind } from '../utils/hiveEngine';
 import {
   migrateRecordsToV2,
+  migrateVaultBRecords,
   rekeyVaultB as rekeyVaultBRecords,
   vaultHasRecords
 } from '../utils/migrationEngine';
@@ -177,11 +178,14 @@ export const useAuthStore = create((set, get) => ({
         throw new Error("Incorrect Vault B passphrase. Vault B stays closed.");
       }
 
-      // Now that Vault B is open, upgrade any legacy v1 Vault B records to v2.
+      // Now that Vault B is open, move any Vault B record still under a
+      // readable id (which names the client) to its opaque id, upgrading v1
+      // records to v2 on the way, and scrub those ids from the audit log.
       try {
-        await migrateRecordsToV2(null, vaultBKey);
+        const res = await migrateVaultBRecords(vaultBKey);
+        if (res.failed) console.warn(`Vault B id migration left ${res.failed} record(s) in place.`);
       } catch (mErr) {
-        console.warn('Vault B v1->v2 migration did not complete cleanly:', mErr);
+        console.warn('Vault B id migration did not complete cleanly:', mErr);
       }
 
       set({ vaultBKey });

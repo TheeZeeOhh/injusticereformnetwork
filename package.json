@@ -14,7 +14,8 @@
     "irnl": "node src/irnl/cli.js",
     "irnl:check": "node src/irnl/cli.js check",
     "irnl:build": "node src/irnl/cli.js build",
-    "csp:gauntlet": "vite build && node scripts/csp-gauntlet.mjs"
+    "csp:gauntlet": "vite build && node scripts/csp-gauntlet.mjs",
+    "drill:cold": "./scripts/subpoena-drill/cold-seizure.sh"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

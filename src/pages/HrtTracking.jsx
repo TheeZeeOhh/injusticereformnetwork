@@ -6,7 +6,8 @@ import { useLanguage } from '../i18n/LanguageContext';
 // Vault B (BridgeVault) — HRT "No-Interruption" continuity tracking.
 // Maryland Trans Shield Act posture: gender-affirming care data is local-first,
 // encrypted under the SEPARATE Vault B key, and inaccessible when Vault B is
-// panic-closed. Records are keyed 'hrt_<clientRef>'.
+// panic-closed. Records are keyed 'hrt_<clientRef>' (logical id; on disk the
+// storage engine keeps only an opaque 'vb_…' id, so the ref is never readable).
 export default function HrtTracking() {
   const { t } = useLanguage();
   const { vaultBKey } = useAuthStore();

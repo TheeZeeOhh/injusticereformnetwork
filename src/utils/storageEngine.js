@@ -1,18 +1,39 @@
-import { encryptRecord, decryptRecord, buildRecordAad } from './cryptoEngine';
+import { encryptRecord, decryptRecord, buildRecordAad, vaultBStorageId } from './cryptoEngine';
 import { appendEntry } from './auditLog';
+import { rebuildDatabase, recoverInterruptedRebuild } from './dbRebuild';
 
 const DB_NAME = 'SanctuaryVault';
 const STORE_NAME = 'encryptedRecords';
 const DB_VERSION = 1;
+const DB_SPEC = { name: DB_NAME, version: DB_VERSION, store: STORE_NAME, keyPath: 'id' };
+
+// Every open waits on this gate: first for recovery of a rebuild a crash
+// interrupted, later for any rebuild in progress (compactRecordStore), so no
+// read or write lands while the database is being replaced.
+let gate = null;
+function awaitGate() {
+  if (!gate) {
+    gate = recoverInterruptedRebuild(DB_SPEC).catch((err) => {
+      console.warn('Interrupted vault rebuild could not be recovered yet:', err);
+    });
+  }
+  return gate;
+}
 
 // Initialize IndexedDB
-function initDB() {
+async function initDB() {
+  await awaitGate();
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = (e) => reject(`IndexedDB error: ${e.target.errorCode}`);
     
-    request.onsuccess = (e) => resolve(e.target.result);
+    // Close when a delete/rebuild needs the database, instead of blocking it.
+    request.onsuccess = (e) => {
+      const db = e.target.result;
+      db.onversionchange = () => db.close();
+      resolve(db);
+    };
 
     request.onupgradeneeded = (e) => {
       const db = e.target.result;
@@ -44,6 +65,14 @@ async function dbOperation(mode, callback) {
   });
 }
 
+// The IndexedDB key a record is stored under. IndexedDB keys are plaintext on
+// disk, so Vault B records use an opaque HMAC id (see vaultBStorageId); the
+// logical id is still what the AAD binds, so a blob moved between opaque ids
+// fails authentication. Vault A and the hive keep their readable ids.
+export async function storageIdFor(key, recordId, vaultTag) {
+  return vaultTag === 'B' ? vaultBStorageId(key, recordId) : recordId;
+}
+
 /**
  * Encrypts a JSON payload using the provided AES-GCM RAM key and stores it
  * offline in IndexedDB.
@@ -55,14 +84,17 @@ async function dbOperation(mode, callback) {
  */
 export async function saveSecureRecord(key, recordId, payload, vaultTag) {
   try {
+    const storeId = await storageIdFor(key, recordId, vaultTag);
     const aad = buildRecordAad(vaultTag, recordId);
     const encryptedPayload = await encryptRecord(key, payload, aad);
     await dbOperation('readwrite', store => {
-      return store.put({ id: recordId, data: encryptedPayload });
+      return store.put({ id: storeId, data: encryptedPayload });
     });
     // Tamper-evident audit trail (metadata only, never PHI). Fire-and-forget so
-    // logging can never block or fail a vault write.
-    appendEntry({ action: 'write', recordId, vaultTag });
+    // logging can never block or fail a vault write. Vault B logs the opaque
+    // id: the audit key comes from passphrase A, so a logical id here would
+    // hand Vault B's client refs to anyone who has only passphrase A.
+    appendEntry({ action: 'write', recordId: storeId, vaultTag });
     return true;
   } catch (err) {
     console.error("Failed to save secure record:", err);
@@ -80,8 +112,9 @@ export async function saveSecureRecord(key, recordId, payload, vaultTag) {
  */
 export async function loadSecureRecord(key, recordId, vaultTag) {
   try {
+    const storeId = await storageIdFor(key, recordId, vaultTag);
     const record = await dbOperation('readonly', store => {
-      return store.get(recordId);
+      return store.get(storeId);
     });
 
     if (!record || !record.data) return null;
@@ -89,7 +122,7 @@ export async function loadSecureRecord(key, recordId, vaultTag) {
     const aad = buildRecordAad(vaultTag, recordId);
     const decryptedPayload = await decryptRecord(key, record.data, aad);
     // Log the successful read of an existing record (metadata only, never PHI).
-    appendEntry({ action: 'read', recordId, vaultTag });
+    appendEntry({ action: 'read', recordId: storeId, vaultTag });
     return decryptedPayload;
   } catch (err) {
     console.error("Failed to load/decrypt secure record:", err);
@@ -119,6 +152,26 @@ export async function getAllRecords() {
  */
 export async function putRawRecord(record) {
   return dbOperation('readwrite', (store) => store.put(record));
+}
+
+/**
+ * Deletes one record by its stored id. Deliberately NOT audited: its only
+ * caller removes legacy Vault B records whose ids are the very client refs the
+ * audit log must not carry (the migration logs one summary entry instead).
+ */
+export async function deleteRawRecord(id) {
+  return dbOperation('readwrite', (store) => store.delete(id));
+}
+
+/**
+ * Rebuilds the record database from its live rows, so deleted rows (such as
+ * legacy Vault B records under readable ids) stop existing in its files. See
+ * dbRebuild.js. Reads and writes wait until it finishes.
+ */
+export async function compactRecordStore() {
+  const run = awaitGate().then(() => rebuildDatabase(DB_SPEC));
+  gate = run.then(() => undefined, () => undefined);
+  return run;
 }
 
 /**

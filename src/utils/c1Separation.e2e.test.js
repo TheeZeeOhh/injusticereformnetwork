@@ -3,6 +3,15 @@ import { IDBFactory } from 'fake-indexeddb';
 import { saveSecureRecord, loadSecureRecord } from './storageEngine';
 import { deriveVaultAKey, deriveVaultBKey } from './cryptoEngine';
 
+// A wrong key must disclose nothing. Vault B ids are opaque per key, so a wrong
+// key either fails authentication or derives an id that holds no record (null).
+// Both are non-disclosure; returning the data is the only failure.
+async function expectUnreadable(promise) {
+  let value;
+  try { value = await promise; } catch { return; }
+  expect(value).toBeNull();
+}
+
 // Task #10 — C1 separation, proven end-to-end at the DATA layer.
 //
 // The per-task suites prove the pieces (key split, verifiers, auth lifecycle,
@@ -38,9 +47,7 @@ describe('C1 vault separation (end-to-end data layer)', () => {
   it('a Vault B record cannot be read with the Vault A key', async () => {
     await saveSecureRecord(bKey, 'hrt_client7', { regimen: 'sensitive' }, 'B');
     // Vault A key + Vault A tag: wrong on both counts.
-    await expect(loadSecureRecord(aKey, 'hrt_client7', 'A')).rejects.toThrow(
-      /Cryptographic Read Failure/
-    );
+    await expectUnreadable(loadSecureRecord(aKey, 'hrt_client7', 'A'));
     // Even with the (correct) Vault B tag but the wrong (A) key.
     await expect(loadSecureRecord(aKey, 'hrt_client7', 'B')).rejects.toThrow(
       /Cryptographic Read Failure/
@@ -61,9 +68,7 @@ describe('C1 vault separation (end-to-end data layer)', () => {
 
     // A wrong guess at the Vault B passphrase also fails (no oracle from salts).
     const wrongBKey = await deriveVaultBKey('attacker-guess');
-    await expect(
-      loadSecureRecord(wrongBKey, 'consent_index', 'B')
-    ).rejects.toThrow();
+    await expectUnreadable(loadSecureRecord(wrongBKey, 'consent_index', 'B'));
 
     // Only the real Vault B key reads it.
     expect(await loadSecureRecord(bKey, 'consent_index', 'B')).toEqual([{ id: 'c1' }]);
@@ -81,9 +86,7 @@ describe('C1 vault separation (end-to-end data layer)', () => {
 
     // ...but the WRONG passphrase (e.g. an attacker after panic) cannot.
     const wrongKey = await deriveVaultBKey('not-the-b-pass');
-    await expect(
-      loadSecureRecord(wrongKey, 'hrt_client7', 'B')
-    ).rejects.toThrow();
+    await expectUnreadable(loadSecureRecord(wrongKey, 'hrt_client7', 'B'));
   });
 
   it('Vault A and Vault B records coexist without cross-decryption', async () => {

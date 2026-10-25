@@ -4,6 +4,15 @@ import { saveSecureRecord, loadSecureRecord } from '../utils/storageEngine';
 import { deriveVaultAKey, deriveVaultBKey } from '../utils/cryptoEngine';
 import { isMatMed } from './MedicationManagement';
 
+// A wrong key must disclose nothing. Vault B ids are opaque per key, so a wrong
+// key either fails authentication or derives an id that holds no record (null).
+// Both are non-disclosure; returning the data is the only failure.
+async function expectUnreadable(promise) {
+  let value;
+  try { value = await promise; } catch { return; }
+  expect(value).toBeNull();
+}
+
 // Medication Management routing: general meds -> Vault A index ('med_index'),
 // sensitive (HRT/MAT) meds -> Vault B index ('med_index_b'). Sensitive meds must
 // NOT be readable with the Vault A key.
@@ -44,8 +53,8 @@ describe('Medication Management vault routing', () => {
     // Readable under Vault B.
     expect(await loadSecureRecord(bKey, INDEX_B, 'B')).toEqual(meds);
     // The Vault B index must NOT decrypt under the Vault A key.
-    await expect(loadSecureRecord(aKey, INDEX_B, 'B')).rejects.toThrow();
-    await expect(loadSecureRecord(aKey, INDEX_B, 'A')).rejects.toThrow();
+    await expectUnreadable(loadSecureRecord(aKey, INDEX_B, 'B'));
+    await expectUnreadable(loadSecureRecord(aKey, INDEX_B, 'A'));
   });
 
   it('detects MAT medications (which auto-route to Vault B)', () => {
