@@ -1119,6 +1119,14 @@
   "checked": "2026-10-18",
   "sha256": "13875d8b832a89d1204049ed6f9a1e1ac7c883db89d85bf8f96cb6d02d1fd479"
  },
+ "us-scotus-26a416": {
+  "status": "ok",
+  "missing": [],
+  "repealed": false,
+  "heading": "Donald J. Trump, President of the United States, et al., Applicants v. Alishea Sophia Kingdom, et al.",
+  "checked": "2026-10-25",
+  "sha256": "4e128a7a63d58ef7f71bc9a150ae2e396530cdd59b8ad97e2fb7301d5be8d01d"
+ },
  "us-34-30307": {
   "status": "ok",
   "missing": [],

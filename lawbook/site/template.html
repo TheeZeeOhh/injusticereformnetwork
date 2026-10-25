@@ -108,6 +108,7 @@ ol.laws { list-style: none; margin: 0; padding: 8px 0 0; }
 .ok { display: inline-flex; align-items: center; gap: 4px; }
 .ok svg { color: var(--gold); flex: none; }
 .flag { color: var(--warn); background: var(--warn-soft); padding: 2px 8px; border-radius: 2px; font-weight: 600; }
+.pending { color: var(--ink); background: var(--gold-soft); padding: 2px 8px; border-radius: 2px; font-weight: 600; }
 .hit { font-size: 14px; color: var(--ink-2); margin: 0; max-width: 46rem; overflow-wrap: anywhere; }
 mark { background: var(--gold-soft); color: var(--ink); padding: 0 2px; border-radius: 2px; }
 .acts { display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: flex-start; }
@@ -327,8 +328,10 @@ const DATA = /*LAWBOOK_DATA*/null;
     li.append(el("p", { class: "sum", text: l.summary }));
     if (ws.length && !ws.every((w) => l._head.includes(w))) { const sn = snippet(l, ws); if (sn) li.append(sn); }
     const meta = el("div", { class: "meta" });
+    if (l.kind === "case") meta.append(el("span", { class: "pending", text: "Pending litigation: not a final ruling" }));
     if (l.enacted) meta.append(el("span", { text: l.enacted }));
-    if (l.status === "ok") meta.append(el("span", { class: "ok" }, icon("check"), "Checked against the official text " + l.checked));
+    if (l.status === "ok") meta.append(el("span", { class: "ok" }, icon("check"),
+      (l.kind === "case" ? "Checked against the official docket " : "Checked against the official text ") + l.checked));
     else meta.append(el("span", { class: "flag", text: l.status === "unreachable"
       ? "Could not reach the official source. Verify before relying on this."
       : "The official text no longer matches this summary. Verify before relying on it." }));
@@ -341,7 +344,7 @@ const DATA = /*LAWBOOK_DATA*/null;
     }
     li.append(tags);
     li.append(el("div", { class: "acts" }, official(l),
-      el("a", { class: "src", href: l.url, target: "_blank", rel: "noopener noreferrer" }, "Open on " + SOURCE[l.j], icon("out"))));
+      el("a", { class: "src", href: l.url, target: "_blank", rel: "noopener noreferrer" }, "Open on " + (l.kind === "case" ? "the Supreme Court docket" : SOURCE[l.j]), icon("out"))));
     return li;
   }
 

@@ -2327,6 +2327,27 @@
    ]
   },
   {
+   "id": "us-scotus-26a416",
+   "j": "US",
+   "code": "scotus",
+   "sec": "26A416",
+   "caption": "Trump v. Kingdom",
+   "name": "Federal prisons must keep providing gender-affirming care, for now",
+   "topics": [
+    "lgbtq",
+    "prison",
+    "health"
+   ],
+   "enacted": "Supreme Court order of October 21, 2026; the appeal is still pending in the D.C. Circuit (Nos. 26-5236, 26-5310)",
+   "summary": "The Supreme Court denied the federal government's request to let the Bureau of Prisons enforce its 2026 policy restricting gender-affirming care while the case is appealed. The lower-court injunction stays in place, so care continues for the class of transgender people in federal custody (about 2,000 people, by the district court's estimate). Justices Thomas and Alito would have granted the request. The order gives no reasons and does not decide whether the policy is lawful.",
+   "check": [
+    "Alishea Sophia Kingdom",
+    "for stay presented to The Chief Justice and by him referred to the Court is denied",
+    "Justice Thomas and Justice Alito would grant the application for stay",
+    "26-5236, 26-5310"
+   ]
+  },
+  {
    "id": "us-34-30307",
    "j": "US",
    "code": "usc:34",

@@ -56,7 +56,9 @@ describe('every citation against the cached official text', () => {
     it(`${l.id}`, () => {
       expect(existsSync(new URL(`data/text/${l.id}.json`, root)), 'no cached text; run build.py').toBe(true);
       const t = text(l.id);
-      expect(t.url.startsWith(OFFICIAL[l.j]), t.url).toBe(true);
+      // Pending cases are checked against the Court's own docket.
+      const official = l.code === 'scotus' ? 'https://www.supremecourt.gov/docket/' : OFFICIAL[l.j];
+      expect(t.url.startsWith(official), t.url).toBe(true);
       const hay = norm(`${t.heading}\n${t.body}`);
       const missing = l.check.filter((w) => !hay.includes(norm(w)));
       expect(missing, `official text lacks: ${missing.join(' | ')}`).toEqual([]);

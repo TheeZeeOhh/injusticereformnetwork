@@ -36,6 +36,7 @@ For every entry, the builder fetches the section from the official source:
 - the Code of Virginia at law.lis.virginia.gov
 - the Maryland Code at mgaleg.maryland.gov
 - the U.S. Code through Cornell LII
+- the Supreme Court docket at supremecourt.gov, for pending cases
 
 It then confirms that every `check` phrase appears in the official text and that
 the section is not repealed. Choose `check` phrases that would be false if the
@@ -68,3 +69,4 @@ sqlite3 lawbook.sqlite "SELECT cite, name FROM laws JOIN law_topics ON law_id = 
 - This is a curated core of 144 sections, not every law that touches injustice. Each topic is a starting point for research.
 - Laws that took effect on a contingent date are labeled. Virginia § 24.2-400.1 (voting rights on release) only takes effect if the November 3, 2026 constitutional amendment passes.
 - Court rules, regulations, local ordinances and case law are not included. Federal case law that changes how a statute reads, such as Bostock for Title VII, is noted in the entry.
+- The exception is pending Supreme Court litigation that decides whether protections stay in force while a case is fought, such as *Trump v. Kingdom* (No. 26A416). These use the code `scotus` with the docket number as `sec`, are checked against the Court's own docket page at supremecourt.gov, and are labeled "Pending litigation" on the site. Re-run `python3 build.py --refresh` when the docket moves; facts that come from elsewhere (like a lower court's class-size estimate) are attributed in the summary and are not covered by the check.

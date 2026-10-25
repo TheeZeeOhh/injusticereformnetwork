@@ -62,6 +62,8 @@ def url_for(law):
         return f"https://www.law.cornell.edu/uscode/text/{code[4:]}/{sec}"
     if code.startswith("cfr:"):
         return f"https://www.law.cornell.edu/cfr/text/{code[4:]}/{sec}"
+    if code == "scotus":
+        return f"https://www.supremecourt.gov/docket/docketfiles/html/public/{sec}.html"
     raise ValueError(f"{law['id']}: unknown code {code}")
 
 
@@ -78,6 +80,8 @@ def cite_for(law):
         return f"{code[4:]} U.S.C. § {sec}"
     if code.startswith("cfr:"):
         return f"{code[4:]} C.F.R. § {sec}"
+    if code == "scotus":
+        return f"{law['caption']}, No. {sec} (U.S.)"
     return sec
 
 
@@ -106,6 +110,14 @@ def flatten(fragment):
 def extract(law, page):
     """Return (heading, body) from an official page."""
     code = law["code"]
+    if code == "scotus":
+        # The docket: caption, lower court and every proceeding and order.
+        flat = flatten(page)
+        i = flat.find("No. " + law["sec"])
+        j = flat.find("\nAttorneys", i)
+        frag = flat[i:j] if 0 <= i < j else ""
+        m = re.search(r"Title:\n(.*?)\nDocketed:", frag, re.S)
+        return (" ".join(m.group(1).split()) if m else ""), frag
     if code.startswith("va"):
         i = page.find("id='va_code'" if code == "va" else "id='va_constitution'")
         j = page.find("googleoff", i) if i >= 0 else -1
@@ -253,6 +265,7 @@ def build_site(db, verified):
             "summary": law["summary"], "enacted": law.get("enacted", ""), "topics": law["topics"],
             "url": law["url"], "heading": v.get("heading", ""), "status": v["status"],
             "checked": v.get("checked"), "text": body[:TEXT_CAP], "cut": len(body) > TEXT_CAP,
+            "kind": "case" if law["code"] == "scotus" else "law",
         })
     payload = {"meta": db["meta"], "topics": db["topics"], "laws": rows,
                "built": date.today().isoformat()}
