@@ -1,0 +1,2391 @@
+{
+ "meta": {
+  "title": "IRN Lawbook",
+  "scope": "Virginia and Maryland laws that protect people from discrimination, police misconduct, wrongful conviction and unfair punishment, plus the federal laws that apply in both states.",
+  "notice": "Legal information, not legal advice. Summaries are plain-language and leave out exceptions; the official text controls. Laws change every session, so check the official link and the date each section was last checked.",
+  "editor": "Injustice Reform Network"
+ },
+ "topics": [
+  {
+   "id": "civil-rights",
+   "label": "Discrimination",
+   "blurb": "Public accommodations, state programs and the right to sue."
+  },
+  {
+   "id": "lgbtq",
+   "label": "LGBTQ+",
+   "blurb": "Sexual orientation and gender identity protections, marriage, records, health care shields, panic-defense bans."
+  },
+  {
+   "id": "policing",
+   "label": "Policing",
+   "blurb": "Use of force, searches, warrants, profiling and police oversight."
+  },
+  {
+   "id": "records",
+   "label": "Records and expungement",
+   "blurb": "Clearing, sealing and shielding criminal and eviction records."
+  },
+  {
+   "id": "innocence",
+   "label": "Wrongful conviction",
+   "blurb": "Actual innocence petitions, DNA testing and compensation."
+  },
+  {
+   "id": "sentencing",
+   "label": "Bail, sentencing and release",
+   "blurb": "Pretrial release, sentencing, credits, parole and second looks."
+  },
+  {
+   "id": "prison",
+   "label": "Conditions of confinement",
+   "blurb": "Solitary confinement, medical release and treatment inside."
+  },
+  {
+   "id": "youth",
+   "label": "Youth justice",
+   "blurb": "Juvenile court, interrogation of children, transfer to adult court."
+  },
+  {
+   "id": "voting",
+   "label": "Voting rights",
+   "blurb": "Felony disenfranchisement, restoration and voter protection."
+  },
+  {
+   "id": "housing",
+   "label": "Housing and eviction",
+   "blurb": "Fair housing, retaliation, redemption and right to counsel."
+  },
+  {
+   "id": "work",
+   "label": "Employment",
+   "blurb": "Workplace discrimination and criminal record screening."
+  },
+  {
+   "id": "disability",
+   "label": "Disability rights",
+   "blurb": "Accommodation and access in work, housing, voting and courts."
+  },
+  {
+   "id": "health",
+   "label": "Health privacy",
+   "blurb": "Medical, HIV, substance use and reproductive data."
+  },
+  {
+   "id": "immigration",
+   "label": "Immigrant rights",
+   "blurb": "Limits on immigration enforcement, tuition, schools and courts."
+  },
+  {
+   "id": "transparency",
+   "label": "Public records",
+   "blurb": "FOIA, the Public Information Act and police records."
+  },
+  {
+   "id": "hate",
+   "label": "Hate crimes",
+   "blurb": "Bias-motivated crimes and their reporting."
+  },
+  {
+   "id": "drugs",
+   "label": "Drug policy",
+   "blurb": "Cannabis, overdose reporting and harm reduction."
+  }
+ ],
+ "laws": [
+  {
+   "id": "va-2.2-3900",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3900",
+   "name": "Virginia Human Rights Act",
+   "topics": [
+    "civil-rights",
+    "lgbtq"
+   ],
+   "enacted": "1987; sexual orientation and gender identity added by the Virginia Values Act, 2020",
+   "summary": "States Virginia's policy against discrimination in employment, public accommodations, housing and other areas, including because of sexual orientation and gender identity.",
+   "check": [
+    "Virginia Human Rights Act",
+    "sexual orientation",
+    "gender identity"
+   ]
+  },
+  {
+   "id": "va-2.2-3901",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3901",
+   "name": "Human Rights Act definitions",
+   "topics": [
+    "civil-rights",
+    "lgbtq"
+   ],
+   "summary": "Defines gender identity and sexual orientation for every Virginia anti-discrimination law. Gender identity covers gender-related identity and appearance, with or without regard to sex assigned at birth.",
+   "check": [
+    "gender-related identity",
+    "sexual orientation",
+    "designated sex at birth"
+   ]
+  },
+  {
+   "id": "va-2.2-3904",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3904",
+   "name": "Equal access to public places",
+   "topics": [
+    "civil-rights",
+    "lgbtq",
+    "disability"
+   ],
+   "summary": "Bars businesses and other places open to the public, including schools, from refusing service or segregating anyone because of race, religion, sex, sexual orientation, gender identity, disability and other protected traits.",
+   "check": [
+    "place of public accommodation",
+    "sexual orientation",
+    "gender identity",
+    "educational institutions"
+   ]
+  },
+  {
+   "id": "va-2.2-3905",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3905",
+   "name": "Employment discrimination",
+   "topics": [
+    "work",
+    "civil-rights",
+    "lgbtq"
+   ],
+   "summary": "Makes it unlawful for employers with five or more employees, or any employer of a domestic worker, to fire, refuse to hire or otherwise discriminate because of race, sex, pregnancy, sexual orientation, gender identity, disability and other protected traits.",
+   "check": [
+    "five or more employees",
+    "domestic workers",
+    "sexual orientation",
+    "gender identity"
+   ]
+  },
+  {
+   "id": "va-2.2-3905.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3905.1",
+   "name": "Disability accommodations at work",
+   "topics": [
+    "work",
+    "disability"
+   ],
+   "summary": "Requires employers to make reasonable accommodations for known disabilities unless doing so would be an undue hardship.",
+   "check": [
+    "reasonable accommodation",
+    "undue hardship"
+   ]
+  },
+  {
+   "id": "va-2.2-3908",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3908",
+   "name": "Right to sue for discrimination",
+   "topics": [
+    "civil-rights",
+    "work"
+   ],
+   "summary": "Lets a person sue in court for unlawful discrimination after receiving a notice of right to sue, or once 180 days have passed since filing a complaint. The suit must be filed within 90 days of the notice.",
+   "check": [
+    "civil action",
+    "90 days",
+    "180 days"
+   ]
+  },
+  {
+   "id": "va-2.2-2812.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-2812.1",
+   "name": "Ban the box for state jobs",
+   "topics": [
+    "work",
+    "records"
+   ],
+   "summary": "Stops state agencies from asking about arrests, charges or convictions on employment applications, with exceptions for sensitive positions.",
+   "check": [
+    "arrests",
+    "charges",
+    "convictions",
+    "application"
+   ]
+  },
+  {
+   "id": "va-15.2-1500.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "15.2-1500.1",
+   "name": "Local government jobs: orientation and gender identity",
+   "topics": [
+    "work",
+    "lgbtq"
+   ],
+   "summary": "Bars counties, cities and towns from employment discrimination because of sexual orientation or gender identity.",
+   "check": [
+    "sexual orientation",
+    "gender identity"
+   ]
+  },
+  {
+   "id": "va-36-96.3",
+   "j": "VA",
+   "code": "va",
+   "sec": "36-96.3",
+   "name": "Virginia Fair Housing Law",
+   "topics": [
+    "housing",
+    "civil-rights",
+    "lgbtq"
+   ],
+   "summary": "Makes it unlawful to refuse to rent or sell, or to set different terms, because of race, sex, source of funds (such as a housing voucher), sexual orientation, gender identity, familial status, military status and other traits.",
+   "check": [
+    "source of funds",
+    "sexual orientation",
+    "gender identity",
+    "dwelling"
+   ]
+  },
+  {
+   "id": "va-51.5-44",
+   "j": "VA",
+   "code": "va",
+   "sec": "51.5-44",
+   "name": "Disability access to public places",
+   "topics": [
+    "disability",
+    "civil-rights"
+   ],
+   "summary": "Gives people with disabilities the same right as others to use streets, sidewalks, public buildings and other public places, and requires places of public accommodation to remove barriers when that is readily achievable.",
+   "check": [
+    "public accommodation",
+    "readily achievable"
+   ]
+  },
+  {
+   "id": "va-51.5-45",
+   "j": "VA",
+   "code": "va",
+   "sec": "51.5-45",
+   "name": "Disability and housing",
+   "topics": [
+    "disability",
+    "housing"
+   ],
+   "summary": "Gives people with disabilities the right to equal access to housing accommodations.",
+   "check": [
+    "housing"
+   ]
+  },
+  {
+   "id": "va-51.5-43",
+   "j": "VA",
+   "code": "va",
+   "sec": "51.5-43",
+   "name": "Disability and the right to vote",
+   "topics": [
+    "disability",
+    "voting"
+   ],
+   "summary": "Prohibits discrimination against qualified voters with disabilities in voting.",
+   "check": [
+    "vote"
+   ]
+  },
+  {
+   "id": "va-20-13.2",
+   "j": "VA",
+   "code": "va",
+   "sec": "20-13.2",
+   "name": "Marriage regardless of sex or gender",
+   "topics": [
+    "lgbtq"
+   ],
+   "enacted": "2024 (HB 174)",
+   "summary": "Declares a marriage between two adults lawful regardless of the sex, gender or race of the parties, and bars clerks from denying a license on that basis. Clergy and religious organizations are not required to perform ceremonies.",
+   "check": [
+    "sex, gender, or race"
+   ]
+  },
+  {
+   "id": "va-32.1-261",
+   "j": "VA",
+   "code": "va",
+   "sec": "32.1-261",
+   "name": "New birth certificate after change of sex",
+   "topics": [
+    "lgbtq",
+    "health"
+   ],
+   "summary": "Lets a person get a new birth certificate showing a change of sex, using a form completed by a health care provider stating they have had clinically appropriate treatment for gender transition. No proof of any medical procedure may be required.",
+   "check": [
+    "change of sex",
+    "clinically appropriate treatment for gender transition",
+    "shall not include any requirement for evidence or documentation of any medical procedure"
+   ]
+  },
+  {
+   "id": "va-54.1-2409.5",
+   "j": "VA",
+   "code": "va",
+   "sec": "54.1-2409.5",
+   "name": "Conversion therapy ban",
+   "topics": [
+    "lgbtq",
+    "youth",
+    "health"
+   ],
+   "enacted": "2020",
+   "summary": "Bars licensed health care providers from practicing conversion therapy on anyone under 18. A violation is unprofessional conduct subject to discipline.",
+   "check": [
+    "conversion therapy",
+    "under 18"
+   ]
+  },
+  {
+   "id": "va-22.1-23.3",
+   "j": "VA",
+   "code": "va",
+   "sec": "22.1-23.3",
+   "name": "Transgender students in public schools",
+   "topics": [
+    "lgbtq",
+    "youth"
+   ],
+   "enacted": "2020",
+   "summary": "Requires the Department of Education to issue model policies on the treatment of transgender students, covering nondiscrimination and a safe, supportive learning environment, and requires school boards to adopt policies consistent with them.",
+   "check": [
+    "transgender students",
+    "school board"
+   ]
+  },
+  {
+   "id": "va-18.2-37.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "18.2-37.1",
+   "name": "Panic-defense ban: homicide",
+   "topics": [
+    "lgbtq",
+    "hate"
+   ],
+   "enacted": "2021 (HB 2132)",
+   "summary": "A victim's actual or perceived sex, gender, gender identity or sexual orientation, or an unwanted advance, is not by itself provocation that excuses or reduces a killing.",
+   "check": [
+    "gender identity",
+    "sexual orientation",
+    "not in and of itself"
+   ]
+  },
+  {
+   "id": "va-18.2-57.5",
+   "j": "VA",
+   "code": "va",
+   "sec": "18.2-57.5",
+   "name": "Panic-defense ban: assault",
+   "topics": [
+    "lgbtq",
+    "hate"
+   ],
+   "enacted": "2021 (HB 2132)",
+   "summary": "The same rule for assault and malicious wounding: a victim's sex, gender identity or sexual orientation is not by itself a provocation defense.",
+   "check": [
+    "gender identity",
+    "sexual orientation",
+    "not in and of itself"
+   ]
+  },
+  {
+   "id": "va-18.2-57",
+   "j": "VA",
+   "code": "va",
+   "sec": "18.2-57",
+   "name": "Bias-motivated assault",
+   "topics": [
+    "hate",
+    "lgbtq"
+   ],
+   "summary": "Raises the penalty for assault when the victim was chosen because of race, religion, gender, disability, gender identity, sexual orientation, color or ethnic or national origin, with a mandatory jail term when there is bodily injury.",
+   "check": [
+    "intentionally selects",
+    "gender identity",
+    "sexual orientation"
+   ]
+  },
+  {
+   "id": "va-52-8.5",
+   "j": "VA",
+   "code": "va",
+   "sec": "52-8.5",
+   "name": "Hate crime reporting",
+   "topics": [
+    "hate",
+    "transparency"
+   ],
+   "summary": "Requires the State Police to collect and keep data on hate crimes reported in Virginia.",
+   "check": [
+    "hate crime"
+   ]
+  },
+  {
+   "id": "va-18.2-67.4:1",
+   "j": "VA",
+   "code": "va",
+   "sec": "18.2-67.4:1",
+   "name": "HIV and sexually transmitted infection law",
+   "topics": [
+    "health",
+    "lgbtq"
+   ],
+   "enacted": "Narrowed in 2021",
+   "summary": "Makes it a felony to engage in sexual behavior that poses a substantial risk of transmitting a sexually transmitted infection only when the person intends to transmit it and does transmit it.",
+   "check": [
+    "sexually transmitted infection",
+    "intent to transmit",
+    "transmits"
+   ]
+  },
+  {
+   "id": "va-32.1-36.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "32.1-36.1",
+   "name": "HIV test results are confidential",
+   "topics": [
+    "health",
+    "lgbtq"
+   ],
+   "summary": "Keeps HIV test results confidential, lists the limited exceptions, and lets a person sue for an unauthorized disclosure.",
+   "check": [
+    "human immunodeficiency virus",
+    "confidential"
+   ]
+  },
+  {
+   "id": "va-32.1-127.1:03",
+   "j": "VA",
+   "code": "va",
+   "sec": "32.1-127.1:03",
+   "name": "Health records privacy",
+   "topics": [
+    "health"
+   ],
+   "summary": "Gives patients a right of privacy in their health records and limits when providers may disclose them.",
+   "check": [
+    "health records",
+    "privacy"
+   ]
+  },
+  {
+   "id": "va-19.2-60.2",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-60.2",
+   "name": "Menstrual data is off limits to warrants",
+   "topics": [
+    "health"
+   ],
+   "enacted": "2024",
+   "summary": "Bars search warrants, subpoenas and court orders that seek menstrual health data stored on apps and electronic devices.",
+   "check": [
+    "menstrual health data"
+   ]
+  },
+  {
+   "id": "va-19.2-56",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-56",
+   "name": "No-knock warrant ban",
+   "topics": [
+    "policing"
+   ],
+   "enacted": "2020",
+   "summary": "Bans no-knock search warrants. Officers serving a warrant on a home must be in uniform, identifiable and give audible notice before entering.",
+   "check": [
+    "no-knock search warrant",
+    "audible notice"
+   ]
+  },
+  {
+   "id": "va-19.2-83.4",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-83.4",
+   "name": "Chokehold and moving-vehicle limits",
+   "topics": [
+    "policing"
+   ],
+   "enacted": "2021",
+   "summary": "Bans neck restraints and shooting into moving vehicles unless immediately necessary to protect someone from death or serious bodily injury, and limits kinetic impact munitions such as rubber bullets.",
+   "check": [
+    "neck restraint",
+    "moving vehicle",
+    "kinetic impact munitions"
+   ]
+  },
+  {
+   "id": "va-19.2-83.5",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-83.5",
+   "name": "Police use of deadly force",
+   "topics": [
+    "policing"
+   ],
+   "enacted": "2021",
+   "summary": "Officers may not use deadly force unless they reasonably believe it is immediately necessary to protect someone from serious bodily injury or death, gave a warning if feasible, and had exhausted other options. Courts weigh listed factors, including de-escalation.",
+   "check": [
+    "deadly force",
+    "immediately necessary",
+    "warning",
+    "de-escalation"
+   ]
+  },
+  {
+   "id": "va-19.2-83.6",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-83.6",
+   "name": "Duty to intervene",
+   "topics": [
+    "policing"
+   ],
+   "enacted": "2021",
+   "summary": "Requires an officer who sees another officer using excessive force to intervene when feasible, give aid to anyone injured and report it.",
+   "check": [
+    "intervene",
+    "excessive force",
+    "render aid"
+   ]
+  },
+  {
+   "id": "va-15.2-1707",
+   "j": "VA",
+   "code": "va",
+   "sec": "15.2-1707",
+   "name": "Decertifying officers",
+   "topics": [
+    "policing"
+   ],
+   "summary": "Lets the Criminal Justice Services Board decertify law-enforcement and jail officers for listed misconduct, so they cannot simply move to another department.",
+   "check": [
+    "decertif"
+   ]
+  },
+  {
+   "id": "va-52-30.2",
+   "j": "VA",
+   "code": "va",
+   "sec": "52-30.2",
+   "name": "Bias-based profiling ban and stop data",
+   "topics": [
+    "policing",
+    "civil-rights"
+   ],
+   "summary": "Prohibits bias-based profiling by state police and requires data collection on traffic and investigatory stops.",
+   "check": [
+    "bias-based profiling"
+   ]
+  },
+  {
+   "id": "va-15.2-1722.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "15.2-1722.1",
+   "name": "Local police: profiling ban and stop data",
+   "topics": [
+    "policing",
+    "civil-rights"
+   ],
+   "summary": "The same profiling ban and stop-data rules for local police and sheriffs.",
+   "check": [
+    "bias-based profiling"
+   ]
+  },
+  {
+   "id": "va-4.1-1302",
+   "j": "VA",
+   "code": "va",
+   "sec": "4.1-1302",
+   "name": "Odor of marijuana is not grounds to search",
+   "topics": [
+    "policing",
+    "drugs"
+   ],
+   "summary": "Officers may not stop, search or seize anyone, and no warrant may issue, based only on the odor of marijuana. Evidence found that way is inadmissible, even with consent.",
+   "check": [
+    "odor of marijuana",
+    "consent"
+   ]
+  },
+  {
+   "id": "va-46.2-1157",
+   "j": "VA",
+   "code": "va",
+   "sec": "46.2-1157",
+   "name": "Limits on pretext stops: inspection stickers",
+   "topics": [
+    "policing"
+   ],
+   "summary": "Officers may not stop a car for an expired inspection sticker until the fourth month after it expires. Evidence from an unlawful stop is inadmissible.",
+   "check": [
+    "No law-enforcement officer shall stop a motor vehicle due to an expired vehicle inspection sticker"
+   ]
+  },
+  {
+   "id": "va-15.2-1723.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "15.2-1723.1",
+   "name": "Body-worn camera policies",
+   "topics": [
+    "policing",
+    "transparency"
+   ],
+   "summary": "Requires a police agency to adopt a written policy on body-worn cameras before buying or deploying them.",
+   "check": [
+    "body-worn camera"
+   ]
+  },
+  {
+   "id": "va-9.1-192.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "9.1-192.1",
+   "name": "Deaths in custody report",
+   "topics": [
+    "policing",
+    "prison",
+    "transparency"
+   ],
+   "summary": "Requires an annual public report on civilian deaths in the custody of law enforcement and corrections.",
+   "check": [
+    "death"
+   ]
+  },
+  {
+   "id": "va-2.2-3700",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3700",
+   "name": "Virginia Freedom of Information Act",
+   "topics": [
+    "transparency"
+   ],
+   "summary": "States that government records and meetings are open to the public, and that exemptions are read narrowly.",
+   "check": [
+    "Virginia Freedom of Information Act"
+   ]
+  },
+  {
+   "id": "va-2.2-3704",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3704",
+   "name": "Requesting public records",
+   "topics": [
+    "transparency"
+   ],
+   "summary": "Gives Virginia citizens the right to inspect and copy public records and sets the response deadline and charges.",
+   "check": [
+    "public records",
+    "five working days"
+   ]
+  },
+  {
+   "id": "va-2.2-3706.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "2.2-3706.1",
+   "name": "Police investigative files",
+   "topics": [
+    "transparency",
+    "policing"
+   ],
+   "enacted": "2021",
+   "summary": "Requires release of criminal incident information and lets immediate family members of a deceased person obtain criminal investigative files once a case is no longer ongoing, with limits.",
+   "check": [
+    "criminal investigative files",
+    "Immediate family members"
+   ]
+  },
+  {
+   "id": "va-19.2-392.2",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-392.2",
+   "name": "Expungement of charges",
+   "topics": [
+    "records"
+   ],
+   "summary": "Lets a person who was charged but not convicted petition to expunge the police and court records, with no filing fee. A person whose name was used by someone else who was arrested can petition too.",
+   "check": [
+    "not ultimately convicted",
+    "without his consent",
+    "expungement"
+   ]
+  },
+  {
+   "id": "va-19.2-392.5",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-392.5",
+   "name": "What sealing means",
+   "topics": [
+    "records"
+   ],
+   "enacted": "2021; automatic sealing in effect 2025",
+   "summary": "Defines sealing: a sealed record is hidden from the public and from most background checks, and the person may deny the arrest or conviction in most settings.",
+   "check": [
+    "sealing"
+   ]
+  },
+  {
+   "id": "va-19.2-392.6",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-392.6",
+   "name": "Automatic sealing of convictions",
+   "topics": [
+    "records"
+   ],
+   "summary": "Automatically seals convictions for a short list of misdemeanors, such as petit larceny, trespass and disorderly conduct, after a waiting period, subject to conditions in the section.",
+   "check": [
+    "automatically sealed",
+    "18.2-96"
+   ]
+  },
+  {
+   "id": "va-19.2-392.12",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-392.12",
+   "name": "Sealing by petition",
+   "topics": [
+    "records"
+   ],
+   "summary": "Lets a person petition, with no filing fee, to seal misdemeanors, Class 5 and 6 felonies and some larceny convictions or deferred-and-dismissed charges, after the waiting period.",
+   "check": [
+    "petition",
+    "Class 5 or 6 felony",
+    "shall not be required to pay any court fees"
+   ]
+  },
+  {
+   "id": "va-19.2-392.6:1",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-392.6:1",
+   "name": "Sealing old marijuana possession records",
+   "topics": [
+    "records",
+    "drugs"
+   ],
+   "summary": "Seals former marijuana possession offenses without a court order.",
+   "check": [
+    "marijuana"
+   ]
+  },
+  {
+   "id": "va-8.01-130.01",
+   "j": "VA",
+   "code": "va",
+   "sec": "8.01-130.01",
+   "name": "Eviction record expungement",
+   "topics": [
+    "housing",
+    "records"
+   ],
+   "enacted": "2022",
+   "summary": "Automatically expunges an eviction case that was dismissed (after 30 days) or nonsuited (after six months) when no order of possession was entered. A tenant who won the case can petition for expungement without a hearing.",
+   "check": [
+    "expungement",
+    "30-day period",
+    "six-month period"
+   ]
+  },
+  {
+   "id": "va-16.1-306",
+   "j": "VA",
+   "code": "va",
+   "sec": "16.1-306",
+   "name": "Juvenile court records",
+   "topics": [
+    "youth",
+    "records"
+   ],
+   "summary": "Requires juvenile court files to be destroyed once the person turns 19 and five years have passed since their last hearing. Records of offenses that would be felonies for an adult are kept.",
+   "check": [
+    "attained the age of 19 years and five years"
+   ]
+  },
+  {
+   "id": "va-19.2-327.2",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-327.2",
+   "name": "Actual innocence: biological evidence",
+   "topics": [
+    "innocence"
+   ],
+   "summary": "Lets a person convicted of a felony, or adjudicated delinquent for a felony-level act, petition the Supreme Court of Virginia for a writ of actual innocence based on biological (DNA) evidence.",
+   "check": [
+    "actual innocence",
+    "Supreme Court shall have the authority"
+   ]
+  },
+  {
+   "id": "va-19.2-327.10",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-327.10",
+   "name": "Actual innocence: other evidence",
+   "topics": [
+    "innocence"
+   ],
+   "summary": "Lets a person convicted of a felony, or adjudicated delinquent for a felony-level act, petition the Court of Appeals for a writ of actual innocence based on previously unknown or unavailable evidence that is not biological.",
+   "check": [
+    "actual innocence",
+    "Court of Appeals shall have the authority"
+   ]
+  },
+  {
+   "id": "va-8.01-195.11",
+   "j": "VA",
+   "code": "va",
+   "sec": "8.01-195.11",
+   "name": "Compensation for wrongful incarceration",
+   "topics": [
+    "innocence"
+   ],
+   "summary": "Compensates a person wrongfully incarcerated for a felony at $55,000 per year, adjusted each year for inflation, plus a $15,000 transition grant and up to $10,000 for career and technical training. Who counts as wrongfully incarcerated is defined in § 8.01-195.10.",
+   "check": [
+    "$55,000",
+    "$15,000",
+    "$10,000"
+   ]
+  },
+  {
+   "id": "va-19.2-270.4:1",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-270.4:1",
+   "name": "Preserving DNA evidence",
+   "topics": [
+    "innocence"
+   ],
+   "summary": "On motion of a person convicted of a felony, the court must order human biological evidence in the case stored and preserved for up to 15 years, so it can be tested later.",
+   "check": [
+    "biological evidence",
+    "15 years"
+   ]
+  },
+  {
+   "id": "va-19.2-120",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-120",
+   "name": "Pretrial release",
+   "topics": [
+    "sentencing"
+   ],
+   "summary": "Requires release before trial unless there is probable cause to believe the person will not appear or is an unreasonable danger.",
+   "check": [
+    "will not appear",
+    "danger"
+   ]
+  },
+  {
+   "id": "va-19.2-295",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-295",
+   "name": "Judge sentencing by default",
+   "topics": [
+    "sentencing"
+   ],
+   "enacted": "2020",
+   "summary": "The judge sets the sentence unless the defendant asks in writing, at least 30 days before trial, for the jury to do it.",
+   "check": [
+    "requested that the jury ascertain punishment",
+    "30 days"
+   ]
+  },
+  {
+   "id": "va-18.2-10",
+   "j": "VA",
+   "code": "va",
+   "sec": "18.2-10",
+   "name": "Felony punishments (no death penalty)",
+   "topics": [
+    "sentencing"
+   ],
+   "enacted": "Death penalty abolished 2021",
+   "summary": "Sets the punishment for each class of felony. The most serious, Class 1, now carries life imprisonment.",
+   "check": [
+    "imprisonment for life"
+   ]
+  },
+  {
+   "id": "va-53.1-202.2",
+   "j": "VA",
+   "code": "va",
+   "sec": "53.1-202.2",
+   "name": "Earned sentence credits",
+   "topics": [
+    "sentencing",
+    "prison"
+   ],
+   "summary": "Sets who is eligible for earned sentence credits that shorten time served.",
+   "check": [
+    "earned sentence credits"
+   ]
+  },
+  {
+   "id": "va-53.1-40.01",
+   "j": "VA",
+   "code": "va",
+   "sec": "53.1-40.01",
+   "name": "Geriatric release",
+   "topics": [
+    "sentencing",
+    "prison"
+   ],
+   "summary": "Lets people aged 65 who have served five years, or aged 60 who have served ten, petition the Parole Board for conditional release. Class 1 felonies are excluded.",
+   "check": [
+    "sixty-five",
+    "five years",
+    "ten years"
+   ]
+  },
+  {
+   "id": "va-53.1-165.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "53.1-165.1",
+   "name": "Parole limits and juvenile second looks",
+   "topics": [
+    "sentencing",
+    "youth"
+   ],
+   "summary": "Ends parole for felonies committed on or after January 1, 1995, with exceptions. People sentenced for crimes committed as juveniles become eligible for parole after serving 20 years.",
+   "check": [
+    "January 1, 1995",
+    "committed while the person was a juvenile",
+    "at least 20 years"
+   ]
+  },
+  {
+   "id": "va-19.2-306.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-306.1",
+   "name": "Limits on probation revocation",
+   "topics": [
+    "sentencing"
+   ],
+   "enacted": "2021",
+   "summary": "Caps the jail time a court may impose for technical violations of probation.",
+   "check": [
+    "technical violation"
+   ]
+  },
+  {
+   "id": "va-19.2-303.6",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-303.6",
+   "name": "Deferred disposition for autism and intellectual disability",
+   "topics": [
+    "disability",
+    "sentencing"
+   ],
+   "summary": "Lets a court defer and dismiss some charges when the defendant has autism or an intellectual or developmental disability that contributed to the offense.",
+   "check": [
+    "autism"
+   ]
+  },
+  {
+   "id": "va-53.1-39.2",
+   "j": "VA",
+   "code": "va",
+   "sec": "53.1-39.2",
+   "name": "Limits on solitary confinement",
+   "topics": [
+    "prison"
+   ],
+   "enacted": "2023",
+   "summary": "Limits restorative housing (solitary confinement) in state prisons, requires medical and mental health evaluations, and requires at least four hours a day out of cell except during a lockdown.",
+   "check": [
+    "restorative housing",
+    "four hours of out-of-cell"
+   ]
+  },
+  {
+   "id": "va-16.1-269.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "16.1-269.1",
+   "name": "Transfer of juveniles to adult court",
+   "topics": [
+    "youth"
+   ],
+   "summary": "Sets when a juvenile 14 or older may be tried as an adult, and requires a hearing for 16- and 17-year-olds charged with murder or aggravated malicious wounding.",
+   "check": [
+    "16 years of age or older"
+   ]
+  },
+  {
+   "id": "va-16.1-276.4",
+   "j": "VA",
+   "code": "va",
+   "sec": "16.1-276.4",
+   "name": "No shackling of children in court",
+   "topics": [
+    "youth"
+   ],
+   "summary": "Bars physical restraints on juveniles in court, with narrow exceptions.",
+   "check": [
+    "restraint"
+   ]
+  },
+  {
+   "id": "va-const-II-1",
+   "j": "VA",
+   "code": "va-const",
+   "sec": "2-1",
+   "name": "Felony disenfranchisement",
+   "topics": [
+    "voting"
+   ],
+   "summary": "Under the Constitution as it stands, a person convicted of a felony cannot vote until the Governor or other authority restores their civil rights. An amendment to restore voting rights on release is on the November 3, 2026 ballot.",
+   "check": [
+    "convicted of a felony",
+    "restored by the Governor"
+   ]
+  },
+  {
+   "id": "va-24.2-400.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "24.2-400.1",
+   "name": "Voting rights on release (pending)",
+   "topics": [
+    "voting"
+   ],
+   "enacted": "2026; takes effect only if the constitutional amendment passes",
+   "summary": "If it takes effect, a person loses the vote only while incarcerated for a felony and regains it on release. Its effective date is contingent; see Acts 2026, cc. 992 and 1081.",
+   "check": [
+    "upon release from incarceration",
+    "contingent effective date"
+   ]
+  },
+  {
+   "id": "va-53.1-231.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "53.1-231.1",
+   "name": "Notice of how to restore rights",
+   "topics": [
+    "voting",
+    "sentencing"
+   ],
+   "summary": "Requires the Department of Corrections to tell people with felony convictions how to apply for restoration of civil and voting rights when they finish their sentence.",
+   "check": [
+    "restoration of civil rights"
+   ]
+  },
+  {
+   "id": "va-24.2-125",
+   "j": "VA",
+   "code": "va",
+   "sec": "24.2-125",
+   "name": "Voting Rights Act of Virginia",
+   "topics": [
+    "voting",
+    "civil-rights"
+   ],
+   "enacted": "2021",
+   "summary": "Virginia's state voting rights act, which protects voters from discrimination based on race, color or language-minority status.",
+   "check": [
+    "Voting Rights Act of Virginia"
+   ]
+  },
+  {
+   "id": "va-24.2-126",
+   "j": "VA",
+   "code": "va",
+   "sec": "24.2-126",
+   "name": "Voter suppression prohibited",
+   "topics": [
+    "voting",
+    "civil-rights"
+   ],
+   "summary": "Bars voting rules and practices that deny or abridge the right to vote on account of race, color or language-minority status.",
+   "check": [
+    "abridge"
+   ]
+  },
+  {
+   "id": "va-24.2-126.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "24.2-126.1",
+   "name": "Vote dilution prohibited",
+   "topics": [
+    "voting",
+    "civil-rights"
+   ],
+   "summary": "Bars election methods that dilute the voting strength of protected groups.",
+   "check": [
+    "dilut"
+   ]
+  },
+  {
+   "id": "va-23.1-505.1",
+   "j": "VA",
+   "code": "va",
+   "sec": "23.1-505.1",
+   "name": "In-state tuition regardless of immigration status",
+   "topics": [
+    "immigration"
+   ],
+   "enacted": "2020",
+   "summary": "Makes students who attended a Virginia high school for at least two years and graduated, and whose household filed Virginia income tax returns for two years, eligible for in-state tuition regardless of citizenship or immigration status.",
+   "check": [
+    "regardless of citizenship or immigration status",
+    "at least two years"
+   ]
+  },
+  {
+   "id": "va-22.1-2.2",
+   "j": "VA",
+   "code": "va",
+   "sec": "22.1-2.2",
+   "name": "Public school regardless of immigration status",
+   "topics": [
+    "immigration",
+    "youth"
+   ],
+   "summary": "Guarantees a free public education and bars discrimination based on citizenship or immigration status, with a right to sue.",
+   "check": [
+    "immigration status"
+   ]
+  },
+  {
+   "id": "va-19.2-11.02",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-11.02",
+   "name": "No immigration questions for victims and witnesses",
+   "topics": [
+    "immigration",
+    "policing"
+   ],
+   "summary": "Bars officers from asking about the immigration status of crime victims and witnesses who report or help investigate a crime, with limited exceptions.",
+   "check": [
+    "immigration status"
+   ]
+  },
+  {
+   "id": "va-19.2-271.7",
+   "j": "VA",
+   "code": "va",
+   "sec": "19.2-271.7",
+   "name": "Warning about immigration consequences",
+   "topics": [
+    "immigration",
+    "sentencing"
+   ],
+   "summary": "Requires the court to tell a defendant that a conviction can affect their immigration status.",
+   "check": [
+    "immigration"
+   ]
+  },
+  {
+   "id": "va-40.1-28.7:13",
+   "j": "VA",
+   "code": "va",
+   "sec": "40.1-28.7:13",
+   "name": "Immigration threats at work",
+   "topics": [
+    "immigration",
+    "work"
+   ],
+   "summary": "Penalizes employers who threaten to report a worker's immigration status to coerce or retaliate.",
+   "check": [
+    "immigration status"
+   ]
+  },
+  {
+   "id": "va-55.1-1208",
+   "j": "VA",
+   "code": "va",
+   "sec": "55.1-1208",
+   "name": "Banned lease terms",
+   "topics": [
+    "housing"
+   ],
+   "summary": "Lists lease provisions a landlord may not include, such as waiving a tenant's rights or remedies under the landlord-tenant law.",
+   "check": [
+    "rental agreement"
+   ]
+  },
+  {
+   "id": "va-55.1-1250",
+   "j": "VA",
+   "code": "va",
+   "sec": "55.1-1250",
+   "name": "Right of redemption",
+   "topics": [
+    "housing"
+   ],
+   "summary": "Lets a tenant stop an eviction for unpaid rent by paying all rent, late charges, attorney fees and court costs on or before the first court date, or within 10 days after it with a redemption tender.",
+   "check": [
+    "redemption tender",
+    "10 days"
+   ]
+  },
+  {
+   "id": "va-55.1-1258",
+   "j": "VA",
+   "code": "va",
+   "sec": "55.1-1258",
+   "name": "No retaliation against tenants",
+   "topics": [
+    "housing"
+   ],
+   "summary": "Bars landlords from raising rent, cutting services or evicting because a tenant complained about conditions, joined a tenant organization or testified.",
+   "check": [
+    "retaliat"
+   ]
+  },
+  {
+   "id": "va-55.1-1236",
+   "j": "VA",
+   "code": "va",
+   "sec": "55.1-1236",
+   "name": "Breaking a lease to escape abuse",
+   "topics": [
+    "housing"
+   ],
+   "summary": "Lets victims of family abuse, sexual abuse, stalking or trafficking end a lease early after obtaining a protective order or other listed documentation, with written notice.",
+   "check": [
+    "stalking",
+    "trafficking"
+   ]
+  },
+  {
+   "id": "va-18.2-251.03",
+   "j": "VA",
+   "code": "va",
+   "sec": "18.2-251.03",
+   "name": "Safe reporting of overdoses",
+   "topics": [
+    "drugs",
+    "health"
+   ],
+   "summary": "A person who in good faith seeks emergency help for an overdose, stays at the scene until police arrive and identifies themself cannot be arrested or prosecuted for listed drug and alcohol offenses found because of that call. Reports of sexual violence are covered too.",
+   "check": [
+    "overdose",
+    "remains at the scene",
+    "identifies himself"
+   ]
+  },
+  {
+   "id": "va-4.1-1100",
+   "j": "VA",
+   "code": "va",
+   "sec": "4.1-1100",
+   "name": "Adult marijuana possession",
+   "topics": [
+    "drugs"
+   ],
+   "enacted": "2021",
+   "summary": "Makes possession of up to two ounces of marijuana in public lawful for adults 21 and older. Larger amounts are penalized on a sliding scale.",
+   "check": [
+    "21 years of age or older",
+    "two ounces"
+   ]
+  },
+  {
+   "id": "md-gsg-20-101",
+   "j": "MD",
+   "code": "md:gsg",
+   "sec": "20-101",
+   "name": "Civil rights definitions",
+   "topics": [
+    "civil-rights",
+    "lgbtq"
+   ],
+   "summary": "Defines terms for Maryland's civil rights law, including gender identity and sexual orientation.",
+   "check": [
+    "gender identity",
+    "sexual orientation"
+   ]
+  },
+  {
+   "id": "md-gsg-20-304",
+   "j": "MD",
+   "code": "md:gsg",
+   "sec": "20-304",
+   "name": "Equal access to public places",
+   "topics": [
+    "civil-rights",
+    "lgbtq",
+    "disability"
+   ],
+   "enacted": "Gender identity added by the Fairness for All Marylanders Act, 2014",
+   "summary": "Bars a place of public accommodation from refusing or denying service because of race, sex, age, color, creed, national origin, marital status, sexual orientation, gender identity or disability.",
+   "check": [
+    "place of public accommodation",
+    "sexual orientation",
+    "gender identity",
+    "disability"
+   ]
+  },
+  {
+   "id": "md-gsg-20-606",
+   "j": "MD",
+   "code": "md:gsg",
+   "sec": "20-606",
+   "name": "Employment discrimination",
+   "topics": [
+    "work",
+    "civil-rights",
+    "lgbtq",
+    "disability"
+   ],
+   "summary": "Bars employers from refusing to hire, firing or discriminating in pay or conditions because of race, sex, age, sexual orientation, gender identity, genetic information, military status, disability and other traits.",
+   "check": [
+    "employer may not",
+    "sexual orientation",
+    "gender identity",
+    "genetic information"
+   ]
+  },
+  {
+   "id": "md-gsg-20-702",
+   "j": "MD",
+   "code": "md:gsg",
+   "sec": "20-702",
+   "name": "Fair housing policy",
+   "topics": [
+    "housing",
+    "civil-rights",
+    "lgbtq"
+   ],
+   "summary": "States Maryland's policy of fair housing for all, regardless of race, sex, familial status, sexual orientation, gender identity, disability and other traits.",
+   "check": [
+    "fair housing",
+    "sexual orientation",
+    "gender identity"
+   ]
+  },
+  {
+   "id": "md-gsg-20-705",
+   "j": "MD",
+   "code": "md:gsg",
+   "sec": "20-705",
+   "name": "Housing discrimination",
+   "topics": [
+    "housing",
+    "civil-rights",
+    "lgbtq"
+   ],
+   "enacted": "Source of income added by the HOME Act, 2020",
+   "summary": "Bars refusing to rent or sell, setting different terms, or advertising preferences on a protected basis, including source of income such as a housing voucher.",
+   "check": [
+    "dwelling",
+    "source of income"
+   ]
+  },
+  {
+   "id": "md-gsg-20-1013",
+   "j": "MD",
+   "code": "md:gsg",
+   "sec": "20-1013",
+   "name": "Right to sue for job discrimination",
+   "topics": [
+    "work",
+    "civil-rights"
+   ],
+   "summary": "Lets a person who filed a timely discrimination charge sue the employer once 180 days have passed, within 2 years of the discrimination, or 3 years for harassment.",
+   "check": [
+    "civil action",
+    "180 days",
+    "2 years",
+    "3 years"
+   ]
+  },
+  {
+   "id": "md-gfl-2-201",
+   "j": "MD",
+   "code": "md:gfl",
+   "sec": "2-201",
+   "name": "Marriage equality",
+   "topics": [
+    "lgbtq"
+   ],
+   "enacted": "Civil Marriage Protection Act, 2012; upheld by referendum",
+   "summary": "A marriage between two individuals who are not otherwise prohibited from marrying is valid, regardless of sex.",
+   "check": [
+    "two individuals"
+   ]
+  },
+  {
+   "id": "md-gho-1-212.1",
+   "j": "MD",
+   "code": "md:gho",
+   "sec": "1-212.1",
+   "name": "Conversion therapy ban",
+   "topics": [
+    "lgbtq",
+    "youth",
+    "health"
+   ],
+   "enacted": "Youth Mental Health Protection Act, 2018",
+   "summary": "Bars licensed mental health and child care practitioners from conversion therapy on minors. A violation is unprofessional conduct.",
+   "check": [
+    "conversion therapy",
+    "minor"
+   ]
+  },
+  {
+   "id": "md-ghg-4-211",
+   "j": "MD",
+   "code": "md:ghg",
+   "sec": "4-211",
+   "name": "New birth certificate for sex designation",
+   "topics": [
+    "lgbtq",
+    "health"
+   ],
+   "summary": "Provides a new birth certificate with a changed sex designation when a licensed health care practitioner states the person has had treatment appropriate for sex transition or has an intersex condition, or on the other routes the section lists.",
+   "check": [
+    "sex designation",
+    "sex transition"
+   ]
+  },
+  {
+   "id": "md-ghg-15-151",
+   "j": "MD",
+   "code": "md:ghg",
+   "sec": "15-151",
+   "name": "Medicaid covers gender-affirming care",
+   "topics": [
+    "lgbtq",
+    "health"
+   ],
+   "enacted": "Trans Health Equity Act, 2023; in effect January 1, 2024",
+   "summary": "Requires Maryland Medicaid to cover medically necessary gender-affirming treatment, including hormones, puberty blockers, surgery, voice and hair treatment, and bars denying it because of a recipient's gender identity.",
+   "check": [
+    "gender-affirming treatment",
+    "puberty blockers",
+    "may not deny or limit coverage"
+   ]
+  },
+  {
+   "id": "md-gsp-2-312",
+   "j": "MD",
+   "code": "md:gsp",
+   "sec": "2-312",
+   "name": "Legally protected health care",
+   "topics": [
+    "lgbtq",
+    "health"
+   ],
+   "enacted": "2023 for reproductive care; gender-affirming treatment added 2024 (SB 119)",
+   "summary": "Defines legally protected health care, which includes gender-affirming treatment and reproductive care. Maryland's shield protections against out-of-state subpoenas and extradition all point to this definition.",
+   "check": [
+    "gender-affirming treatment",
+    "legally protected health care"
+   ]
+  },
+  {
+   "id": "md-gcp-9-106",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "9-106",
+   "name": "Shield from extradition for protected care",
+   "topics": [
+    "lgbtq",
+    "health"
+   ],
+   "summary": "Limits the Governor's power to surrender someone to another state for providing, receiving or assisting with legally protected health care in Maryland.",
+   "check": [
+    "legally protected health care services"
+   ]
+  },
+  {
+   "id": "md-gcj-9-402",
+   "j": "MD",
+   "code": "md:gcj",
+   "sec": "9-402",
+   "name": "Shield from out-of-state subpoenas",
+   "topics": [
+    "lgbtq",
+    "health"
+   ],
+   "summary": "A party asking a Maryland court to issue a subpoena for another state's case must swear it is not meant to further an investigation or proceeding over legally protected health care, except narrow suits such as one brought by the patient.",
+   "check": [
+    "legally protected health care",
+    "penalty of perjury"
+   ]
+  },
+  {
+   "id": "md-gcj-9-302",
+   "j": "MD",
+   "code": "md:gcj",
+   "sec": "9-302",
+   "name": "Shield for out-of-state witness summons",
+   "topics": [
+    "lgbtq",
+    "health"
+   ],
+   "summary": "Applies the same shield to summonses compelling a Maryland witness to testify in another state about legally protected health care.",
+   "check": [
+    "legally protected health care"
+   ]
+  },
+  {
+   "id": "md-gcr-2-207",
+   "j": "MD",
+   "code": "md:gcr",
+   "sec": "2-207",
+   "name": "Manslaughter and the panic-defense ban",
+   "topics": [
+    "lgbtq",
+    "hate"
+   ],
+   "enacted": "Panic defense barred 2021 (SB 46 / HB 231)",
+   "summary": "Sets the penalty for manslaughter and provides that a victim's actual or perceived race, sex, gender identity, sexual orientation, religion or disability is not adequate provocation to reduce murder to manslaughter.",
+   "check": [
+    "gender identity",
+    "sexual orientation",
+    "whether or not accurate"
+   ]
+  },
+  {
+   "id": "md-gcr-10-304",
+   "j": "MD",
+   "code": "md:gcr",
+   "sec": "10-304",
+   "name": "Hate crimes",
+   "topics": [
+    "hate",
+    "lgbtq"
+   ],
+   "summary": "Makes it a crime to commit an offense against a person or property because of race, color, religion, sexual orientation, sex, gender identity, disability, national origin or homelessness.",
+   "check": [
+    "sexual orientation",
+    "gender identity",
+    "homeless"
+   ]
+  },
+  {
+   "id": "md-gin-15-1A-22",
+   "j": "MD",
+   "code": "md:gin",
+   "sec": "15-1A-22",
+   "name": "Health plans and gender identity",
+   "topics": [
+    "lgbtq",
+    "health"
+   ],
+   "summary": "Bars health insurance carriers from denying coverage on the basis of race, sex, sexual orientation, gender identity, disability and other listed traits.",
+   "check": [
+    "gender identity",
+    "sexual orientation"
+   ]
+  },
+  {
+   "id": "md-ged-7-424",
+   "j": "MD",
+   "code": "md:ged",
+   "sec": "7-424",
+   "name": "School bullying reporting",
+   "topics": [
+    "youth",
+    "lgbtq"
+   ],
+   "summary": "Defines bullying, harassment and intimidation in schools and requires reporting and tracking of incidents.",
+   "check": [
+    "bullying, harassment, or intimidation"
+   ]
+  },
+  {
+   "id": "md-gps-3-524",
+   "j": "MD",
+   "code": "md:gps",
+   "sec": "3-524",
+   "name": "Maryland Use of Force Statute",
+   "topics": [
+    "policing"
+   ],
+   "enacted": "Police Accountability Act, 2021",
+   "summary": "Police may use force only when necessary and proportional. Officers must de-escalate when safe, intervene to stop excessive force by another officer and give first aid. An intentional violation that causes serious injury or death is a crime punishable by up to 10 years.",
+   "check": [
+    "Maryland Use of Force Statute",
+    "necessary and proportional",
+    "intervene",
+    "10 years"
+   ]
+  },
+  {
+   "id": "md-gps-3-102",
+   "j": "MD",
+   "code": "md:gps",
+   "sec": "3-102",
+   "name": "Police accountability boards",
+   "topics": [
+    "policing",
+    "transparency"
+   ],
+   "enacted": "Police Accountability Act, 2021",
+   "summary": "Requires every county to have a police accountability board that takes misconduct complaints from the public, appoints civilians to charging committees and trial boards, and reports each year on discipline trends.",
+   "check": [
+    "police accountability board",
+    "complaints of police misconduct"
+   ]
+  },
+  {
+   "id": "md-gps-3-511",
+   "j": "MD",
+   "code": "md:gps",
+   "sec": "3-511",
+   "name": "Body-worn cameras",
+   "topics": [
+    "policing",
+    "transparency"
+   ],
+   "summary": "Requires a statewide policy on body-worn cameras that covers when recording is mandatory or prohibited, notice, access, retention and release of recordings.",
+   "check": [
+    "body-worn camera",
+    "retention of recordings"
+   ]
+  },
+  {
+   "id": "md-gcp-1-203",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "1-203",
+   "name": "Search warrants and no-knock limits",
+   "topics": [
+    "policing"
+   ],
+   "enacted": "No-knock limits, 2021",
+   "summary": "Governs search warrants. A no-knock warrant may be requested only with written approval from a police supervisor and the State's Attorney, on reasonable suspicion that knocking would endanger someone, and the application must lay out the evidence.",
+   "check": [
+    "no-knock search warrant",
+    "police supervisor and the State's Attorney"
+   ]
+  },
+  {
+   "id": "md-gcp-1-211",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "1-211",
+   "name": "Cannabis odor is not grounds to stop or search",
+   "topics": [
+    "policing",
+    "drugs"
+   ],
+   "enacted": "2023",
+   "summary": "Officers may not stop or search a person, car or boat based only on the odor of cannabis, possession of a personal-use amount, or cash near cannabis without other signs of dealing.",
+   "check": [
+    "odor of burnt or unburnt cannabis",
+    "personal use amount"
+   ]
+  },
+  {
+   "id": "md-gsg-6-602",
+   "j": "MD",
+   "code": "md:gsg",
+   "sec": "6-602",
+   "name": "Independent Investigations Division",
+   "topics": [
+    "policing"
+   ],
+   "summary": "Creates the unit in the Attorney General's office that investigates police-involved deaths and serious injuries.",
+   "check": [
+    "Independent Investigations Division"
+   ]
+  },
+  {
+   "id": "md-gsg-6-604",
+   "j": "MD",
+   "code": "md:gsg",
+   "sec": "6-604",
+   "name": "Attorney General may prosecute police",
+   "topics": [
+    "policing"
+   ],
+   "enacted": "2023",
+   "summary": "Lets the Attorney General prosecute offenses found in an Independent Investigations Division case.",
+   "check": [
+    "prosecution"
+   ]
+  },
+  {
+   "id": "md-ggp-4-351",
+   "j": "MD",
+   "code": "md:ggp",
+   "sec": "4-351",
+   "name": "Police and investigation records",
+   "topics": [
+    "transparency",
+    "policing"
+   ],
+   "enacted": "Changed by Anton's Law, 2021",
+   "summary": "Lists the investigative and police records a custodian may withhold, including officer misconduct files, but only on the grounds the law allows. Anton's Law (2021) moved misconduct files from the always-secret personnel category into this one, so they can be requested.",
+   "check": [
+    "records of investigations",
+    "misconduct by a police officer"
+   ]
+  },
+  {
+   "id": "md-ggp-4-201",
+   "j": "MD",
+   "code": "md:ggp",
+   "sec": "4-201",
+   "name": "Maryland Public Information Act",
+   "topics": [
+    "transparency"
+   ],
+   "summary": "Gives the public the right to inspect public records at any reasonable time, with denial allowed only as the law provides.",
+   "check": [
+    "inspect any public record"
+   ]
+  },
+  {
+   "id": "md-gcp-10-105",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "10-105",
+   "name": "Expungement petitions",
+   "topics": [
+    "records"
+   ],
+   "summary": "Lets a person petition to expunge police and court records of charges that ended in acquittal, dismissal, probation before judgment, nolle prosequi and other listed outcomes.",
+   "check": [
+    "expungement"
+   ]
+  },
+  {
+   "id": "md-gcp-10-105.1",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "10-105.1",
+   "name": "Automatic expungement",
+   "topics": [
+    "records"
+   ],
+   "enacted": "2021",
+   "summary": "Automatically expunges records three years after disposition when every charge in the case ended in acquittal, dismissal, not guilty or nolle prosequi (not nolle prosequi with required treatment).",
+   "check": [
+    "expunged 3 years after",
+    "acquittal"
+   ]
+  },
+  {
+   "id": "md-gcp-10-110",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "10-110",
+   "name": "Expunging convictions",
+   "topics": [
+    "records"
+   ],
+   "summary": "Lets a person petition to expunge listed misdemeanor and felony convictions after the waiting period.",
+   "check": [
+    "expungement"
+   ]
+  },
+  {
+   "id": "md-gcp-10-303",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "10-303",
+   "name": "Shielding records (Second Chance Act)",
+   "topics": [
+    "records",
+    "work"
+   ],
+   "summary": "Lets a person petition to shield court and police records of shieldable convictions 3 years after finishing the sentence, including parole and probation, so most of the public and employers cannot see them.",
+   "check": [
+    "shield",
+    "3 years after"
+   ]
+  },
+  {
+   "id": "md-gcp-10-105.3",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "10-105.3",
+   "name": "Relief for cannabis possession convictions",
+   "topics": [
+    "records",
+    "drugs"
+   ],
+   "summary": "A person still incarcerated for a cannabis possession conviction can apply to be resentenced. The court must resentence them to time served and release them if they are not serving another sentence.",
+   "check": [
+    "resentence the person to time served"
+   ]
+  },
+  {
+   "id": "md-gcp-8-301",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "8-301",
+   "name": "Writ of actual innocence",
+   "topics": [
+    "innocence"
+   ],
+   "summary": "Lets a person convicted in circuit court petition at any time for a writ of actual innocence on newly discovered evidence. After a trial, the evidence must create a substantial or significant possibility of a different result; after a guilty plea, it must show innocence by clear and convincing evidence.",
+   "check": [
+    "newly discovered evidence",
+    "guilty plea",
+    "clear and convincing"
+   ]
+  },
+  {
+   "id": "md-gcp-8-201",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "8-201",
+   "name": "Postconviction DNA testing",
+   "topics": [
+    "innocence"
+   ],
+   "summary": "Lets a person convicted of serious crimes petition for DNA testing of evidence and requires the State to preserve it.",
+   "check": [
+    "DNA"
+   ]
+  },
+  {
+   "id": "md-gsf-10-501",
+   "j": "MD",
+   "code": "md:gsf",
+   "sec": "10-501",
+   "name": "Compensation for wrongful confinement",
+   "topics": [
+    "innocence"
+   ],
+   "enacted": "Walter Lomax Act, 2021",
+   "summary": "Compensates a person erroneously convicted and confined for a crime they did not commit, for each day of wrongful confinement, at a daily rate based on Maryland's median household income, once an administrative law judge finds them eligible.",
+   "check": [
+    "erroneously convicted",
+    "median household income"
+   ]
+  },
+  {
+   "id": "md-gcp-8-110",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "8-110",
+   "name": "Second look for young offenders",
+   "topics": [
+    "sentencing",
+    "youth"
+   ],
+   "enacted": "Juvenile Restoration Act, 2021; later expanded",
+   "summary": "Lets a person convicted as an adult for an offense committed as a minor, who has served at least 20 years, ask the court to reduce the sentence. It also covers some people who were 18 to 24 at the time.",
+   "check": [
+    "20 years",
+    "minor"
+   ]
+  },
+  {
+   "id": "md-gcs-7-309",
+   "j": "MD",
+   "code": "md:gcs",
+   "sec": "7-309",
+   "name": "Medical parole",
+   "topics": [
+    "prison",
+    "sentencing"
+   ],
+   "summary": "Allows medical parole for incarcerated people who are chronically debilitated or incapacitated, or terminally ill, when all their sentences carry the possibility of parole.",
+   "check": [
+    "chronically debilitated or incapacitated",
+    "terminal illness",
+    "medical parole"
+   ]
+  },
+  {
+   "id": "md-gcp-1-210",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "1-210",
+   "name": "Good Samaritan overdose law",
+   "topics": [
+    "drugs",
+    "health"
+   ],
+   "summary": "A person who in good faith seeks or gives medical help for someone in a drug or alcohol emergency cannot be arrested, charged or prosecuted for listed drug offenses when the evidence came only from that call for help. Seeking help is also a mitigating factor.",
+   "check": [
+    "medical assistance",
+    "immune from criminal arrest",
+    "solely as a result"
+   ]
+  },
+  {
+   "id": "md-gcs-9-614",
+   "j": "MD",
+   "code": "md:gcs",
+   "sec": "9-614",
+   "name": "Solitary confinement reporting",
+   "topics": [
+    "prison",
+    "transparency"
+   ],
+   "summary": "Requires correctional units to report on restrictive housing, including people with serious mental illness, pregnant people, length of stay and deaths and self-harm.",
+   "check": [
+    "restrictive housing",
+    "serious mental illness"
+   ]
+  },
+  {
+   "id": "md-gcs-9-601",
+   "j": "MD",
+   "code": "md:gcs",
+   "sec": "9-601",
+   "name": "Pregnancy and childbirth in custody",
+   "topics": [
+    "prison",
+    "health"
+   ],
+   "summary": "Sets rules for incarcerated people who are pregnant, in labor or postpartum, including a ban on physical restraints during labor and delivery unless the responsible medical professional decides otherwise.",
+   "check": [
+    "labor",
+    "physical restraint may not be used"
+   ]
+  },
+  {
+   "id": "md-gcj-3-8A-14.2",
+   "j": "MD",
+   "code": "md:gcj",
+   "sec": "3-8A-14.2",
+   "name": "Children must talk to a lawyer before interrogation",
+   "topics": [
+    "youth",
+    "policing"
+   ],
+   "enacted": "Child Interrogation Protection Act, 2022",
+   "summary": "Police may not interrogate a child in custody until the child has consulted with an attorney and the officer has tried to notify a parent or guardian.",
+   "check": [
+    "consulted with an attorney"
+   ]
+  },
+  {
+   "id": "md-gcj-3-8A-03",
+   "j": "MD",
+   "code": "md:gcj",
+   "sec": "3-8A-03",
+   "name": "Juvenile court jurisdiction",
+   "topics": [
+    "youth"
+   ],
+   "enacted": "Juvenile Justice Reform Act, 2022",
+   "summary": "Sets which children juvenile court handles: delinquency cases start at age 13, or age 10 for listed serious offenses such as crimes of violence.",
+   "check": [
+    "at least 13 years old",
+    "at least 10 years old"
+   ]
+  },
+  {
+   "id": "md-gel-3-102",
+   "j": "MD",
+   "code": "md:gel",
+   "sec": "3-102",
+   "name": "Voting after a felony",
+   "topics": [
+    "voting"
+   ],
+   "summary": "A felony conviction bars registration only while the person is serving a court-ordered sentence of imprisonment, so voting rights return on release.",
+   "check": [
+    "currently serving a court-ordered sentence of imprisonment"
+   ]
+  },
+  {
+   "id": "md-grp-8-208.1",
+   "j": "MD",
+   "code": "md:grp",
+   "sec": "8-208.1",
+   "name": "No retaliatory eviction",
+   "topics": [
+    "housing"
+   ],
+   "summary": "Bars a landlord from suing for possession, raising rent or cutting services because a tenant complained, joined a tenants' organization or asserted their rights.",
+   "check": [
+    "action for possession"
+   ]
+  },
+  {
+   "id": "md-grp-8-211",
+   "j": "MD",
+   "code": "md:grp",
+   "sec": "8-211",
+   "name": "Rent escrow for serious defects",
+   "topics": [
+    "housing"
+   ],
+   "summary": "Lets tenants pay rent into court when a landlord fails to repair serious and dangerous defects.",
+   "check": [
+    "serious and dangerous defects"
+   ]
+  },
+  {
+   "id": "md-grp-8-902",
+   "j": "MD",
+   "code": "md:grp",
+   "sec": "8-902",
+   "name": "Right to counsel in evictions",
+   "topics": [
+    "housing"
+   ],
+   "enacted": "2021",
+   "summary": "Gives covered tenants access to legal representation in eviction proceedings.",
+   "check": [
+    "access to legal representation"
+   ]
+  },
+  {
+   "id": "md-grp-8-401",
+   "j": "MD",
+   "code": "md:grp",
+   "sec": "8-401",
+   "name": "Eviction for unpaid rent",
+   "topics": [
+    "housing"
+   ],
+   "summary": "Sets the court process a landlord must follow to evict for unpaid rent, including the tenant's right to redeem by paying.",
+   "check": [
+    "fail to pay the rent"
+   ]
+  },
+  {
+   "id": "md-gle-3-1503",
+   "j": "MD",
+   "code": "md:gle",
+   "sec": "3-1503",
+   "name": "Ban the box",
+   "topics": [
+    "work",
+    "records"
+   ],
+   "enacted": "Criminal Record Screening Practices, 2020",
+   "summary": "Employers may not ask about criminal records before the first in-person interview, with exceptions.",
+   "check": [
+    "criminal record",
+    "first in-person interview"
+   ]
+  },
+  {
+   "id": "md-ghg-4-302",
+   "j": "MD",
+   "code": "md:ghg",
+   "sec": "4-302",
+   "name": "Medical records are confidential",
+   "topics": [
+    "health"
+   ],
+   "summary": "Requires health care providers to keep medical records confidential and to disclose them only as the law allows.",
+   "check": [
+    "confidential"
+   ]
+  },
+  {
+   "id": "md-gcp-5-104",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "5-104",
+   "name": "Limits on police immigration enforcement",
+   "topics": [
+    "immigration",
+    "policing"
+   ],
+   "summary": "Bars police during regular duties from asking about citizenship, immigration status or place of birth during a stop, search or arrest, or detaining someone to investigate immigration status, with exceptions.",
+   "check": [
+    "immigration status",
+    "place of birth"
+   ]
+  },
+  {
+   "id": "md-gcp-2-104.2",
+   "j": "MD",
+   "code": "md:gcp",
+   "sec": "2-104.2",
+   "name": "Immigration enforcement at sensitive locations",
+   "topics": [
+    "immigration"
+   ],
+   "summary": "Public schools, libraries and state and local agencies at sensitive locations must deny immigration enforcement agents access to nonpublic areas unless they present a valid federal court warrant or there are exigent circumstances.",
+   "check": [
+    "sensitive location",
+    "valid warrant issued by a federal court",
+    "exigent circumstances"
+   ]
+  },
+  {
+   "id": "md-ged-15-106.8",
+   "j": "MD",
+   "code": "md:ged",
+   "sec": "15-106.8",
+   "name": "Maryland Dream Act",
+   "topics": [
+    "immigration"
+   ],
+   "enacted": "2011; upheld by referendum 2012",
+   "summary": "Makes undocumented students who meet the attendance and other conditions eligible for in-state tuition.",
+   "check": [
+    "undocumented immigrant"
+   ]
+  },
+  {
+   "id": "md-gcr-5-601.1",
+   "j": "MD",
+   "code": "md:gcr",
+   "sec": "5-601.1",
+   "name": "Cannabis citations, not arrests",
+   "topics": [
+    "drugs",
+    "policing"
+   ],
+   "summary": "Use or possession of a civil use or personal use amount of cannabis is a civil offense handled by citation, not a criminal conviction.",
+   "check": [
+    "civil use amount",
+    "not a criminal conviction"
+   ]
+  },
+  {
+   "id": "us-42-1983",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "1983",
+   "name": "Civil rights lawsuits (Section 1983)",
+   "topics": [
+    "civil-rights",
+    "policing",
+    "prison"
+   ],
+   "summary": "Lets a person sue anyone who, acting under color of state law, deprives them of federal constitutional or statutory rights. It is the basis of most suits over police and jail abuse.",
+   "check": [
+    "under color of"
+   ]
+  },
+  {
+   "id": "us-42-1981",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "1981",
+   "name": "Equal rights under the law",
+   "topics": [
+    "civil-rights",
+    "work"
+   ],
+   "summary": "Guarantees all persons the same right to make and enforce contracts, sue and give evidence, regardless of race.",
+   "check": [
+    "make and enforce contracts"
+   ]
+  },
+  {
+   "id": "us-42-2000e-2",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "2000e-2",
+   "name": "Title VII employment discrimination",
+   "topics": [
+    "work",
+    "civil-rights",
+    "lgbtq"
+   ],
+   "enacted": "1964; Bostock v. Clayton County (2020) held that firing someone for being gay or transgender is sex discrimination",
+   "summary": "Bars employers from refusing to hire, firing or discriminating because of race, color, religion, sex or national origin. Coverage thresholds are in 42 U.S.C. § 2000e.",
+   "check": [
+    "sex, or national origin"
+   ]
+  },
+  {
+   "id": "us-42-3604",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "3604",
+   "name": "Federal Fair Housing Act",
+   "topics": [
+    "housing",
+    "civil-rights",
+    "disability"
+   ],
+   "summary": "Bars housing discrimination because of race, color, religion, sex, familial status or national origin, and separately because of a handicap (disability).",
+   "check": [
+    "dwelling",
+    "familial status",
+    "handicap"
+   ]
+  },
+  {
+   "id": "us-42-12132",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "12132",
+   "name": "ADA: public entities",
+   "topics": [
+    "disability",
+    "prison",
+    "civil-rights"
+   ],
+   "summary": "Bars state and local governments, including courts, police, jails and prisons, from excluding or discriminating against qualified people with disabilities.",
+   "check": [
+    "public entity"
+   ]
+  },
+  {
+   "id": "us-42-2000d",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "2000d",
+   "name": "Title VI",
+   "topics": [
+    "civil-rights"
+   ],
+   "summary": "Bars discrimination on the basis of race, color or national origin in any program that receives federal money.",
+   "check": [
+    "race, color, or national origin"
+   ]
+  },
+  {
+   "id": "us-20-1681",
+   "j": "US",
+   "code": "usc:20",
+   "sec": "1681",
+   "name": "Title IX",
+   "topics": [
+    "civil-rights",
+    "youth",
+    "lgbtq"
+   ],
+   "summary": "Bars sex discrimination in federally funded education programs.",
+   "check": [
+    "on the basis of sex"
+   ]
+  },
+  {
+   "id": "us-18-249",
+   "j": "US",
+   "code": "usc:18",
+   "sec": "249",
+   "name": "Federal hate crimes (Shepard-Byrd Act)",
+   "topics": [
+    "hate",
+    "lgbtq"
+   ],
+   "enacted": "2009",
+   "summary": "Makes it a federal crime to cause or attempt bodily injury because of race, religion, national origin, gender, sexual orientation, gender identity or disability.",
+   "check": [
+    "gender identity",
+    "sexual orientation"
+   ]
+  },
+  {
+   "id": "us-34-12601",
+   "j": "US",
+   "code": "usc:34",
+   "sec": "12601",
+   "name": "Pattern-or-practice police investigations",
+   "topics": [
+    "policing"
+   ],
+   "summary": "Makes it unlawful for police or juvenile justice agencies to engage in a pattern or practice of violating people's rights, and lets the U.S. Attorney General sue to stop it.",
+   "check": [
+    "pattern or practice",
+    "juvenile"
+   ]
+  },
+  {
+   "id": "us-42-1997a",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "1997a",
+   "name": "Civil Rights of Institutionalized Persons Act",
+   "topics": [
+    "prison",
+    "disability"
+   ],
+   "summary": "Lets the U.S. Attorney General sue a state or local government that subjects people in jails, prisons, juvenile facilities or other institutions to egregious or flagrant conditions.",
+   "check": [
+    "institution",
+    "egregious or flagrant"
+   ]
+  },
+  {
+   "id": "us-34-30307",
+   "j": "US",
+   "code": "usc:34",
+   "sec": "30307",
+   "name": "Prison Rape Elimination Act standards",
+   "topics": [
+    "prison",
+    "lgbtq"
+   ],
+   "summary": "Requires national standards for the detection, prevention, reduction and punishment of prison rape, which apply to prisons, jails and juvenile facilities.",
+   "check": [
+    "national standards for the detection, prevention, reduction, and punishment of prison rape"
+   ]
+  },
+  {
+   "id": "us-42-290dd-2",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "290dd-2",
+   "name": "Substance use treatment records (Part 2)",
+   "topics": [
+    "health",
+    "drugs"
+   ],
+   "summary": "Keeps substance use disorder treatment records confidential and limits their use against the patient in criminal cases without a court order.",
+   "check": [
+    "confidential"
+   ]
+  },
+  {
+   "id": "us-52-10301",
+   "j": "US",
+   "code": "usc:52",
+   "sec": "10301",
+   "name": "Voting Rights Act, Section 2",
+   "topics": [
+    "voting",
+    "civil-rights"
+   ],
+   "summary": "Bars any voting practice that results in denying or abridging the right to vote on account of race or color.",
+   "check": [
+    "race or color"
+   ]
+  },
+  {
+   "id": "us-42-18116",
+   "j": "US",
+   "code": "usc:42",
+   "sec": "18116",
+   "name": "ACA Section 1557",
+   "topics": [
+    "health",
+    "civil-rights",
+    "lgbtq"
+   ],
+   "summary": "Bars discrimination in federally funded health programs on the grounds covered by Title VI, Title IX, the Age Discrimination Act and Section 504. Whether its sex protection covers gender identity is being litigated.",
+   "check": [
+    "title IX"
+   ]
+  }
+ ]
+}

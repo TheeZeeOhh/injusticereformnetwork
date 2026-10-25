@@ -1,0 +1,369 @@
+<title>IRN Lawbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Virginia, Maryland and federal laws on discrimination, policing, wrongful conviction, LGBTQ+ rights and more, each checked against the official code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a reading-room index. One masthead, a sticky finder bar, then a single
+   column of entries set like a statute book: citation first, plain words second. */
+:root {
+  --ground: #f6f2ea;      /* paper */
+  --panel: #fffdf8;
+  --ink: #1d1a1b;
+  --ink-2: #5a5249;
+  --rule: #ddd3c2;
+  --rule-strong: #8a7a62;
+  --gold: #7a5c22;        /* accent; 6.1:1 on paper */
+  --gold-soft: #efe3c8;
+  --va: #6b2b3a;          /* Virginia tag */
+  --md: #23466b;          /* Maryland tag */
+  --us: #3d4a2a;          /* federal tag */
+  --warn: #8a3b12;
+  --warn-soft: #fbe6d8;
+  --focus: #7a5c22;
+  --f-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --f-body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --dur: 160ms;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0f0e10; --panel: #18161a; --ink: #efe8d9; --ink-2: #b4aa99;
+    --rule: #2e2a2f; --rule-strong: #7c705e; --gold: #d6b87d; --gold-soft: #2c2519;
+    --va: #e3a3b1; --md: #9cc0e8; --us: #b9cc93; --warn: #f0a777; --warn-soft: #33201a;
+    --focus: #e6cd9b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0f0e10; --panel: #18161a; --ink: #efe8d9; --ink-2: #b4aa99;
+  --rule: #2e2a2f; --rule-strong: #7c705e; --gold: #d6b87d; --gold-soft: #2c2519;
+  --va: #e3a3b1; --md: #9cc0e8; --us: #b9cc93; --warn: #f0a777; --warn-soft: #33201a;
+  --focus: #e6cd9b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font: 400 16px/1.55 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ground); }
+.wrap { max-width: 60rem; margin: 0 auto; }
+a { color: var(--gold); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Masthead */
+header.mast { padding-block: 40px 24px; display: grid; gap: 16px; }
+.eyebrow { font: 600 12px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+h1 { font: 400 clamp(44px, 9vw, 72px)/1.02 var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 18px; max-width: 42rem; margin: 0; color: var(--ink-2); text-wrap: pretty; }
+.tally { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 4px 0 0; padding: 0; list-style: none; font-variant-numeric: tabular-nums; }
+.tally li { display: grid; }
+.tally b { font: 400 30px/1.1 var(--f-display); }
+.tally span { font-size: 13px; color: var(--ink-2); }
+.notice { border-left: 3px solid var(--gold); background: var(--gold-soft); padding: 12px 16px; font-size: 14px; max-width: 46rem; margin: 0; }
+
+/* Finder */
+.finder { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--ground); padding-block: 12px; border-bottom: 1px solid var(--rule); display: grid; gap: 12px; }
+.search label { display: block; position: relative; min-width: 0; }
+.search svg { position: absolute; left: 12px; top: 50%; translate: 0 -50%; color: var(--ink-2); pointer-events: none; }
+#q { inline-size: 100%; min-inline-size: 0; min-height: 48px; padding: 0 12px 0 40px; font: 400 16px var(--f-body); color: var(--ink); background: var(--panel); border: 1px solid var(--rule-strong); border-radius: 4px; }
+#q::placeholder { color: var(--ink-2); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule-strong); border-radius: 4px; overflow: hidden; }
+.seg button { min-height: 40px; padding: 0 14px; border: 0; border-right: 1px solid var(--rule); background: var(--panel); color: var(--ink); font: 500 14px var(--f-body); cursor: pointer; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--ground); }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; -webkit-mask-image: linear-gradient(to right, #000 90%, transparent); mask-image: linear-gradient(to right, #000 90%, transparent); }
+.chip { flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--rule-strong); background: transparent; color: var(--ink); font: 500 13px var(--f-body); cursor: pointer; white-space: nowrap; transition: background var(--dur) ease-out; }
+.chip:hover { background: var(--gold-soft); }
+.chip[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--ground); }
+.chip.lead { border-width: 2px; font-weight: 600; }
+.chip .n { font-variant-numeric: tabular-nums; opacity: .75; margin-left: 4px; }
+.status { font-size: 14px; color: var(--ink-2); margin: 0; }
+.clear { min-height: 36px; padding: 0 10px; background: none; border: 0; color: var(--gold); font: 500 14px var(--f-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* Topic intro, shown when one topic is chosen */
+.topic-intro { padding-block: 20px 0; }
+.topic-intro h2 { font: 400 32px/1.15 var(--f-display); margin: 0 0 4px; }
+.topic-intro p { margin: 0; color: var(--ink-2); max-width: 44rem; }
+
+/* Entries */
+ol.laws { list-style: none; margin: 0; padding: 8px 0 0; }
+.law { padding-block: 22px; border-bottom: 1px solid var(--rule); display: grid; gap: 8px; scroll-margin-top: 200px; min-width: 0; }
+.law:target { background: linear-gradient(to right, var(--gold-soft), transparent 70%); }
+.cite { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font: 600 14px/1.3 var(--f-mono); }
+.cite a { color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
+.cite a:hover { text-decoration: underline; }
+.j { font: 600 11px/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; padding: 4px 6px; border: 1px solid currentColor; border-radius: 2px; }
+.j-VA { color: var(--va); } .j-MD { color: var(--md); } .j-US { color: var(--us); }
+.law h3 { font: 600 20px/1.3 var(--f-body); margin: 0; text-wrap: balance; }
+.law .sum { margin: 0; max-width: 46rem; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font: 500 12px var(--f-body); padding: 2px 10px; border-radius: 999px; background: var(--gold-soft); color: var(--ink); border: 0; cursor: pointer; min-height: 26px; }
+.tag:hover { text-decoration: underline; }
+.ok { display: inline-flex; align-items: center; gap: 4px; }
+.ok svg { color: var(--gold); flex: none; }
+.flag { color: var(--warn); background: var(--warn-soft); padding: 2px 8px; border-radius: 2px; font-weight: 600; }
+.hit { font-size: 14px; color: var(--ink-2); margin: 0; max-width: 46rem; overflow-wrap: anywhere; }
+mark { background: var(--gold-soft); color: var(--ink); padding: 0 2px; border-radius: 2px; }
+.acts { display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: flex-start; }
+details > summary { list-style: none; cursor: pointer; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; font: 500 14px var(--f-body); color: var(--gold); }
+details > summary::-webkit-details-marker { display: none; }
+details > summary svg { transition: rotate var(--dur) ease-in-out; }
+details[open] > summary svg { rotate: 90deg; }
+.official { margin-top: 4px; padding: 16px; background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; font: 400 14px/1.6 var(--f-body); max-height: 28rem; overflow: auto; }
+.official h4 { margin: 0 0 8px; font: 600 13px/1.4 var(--f-mono); }
+.official p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.official .more { font-style: italic; color: var(--ink-2); }
+.src { font-size: 14px; display: inline-flex; align-items: center; gap: 4px; min-height: 40px; order: 1; }
+.acts details { order: 0; flex: 0 1 auto; }
+.acts details[open] { flex-basis: 100%; }
+
+.empty { padding-block: 56px; text-align: center; display: grid; gap: 12px; justify-items: center; }
+.empty h2 { font: 400 28px/1.2 var(--f-display); margin: 0; }
+.empty p { margin: 0; color: var(--ink-2); max-width: 32rem; }
+
+footer { padding-block: 40px 56px; color: var(--ink-2); font-size: 14px; display: grid; gap: 10px; }
+footer h2 { font: 400 22px var(--f-display); color: var(--ink); margin: 0; }
+footer p { margin: 0; max-width: 46rem; }
+.top { min-height: 40px; display: inline-flex; align-items: center; }
+
+@media (max-width: 560px) {
+  header.mast { padding-block: 24px 16px; }
+  .finder { position: static; }
+  .law { scroll-margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (forced-colors: active) {
+  .chip[aria-pressed="true"], .seg button[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow">Injustice Reform Network</div>
+    <h1>IRN Lawbook</h1>
+    <p class="lede" id="scope"></p>
+    <ul class="tally" id="tally" aria-label="What is in the lawbook"></ul>
+    <p class="notice" id="notice"></p>
+  </header>
+
+  <div class="finder" role="search">
+    <div class="search">
+      <label for="q">
+        <span class="sr">Search laws</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Search laws and their official text">
+      </label>
+    </div>
+    <div class="row">
+      <div class="seg" role="group" aria-label="Jurisdiction" id="juris"></div>
+      <button type="button" class="clear" id="clear" hidden>Clear filters</button>
+    </div>
+    <div class="chips" role="group" aria-label="Topic" id="topics"></div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </div>
+
+  <section class="topic-intro" id="intro" hidden><h2 id="intro-h"></h2><p id="intro-p"></p></section>
+  <ol class="laws" id="list"></ol>
+  <div class="empty" id="empty" hidden>
+    <h2>No laws match</h2>
+    <p>Try a shorter word, like "eviction" or "warrant", or clear the filters to see every law.</p>
+    <button type="button" class="clear" id="clear2">Clear search and filters</button>
+  </div>
+
+  <footer>
+    <h2>Where this comes from</h2>
+    <p>Every section is fetched from the official source: the Code of Virginia at law.lis.virginia.gov, the Maryland Code at mgaleg.maryland.gov, and the U.S. Code through Cornell's Legal Information Institute. The builder checks that the official text contains the words each summary relies on, and flags any section that fails or was repealed. IRN writes the plain-language summaries; they are not legal advice.</p>
+    <p id="built"></p>
+    <a class="top" href="#q">Back to search</a>
+  </footer>
+</div>
+
+<script>
+"use strict";
+const DATA = /*LAWBOOK_DATA*/null;
+
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k != null) n.append(k);
+    return n;
+  };
+  const NS = "http://www.w3.org/2000/svg";
+  // Fixed lucide icon shapes, built as nodes; data never reaches markup.
+  const ICON = {
+    check: [["path", { d: "M20 6 9 17l-5-5" }]],
+    chev: [["path", { d: "m9 18 6-6-6-6" }]],
+    out: [["path", { d: "M15 3h6v6" }], ["path", { d: "M10 14 21 3" }], ["path", { d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" }]],
+  };
+  const icon = (name) => {
+    const s = document.createElementNS(NS, "svg");
+    for (const [k, v] of Object.entries({ width: 14, height: 14, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+      "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" })) s.setAttribute(k, v);
+    for (const [tag, attrs] of ICON[name]) {
+      const c = document.createElementNS(NS, tag);
+      for (const [k, v] of Object.entries(attrs)) c.setAttribute(k, v);
+      s.append(c);
+    }
+    return s;
+  };
+  const JLABEL = { VA: "Virginia", MD: "Maryland", US: "Federal" };
+  const SOURCE = { VA: "Virginia LIS", MD: "Maryland General Assembly", US: "Cornell LII" };
+  const anchor = (id) => id.replace(/[^A-Za-z0-9._~-]/g, "_");
+  // Lowercase and unify dashes and quotes; one character in, one out, so
+  // positions found in the folded text line up with the original.
+  const fold = (s) => (s || "").toLowerCase().replace(/[‐-―]/g, "-").replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+
+  const topics = DATA.topics;
+  const tById = Object.fromEntries(topics.map((t) => [t.id, t]));
+  const laws = DATA.laws.map((l) => ({
+    ...l,
+    _head: fold([l.cite, l.name, l.summary, l.enacted, l.topics.map((t) => tById[t].label).join(" ")].join(" ")),
+    _text: fold(l.text),
+  }));
+
+  // Masthead
+  $("scope").textContent = DATA.meta.scope;
+  $("notice").textContent = DATA.meta.notice;
+  const count = (f) => laws.filter(f).length;
+  for (const [n, label] of [[laws.length, "laws"], [count((l) => l.j === "VA"), "Virginia"], [count((l) => l.j === "MD"), "Maryland"],
+    [count((l) => l.j === "US"), "federal"], [count((l) => l.topics.includes("lgbtq")), "LGBTQ+"]]) {
+    $("tally").append(el("li", {}, el("b", { text: String(n) }), el("span", { text: label })));
+  }
+  const checked = laws.map((l) => l.checked).filter(Boolean).sort();
+  $("built").textContent = checked.length
+    ? `Built ${DATA.built}. Sections last checked against the official text: ${checked[0] === checked[checked.length - 1] ? checked[0] : checked[0] + " to " + checked[checked.length - 1]}.`
+    : `Built ${DATA.built}.`;
+
+  // State, with a bare #topic-lgbtq or #va style link as the only deep link
+  const state = { q: "", j: "all", t: null };
+  const h = location.hash.slice(1);
+  if (h.startsWith("topic-") && tById[h.slice(6)]) state.t = h.slice(6);
+  else if (["va", "md", "us"].includes(h)) state.j = h.toUpperCase();
+
+  for (const [v, label] of [["all", "All"], ["VA", "Virginia"], ["MD", "Maryland"], ["US", "Federal"]]) {
+    const b = el("button", { type: "button", "data-j": v, "aria-pressed": "false", text: label });
+    b.addEventListener("click", () => { state.j = v; render(); });
+    $("juris").append(b);
+  }
+  // LGBTQ+ leads the topic row.
+  const order = ["lgbtq", ...topics.map((t) => t.id).filter((id) => id !== "lgbtq")];
+  for (const id of order) {
+    const b = el("button", { type: "button", class: "chip" + (id === "lgbtq" ? " lead" : ""), "data-t": id, "aria-pressed": "false" },
+      tById[id].label, el("span", { class: "n", text: String(count((l) => l.topics.includes(id))) }));
+    b.addEventListener("click", () => { state.t = state.t === id ? null : id; render(); });
+    $("topics").append(b);
+  }
+
+  let timer = 0;
+  $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { state.q = $("q").value; render(); }, 120); });
+  const reset = () => { state.q = ""; state.j = "all"; state.t = null; $("q").value = ""; render(); $("q").focus(); };
+  $("clear").addEventListener("click", reset);
+  $("clear2").addEventListener("click", reset);
+
+  const terms = (q) => fold(q).split(/\s+/).filter((w) => w.length > 1 || /\d/.test(w));
+
+  // Every word must appear somewhere; words in the name, citation or summary rank higher.
+  function score(l, ws) {
+    let s = 0;
+    for (const w of ws) {
+      if (l._head.includes(w)) s += 10;
+      else if (l._text.includes(w)) s += 1;
+      else return 0;
+    }
+    return ws.length ? s : 1;
+  }
+
+  // The passage of official text around the first matched word, built from text
+  // nodes so statute text is never parsed as HTML.
+  function snippet(l, ws) {
+    let at = -1;
+    for (const w of ws) { const i = l._text.indexOf(w); if (i >= 0 && (at < 0 || i < at)) at = i; }
+    if (at < 0) return null;
+    const a = Math.max(0, l.text.lastIndexOf(" ", Math.max(0, at - 90)) + 1);
+    const b = Math.min(l.text.length, at + 170);
+    const raw = l.text.slice(a, b), low = l._text.slice(a, b);
+    const p = el("p", { class: "hit" }, el("span", { class: "sr", text: "Matched in the official text: " }), a > 0 ? "…" : "");
+    const re = new RegExp(ws.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "g");
+    let last = 0, m;
+    while ((m = re.exec(low))) {
+      p.append(raw.slice(last, m.index), el("mark", { text: raw.slice(m.index, m.index + m[0].length) }));
+      last = m.index + m[0].length;
+    }
+    p.append(raw.slice(last), b < l.text.length ? "…" : "");
+    return p;
+  }
+
+  function official(l) {
+    const d = el("details", {});
+    d.append(el("summary", {}, icon("chev"), "Read the official text"));
+    d.addEventListener("toggle", () => {
+      if (!d.open || d.dataset.ready) return;
+      d.dataset.ready = "1";
+      const box = el("div", { class: "official", tabindex: "0", role: "region", "aria-label": "Official text of " + l.cite });
+      if (l.heading) box.append(el("h4", { text: l.heading }));
+      for (const para of l.text.split(/\n+/)) if (para.trim()) box.append(el("p", { text: para }));
+      if (l.cut) box.append(el("p", { class: "more", text: "The section continues. Open the official source for the full text." }));
+      d.append(box);
+    });
+    return d;
+  }
+
+  function card(l, ws) {
+    const li = el("li", { class: "law", id: anchor(l.id) });
+    li.append(el("div", { class: "cite" },
+      el("span", { class: "j j-" + l.j, text: JLABEL[l.j] }),
+      el("a", { href: "#" + anchor(l.id), text: l.cite })));
+    li.append(el("h3", { text: l.name }));
+    li.append(el("p", { class: "sum", text: l.summary }));
+    if (ws.length && !ws.every((w) => l._head.includes(w))) { const sn = snippet(l, ws); if (sn) li.append(sn); }
+    const meta = el("div", { class: "meta" });
+    if (l.enacted) meta.append(el("span", { text: l.enacted }));
+    if (l.status === "ok") meta.append(el("span", { class: "ok" }, icon("check"), "Checked against the official text " + l.checked));
+    else meta.append(el("span", { class: "flag", text: l.status === "unreachable"
+      ? "Could not reach the official source. Verify before relying on this."
+      : "The official text no longer matches this summary. Verify before relying on it." }));
+    li.append(meta);
+    const tags = el("div", { class: "tags" });
+    for (const t of l.topics) {
+      const b = el("button", { type: "button", class: "tag", text: tById[t].label, "aria-label": "Show all " + tById[t].label + " laws" });
+      b.addEventListener("click", () => { state.t = t; render(); $("intro").scrollIntoView({ block: "start" }); });
+      tags.append(b);
+    }
+    li.append(tags);
+    li.append(el("div", { class: "acts" }, official(l),
+      el("a", { class: "src", href: l.url, target: "_blank", rel: "noopener noreferrer" }, "Open on " + SOURCE[l.j], icon("out"))));
+    return li;
+  }
+
+  const JORDER = { VA: 0, MD: 1, US: 2 };
+  function render() {
+    const ws = terms(state.q);
+    const rows = laws.filter((l) => (state.j === "all" || l.j === state.j) && (!state.t || l.topics.includes(state.t)))
+      .map((l) => [l, score(l, ws)]).filter(([, s]) => s > 0);
+    if (ws.length) rows.sort((a, b) => b[1] - a[1] || JORDER[a[0].j] - JORDER[b[0].j]);
+    $("list").replaceChildren(...rows.map(([l]) => card(l, ws)));
+    $("empty").hidden = rows.length > 0;
+    for (const b of $("juris").children) b.setAttribute("aria-pressed", String(b.dataset.j === state.j));
+    for (const b of $("topics").children) b.setAttribute("aria-pressed", String(b.dataset.t === state.t));
+    $("clear").hidden = !(ws.length || state.j !== "all" || state.t);
+    const where = [state.j !== "all" ? JLABEL[state.j] : null, state.t ? tById[state.t].label : null].filter(Boolean).join(", ");
+    $("status").textContent = `${rows.length} of ${laws.length} laws` + (where ? ` in ${where}` : "") + (ws.length ? ` matching "${state.q.trim()}"` : "");
+    $("intro").hidden = !state.t;
+    if (state.t) { $("intro-h").textContent = tById[state.t].label; $("intro-p").textContent = tById[state.t].blurb; }
+  }
+  render();
+
+  // A link to one law opens on it.
+  if (h && !state.t && document.getElementById(h)) document.getElementById(h).scrollIntoView();
+})();
+</script>

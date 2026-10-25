@@ -100,3 +100,6 @@ boot-test-out*/
 # Python bytecode from IRNL codegen consumers
 __pycache__/
 *.pyc
+
+# Lawbook database: built by lawbook/build.py
+lawbook/lawbook.sqlite
